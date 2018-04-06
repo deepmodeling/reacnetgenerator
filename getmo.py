@@ -159,7 +159,7 @@ def getoriginandhmm(item):
 
 def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename):
     with open(originfilename, 'wt',buffering=4096) as fo,open(hmmfilename, 'wt',buffering=4096) as fh,open(moleculetemp2filename,'wt',buffering=4096) as ft,Pool(maxtasksperchild=100) as pool:
-        semaphore = Semaphore(1024)
+        semaphore = Semaphore(512)
         results=pool.imap_unordered(getoriginandhmm,produce(semaphore,moleculetempfilename),10)
         for originsignal,hmmsignal,mlist in results:
             print("".join([str(i) for i in originsignal]), file=fo)
