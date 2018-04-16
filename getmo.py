@@ -1,36 +1,18 @@
 # -*- coding: UTF-8 -*-  
-#updated at 2018/4/6 23:00
+#updated at 2018/4/17 00:00
 
-######### Parameter ############
-bondfilename="bonds.reaxc"#filename
-atomname=["C","H","O"]#atom type
-originfilename="originsignal.txt"
-hmmfilename="hmmsignal.txt"
-atomfilename="atom.txt"
-moleculefilename="moleculename.txt"
-atomroutefilename="atomroute.txt"
-reactionfilename="reaction.txt"
-tablefilename="table.txt"
-moleculetempfilename="moleculetemp.txt"
-moleculetemp2filename="moleculetemp2.txt"
-stepinterval=1
-######## HMM Parameter ########
-states = [0,1]
-observations = [0,1]
-p=[0.5,0.5]
-a=[[0.999,0.001],
-    [0.001,0.999]]
-b=[[0.6, 0.4],
-    [0.4, 0.6]]
 ######### import #########
 import time
 import gc
+import math
 from multiprocessing import Pool, Semaphore
 import numpy as np
 from hmmlearn import hmm
 from functools import reduce
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
+from itertools import islice
+import matplotlib.pyplot as plt
 ######## function ########
 def printtime(timearray):
     timearray.append(time.time())
@@ -66,7 +48,7 @@ def mo(i,bond,level,molecule,done,bondlist): #connect molecule
             molecule,done,bondlist=mo(b,bond,level,molecule,done,bondlist)
     return molecule,done,bondlist
 
-def openbondfile(bondfilename,moleculetempfilename,N):
+def openbondfile(bondfilename,moleculetempfilename,N,stepinterval):
     step=0
     realstep=0
     iscontent=False
@@ -135,7 +117,7 @@ def initHMM(states,observations,p,a,b):
     model.emissionprob_= np.array(b)
     return model
 
-def gethmm(ori,model):
+def gethmm(ori,model,states):
     o = np.array([ori]).T
     logprob, h = model.decode(o, algorithm="viterbi")
     hmmlist=list(map(lambda x: states[x], h))
@@ -153,8 +135,8 @@ def getoriginandhmm(item):
     list=item.split()
     value=[int(x) for x in list[-1].split(",")]
     origin= [1 if i in value else 0 for i in range(1, step+1)]
-    global model
-    hmm=gethmm(origin,model)
+    global model,states
+    hmm=gethmm(origin,model,states)
     return origin,hmm,item
 
 def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename):
@@ -168,7 +150,7 @@ def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename
             semaphore.release()
 
 def getatomroute(i):
-    global step,atomeach,atomtype,atomname
+    global step,atomeach,atomtype,atomname,mname,timestep
     route=[]
     routestrarr=[]
     molecule=0
@@ -234,7 +216,7 @@ def printmoleculename(moleculefilename,moleculetempfilename,atomname,atomtype):
             print(name,key1,key2, file=fm)
     return mname
 
-def getatomeach(hmmfilename,moleculetemp2filename,atomfilename):
+def getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N):
     atomeach=[[0 for j in range(0,step)] for i in range(0,N+1)]
     with open(hmmfilename,buffering=4096) as fh,open(moleculetemp2filename,buffering=4096) as ft:
         i=0
@@ -272,7 +254,7 @@ def getallroute(reactionfilename,allmoleculeroute,mname):
             allroute[equation]=1            
     return allroute
 
-def printtable(tablefilename,allroute):
+def printtable(tablefilename,reactionfilename,allroute):
     species=[]
     table=[[0 for x in range(100)] for x in range(100)]
     with open(reactionfilename,'wt',buffering=4096) as f:
@@ -309,11 +291,33 @@ def printtable(tablefilename,allroute):
   
 
 ######## run ########
-if __name__ == '__main__':
+def run(parameter={}):
+    global model,states,step,atomeach,atomtype,atomname,atomroute,mname,timestep
+    ######### Parameter ############
+    bondfilename=parameter["bondfilename"] if "bondfilename" in parameter else "bonds.reaxc"#filename
+    atomname=parameter["atomname"] if "atomname" in parameter else ["C","H","O"]#atom type
+    originfilename=parameter["originfilename"] if "originfilename" in parameter else "originsignal.txt"
+    hmmfilename=parameter["hmmfilename"] if "hmmfilename" in parameter else "hmmsignal.txt"
+    atomfilename=parameter["atomfilename"] if "atomfilename" in parameter else "atom.txt"
+    moleculefilename=parameter["moleculefilename"] if "moleculefilename" in parameter else "moleculename.txt"
+    atomroutefilename=parameter["atomroutefilename"] if "atomroutefilename" in parameter else "atomroute.txt"
+    reactionfilename=parameter["reactionfilename"] if "reactionfilename" in parameter else "reaction.txt"
+    tablefilename=parameter["tablefilename"] if "tablefilename" in parameter else "table.txt"
+    moleculetempfilename=parameter["moleculetempfilename"] if "moleculetempfilename" in parameter else "moleculetemp.txt"
+    moleculetemp2filename=parameter["moleculetemp2filename"] if "moleculetemp2filename" in parameter else "moleculetemp2.txt"
+    stepinterval=parameter["stepinterval"] if "stepinterval" in parameter else 1
+    ######## HMM Parameter ########
+    states = parameter["states"] if "states" in parameter else [0,1]
+    observations = parameter["observations"] if "observations" in parameter else  [0,1]
+    p=parameter["p"] if "p" in parameter else [0.5,0.5]
+    a=parameter["a"] if "a" in parameter else [[0.999,0.001],[0.001,0.999]]
+    b=parameter["b"] if "b" in parameter else [[0.6, 0.4],[0.4, 0.6]]
+    del parameter
+    ######start#####
     timearray=printtime([])
     ######## step 1 ##### 
     N=readatomnumber(bondfilename)
-    atomtype,step,timestep=openbondfile(bondfilename,moleculetempfilename,N)
+    atomtype,step,timestep=openbondfile(bondfilename,moleculetempfilename,N,stepinterval)
     gc.collect()
     timearray=printtime(timearray)
     ######## step 2 ##### 
@@ -326,7 +330,7 @@ if __name__ == '__main__':
     ######## step 3 ##### 
     mname=printmoleculename(moleculefilename,moleculetemp2filename,atomname,atomtype)
     gc.collect()
-    atomeach=getatomeach(hmmfilename,moleculetemp2filename,atomfilename)
+    atomeach=getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N)
     gc.collect()
     atomroute=printatomroute(atomroutefilename,N)
     del atomeach,atomtype,timestep
@@ -337,7 +341,7 @@ if __name__ == '__main__':
     allroute=getallroute(reactionfilename,allmoleculeroute,mname)
     del allmoleculeroute
     gc.collect()
-    printtable(tablefilename,allroute)
+    printtable(tablefilename,reactionfilename,allroute)
     del allroute
     gc.collect()
     timearray=printtime(timearray)
@@ -347,3 +351,57 @@ if __name__ == '__main__':
     for i in range(1,len(timearray)):
         print("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
+
+def readtable(tablefilename):
+    table=[]
+    name=[]
+    with open(tablefilename) as file:
+        for line in islice(file, 1, None):
+            name.append(line.split()[0])
+            table.append([int(s) for s in line.split()[1:]])
+    return table,name
+    
+def draw(parameter={}):
+    tablefilename=parameter["tablefilename"] if "tablefilename" in parameter else "table.txt"
+    imagefilename=parameter["imagefilename"] if "imagefilename" in parameter else "image.svg"
+    species=parameter["species"] if "species" in parameter else {}
+    node_size=parameter["node_size"] if "node_size" in parameter else 200
+    font_size=parameter["font_size"] if "font_size" in parameter else 6
+    widthcoefficient=parameter["widthcoefficient"] if "widthcoefficient" in parameter else 3
+    show=parameter["show"] if "show" in parameter else False
+
+    #read table
+    table,name=readtable(tablefilename)
+
+    if species=={}:
+        if len(name)<=20:
+            species=dict([(x,()) for x in name])
+        else:
+            species=dict([(x,()) for x in name[0:19]])
+    
+    #make color
+    start = np.array([0, 1, 0])
+    end = np.array([0, 0, 1])
+    n_color=256
+    colorsRGB=[(start + i*(end-start) / n_color) for i in range(n_color)]
+          
+    G = nx.DiGraph()
+    for i in range(len(table)):
+        if (name[i] in species):
+            G.add_node(name[i])
+        for j in range(len(table)):
+            if (name[i] in species and name[j] in species):
+                if(table[i][j]>0):
+                    G.add_weighted_edges_from([(name[i],name[j],table[i][j])])
+    weights = [G[u][v]['weight'] for u,v in G.edges()]
+    widths=[weight/max(weights) *widthcoefficient for weight in weights]
+    colors=[colorsRGB[math.floor(width/max(widths)*(n_color-1))] for width in widths]
+    nx.draw(G,pos = nx.spring_layout(G),width=widths,node_size=node_size,font_size=font_size,with_labels=True,edge_color=colors)
+                
+    plt.savefig(imagefilename)
+    if show:
+        plt.show()
+
+if __name__ == '__main__':
+    run()
+    draw()
