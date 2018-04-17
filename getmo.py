@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-  
-#updated at 2018/4/17 00:00
+#updated at 2018/4/18 00:00
 
 ######### import #########
 import time
@@ -369,15 +369,16 @@ def draw(parameter={}):
     font_size=parameter["font_size"] if "font_size" in parameter else 6
     widthcoefficient=parameter["widthcoefficient"] if "widthcoefficient" in parameter else 3
     show=parameter["show"] if "show" in parameter else False
+    maxspecies=parameter["maxspecies"] if "maxspecies" in parameter else 20
 
     #read table
     table,name=readtable(tablefilename)
 
     if species=={}:
-        if len(name)<=20:
+        if len(name)<=maxspecies:
             species=dict([(x,()) for x in name])
         else:
-            species=dict([(x,()) for x in name[0:19]])
+            species=dict([(x,()) for x in name[0:(maxspecies-1)]])
     
     #make color
     start = np.array([0, 1, 0])
