@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-  
-#updated at 2018/4/18 08:00
+# updated at 2018/4/19 22:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -136,37 +136,56 @@ def getoriginandhmm(item):
     hmm=gethmm(origin,model,states)
     return origin,hmm,line
 
-def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,model,states,step):
+def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,model,states,step,getoriginfile):
     with open(originfilename, 'w') as fo,open(hmmfilename, 'w') as fh,open(moleculetempfilename) as ft,open(moleculetemp2filename,'w') as ft2,Pool(maxtasksperchild=100) as pool:
         semaphore = Semaphore(360)
         results=pool.imap_unordered(getoriginandhmm,produce(semaphore,ft,(step,model,states)),10)
         for originsignal,hmmsignal,mlist in results:
-            print("".join([str(i) for i in originsignal]), file=fo)
-            print("".join([str(i) for i in hmmsignal]), file=fh)
+            if 1 in hmmsignal:
+                if getoriginfile:
+                    print("".join([str(i) for i in originsignal]), file=fo)
+                print("".join([str(i) for i in hmmsignal]), file=fh)
+                print(mlist,end='',file=ft2)
+            semaphore.release()
+     
+def getorigin(item):
+    line,parameter=item
+    step,=parameter
+    list=line.split()
+    value=[int(x) for x in list[-1].split(",")]
+    origin= [1 if i in value else 0 for i in range(1, step+1)]
+    return origin,line     
+         
+def noHMM(originfilename,moleculetempfilename,moleculetemp2filename,step):
+    with open(originfilename, 'w') as fh,open(moleculetempfilename) as ft,open(moleculetemp2filename,'w') as ft2,Pool(maxtasksperchild=100) as pool:
+        semaphore = Semaphore(360)
+        results=pool.imap_unordered(getorigin,produce(semaphore,ft,(step,)),10)
+        for originsignal,mlist in results:
+            print("".join([str(i) for i in originsignal]), file=fh)
             print(mlist,end='',file=ft2)
             semaphore.release()
 
 def getatomroute(item):
-    i,parameter=item
-    step,atomeach,atomtype,atomname,mname,timestep=parameter
+    itemi,parameter=item
+    i,atomeachi,atomtypei=itemi
+    step,atomname,mname,timestep=parameter
     route=[]
     routestrarr=[]
     molecule=0
     for j in range(0,step):
-        if atomeach[i][j]>0 and atomeach[i][j]!=molecule:
-            routestrarr.append(mname[atomeach[i][j]-1] + " ("+ str(atomeach[i][j])+" step "+str(timestep[j])+")")
-            molecule=atomeach[i][j]
+        if atomeachi[j]>0 and atomeachi[j]!=molecule:
+            routestrarr.append(mname[atomeachi[j]-1] + " ("+ str(atomeachi[j])+" step "+str(timestep[j])+")")
+            molecule=atomeachi[j]
             route.append(molecule)
-    routestr="Atom "+str(i)+" "+atomname[atomtype[i]-1]+": "+" -> ".join(routestrarr)
+    routestr="Atom "+str(i)+" "+atomname[atomtypei-1]+": "+" -> ".join(routestrarr)
     return route,routestr
 
 def getallmoleculeroute(item):
-    i,parameter=item
-    atomroute,=parameter
+    atomroutei,parameter=item
     moleculeroute=[]
-    for j in range(len(atomroute[i])-1):
-        left=atomroute[i][j]
-        right=atomroute[i][j+1]                                                  
+    for j in range(len(atomroutei)-1):
+        left=atomroutei[j]
+        right=atomroutei[j+1]                                                  
         if not (left,right) in moleculeroute:
             moleculeroute.append((left,right))
     return moleculeroute
@@ -174,7 +193,7 @@ def getallmoleculeroute(item):
 def printallmoleculeroute(atomroute):
     with Pool(maxtasksperchild=100) as pool:
         semaphore = Semaphore(360)
-        results=pool.imap(getallmoleculeroute,produce(semaphore,range(len(atomroute)),(atomroute,)),10)
+        results=pool.imap(getallmoleculeroute,produce(semaphore,atomroute,()),10)
         sum=[]
         for moleculeroute in results:
             sum+=moleculeroute
@@ -186,7 +205,7 @@ def printatomroute(atomroutefilename,N,step,atomeach,atomtype,atomname,mname,tim
     with open(atomroutefilename, 'w') as f,Pool(maxtasksperchild=100) as pool:
         atomroute=[]
         semaphore = Semaphore(360)
-        results=pool.imap(getatomroute,produce(semaphore,range(1,N+1),(step,atomeach,atomtype,atomname,mname,timestep)),10)
+        results=pool.imap(getatomroute,produce(semaphore,zip(range(1,N+1),atomeach[1:],atomtype[1:]),(step,atomname,mname,timestep)),10)
         for route in results:
             routearray,routestr=route
             print(routestr, file=f)
@@ -341,6 +360,7 @@ def convertstructure(atoms,bonds,atomname):
     return G
     
 def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename):
+    showname={}
     if species=={}:
         species_out=dict([(x,{}) for x in (name if len(name)<=maxspecies else name[0:(maxspecies-1)])])
     else:
@@ -364,16 +384,21 @@ def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename):
                         break
                     i+=1
             species_out[specname]={}
-    return species_out
+            if "showname" in value:
+                showname[specname]=value["showname"]
+    return species_out,showname
 ######## steps ######
 def step1(bondfilename,moleculetempfilename,stepinterval):
     N=readatomnumber(bondfilename)
     atomtype,step,timestep=openbondfile(bondfilename,moleculetempfilename,N,stepinterval)
     return N,atomtype,step,timestep
     
-def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step):
-    model=initHMM(states,observations,p,a,b)
-    calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,model,states,step)
+def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile):
+    if runHMM:
+        model=initHMM(states,observations,p,a,b)
+        calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,model,states,step,getoriginfile)
+    else:
+        noHMM(originfilename,moleculetempfilename,moleculetemp2filename,step)
 
 def step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename):
     mname=printmoleculename(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
@@ -386,7 +411,7 @@ def step4(allmoleculeroute,mname,reactionfilename,tablefilename):
     allroute=getallroute(reactionfilename,allmoleculeroute,mname)
     printtable(tablefilename,reactionfilename,allroute)
 ######## run ########
-def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]]):
+def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False):
     ######### Parameter above ############
     ######start#####
     print("Run HMM calculation:")
@@ -397,10 +422,10 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
             N,atomtype,step,timestep=step1(bondfilename,moleculetempfilename,stepinterval)
         ######## step 2 ##### 
         elif(runstep==2):
-            step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step)
+            step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile)
         ######## step 3 ##### 
         elif(runstep==3):
-            allmoleculeroute,mname=step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename)
+            allmoleculeroute,mname=step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename if runHMM else originfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename)
         ######## step 4 ##### 
         elif(runstep==4):
             step4(allmoleculeroute,mname,reactionfilename,tablefilename)
@@ -422,7 +447,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     timearray=printtime([])
     #read table
     table,name=readtable(tablefilename)
-    species=handlespecies(species,name,maxspecies,atomname,moleculestructurefilename)
+    species,showname=handlespecies(species,name,maxspecies,atomname,moleculestructurefilename)
 
     #make color
     start = np.array([0, 1, 0])
@@ -432,11 +457,11 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     G = nx.DiGraph()
     for i in range(len(table)):
         if (name[i] in species):
-            G.add_node(name[i])
+            G.add_node(showname[name[i]] if name[i] in showname else name[i])
         for j in range(len(table)):
             if (name[i] in species and name[j] in species):
                 if(table[i][j]>0):
-                    G.add_weighted_edges_from([(name[i],name[j],table[i][j])])
+                    G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
     weights = [G[u][v]['weight'] for u,v in G.edges()]
     widths=[weight/max(weights) *widthcoefficient for weight in weights]
     colors=[colorsRGB[math.floor(width/max(widths)*(n_color-1))] for width in widths]
@@ -457,8 +482,8 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
     print()
 #### run and draw ####
-def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256):
-    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b)
+def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256):
+    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM)
     draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname)
     
 ##### main #####
