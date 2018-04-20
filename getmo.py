@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-  
-# updated at 2018/4/19 22:00
+# updated at 2018/4/20 16:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -171,47 +171,33 @@ def getatomroute(item):
     step,atomname,mname,timestep=parameter
     route=[]
     routestrarr=[]
-    molecule=0
+    moleculeroute=[]
+    molecule=-1
+    right=-1
     for j in range(0,step):
         if atomeachi[j]>0 and atomeachi[j]!=molecule:
             routestrarr.append(mname[atomeachi[j]-1] + " ("+ str(atomeachi[j])+" step "+str(timestep[j])+")")
+            left=right
             molecule=atomeachi[j]
-            route.append(molecule)
+            right=molecule
+            if left>=0 and not (left,right) in moleculeroute:
+                moleculeroute.append((left,right))
     routestr="Atom "+str(i)+" "+atomname[atomtypei-1]+": "+" -> ".join(routestrarr)
-    return route,routestr
-
-def getallmoleculeroute(item):
-    atomroutei,parameter=item
-    moleculeroute=[]
-    for j in range(len(atomroutei)-1):
-        left=atomroutei[j]
-        right=atomroutei[j+1]                                                  
-        if not (left,right) in moleculeroute:
-            moleculeroute.append((left,right))
-    return moleculeroute
-    
-def printallmoleculeroute(atomroute):
-    with Pool(maxtasksperchild=100) as pool:
-        semaphore = Semaphore(360)
-        results=pool.imap(getallmoleculeroute,produce(semaphore,atomroute,()),10)
-        sum=[]
-        for moleculeroute in results:
-            sum+=moleculeroute
-            semaphore.release()      
-    allmoleculeroute=reduce(lambda x,y:x if y in x else x + [y], [[], ]+sum)
-    return allmoleculeroute
+    return moleculeroute,routestr
 
 def printatomroute(atomroutefilename,N,step,atomeach,atomtype,atomname,mname,timestep):
     with open(atomroutefilename, 'w') as f,Pool(maxtasksperchild=100) as pool:
-        atomroute=[]
+        allmoleculeroute=[]
         semaphore = Semaphore(360)
         results=pool.imap(getatomroute,produce(semaphore,zip(range(1,N+1),atomeach[1:],atomtype[1:]),(step,atomname,mname,timestep)),10)
         for route in results:
-            routearray,routestr=route
+            moleculeroute,routestr=route
             print(routestr, file=f)
-            atomroute.append(routearray)
+            for mroute in moleculeroute:
+                if not mroute in allmoleculeroute:
+                    allmoleculeroute.append(mroute)
             semaphore.release() 
-    return atomroute
+    return allmoleculeroute
 
 def makemoleculegraph(atoms,bonds):
     G=nx.Graph()
@@ -403,8 +389,7 @@ def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilen
 def step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename):
     mname=printmoleculename(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
     atomeach=getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step)
-    atomroute=printatomroute(atomroutefilename,N,step,atomeach,atomtype,atomname,mname,timestep)
-    allmoleculeroute=printallmoleculeroute(atomroute)
+    allmoleculeroute=printatomroute(atomroutefilename,N,step,atomeach,atomtype,atomname,mname,timestep)
     return allmoleculeroute,mname
 
 def step4(allmoleculeroute,mname,reactionfilename,tablefilename):
@@ -483,7 +468,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print()
 #### run and draw ####
 def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256):
-    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM)
+    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile)
     draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname)
     
 ##### main #####
