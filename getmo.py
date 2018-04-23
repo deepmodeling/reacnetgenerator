@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-  
-# updated at 2018/4/20 16:00
+# updated at 2018/4/24 1:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -11,12 +11,25 @@ import gc
 import math
 from multiprocessing import Pool, Semaphore
 import numpy as np
-from hmmlearn import hmm
 from functools import reduce
-import networkx as nx
-import networkx.algorithms.isomorphism as iso
 from itertools import islice
-import matplotlib.pyplot as plt
+try:
+    from hmmlearn import hmm
+except ImportError as e:
+    print(e)
+try:
+    import networkx as nx
+    import networkx.algorithms.isomorphism as iso
+except ImportError as e:
+    print(e)
+try:
+    import matplotlib.pyplot as plt
+except ImportError as e:
+    print(e)
+try:
+    from rdkit import Chem
+except ImportError as e:
+    print(e)
 ######## function ########
 def printtime(timearray):
     timearray.append(time.time())
@@ -260,6 +273,27 @@ def printmoleculename(moleculefilename,moleculetempfilename,moleculestructurefil
             print(name,atoms,bonds, file=fm)
     return mname
 
+def printmoleculeSMILESname(moleculefilename,moleculetempfilename,moleculestructurefilename,atomname,atomtype):
+    mname=[]
+    with open(moleculefilename, 'w') as fm,open(moleculetempfilename) as ft,open(moleculestructurefilename,'w') as fs:
+        for line in ft:
+            list=line.split()
+            atoms=[int(x) for x in list[0].split(",")]
+            bonds=[tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else []
+            typenumber=[0 for i in range(len(atomname))]
+            atomtypes=[]
+            m = Chem.RWMol(Chem.MolFromSmiles(''))
+            d={}
+            for atomnumber in atoms:
+                d[atomnumber]=m.AddAtom(Chem.Atom(atomname[atomtype[atomnumber]-1]))
+            for bond in bonds:
+                atom1,atom2,level=bond
+                m.AddBond(d[atom1],d[atom2], Chem.BondType.DOUBLE if level==2 else (Chem.BondType.TRIPLE if level==3 else Chem.BondType.SINGLE))
+            name=Chem.MolToSmiles(m)
+            mname.append(name)
+            print(name,atoms,bonds, file=fm)
+    return mname
+    
 def getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step):
     atomeach=[[0 for j in range(0,step)] for i in range(0,N+1)]
     with open(hmmfilename) as fh,open(moleculetemp2filename) as ft:
@@ -386,8 +420,11 @@ def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilen
     else:
         noHMM(originfilename,moleculetempfilename,moleculetemp2filename,step)
 
-def step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename):
-    mname=printmoleculename(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
+def step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename,SMILES):
+    if SMILES:
+        mname=printmoleculeSMILESname(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
+    else:
+        mname=printmoleculename(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
     atomeach=getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step)
     allmoleculeroute=printatomroute(atomroutefilename,N,step,atomeach,atomtype,atomname,mname,timestep)
     return allmoleculeroute,mname
@@ -396,7 +433,7 @@ def step4(allmoleculeroute,mname,reactionfilename,tablefilename):
     allroute=getallroute(reactionfilename,allmoleculeroute,mname)
     printtable(tablefilename,reactionfilename,allroute)
 ######## run ########
-def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False):
+def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,SMILES=False):
     ######### Parameter above ############
     ######start#####
     print("Run HMM calculation:")
@@ -410,7 +447,7 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
             step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile)
         ######## step 3 ##### 
         elif(runstep==3):
-            allmoleculeroute,mname=step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename if runHMM else originfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename)
+            allmoleculeroute,mname=step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename if runHMM else originfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename,SMILES)
         ######## step 4 ##### 
         elif(runstep==4):
             step4(allmoleculeroute,mname,reactionfilename,tablefilename)
@@ -456,7 +493,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
         if show:
             plt.show()
     except:
-        print("Error: cannot draw images")
+        print("Error: cannot draw images.")
 
     timearray=printtime(timearray)
     ####### end #######
@@ -467,8 +504,8 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
     print()
 #### run and draw ####
-def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256):
-    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile)
+def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256):
+    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES)
     draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname)
     
 ##### main #####
