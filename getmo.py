@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-  
-# updated at 2018/4/24 1:00
+# updated at 2018/4/24 12:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -23,6 +23,8 @@ try:
 except ImportError as e:
     print(e)
 try:
+    import matplotlib as mpl
+    mpl.use('Agg')
     import matplotlib.pyplot as plt
 except ImportError as e:
     print(e)
@@ -280,19 +282,24 @@ def printmoleculeSMILESname(moleculefilename,moleculetempfilename,moleculestruct
             list=line.split()
             atoms=[int(x) for x in list[0].split(",")]
             bonds=[tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else []
-            typenumber=[0 for i in range(len(atomname))]
-            atomtypes=[]
-            m = Chem.RWMol(Chem.MolFromSmiles(''))
-            d={}
+            type={}
             for atomnumber in atoms:
-                d[atomnumber]=m.AddAtom(Chem.Atom(atomname[atomtype[atomnumber]-1]))
-            for bond in bonds:
-                atom1,atom2,level=bond
-                m.AddBond(d[atom1],d[atom2], Chem.BondType.DOUBLE if level==2 else (Chem.BondType.TRIPLE if level==3 else Chem.BondType.SINGLE))
-            name=Chem.MolToSmiles(m)
+                type[atomnumber]=atomname[atomtype[atomnumber]-1]
+            name=convertSMILES(atoms,bonds,type)
             mname.append(name)
             print(name,atoms,bonds, file=fm)
     return mname
+    
+def convertSMILES(atoms,bonds,type):
+    m = Chem.RWMol(Chem.MolFromSmiles(''))
+    d={}
+    for atomnumber in atoms:
+        d[atomnumber]=m.AddAtom(Chem.Atom(type[atomnumber]))
+    for bond in bonds:
+        atom1,atom2,level=bond
+        m.AddBond(d[atom1],d[atom2], Chem.BondType.DOUBLE if level==2 else (Chem.BondType.TRIPLE if level==3 else Chem.BondType.SINGLE))
+    name=Chem.MolToSmiles(m)
+    return name
     
 def getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step):
     atomeach=[[0 for j in range(0,step)] for i in range(0,N+1)]
@@ -486,14 +493,14 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
                     G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
     weights = [G[u][v]['weight'] for u,v in G.edges()]
     widths=[weight/max(weights) *widthcoefficient for weight in weights]
-    colors=[colorsRGB[math.floor(width/max(widths)*(n_color-1))] for width in widths]
+    colors=[colorsRGB[math.floor(math.log(weight)/math.log(max(weights))*(n_color-1))] for weight in weights]
     try:
-        nx.draw(G,pos = nx.spring_layout(G),width=widths,node_size=node_size,font_size=font_size,with_labels=True,edge_color=colors)            
+        nx.draw(G,pos = nx.spring_layout(G),width=widths,node_size=node_size,font_size=font_size,with_labels=True,edge_color=colors,node_color=np.array([225/256,238/256,210/256]))            
         plt.savefig(imagefilename)
         if show:
             plt.show()
-    except:
-        print("Error: cannot draw images.")
+    except Exception as e:
+        print("Error: cannot draw images.",e)
 
     timearray=printtime(timearray)
     ####### end #######
