@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-  
-# updated at 2018/4/24 12:00
+# version 1.0.1
+# updated at 2018/4/25 12:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -275,19 +276,27 @@ def printmoleculename(moleculefilename,moleculetempfilename,moleculestructurefil
             print(name,atoms,bonds, file=fm)
     return mname
 
-def printmoleculeSMILESname(moleculefilename,moleculetempfilename,moleculestructurefilename,atomname,atomtype):
+def calmoleculeSMILESname(item):
+    line,parameter=item
+    list=line.split()
+    atomname,atomtype=parameter
+    atoms=[int(x) for x in list[0].split(",")]
+    bonds=[tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else []
+    type={}
+    for atomnumber in atoms:
+        type[atomnumber]=atomname[atomtype[atomnumber]-1]
+    name=convertSMILES(atoms,bonds,type)
+    return name,atoms,bonds
+    
+def printmoleculeSMILESname(moleculefilename,moleculetempfilename,atomname,atomtype):
     mname=[]
-    with open(moleculefilename, 'w') as fm,open(moleculetempfilename) as ft,open(moleculestructurefilename,'w') as fs:
-        for line in ft:
-            list=line.split()
-            atoms=[int(x) for x in list[0].split(",")]
-            bonds=[tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else []
-            type={}
-            for atomnumber in atoms:
-                type[atomnumber]=atomname[atomtype[atomnumber]-1]
-            name=convertSMILES(atoms,bonds,type)
+    with open(moleculefilename, 'w') as fm,open(moleculetempfilename) as ft,Pool(maxtasksperchild=100) as pool:
+        semaphore = Semaphore(360)
+        results=pool.imap(calmoleculeSMILESname,produce(semaphore,ft,(atomname,atomtype)),10)
+        for result in results:
+            name,atoms,bonds=result
             mname.append(name)
-            print(name,atoms,bonds, file=fm)
+            print(name,atoms,bonds,file=fm)
     return mname
     
 def convertSMILES(atoms,bonds,type):
@@ -429,7 +438,7 @@ def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilen
 
 def step3(atomname,atomtype,N,step,timestep,moleculefilename,hmmfilename,atomfilename,moleculetemp2filename,atomroutefilename,moleculestructurefilename,SMILES):
     if SMILES:
-        mname=printmoleculeSMILESname(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
+        mname=printmoleculeSMILESname(moleculefilename,moleculetemp2filename,atomname,atomtype)
     else:
         mname=printmoleculename(moleculefilename,moleculetemp2filename,moleculestructurefilename,atomname,atomtype)
     atomeach=getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step)
