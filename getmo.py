@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-  
-# version 1.0.1
-# updated at 2018/4/25 12:00
+# version 1.0.2
+# updated at 2018/4/30 1:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -297,6 +297,7 @@ def printmoleculeSMILESname(moleculefilename,moleculetempfilename,atomname,atomt
             name,atoms,bonds=result
             mname.append(name)
             print(name,atoms,bonds,file=fm)
+            semaphore.release()
     return mname
     
 def convertSMILES(atoms,bonds,type):
