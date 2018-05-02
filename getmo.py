@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-  
-# version 1.0.2
-# updated at 2018/4/30 1:00
+# version 1.0.3
+# updated at 2018/5/2 16:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -31,6 +31,7 @@ except ImportError as e:
     print(e)
 try:
     from rdkit import Chem
+    from rdkit.Chem import Draw
 except ImportError as e:
     print(e)
 ######## function ########
@@ -480,7 +481,7 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
     print()
 
 #####draw#####    
-def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"]):
+def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False):
     #start
     print("Draw the image:")
     timearray=printtime([])
@@ -489,14 +490,19 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     species,showname=handlespecies(species,name,maxspecies,atomname,moleculestructurefilename)
 
     #make color
-    start = np.array([0, 1, 0])
-    end = np.array([0, 0, 1])
+    start = np.array([1, 1, 0])
+    end = np.array([1, 0, 0])
     colorsRGB=[(start + i*(end-start) / n_color) for i in range(n_color)]
           
     G = nx.DiGraph()
     for i in range(len(table)):
         if (name[i] in species):
-            G.add_node(showname[name[i]] if name[i] in showname else name[i])
+            if not drawmolecule:
+                G.add_node(showname[name[i]] if name[i] in showname else name[i])
+            else:
+                #mol = Chem.MolFromSmiles(name[i])
+                #Draw.MolToFile(mol,name[i]+'.svg')
+                G.add_node(showname[name[i]] if name[i] in showname else name[i],image=name[i]+'.svg')
         for j in range(len(table)):
             if (name[i] in species and name[j] in species):
                 if(table[i][j]>0):
@@ -505,13 +511,16 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     widths=[weight/max(weights) *widthcoefficient for weight in weights]
     colors=[colorsRGB[math.floor(math.log(weight)/math.log(max(weights))*(n_color-1))] for weight in weights]
     try:
-        nx.draw(G,pos = nx.spring_layout(G),width=widths,node_size=node_size,font_size=font_size,with_labels=True,edge_color=colors,node_color=np.array([225/256,238/256,210/256]))            
+        pos = nx.spring_layout(G)
+        nx.draw(G,pos = pos,width=widths,node_size=node_size,font_size=font_size,with_labels=True,edge_color=colors,node_color=np.array([225/256,238/256,210/256]))
+
         plt.savefig(imagefilename)
         if show:
             plt.show()
+        
     except Exception as e:
         print("Error: cannot draw images.",e)
-
+    
     timearray=printtime(timearray)
     ####### end #######
     print()
@@ -521,9 +530,9 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
     print()
 #### run and draw ####
-def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256):
+def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=3,show=False,maxspecies=20,n_color=256,drawmolecule=False):
     run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES)
-    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname)
+    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule)
     
 ##### main #####
 if __name__ == '__main__':
