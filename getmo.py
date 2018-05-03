@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-  
 # version 1.0.4
-# updated at 2018/5/2 21:00
+# updated at 2018/5/4 0:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -425,6 +425,7 @@ def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename):
             if "showname" in value:
                 showname[specname]=value["showname"]
     return species_out,showname
+    
 ######## steps ######
 def step1(bondfilename,moleculetempfilename,stepinterval):
     N=readatomnumber(bondfilename)
@@ -481,7 +482,7 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
     print()
 
 #####draw#####    
-def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False):
+def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[]):
     #start
     print("Draw the image:")
     timearray=printtime([])
@@ -496,22 +497,26 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
           
     G = nx.DiGraph()
     for i in range(len(table)):
-        if (name[i] in species):
+        if name[i] in species and not name[i] in filter:
             G.add_node(showname[name[i]] if name[i] in showname else name[i])
-        for j in range(len(table)):
-            if (name[i] in species and name[j] in species):
-                if(table[i][j]>0):
-                    G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
+            for j in range(len(table)):
+                if name[j] in species and not name[j] in filter:
+                    if table[i][j]>0:
+                        G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
     weights = [math.log(G[u][v]['weight']) for u,v in G.edges()]
     widths=[weight/max(weights) *widthcoefficient for weight in weights]
     colors=[colorsRGB[math.floor(weight/max(weights)*(n_color-1))] for weight in weights]
     try:
         pos = nx.spring_layout(G)
-        nx.draw(G,pos = pos,width=widths,node_size=node_size,font_size=font_size,with_labels=True,edge_color=colors,node_color=np.array([225/256,238/256,210/256]))
+        for with_labels in ([True] if not nolabel else [True,False]):
+            nx.draw(G,pos = pos,width=widths,node_size=node_size,font_size=font_size,with_labels=with_labels,edge_color=colors,node_color=np.array([225/256,238/256,210/256]))
 
-        plt.savefig(imagefilename)
-        if show:
-            plt.show()
+            plt.savefig(imagefilename if with_labels else "nolabel_"+imagefilename)
+            
+            if show:
+                plt.show()
+                
+            plt.close()
         
     except Exception as e:
         print("Error: cannot draw images.",e)
@@ -525,9 +530,9 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
     print()
 #### run and draw ####
-def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False):
+def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[]):
     run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES)
-    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule)
+    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter)
     
 ##### main #####
 if __name__ == '__main__':
