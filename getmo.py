@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-  
-# version 1.0.7
-# updated at 2018/5/14 14:00
+# version 1.0.8
+# updated at 2018/5/14 22:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -533,7 +533,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print()
 #### run and draw ####
 def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False):
-    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal=False)
+    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal)
     draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos)
     
 ##### main #####
