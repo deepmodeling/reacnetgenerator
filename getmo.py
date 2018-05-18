@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-  
-# version 1.0.8
-# updated at 2018/5/14 22:00
+# version 1.0.9
+# updated at 2018/5/18 20:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -397,8 +397,9 @@ def convertstructure(atoms,bonds,atomname):
     G=makemoleculegraph(atomtypes,bonds)
     return G
     
-def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename):
+def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename,showid):
     showname={}
+    n=0
     if species=={}:
         species_out=dict([(x,{}) for x in (name if len(name)<=maxspecies else name[0:maxspecies])])
     else:
@@ -424,6 +425,11 @@ def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename):
             species_out[specname]={}
             if "showname" in value:
                 showname[specname]=value["showname"]
+    if showid:
+        for specname,value in species_out.items():
+            n+=1
+            showname[specname]=str(n)
+            print(n,specname)
     return species_out,showname
     
 ######## steps ######
@@ -482,13 +488,13 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
     print()
 
 #####draw#####    
-def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={}):
+def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=False):
     #start
     print("Draw the image:")
     timearray=printtime([])
     #read table
     table,name=readtable(tablefilename)
-    species,showname=handlespecies(species,name,maxspecies,atomname,moleculestructurefilename)
+    species,showname=handlespecies(species,name,maxspecies,atomname,moleculestructurefilename,showid)
 
     #make color
     start = np.array([1, 1, 0])
@@ -532,9 +538,9 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
     print()
 #### run and draw ####
-def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False):
+def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False,showid=False):
     run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal)
-    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos)
+    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos,showid)
     
 ##### main #####
 if __name__ == '__main__':
