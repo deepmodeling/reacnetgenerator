@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-  
-# version 1.0.9
-# updated at 2018/5/18 20:00
+# version 1.1.0
+# updated at 2018/6/1 0:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -8,6 +9,7 @@
 ##########################
 ######### import #########
 import time
+import os
 import gc
 import math
 from multiprocessing import Pool, Semaphore
@@ -40,14 +42,6 @@ def printtime(timearray):
     if len(timearray)>1:
        print("Step ",len(timearray)-1," has been completed. Time consumed: ",round(timearray[-1]-timearray[-2],3),"s")
     return timearray
-
-def readatomnumber(bondfilename):
-    with open(bondfilename) as file: #read Atom number
-        for line in file:
-            if line.startswith("# Number of particles"):
-                N=[int(s) for s in line.split() if s.isdigit()][0]
-                break
-    return N
     
 def mo(i,bond,level,molecule,done,bondlist): #connect molecule
     molecule.append(i)
@@ -62,65 +56,136 @@ def mo(i,bond,level,molecule,done,bondlist): #connect molecule
             molecule,done,bondlist=mo(b,bond,level,molecule,done,bondlist)
     return molecule,done,bondlist
 
-def openbondfile(bondfilename,moleculetempfilename,N,stepinterval):
+def readlammpsbondfile(bondfilename,moleculetempfilename,stepinterval):
     step=0
     realstep=0
-    iscontent=False
-    isfirststep=True
     timestep=[]
-    atomtype=[0 for x in range(N+1)]
     d={}
     with open(bondfilename) as file:
         for line in file:
             if line.startswith("#"):
-                if iscontent and realstep%stepinterval==0:
-                    #a step finished
-                    iscontent=False
-                    if isfirststep:
-                        isfirststep=False
-                    #init
-                    done=[False for x in range(N+1)]
-                    #connect molecule
-                    for i in range(1,N+1):
-                        if not done[i]:
-                            mole,done,bondlist=mo(i,bond,level,[],done,[])
-                            mole.sort()
-                            bondlist.sort()
-                            if (tuple(mole),tuple(bondlist)) in d:
-                                d[(tuple(mole),tuple(bondlist))].append(step)
-                            else:
-                                d[(tuple(mole),tuple(bondlist))]=[step]
                 if line.startswith("# Timestep"):
+                    if step>0 and realstep%stepinterval==0:
+                        d=connectmolecule(N,d,step,bond,level)
                     #read step
                     realstep+=1
                     if realstep%stepinterval==0:
                         step+=1
                         timestep.append([int(s) for s in line.split() if s.isdigit()][0])
-            else:
-                if not realstep%stepinterval==0:
-                    continue
-                if not iscontent:
-                    #new step start
-                    iscontent=True
+                elif line.startswith("# Number of particles") and realstep%stepinterval==0:
+                    if step==1:
+                        N=[int(s) for s in line.split() if s.isdigit()][0]
+                        atomtype=[0 for x in range(N+1)]
                     #init
                     bond=[[] for x in range(N+1)]
                     level=[[] for x in range(N+1)]
-                #read
-                s=line.split()
-                for i in range(0,int(s[2])):
-                    bond[int(s[0])].append(int(s[i+3]))
-                    bondlevel=round(float(s[i+4+int(s[2])]))
-                    if bondlevel==0:
-                        bondlevel=1
-                    level[int(s[0])].append(bondlevel)
-                #read atom type
-                if isfirststep:
-                    atomtype[int(s[0])]=int(s[1])
+            else:  
+                if realstep%stepinterval==0:
+                    #read
+                    s=line.split()
+                    for i in range(0,int(s[2])):
+                        bond[int(s[0])].append(int(s[i+3]))
+                        bondlevel=round(float(s[i+4+int(s[2])]))
+                        if bondlevel==0:
+                            bondlevel=1
+                        level[int(s[0])].append(bondlevel)
+                    #read atom type
+                    if step==1:
+                        atomtype[int(s[0])]=int(s[1])
+    writemoleculetempfile(moleculetempfilename,d)
+
+    return N,atomtype,step,timestep
+    
+def readlammpscrdfile(crdfilename,moleculetempfilename,stepinterval):
+    step=0
+    realstep=0
+    linecontent=0
+    d={}
+    timestep=[]
+    with open(crdfilename) as f:
+        for line in f:
+            if line.startswith("ITEM:"):
+                if line.startswith("ITEM: TIMESTEP"):
+                    linecontent=4
+                elif line.startswith("ITEM: ATOMS"):
+                    linecontent=3
+                elif line.startswith("ITEM: NUMBER OF ATOMS"):
+                    linecontent=1
+                elif line.startswith("ITEM: BOX BOUNDS"):
+                    linecontent=2
+            else:
+                if linecontent==1 and realstep%stepinterval==0:
+                    if step==1:
+                        N=int(line.split()[0])
+                    atomcrd=[0 for i in range(N)]
+                elif linecontent==3 and realstep%stepinterval==0:
+                    s=line.split()
+                    atomcrd[int(s[0])-1]=int(s[1]),float(s[2]),float(s[3]),float(s[4])
+                elif linecontent==4:
+                    realstep+=1
+                    if realstep%stepinterval==0:
+                        step+=1
+                        timestep.append(int(line.split()[0]))
+                        if step>1:
+                            if step==2:
+                                atomtype=[0]+[x[0] for x in atomcrd]
+                            bond,level=getbondfromcrd(atomcrd)
+                            d=connectmolecule(N,d,step,bond,level)
+                    
+    writemoleculetempfile(moleculetempfilename,d)
+    return N,atomtype,step,timestep
+                        
+def connectmolecule(N,d,step,bond,level):
+    #init
+    done=[False for x in range(N+1)]
+    #connect molecule
+    for i in range(1,N+1):
+        if not done[i]:
+            mole,done,bondlist=mo(i,bond,level,[],done,[])
+            mole.sort()
+            bondlist.sort()
+            if (tuple(mole),tuple(bondlist)) in d:
+                d[(tuple(mole),tuple(bondlist))].append(step)
+            else:
+                d[(tuple(mole),tuple(bondlist))]=[step]
+    return d
+    
+def writemoleculetempfile(moleculetempfilename,d):
     with open(moleculetempfilename,'w') as f:
         for item in d.items():
             key,value=item
             print(",".join([str(x) for x in key[0]]),";".join([",".join([str(y) for y in x]) for x in key[1]]),",".join([str(x) for x in value]),file=f)
-    return atomtype,step,timestep
+    
+def getbondfromcrd(atomcrd,xyzfilename="crd.xyz",mol2filename="crd.mol2"):    
+    convertxyz(atomcrd,xyzfilename)
+    os.system("obabel -ixyz "+xyzfilename+" -omol2 -O "+mol2filename+" >/dev/null")
+    bond,bondlevel=getbondfrommol2(len(atomcrd),mol2filename)
+    return bond,bondlevel
+
+def convertxyz(atomcrd,xyzfilename):
+    with open(xyzfilename,'w') as f:
+        print(len(atomcrd),file=f)
+        print("by getmo.py",file=f)
+        for atomtype,x,y,z in atomcrd: 
+            print(["C","H","O"][atomtype-1],x,y,z,file=f)
+
+def getbondfrommol2(atomnumber,mol2filename):
+    linecontent=-1
+    bond=[[] for i in range(atomnumber+1)]
+    bondlevel=[[] for i in range(atomnumber+1)]
+    with open(mol2filename) as f:
+        for line in f:
+            if line.startswith("@<TRIPOS>BOND"):
+                linecontent=0
+            else:
+                if linecontent==0:
+                    s=line.split()
+                    bond[int(s[1])].append(int(s[2]))
+                    bond[int(s[2])].append(int(s[1]))
+                    level=12 if s[3]=='ar' else int(s[3])
+                    bondlevel[int(s[1])].append(level)
+                    bondlevel[int(s[2])].append(level)
+    return bond,bondlevel
 
 def initHMM(states,observations,p,a,b):
     n_states = len(states)
@@ -308,7 +373,7 @@ def convertSMILES(atoms,bonds,type):
         d[atomnumber]=m.AddAtom(Chem.Atom(type[atomnumber]))
     for bond in bonds:
         atom1,atom2,level=bond
-        m.AddBond(d[atom1],d[atom2], Chem.BondType.DOUBLE if level==2 else (Chem.BondType.TRIPLE if level==3 else Chem.BondType.SINGLE))
+        m.AddBond(d[atom1],d[atom2], Chem.BondType.DOUBLE if level==2 else (Chem.BondType.TRIPLE if level==3 else (Chem.BondType.AROMATIC if level==12 else Chem.BondType.SINGLE)))
     name=Chem.MolToSmiles(m)
     return name
     
@@ -433,9 +498,11 @@ def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename,sho
     return species_out,showname
     
 ######## steps ######
-def step1(bondfilename,moleculetempfilename,stepinterval):
-    N=readatomnumber(bondfilename)
-    atomtype,step,timestep=openbondfile(bondfilename,moleculetempfilename,N,stepinterval)
+def step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval):
+    if inputfiletype=="lammpsbondfile":
+        N,atomtype,step,timestep=readlammpsbondfile(inputfilename,moleculetempfilename,stepinterval)
+    elif inputfiletype=="lammpscrdfile" or inputfiletype=="lammpsdumpfile":
+        N,atomtype,step,timestep=readlammpscrdfile(inputfilename,moleculetempfilename,stepinterval)
     return N,atomtype,step,timestep
     
 def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile,printfiltersignal):
@@ -458,7 +525,7 @@ def step4(allmoleculeroute,mname,reactionfilename,tablefilename):
     allroute=getallroute(reactionfilename,allmoleculeroute,mname)
     printtable(tablefilename,reactionfilename,allroute)
 ######## run ########
-def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,SMILES=False,printfiltersignal=False):
+def run(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,SMILES=False,printfiltersignal=False):
     ######### Parameter above ############
     ######start#####
     print("Run HMM calculation:")
@@ -466,7 +533,7 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
     for runstep in range(1,5):
         ######## step 1 ##### 
         if(runstep==1):
-            N,atomtype,step,timestep=step1(bondfilename,moleculetempfilename,stepinterval)
+            N,atomtype,step,timestep=step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval)
         ######## step 2 ##### 
         elif(runstep==2):
             step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile,printfiltersignal)
@@ -488,7 +555,7 @@ def run(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="origin
     print()
 
 #####draw#####    
-def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=False):
+def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=False,k=None):
     #start
     print("Draw the image:")
     timearray=printtime([])
@@ -507,13 +574,13 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
             G.add_node(showname[name[i]] if name[i] in showname else name[i])
             for j in range(len(table)):
                 if name[j] in species and not name[j] in filter:
-                    if table[i][j]>0:
+                    if table[i][j]>5:
                         G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
     weights = np.array([math.log(G[u][v]['weight']) for u,v in G.edges()])
     widths=[weight/max(weights) *widthcoefficient for weight in weights]
     colors=[colorsRGB[math.floor(weight/max(weights)*(n_color-1))] for weight in weights]
     try:
-        pos = nx.spring_layout(G) if not pos else pos
+        pos = (nx.spring_layout(G) if not pos else nx.spring_layout(G,pos=pos,fixed=[p for p in pos])) if not k else (nx.spring_layout(G,k=k) if not pos else nx.spring_layout(G,pos=pos,fixed=[p for p in pos],k=k))
         print(pos)
         
         for with_labels in ([True] if not nolabel else [True,False]):
@@ -525,7 +592,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
                 plt.show()
                 
             plt.close()
-        
+
     except Exception as e:
         print("Error: cannot draw images.",e)
     
@@ -537,11 +604,12 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
         print("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
     print("Total time:",round(timearray[-1]-timearray[0],3),"s")
     print()
+    return pos
 #### run and draw ####
-def runanddraw(bondfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False,showid=False):
-    run(bondfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal)
-    draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos,showid)
-    
+def runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False,showid=False,k=None):
+    run(inputfiletype,inputfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal)
+    pos=draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos,showid,k)
+    return pos
 ##### main #####
 if __name__ == '__main__':
     runanddraw()
