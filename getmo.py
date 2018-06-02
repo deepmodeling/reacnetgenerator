@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-  
-# version 1.1.0
-# updated at 2018/6/1 0:00
+# version 1.1.1
+# updated at 2018/6/2 21:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -15,7 +15,7 @@ import math
 from multiprocessing import Pool, Semaphore
 import numpy as np
 from functools import reduce
-from itertools import islice
+import itertools
 try:
     from hmmlearn import hmm
 except ImportError as e:
@@ -42,6 +42,14 @@ def printtime(timearray):
     if len(timearray)>1:
        print("Step ",len(timearray)-1," has been completed. Time consumed: ",round(timearray[-1]-timearray[-2],3),"s")
     return timearray
+
+def union_dict(x,y):  
+    for k, v in y.items():
+        if k in x.keys():
+            x[k] += v
+        else:
+            x[k] = v
+    return  x
     
 def mo(i,bond,level,molecule,done,bondlist): #connect molecule
     molecule.append(i)
@@ -57,53 +65,49 @@ def mo(i,bond,level,molecule,done,bondlist): #connect molecule
     return molecule,done,bondlist
 
 def readlammpsbondfile(bondfilename,moleculetempfilename,stepinterval):
-    step=0
-    realstep=0
-    timestep=[]
-    d={}
     with open(bondfilename) as file:
-        for line in file:
+        iscompleted=False
+        for index,line in enumerate(file):
             if line.startswith("#"):
-                if line.startswith("# Timestep"):
-                    if step>0 and realstep%stepinterval==0:
-                        d=connectmolecule(N,d,step,bond,level)
-                    #read step
-                    realstep+=1
-                    if realstep%stepinterval==0:
-                        step+=1
-                        timestep.append([int(s) for s in line.split() if s.isdigit()][0])
-                elif line.startswith("# Number of particles") and realstep%stepinterval==0:
-                    if step==1:
-                        N=[int(s) for s in line.split() if s.isdigit()][0]
-                        atomtype=[0 for x in range(N+1)]
-                    #init
-                    bond=[[] for x in range(N+1)]
-                    level=[[] for x in range(N+1)]
-            else:  
-                if realstep%stepinterval==0:
-                    #read
-                    s=line.split()
-                    for i in range(0,int(s[2])):
-                        bond[int(s[0])].append(int(s[i+3]))
-                        bondlevel=round(float(s[i+4+int(s[2])]))
-                        if bondlevel==0:
-                            bondlevel=1
-                        level[int(s[0])].append(bondlevel)
-                    #read atom type
-                    if step==1:
-                        atomtype[int(s[0])]=int(s[1])
-    writemoleculetempfile(moleculetempfilename,d)
-
+                if line.startswith("# Number of particles"):
+                    if iscompleted:
+                        stepbindex=index
+                        break
+                    else:
+                        iscompleted=True
+                        stepaindex=index
+                    N=[int(s) for s in line.split() if s.isdigit()][0]
+                    atomtype=[0 for x in range(N+1)]
+            else:
+                s=line.split()
+                atomtype[int(s[0])]=int(s[1])        
+    step,timestep=getdandtimestep(readlammpsbondstep,N,stepbindex-stepaindex,bondfilename,stepinterval,moleculetempfilename)  
     return N,atomtype,step,timestep
-    
+
+def readlammpsbondstep(item):
+    element,N=item
+    step,lines=element
+    bond=[[] for x in range(N+1)]
+    level=[[] for x in range(N+1)]
+    for line in lines:
+        if line.startswith("#"):
+            if line.startswith("# Timestep"):
+                timestep=step,[int(s) for s in line.split() if s.isdigit()][0]    
+        else:  
+            s=line.split()
+            for i in range(int(s[2])):
+                bond[int(s[0])].append(int(s[i+3]))
+                bondlevel=round(float(s[i+4+int(s[2])]))
+                if bondlevel==0:
+                    bondlevel=1
+                level[int(s[0])].append(bondlevel)     
+    d=connectmolecule(N,{},step,bond,level)
+    return d,timestep
+
 def readlammpscrdfile(crdfilename,moleculetempfilename,stepinterval):
-    step=0
-    realstep=0
-    linecontent=0
-    d={}
-    timestep=[]
     with open(crdfilename) as f:
-        for line in f:
+        iscompleted=False
+        for index,line in enumerate(f):
             if line.startswith("ITEM:"):
                 if line.startswith("ITEM: TIMESTEP"):
                     linecontent=4
@@ -114,27 +118,61 @@ def readlammpscrdfile(crdfilename,moleculetempfilename,stepinterval):
                 elif line.startswith("ITEM: BOX BOUNDS"):
                     linecontent=2
             else:
-                if linecontent==1 and realstep%stepinterval==0:
-                    if step==1:
-                        N=int(line.split()[0])
-                    atomcrd=[0 for i in range(N)]
-                elif linecontent==3 and realstep%stepinterval==0:
+                if linecontent==1:
+                    if iscompleted:
+                        stepbindex=index
+                        break
+                    else:
+                        iscompleted=True
+                        stepaindex=index
+                    N=int(line.split()[0])
+                    atomtype=[0 for i in range(N)]
+                elif linecontent==3:
                     s=line.split()
-                    atomcrd[int(s[0])-1]=int(s[1]),float(s[2]),float(s[3]),float(s[4])
-                elif linecontent==4:
-                    realstep+=1
-                    if realstep%stepinterval==0:
-                        step+=1
-                        timestep.append(int(line.split()[0]))
-                        if step>1:
-                            if step==2:
-                                atomtype=[0]+[x[0] for x in atomcrd]
-                            bond,level=getbondfromcrd(atomcrd)
-                            d=connectmolecule(N,d,step,bond,level)
-                    
-    writemoleculetempfile(moleculetempfilename,d)
+                    atomtype[int(s[0])-1]=int(s[1])
+    atomtype=[0]+atomtype
+    step,timestep=getdandtimestep(readlammpscrdstep,N,stepbindex-stepaindex,crdfilename,stepinterval,moleculetempfilename)
     return N,atomtype,step,timestep
-                        
+
+def readlammpscrdstep(item):
+    element,N=item
+    step,lines=element
+    atomcrd=[0 for i in range(N)]
+    for line in lines:
+        if line.startswith("ITEM:"):
+            if line.startswith("ITEM: TIMESTEP"):
+                linecontent=4
+            elif line.startswith("ITEM: ATOMS"):
+                linecontent=3
+            elif line.startswith("ITEM: NUMBER OF ATOMS"):
+                linecontent=1
+            elif line.startswith("ITEM: BOX BOUNDS"):
+                linecontent=2
+        else:
+            if linecontent==3:
+                s=line.split()
+                atomcrd[int(s[0])-1]=int(s[1]),float(s[2]),float(s[3]),float(s[4])
+            elif linecontent==4:
+                timestep=step,int(line.split()[0])
+    bond,level=getbondfromcrd(atomcrd,step)
+    d=connectmolecule(N,{},step,bond,level)
+    return d,timestep
+
+def getdandtimestep(readfunc,N,steplinenum,filename,stepinterval,moleculetempfilename):
+    d={} 
+    timestep={}
+    with open(filename) as file,Pool(maxtasksperchild=100) as pool:
+        semaphore = Semaphore(360)
+        results=pool.imap_unordered(readfunc,produce(semaphore,enumerate(itertools.islice(itertools.zip_longest(*[file]*steplinenum),0,None,stepinterval)),N),10)
+        for dstep,timesteptuple in results:
+            d=union_dict(d,dstep)
+            step,thetimestep=timesteptuple
+            timestep[step]=thetimestep
+            semaphore.release()
+    writemoleculetempfile(moleculetempfilename,d)
+    step=len(timestep)-1   
+    return step,timestep
+    
 def connectmolecule(N,d,step,bond,level):
     #init
     done=[False for x in range(N+1)]
@@ -156,7 +194,9 @@ def writemoleculetempfile(moleculetempfilename,d):
             key,value=item
             print(",".join([str(x) for x in key[0]]),";".join([",".join([str(y) for y in x]) for x in key[1]]),",".join([str(x) for x in value]),file=f)
     
-def getbondfromcrd(atomcrd,xyzfilename="crd.xyz",mol2filename="crd.mol2"):    
+def getbondfromcrd(atomcrd,step,filename="crd"):  
+    xyzfilename=filename+"_"+str(step)+".xyz"
+    mol2filename=filename+"_"+str(step)+".mol2"
     convertxyz(atomcrd,xyzfilename)
     os.system("obabel -ixyz "+xyzfilename+" -omol2 -O "+mol2filename+" >/dev/null")
     bond,bondlevel=getbondfrommol2(len(atomcrd),mol2filename)
@@ -447,7 +487,7 @@ def readtable(tablefilename):
     table=[]
     name=[]
     with open(tablefilename) as file:
-        for line in islice(file, 1, None):
+        for line in itertools.islice(file, 1, None):
             name.append(line.split()[0])
             table.append([int(s) for s in line.split()[1:]])
     return table,name
