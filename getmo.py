@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-  
-# version 1.1.1
-# updated at 2018/6/2 21:00
+# version 1.1.2
+# updated at 2018/6/2 22:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -64,7 +64,12 @@ def mo(i,bond,level,molecule,done,bondlist): #connect molecule
             molecule,done,bondlist=mo(b,bond,level,molecule,done,bondlist)
     return molecule,done,bondlist
 
-def readlammpsbondfile(bondfilename,moleculetempfilename,stepinterval):
+def readinputfile(readNfunc,readstepfunc,inputfilename,moleculetempfilename,stepinterval):
+    N,atomtype,steplinenum=readNfunc(inputfilename)
+    step,timestep=getdandtimestep(readstepfunc,N,steplinenum,inputfilename,stepinterval,moleculetempfilename)
+    return N,atomtype,step,timestep
+    
+def readlammpsbondN(bondfilename):
     with open(bondfilename) as file:
         iscompleted=False
         for index,line in enumerate(file):
@@ -80,9 +85,9 @@ def readlammpsbondfile(bondfilename,moleculetempfilename,stepinterval):
                     atomtype=[0 for x in range(N+1)]
             else:
                 s=line.split()
-                atomtype[int(s[0])]=int(s[1])        
-    step,timestep=getdandtimestep(readlammpsbondstep,N,stepbindex-stepaindex,bondfilename,stepinterval,moleculetempfilename)  
-    return N,atomtype,step,timestep
+                atomtype[int(s[0])]=int(s[1])    
+    steplinenum=stepbindex-stepaindex
+    return N,atomtype,steplinenum
 
 def readlammpsbondstep(item):
     element,N=item
@@ -104,7 +109,7 @@ def readlammpsbondstep(item):
     d=connectmolecule(N,{},step,bond,level)
     return d,timestep
 
-def readlammpscrdfile(crdfilename,moleculetempfilename,stepinterval):
+def readlammpscrdN(crdfilename):
     with open(crdfilename) as f:
         iscompleted=False
         for index,line in enumerate(f):
@@ -131,8 +136,8 @@ def readlammpscrdfile(crdfilename,moleculetempfilename,stepinterval):
                     s=line.split()
                     atomtype[int(s[0])-1]=int(s[1])
     atomtype=[0]+atomtype
-    step,timestep=getdandtimestep(readlammpscrdstep,N,stepbindex-stepaindex,crdfilename,stepinterval,moleculetempfilename)
-    return N,atomtype,step,timestep
+    steplinenum=stepbindex-stepaindex
+    return N,atomtype,steplinenum
 
 def readlammpscrdstep(item):
     element,N=item
@@ -540,9 +545,12 @@ def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename,sho
 ######## steps ######
 def step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval):
     if inputfiletype=="lammpsbondfile":
-        N,atomtype,step,timestep=readlammpsbondfile(inputfilename,moleculetempfilename,stepinterval)
+        readNfunc=readlammpsbondN
+        readstepfunc=readlammpsbondstep
     elif inputfiletype=="lammpscrdfile" or inputfiletype=="lammpsdumpfile":
-        N,atomtype,step,timestep=readlammpscrdfile(inputfilename,moleculetempfilename,stepinterval)
+        readNfunc=readlammpscrdN
+        readstepfunc=readlammpscrdstep   
+    N,atomtype,step,timestep=readinputfile(readNfunc,readstepfunc,inputfilename,moleculetempfilename,stepinterval)
     return N,atomtype,step,timestep
     
 def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile,printfiltersignal):
