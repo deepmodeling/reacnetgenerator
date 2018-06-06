@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-  
-# version 1.1.2
-# updated at 2018/6/2 22:00
+# version 1.1.3
+# updated at 2018/6/7 2:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -95,17 +95,18 @@ def readlammpsbondstep(item):
     bond=[[] for x in range(N+1)]
     level=[[] for x in range(N+1)]
     for line in lines:
-        if line.startswith("#"):
-            if line.startswith("# Timestep"):
-                timestep=step,[int(s) for s in line.split() if s.isdigit()][0]    
-        else:  
-            s=line.split()
-            for i in range(int(s[2])):
-                bond[int(s[0])].append(int(s[i+3]))
-                bondlevel=round(float(s[i+4+int(s[2])]))
-                if bondlevel==0:
-                    bondlevel=1
-                level[int(s[0])].append(bondlevel)     
+        if line:
+            if line.startswith("#"):
+                if line.startswith("# Timestep"):
+                    timestep=step,[int(s) for s in line.split() if s.isdigit()][0]    
+            else:  
+                s=line.split()
+                for i in range(int(s[2])):
+                    bond[int(s[0])].append(int(s[i+3]))
+                    bondlevel=round(float(s[i+4+int(s[2])]))
+                    if bondlevel==0:
+                        bondlevel=1
+                    level[int(s[0])].append(bondlevel)     
     d=connectmolecule(N,{},step,bond,level)
     return d,timestep
 
@@ -144,21 +145,22 @@ def readlammpscrdstep(item):
     step,lines=element
     atomcrd=[0 for i in range(N)]
     for line in lines:
-        if line.startswith("ITEM:"):
-            if line.startswith("ITEM: TIMESTEP"):
-                linecontent=4
-            elif line.startswith("ITEM: ATOMS"):
-                linecontent=3
-            elif line.startswith("ITEM: NUMBER OF ATOMS"):
-                linecontent=1
-            elif line.startswith("ITEM: BOX BOUNDS"):
-                linecontent=2
-        else:
-            if linecontent==3:
-                s=line.split()
-                atomcrd[int(s[0])-1]=int(s[1]),float(s[2]),float(s[3]),float(s[4])
-            elif linecontent==4:
-                timestep=step,int(line.split()[0])
+        if line:
+            if line.startswith("ITEM:"):
+                if line.startswith("ITEM: TIMESTEP"):
+                    linecontent=4
+                elif line.startswith("ITEM: ATOMS"):
+                    linecontent=3
+                elif line.startswith("ITEM: NUMBER OF ATOMS"):
+                    linecontent=1
+                elif line.startswith("ITEM: BOX BOUNDS"):
+                    linecontent=2
+            else:
+                if linecontent==3:
+                    s=line.split()
+                    atomcrd[int(s[0])-1]=int(s[1]),float(s[2]),float(s[3]),float(s[4])
+                elif linecontent==4:
+                    timestep=step,int(line.split()[0])
     bond,level=getbondfromcrd(atomcrd,step)
     d=connectmolecule(N,{},step,bond,level)
     return d,timestep
@@ -622,7 +624,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
             G.add_node(showname[name[i]] if name[i] in showname else name[i])
             for j in range(len(table)):
                 if name[j] in species and not name[j] in filter:
-                    if table[i][j]>5:
+                    if table[i][j]>0:
                         G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
     weights = np.array([math.log(G[u][v]['weight']) for u,v in G.edges()])
     widths=[weight/max(weights) *widthcoefficient for weight in weights]
