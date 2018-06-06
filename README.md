@@ -1,2 +1,2 @@
-# Visualize-ReaxFF
-make ReaxFF output via LAMMPS visible
+# HMM-based MD Reaction Network Analyzing Tool 
+make MD visible
