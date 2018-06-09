@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-  
-# version 1.1.3
-# updated at 2018/6/7 2:00
+# version 1.1.4
+# updated at 2018/6/10 2:00
 #########  Usage #########
 ## import getmo
 ## getmo.run()
@@ -82,7 +82,7 @@ def readlammpsbondN(bondfilename):
                         iscompleted=True
                         stepaindex=index
                     N=[int(s) for s in line.split() if s.isdigit()][0]
-                    atomtype=[0 for x in range(N+1)]
+                    atomtype=np.zeros(N+1,dtype=np.int)
             else:
                 s=line.split()
                 atomtype[int(s[0])]=int(s[1])    
@@ -132,18 +132,18 @@ def readlammpscrdN(crdfilename):
                         iscompleted=True
                         stepaindex=index
                     N=int(line.split()[0])
-                    atomtype=[0 for i in range(N)]
+                    atomtype=np.zeros(N+1,dtype=np.int)
                 elif linecontent==3:
                     s=line.split()
-                    atomtype[int(s[0])-1]=int(s[1])
-    atomtype=[0]+atomtype
+                    atomtype[int(s[0])]=int(s[1])
     steplinenum=stepbindex-stepaindex
     return N,atomtype,steplinenum
 
 def readlammpscrdstep(item):
     element,N=item
     step,lines=element
-    atomcrd=[0 for i in range(N)]
+    atomtype=np.zeros((N,1),dtype=np.int)
+    atomcrd=np.zeros((N,3))
     for line in lines:
         if line:
             if line.startswith("ITEM:"):
@@ -158,10 +158,11 @@ def readlammpscrdstep(item):
             else:
                 if linecontent==3:
                     s=line.split()
-                    atomcrd[int(s[0])-1]=int(s[1]),float(s[2]),float(s[3]),float(s[4])
+                    atomtype[int(s[0])-1]=int(s[1])
+                    atomcrd[int(s[0])-1]=float(s[2]),float(s[3]),float(s[4])
                 elif linecontent==4:
                     timestep=step,int(line.split()[0])
-    bond,level=getbondfromcrd(atomcrd,step)
+    bond,level=getbondfromcrd(atomtype,atomcrd,step)
     d=connectmolecule(N,{},step,bond,level)
     return d,timestep
 
@@ -182,7 +183,7 @@ def getdandtimestep(readfunc,N,steplinenum,filename,stepinterval,moleculetempfil
     
 def connectmolecule(N,d,step,bond,level):
     #init
-    done=[False for x in range(N+1)]
+    done=np.zeros(N+1,dtype=bool)
     #connect molecule
     for i in range(1,N+1):
         if not done[i]:
@@ -201,20 +202,20 @@ def writemoleculetempfile(moleculetempfilename,d):
             key,value=item
             print(",".join([str(x) for x in key[0]]),";".join([",".join([str(y) for y in x]) for x in key[1]]),",".join([str(x) for x in value]),file=f)
     
-def getbondfromcrd(atomcrd,step,filename="crd"):  
+def getbondfromcrd(atomtype,atomcrd,step,filename="crd"):  
     xyzfilename=filename+"_"+str(step)+".xyz"
     mol2filename=filename+"_"+str(step)+".mol2"
-    convertxyz(atomcrd,xyzfilename)
+    convertxyz(atomtype,atomcrd,xyzfilename)
     os.system("obabel -ixyz "+xyzfilename+" -omol2 -O "+mol2filename+" >/dev/null")
     bond,bondlevel=getbondfrommol2(len(atomcrd),mol2filename)
     return bond,bondlevel
 
-def convertxyz(atomcrd,xyzfilename):
+def convertxyz(atomtype,atomcrd,xyzfilename):
     with open(xyzfilename,'w') as f:
         print(len(atomcrd),file=f)
         print("by getmo.py",file=f)
-        for atomtype,x,y,z in atomcrd: 
-            print(["C","H","O"][atomtype-1],x,y,z,file=f)
+        for type,(x,y,z) in zip(atomtype,atomcrd): 
+            print(["C","H","O"][type-1],x,y,z,file=f)
 
 def getbondfrommol2(atomnumber,mol2filename):
     linecontent=-1
@@ -260,8 +261,9 @@ def getoriginandhmm(item):
     line,parameter=item
     step,model,states=parameter
     list=line.split()
-    value=[int(x) for x in list[-1].split(",")]
-    origin= [1 if i in value else 0 for i in range(1, step+1)]
+    value=np.array([int(x)-1 for x in list[-1].split(",")])
+    origin=np.zeros(step,dtype=np.int)
+    origin[value]=1
     hmm=gethmm(origin,model,states)
     return origin,hmm,line
 
@@ -281,8 +283,9 @@ def getorigin(item):
     line,parameter=item
     step,=parameter
     list=line.split()
-    value=[int(x) for x in list[-1].split(",")]
-    origin= [1 if i in value else 0 for i in range(1, step+1)]
+    value=np.array([int(x) for x in list[-1].split(",")])
+    origin=np.zeros(step,dtype=np.int)
+    origin[value]=1
     return origin,line     
          
 def noHMM(originfilename,moleculetempfilename,moleculetemp2filename,step):
@@ -296,7 +299,7 @@ def noHMM(originfilename,moleculetempfilename,moleculetemp2filename,step):
 
 def getatomroute(item):
     itemi,parameter=item
-    i,atomeachi,atomtypei=itemi
+    i,(atomeachi,atomtypei)=itemi
     step,atomname,mname,timestep=parameter
     route=[]
     routestrarr=[]
@@ -318,7 +321,7 @@ def printatomroute(atomroutefilename,N,step,atomeach,atomtype,atomname,mname,tim
     with open(atomroutefilename, 'w') as f,Pool(maxtasksperchild=100) as pool:
         allmoleculeroute=[]
         semaphore = Semaphore(360)
-        results=pool.imap(getatomroute,produce(semaphore,zip(range(1,N+1),atomeach[1:],atomtype[1:]),(step,atomname,mname,timestep)),10)
+        results=pool.imap(getatomroute,produce(semaphore,enumerate(zip(atomeach[1:],atomtype[1:]),start=1),(step,atomname,mname,timestep)),10)
         for route in results:
             moleculeroute,routestr=route
             print(routestr, file=f)
@@ -339,10 +342,8 @@ def makemoleculegraph(atoms,bonds):
 
 def getstructure(name,atoms,bonds,atomtype,atomname):
     index={}
-    i=1
-    for atom in atoms:
+    for i,atom in enumerate(atoms,start=1):
         index[atom]=i
-        i+=1
     return name+" "+",".join([atomname[atomtype[x]-1] for x in atoms])+" "+";".join([str(index[x[0]])+","+str(index[x[1]])+","+str(x[2]) for x in bonds])
 
 def readstrcture(moleculestructurefilename):
@@ -363,9 +364,9 @@ def printmoleculename(moleculefilename,moleculetempfilename,moleculestructurefil
     with open(moleculefilename, 'w') as fm,open(moleculetempfilename) as ft,open(moleculestructurefilename,'w') as fs:
         for line in ft:
             list=line.split()
-            atoms=[int(x) for x in list[0].split(",")]
-            bonds=[tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else []
-            typenumber=[0 for i in range(len(atomname))]
+            atoms=np.array([int(x) for x in list[0].split(",")])
+            bonds=np.array([tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else [])
+            typenumber=np.zeros(len(atomname),dtype=np.int)
             atomtypes=[]
             for atomnumber in atoms:
                 typenumber[atomtype[atomnumber]-1]+=1
@@ -393,8 +394,8 @@ def calmoleculeSMILESname(item):
     line,parameter=item
     list=line.split()
     atomname,atomtype=parameter
-    atoms=[int(x) for x in list[0].split(",")]
-    bonds=[tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else []
+    atoms=np.array([int(x) for x in list[0].split(",")])
+    bonds=np.array([tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else [])
     type={}
     for atomnumber in atoms:
         type[atomnumber]=atomname[atomtype[atomnumber]-1]
@@ -425,17 +426,13 @@ def convertSMILES(atoms,bonds,type):
     return name
     
 def getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step):
-    atomeach=[[0 for j in range(0,step)] for i in range(0,N+1)]
+    atomeach=np.zeros((N+1,step),dtype=np.int)
     with open(hmmfilename) as fh,open(moleculetemp2filename) as ft:
-        i=0
-        for lineh,linet in zip(fh,ft):
+        for i,(lineh,linet) in enumerate(zip(fh,ft),start=1):
             list=linet.split()
-            key1=[int(x) for x in list[0].split(",")]
-            for j in range(0,step):#j is step
-                if lineh[j]=="1":
-                    for a in key1:
-                        atomeach[a][j]=i+1
-            i+=1
+            key1=np.array([int(x) for x in list[0].split(",")])
+            index=np.array([j for j in range(len(lineh)) if lineh[j]=="1"])
+            atomeach[key1[:,None],index]=i
     with open(atomfilename, 'w') as f:
         for atom in atomeach[1:]:
             print(atom, file=f)
@@ -457,29 +454,23 @@ def getallroute(reactionfilename,allmoleculeroute,mname):
 
 def printtable(tablefilename,reactionfilename,allroute):
     species=[]
-    table=[[0 for x in range(100)] for x in range(100)]
+    table=np.zeros((100,100),dtype=np.int)
     with open(reactionfilename,'w') as f:
         for k, v in sorted(allroute.items(), key=lambda d: d[1] ,reverse=True):
             print(v,k,file=f)
-            l=k.split("->")
-            left=l[0]
-            right=l[1]
-            if left in species:
-                leftnumber=species.index(left)    
-            else:
-                if len(species)<100:
-                    species.append(left)
-                    leftnumber=species.index(left)
+            left,right=k.split("->")
+            for i,spec in enumerate([left,right]):
+                if spec in species:
+                    number=species.index(spec)    
+                elif len(species)<100:
+                    species.append(spec)
+                    number=species.index(spec)
                 else:
-                    leftnumber=-1
-            if right in species:
-                rightnumber=species.index(right)    
-            else:
-                if len(species)<100:
-                    species.append(right)
-                    rightnumber=species.index(right)
+                    number=-1
+                if i==0:
+                    leftnumber=number
                 else:
-                    rightnumber=-1
+                    rightnumber=number
             if leftnumber>=0 and rightnumber>=0:
                 table[leftnumber][rightnumber]=v
     with open(tablefilename,'w') as f:
@@ -501,10 +492,8 @@ def readtable(tablefilename):
     
 def convertstructure(atoms,bonds,atomname):
     types={}
-    i=0
     atomtypes=[]
-    for atom in atoms:
-        i+=1
+    for atom in enumerate(atoms,start=1):
         atomtypes.append((i,atomname.index(atom)))
     G=makemoleculegraph(atomtypes,bonds)
     return G
@@ -575,7 +564,7 @@ def step4(allmoleculeroute,mname,reactionfilename,tablefilename):
     allroute=getallroute(reactionfilename,allmoleculeroute,mname)
     printtable(tablefilename,reactionfilename,allroute)
 ######## run ########
-def run(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,SMILES=False,printfiltersignal=False):
+def run(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,getoriginfile=False,SMILES=True,printfiltersignal=False):
     ######### Parameter above ############
     ######start#####
     print("Run HMM calculation:")
@@ -605,7 +594,7 @@ def run(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C"
     print()
 
 #####draw#####    
-def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=False,k=None):
+def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=True,k=None):
     #start
     print("Draw the image:")
     timearray=printtime([])
@@ -656,7 +645,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print()
     return pos
 #### run and draw ####
-def runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=False,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False,showid=False,k=None):
+def runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False,showid=True,k=None):
     run(inputfiletype,inputfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal)
     pos=draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos,showid,k)
     return pos
