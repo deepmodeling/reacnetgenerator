@@ -4,6 +4,7 @@ An automatic generation of reaction network for reactive molecular dynamics simu
 - Hidden Markov Model (HMM) based noise filtering
 - Isomers identifying accoarding to SMILES
 - Generation of reaction network for visualization using force-directed algorithm
+- Parallel computing
 # Installation
 ## Linux 64 Under anaconda python (fastest install)
 Before installation you need to [get conda](https://conda.io/docs/user-guide/install/index.html) first.
