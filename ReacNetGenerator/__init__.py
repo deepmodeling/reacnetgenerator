@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-  
-# version 1.1.4
-# updated at 2018/6/10 2:00
-#########  Usage #########
-## import getmo
-## getmo.run()
-## getmo.draw()
-##########################
+###################################
+## Reaction Network Generator(ReacNetGenerator)
+## An automatic generation of reaction network for reactive molecular dynamics simulation.
+## version 1.1.5
+## updated at 2018/6/18 19:00
+#########     Features    #########
+## * Processing of MD trajectory containing atomic coordinates or bond orders
+## * Hidden Markov Model (HMM) based noise filtering
+## * Isomers identifying accoarding to SMILES
+## * Generation of reaction network for visualization using force-directed algorithm
+#########  Simple example #########
+## Process a LAMMPS bond file named bonds.reaxc.
+## >>> import reacnetgenerator
+## >>> ReacNetGenerator.runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"])
+###################################
+#########       Script    #########
 ######### import #########
 import time
 import os
@@ -624,7 +633,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
         
         for with_labels in ([True] if not nolabel else [True,False]):
             nx.draw(G,pos = pos,width=widths,node_size=node_size,font_size=font_size,with_labels=with_labels,edge_color=colors,node_color=np.array(node_color))
-
+            
             plt.savefig(imagefilename if with_labels else "nolabel_"+imagefilename)
             
             if show:
