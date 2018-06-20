@@ -8,7 +8,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 - Generation of reaction network for visualization using force-directed algorithm
 - Parallel computing
 # Installation
-## Linux 64 Under anaconda python (fastest install)
+## Linux 64 under anaconda python (fastest install)
 Before installation you need to [get conda](https://conda.io/docs/user-guide/install/index.html) first.
 ```sh
 $ conda install -c njzjz -c openbabel -c rdkit -c omnia reacnetgenerator
@@ -17,6 +17,13 @@ $ conda install -c njzjz -c openbabel -c rdkit -c omnia reacnetgenerator
 If you install ReacNetGenerator with pip, you must install [RDKit](https://github.com/rdkit/rdkit) and [OpenBabel](https://github.com/openbabel/openbabel) on your own.
 ```sh
 $ pip install reacnetgenerator
+```
+## Build from source
+If you build ReacNetGenerator from source, you must install [RDKit](https://github.com/rdkit/rdkit) and [OpenBabel](https://github.com/openbabel/openbabel) on your own.
+```sh
+$ git clone https://github.com/njzjz/ReacNetGenerator.git
+$ cd ReacNetGenerator/
+$ python3 setup.py install
 ```
 # Simple example
 Process a LAMMPS bond file named bonds.reaxc.
