@@ -2,14 +2,15 @@
 # -*- coding: UTF-8 -*-  
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
-## An automatic generation of reaction network for reactive molecular dynamics simulation.
-## version 1.1.5
-## updated at 2018/6/18 19:00
+## An automatic generator of reaction network for reactive molecular dynamics simulation.
+## version 1.1.6
+## updated at 2018/6/24 0:00
 #########     Features    #########
 ## * Processing of MD trajectory containing atomic coordinates or bond orders
 ## * Hidden Markov Model (HMM) based noise filtering
 ## * Isomers identifying accoarding to SMILES
 ## * Generation of reaction network for visualization using force-directed algorithm
+## * Parallel computing
 #########  Simple example #########
 ## Process a LAMMPS bond file named bonds.reaxc.
 ## >>> import reacnetgenerator
@@ -73,9 +74,9 @@ def mo(i,bond,level,molecule,done,bondlist): #connect molecule
             molecule,done,bondlist=mo(b,bond,level,molecule,done,bondlist)
     return molecule,done,bondlist
 
-def readinputfile(readNfunc,readstepfunc,inputfilename,moleculetempfilename,stepinterval):
+def readinputfile(readNfunc,readstepfunc,inputfilename,moleculetempfilename,stepinterval,atomname):
     N,atomtype,steplinenum=readNfunc(inputfilename)
-    step,timestep=getdandtimestep(readstepfunc,N,steplinenum,inputfilename,stepinterval,moleculetempfilename)
+    step,timestep=getdandtimestep(readstepfunc,N,steplinenum,inputfilename,stepinterval,moleculetempfilename,atomname)
     return N,atomtype,step,timestep
     
 def readlammpsbondN(bondfilename):
@@ -99,8 +100,7 @@ def readlammpsbondN(bondfilename):
     return N,atomtype,steplinenum
 
 def readlammpsbondstep(item):
-    element,N=item
-    step,lines=element
+    (step,lines),(N,atomname)=item
     bond=[[] for x in range(N+1)]
     level=[[] for x in range(N+1)]
     for line in lines:
@@ -149,9 +149,8 @@ def readlammpscrdN(crdfilename):
     return N,atomtype,steplinenum
 
 def readlammpscrdstep(item):
-    element,N=item
-    step,lines=element
-    atomtype=np.zeros((N,1),dtype=np.int)
+    (step,lines),(N,atomname)=item
+    atomtype=np.zeros((N),dtype=np.int)
     atomcrd=np.zeros((N,3))
     for line in lines:
         if line:
@@ -171,16 +170,16 @@ def readlammpscrdstep(item):
                     atomcrd[int(s[0])-1]=float(s[2]),float(s[3]),float(s[4])
                 elif linecontent==4:
                     timestep=step,int(line.split()[0])
-    bond,level=getbondfromcrd(atomtype,atomcrd,step)
+    bond,level=getbondfromcrd(atomtype,atomcrd,step,atomname)
     d=connectmolecule(N,{},step,bond,level)
     return d,timestep
 
-def getdandtimestep(readfunc,N,steplinenum,filename,stepinterval,moleculetempfilename):
+def getdandtimestep(readfunc,N,steplinenum,filename,stepinterval,moleculetempfilename,atomname):
     d={} 
     timestep={}
     with open(filename) as file,Pool(maxtasksperchild=100) as pool:
         semaphore = Semaphore(360)
-        results=pool.imap_unordered(readfunc,produce(semaphore,enumerate(itertools.islice(itertools.zip_longest(*[file]*steplinenum),0,None,stepinterval)),N),10)
+        results=pool.imap_unordered(readfunc,produce(semaphore,enumerate(itertools.islice(itertools.zip_longest(*[file]*steplinenum),0,None,stepinterval)),(N,atomname)),10)
         for dstep,timesteptuple in results:
             d=union_dict(d,dstep)
             step,thetimestep=timesteptuple
@@ -211,20 +210,20 @@ def writemoleculetempfile(moleculetempfilename,d):
             key,value=item
             print(",".join([str(x) for x in key[0]]),";".join([",".join([str(y) for y in x]) for x in key[1]]),",".join([str(x) for x in value]),file=f)
     
-def getbondfromcrd(atomtype,atomcrd,step,filename="crd"):  
+def getbondfromcrd(atomtype,atomcrd,step,atomname,filename="crd"):  
     xyzfilename=filename+"_"+str(step)+".xyz"
     mol2filename=filename+"_"+str(step)+".mol2"
-    convertxyz(atomtype,atomcrd,xyzfilename)
+    convertxyz(atomtype,atomcrd,xyzfilename,atomname)
     os.system("obabel -ixyz "+xyzfilename+" -omol2 -O "+mol2filename+" >/dev/null")
     bond,bondlevel=getbondfrommol2(len(atomcrd),mol2filename)
     return bond,bondlevel
 
-def convertxyz(atomtype,atomcrd,xyzfilename):
+def convertxyz(atomtype,atomcrd,xyzfilename,atomname):
     with open(xyzfilename,'w') as f:
         print(len(atomcrd),file=f)
         print("by getmo.py",file=f)
         for type,(x,y,z) in zip(atomtype,atomcrd): 
-            print(["C","H","O"][type-1],x,y,z,file=f)
+            print(atomname[type-1],x,y,z,file=f)
 
 def getbondfrommol2(atomnumber,mol2filename):
     linecontent=-1
@@ -267,8 +266,7 @@ def produce(semaphore, list,parameter):
         yield item,parameter
 
 def getoriginandhmm(item):
-    line,parameter=item
-    step,model,states=parameter
+    line,(step,model,states)=item
     list=line.split()
     value=np.array([int(x)-1 for x in list[-1].split(",")])
     origin=np.zeros(step,dtype=np.int)
@@ -289,8 +287,7 @@ def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename
             semaphore.release()
      
 def getorigin(item):
-    line,parameter=item
-    step,=parameter
+    line,(step,)=item
     list=line.split()
     value=np.array([int(x) for x in list[-1].split(",")])
     origin=np.zeros(step,dtype=np.int)
@@ -307,9 +304,7 @@ def noHMM(originfilename,moleculetempfilename,moleculetemp2filename,step):
             semaphore.release()
 
 def getatomroute(item):
-    itemi,parameter=item
-    i,(atomeachi,atomtypei)=itemi
-    step,atomname,mname,timestep=parameter
+    (i,(atomeachi,atomtypei)),(step,atomname,mname,timestep)=item
     route=[]
     routestrarr=[]
     moleculeroute=[]
@@ -400,9 +395,8 @@ def printmoleculename(moleculefilename,moleculetempfilename,moleculestructurefil
     return mname
 
 def calmoleculeSMILESname(item):
-    line,parameter=item
+    line,(atomname,atomtype)=item
     list=line.split()
-    atomname,atomtype=parameter
     atoms=np.array([int(x) for x in list[0].split(",")])
     bonds=np.array([tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else [])
     type={}
@@ -550,7 +544,7 @@ def step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval):
     elif inputfiletype=="lammpscrdfile" or inputfiletype=="lammpsdumpfile":
         readNfunc=readlammpscrdN
         readstepfunc=readlammpscrdstep   
-    N,atomtype,step,timestep=readinputfile(readNfunc,readstepfunc,inputfilename,moleculetempfilename,stepinterval)
+    N,atomtype,step,timestep=readinputfile(readNfunc,readstepfunc,inputfilename,moleculetempfilename,stepinterval,atomname)
     return N,atomtype,step,timestep
     
 def step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile,printfiltersignal):
