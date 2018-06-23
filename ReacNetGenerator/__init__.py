@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.1.6
-## updated at 2018/6/24 0:00
+## version 1.1.7
+## updated at 2018/6/24 2:00
 #########     Features    #########
 ## * Processing of MD trajectory containing atomic coordinates or bond orders
 ## * Hidden Markov Model (HMM) based noise filtering
@@ -537,7 +537,7 @@ def handlespecies(species,name,maxspecies,atomname,moleculestructurefilename,sho
     return species_out,showname
     
 ######## steps ######
-def step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval):
+def step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval,atomname):
     if inputfiletype=="lammpsbondfile":
         readNfunc=readlammpsbondN
         readstepfunc=readlammpsbondstep
@@ -575,7 +575,7 @@ def run(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C"
     for runstep in range(1,5):
         ######## step 1 ##### 
         if(runstep==1):
-            N,atomtype,step,timestep=step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval)
+            N,atomtype,step,timestep=step1(inputfiletype,inputfilename,moleculetempfilename,stepinterval,atomname)
         ######## step 2 ##### 
         elif(runstep==2):
             step2(states,observations,p,a,b,originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename,step,runHMM,getoriginfile,printfiltersignal)
@@ -597,7 +597,7 @@ def run(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C"
     print()
 
 #####draw#####    
-def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=True,k=None):
+def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefilename="moleculestructure.txt",species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,atomname=["C","H","O"],drawmolecule=False,nolabel=False,filter=[],node_color=[132/256,169/256,40/256],pos={},showid=True,k=None):
     #start
     print("Draw the image:")
     timearray=printtime([])
@@ -648,7 +648,7 @@ def draw(tablefilename="table.txt",imagefilename="image.svg",moleculestructurefi
     print()
     return pos
 #### run and draw ####
-def runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},printfiltersignal=False,showid=True,k=None):
+def runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename="originsignal.txt",hmmfilename="hmmsignal.txt",atomfilename="atom.txt",moleculefilename="moleculename.txt",atomroutefilename="atomroute.txt",reactionfilename="reaction.txt",tablefilename="table.txt",moleculetempfilename="moleculetemp.txt",moleculetemp2filename="moleculetemp2.txt",moleculestructurefilename="moleculestructure.txt",imagefilename="image.svg",stepinterval=1,states=[0,1],observations=[0,1],p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[132/256,169/256,40/256],pos={},printfiltersignal=False,showid=True,k=None):
     run(inputfiletype,inputfilename,atomname,originfilename,hmmfilename,atomfilename,moleculefilename,atomroutefilename,reactionfilename,tablefilename,moleculetempfilename,moleculetemp2filename,moleculestructurefilename,stepinterval,states,observations,p,a,b,runHMM,getoriginfile,SMILES,printfiltersignal)
     pos=draw(tablefilename,imagefilename,moleculestructurefilename,species,node_size,font_size,widthcoefficient,show,maxspecies,n_color,atomname,drawmolecule,nolabel,filter,node_color,pos,showid,k)
     return pos
