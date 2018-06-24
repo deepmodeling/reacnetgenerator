@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.1.7
-## updated at 2018/6/24 2:00
+## version 1.1.8
+## updated at 2018/6/24 14:00
 #########     Features    #########
 ## * Processing of MD trajectory containing atomic coordinates or bond orders
 ## * Hidden Markov Model (HMM) based noise filtering
@@ -289,7 +289,7 @@ def calhmm(originfilename,hmmfilename,moleculetempfilename,moleculetemp2filename
 def getorigin(item):
     line,(step,)=item
     list=line.split()
-    value=np.array([int(x) for x in list[-1].split(",")])
+    value=np.array([int(x)-1 for x in list[-1].split(",")])
     origin=np.zeros(step,dtype=np.int)
     origin[value]=1
     return origin,line     
