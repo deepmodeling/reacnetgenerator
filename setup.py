@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='ReacNetGenerator',
-      version='1.1.8',
+      version='1.1.9',
       description='Reaction Network Generator',
       keywords="reaction network",
       url='https://github.com/njzjz/ReacNetGenerator',

@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.1.8
-## updated at 2018/6/24 14:00
+## version 1.1.9
+## updated at 2018/6/25 1:00
 #########     Features    #########
 ## * Processing of MD trajectory containing atomic coordinates or bond orders
 ## * Hidden Markov Model (HMM) based noise filtering
@@ -413,7 +413,7 @@ def printmoleculeSMILESname(moleculefilename,moleculetempfilename,atomname,atomt
         for result in results:
             name,atoms,bonds=result
             mname.append(name)
-            print(name,atoms,bonds,file=fm)
+            print(name,",".join([str(x) for x in atoms]),";".join([",".join([str(y) for y in x]) for x in bonds]),file=fm)
             semaphore.release()
     return mname
     
