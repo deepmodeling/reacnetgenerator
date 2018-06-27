@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.1.9
-## updated at 2018/6/25 1:00
+## version 1.1.10
+## updated at 2018/6/27 13:00
 #########     Features    #########
 ## * Processing of MD trajectory containing atomic coordinates or bond orders
 ## * Hidden Markov Model (HMM) based noise filtering
@@ -435,7 +435,8 @@ def getatomeach(hmmfilename,moleculetemp2filename,atomfilename,N,step):
             list=linet.split()
             key1=np.array([int(x) for x in list[0].split(",")])
             index=np.array([j for j in range(len(lineh)) if lineh[j]=="1"])
-            atomeach[key1[:,None],index]=i
+            if(len(index))>0:
+                atomeach[key1[:,None],index]=i
     with open(atomfilename, 'w') as f:
         for atom in atomeach[1:]:
             print(atom, file=f)
