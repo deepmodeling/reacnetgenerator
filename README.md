@@ -2,6 +2,8 @@
 [![Anaconda-Server Badge](https://anaconda.org/njzjz/reacnetgenerator/badges/installer/conda.svg)](https://conda.anaconda.org/njzjz)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
+
+[Research Group](http://computchem.cn/)
 ## Features
 - Processing of MD trajectory containing atomic coordinates or bond orders
 - Hidden Markov Model (HMM) based noise filtering
