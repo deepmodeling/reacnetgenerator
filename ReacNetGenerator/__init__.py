@@ -3,7 +3,7 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.2.0
+## version 1.2.1
 ## updated at 2018/7/5 20:00
 ## Author: Jinzhe Zeng
 ## Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
@@ -56,7 +56,7 @@ except ImportError as e:
 ######## class ########
 class ReacNetGenerator(object):
     def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0]):
-        self.version="1.2.0"
+        self.version="1.2.1"
         print("======= ReacNetGenerator "+self.version+" ======")
         print("Author: Jinzhe Zeng")
         print("Email: njzjz@qq.com  10154601140@stu.ecnu.edu.cn")
@@ -468,7 +468,7 @@ class ReacNetGenerator(object):
             return origin,line
 
     def calhmm(self):
-        with open(self.originfilename, 'w') if self.getoriginfile or not self.runHMM else None as fo,open(self.hmmfilename, 'w') if self.runHMM else None as fh,open(self.moleculetempfilename) as ft,open(self.moleculetemp2filename,'w') as ft2,Pool(maxtasksperchild=100) as pool:
+        with open(self.originfilename, 'w') if self.getoriginfile or not self.runHMM else Placeholder() as fo,open(self.hmmfilename, 'w') if self.runHMM else Placeholder() as fh,open(self.moleculetempfilename) as ft,open(self.moleculetemp2filename,'w') as ft2,Pool(maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap_unordered(self.getoriginandhmm,self.produce(semaphore,ft,()),10)
             if self.runHMM:
@@ -718,6 +718,9 @@ class ReacNetGenerator(object):
                 showname[specname]=str(n)
                 print(n,specname)
         return species_out,showname
+    
+    def __enter__(self):return self
+    def __exit__(self,Type, value, traceback):pass
         
 class InstallError(Exception):
     def __init__(self,ErrorInfo):
@@ -726,6 +729,11 @@ class InstallError(Exception):
     def __str__(self):
         return self.errorinfo+" is not installed."
 
+class Placeholder(object):
+    def __init__(self):pass    
+    def __enter__(self):return self
+    def __exit__(self,Type, value, traceback):pass
+    
 ##### main #####
 if __name__ == '__main__':
     ReacNetGenerator().runanddraw()
