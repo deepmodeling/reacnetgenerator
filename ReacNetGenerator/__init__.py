@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.2.1
-## updated at 2018/7/5 20:00
+## version 1.2.2
+## updated at 2018/7/5 22:00
 ## Author: Jinzhe Zeng
 ## Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
 #########     Features    #########
@@ -56,7 +56,7 @@ except ImportError as e:
 ######## class ########
 class ReacNetGenerator(object):
     def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0]):
-        self.version="1.2.1"
+        self.version="1.2.2"
         print("======= ReacNetGenerator "+self.version+" ======")
         print("Author: Jinzhe Zeng")
         print("Email: njzjz@qq.com  10154601140@stu.ecnu.edu.cn")
@@ -233,7 +233,7 @@ class ReacNetGenerator(object):
         if self.SMILES:
             self.printmoleculeSMILESname()
         else:
-            self.mname=printmoleculename()
+            self.printmoleculename()
         atomeach=self.getatomeach()
         allmoleculeroute=self.printatomroute(atomeach)
         return allmoleculeroute
