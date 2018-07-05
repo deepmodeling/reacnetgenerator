@@ -3,6 +3,10 @@
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
+Author: Jinzhe Zeng
+
+Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
+
 [Research Group](http://computchem.cn/)
 ## Features
 - Processing of MD trajectory containing atomic coordinates or bond orders
@@ -29,31 +33,31 @@ $ cd ReacNetGenerator/
 $ python3 setup.py install
 ```
 ## Simple example
-Process a LAMMPS bond file named bonds.reaxc.
+Process a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc.
 ```python
->>> import ReacNetGenerator
->>> ReacNetGenerator.runanddraw(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"])
+>>> from ReacNetGenerator import ReacNetGenerator
+>>> ReacNetGenerator(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"]).runanddraw()
 ```
 ## Reference
-### ReacNetGenerator.runanddraw
+### ReacNetGenerator.ReacNetGenerator
 ```python
-runanddraw(inputfiletype='lammpsbondfile',inputfilename='bonds.reaxc',atomname=['C','H','O'],originfilename='originsignal.txt',hmmfilename='hmmsignal.txt',atomfilename='atom.txt',moleculefilename='moleculename.txt',atomroutefilename='atomroute.txt',reactionfilename='reaction.txt',tablefilename='table.txt',moleculetempfilename='moleculetemp.txt',moleculetemp2filename='moleculetemp2.txt',moleculestructurefilename='moleculestructure.txt',imagefilename='image.svg',stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,printfiltersignal=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,nolabel=False,filter=[],node_color=[135/256,206/256,250/256],pos={},showid=True,k=None)
+class ReacNetGenerator(inputfiletype='lammpsbondfile',inputfilename='bonds.reaxc',atomname=['C','H','O'],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,printfiltersignal=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,nolabel=False,filter=[],node_color=[78/256,196/256,238/256],pos={},showid=True,k=None)
 ```
 **Parameters:**
 - **inputfiletype**(_string (optional, default='lammpsbondfile')_)- Type of the input file. 'lammpsbondfile' or 'lammpsdumpfile' is acceptable.
 - **inputfilename**(_string (optional, default='bonds.reaxc')_)- Path of the input file.
 - **atomname**(_list (optional, default=['C','H','O'])_)- Names of atom types, corresponding atom type 1, atom type 2 and so on.
-- **originfilename**(_string (optional, default='originsignal.txt')_)- Path of the original signal file.
-- **hmmfilename**(_string (optional, default='hmmsignal.txt')_)- Path of the HMM signal file.
-- **atomfilename**(_string (optional, default='atom.txt')_)- Path of the atom file, containing molecule IDs of atoms.
-- **moleculefilename**(_string (optional, default='moleculename.txt')_)- Path of the molecule name and structure file.
-- **atomroutefilename**(_string (optional, default='atomroute.txt')_)- Path of the atom route file.
-- **reactionfilename**(_string (optional, default='reaction.txt')_)- Path of the reaction file, containing reactions and numbers of them.
-- **tablefilename**(_string (optional, default='table.txt')_)- Path of the reaction matrix file.
-- **moleculetempfilename**(_string (optional, default='moleculetemp.txt')_)- Path of the temp file.
-- **moleculetemp2filename**(_string (optional, default='moleculetemp2.txt')_)- Path of another temp file.
-- **moleculestructurefilename**(_string (optional, default='moleculestructure.txt')_)- Path of the species structure file if `SMILES=False`.
-- **imagefilename**(_string (optional, default='image.svg')_)- Path of the reaction network image file.
+- **originfilename**(_string (optional, default=None)_)- Path of the original signal file. If None it will be set to inputfilename+'.origin'.
+- **hmmfilename**(_string (optional, default=None)_)- Path of the HMM signal file. If None it will be set to inputfilename+'.hmm'.
+- **atomfilename**(_string (optional, default=None)_)- Path of the atom file, containing molecule IDs of atoms. If None it will be set to inputfilename+'.atom'.
+- **moleculefilename**(_string (optional, default=None)_)- Path of the molecule name and structure file. If None it will be set to inputfilename+'.moname'.
+- **atomroutefilename**(_string (optional, default=None)_)- Path of the atom route file. If None it will be set to inputfilename+'.route'.
+- **reactionfilename**(_string (optional, default=None)_)- Path of the reaction file, containing reactions and numbers of them. If None it will be set to inputfilename+'.reaction'.
+- **tablefilename**(_string (optional, default=None)_)- Path of the reaction matrix file. If None it will be set to inputfilename+'.table'.
+- **moleculetempfilename**(_string (optional, default=None)_)- Path of the temp file. If None it will be set to inputfilename+'.temp'.
+- **moleculetemp2filename**(_string (optional, default=None)_)- Path of another temp file. If None it will be set to inputfilename+'.temp2'.
+- **moleculestructurefilename**(_string (optional, default=None)_)- Path of the species structure file if `SMILES=False`. If None it will be set to inputfilename+'.structure'.
+- **imagefilename**(_string (optional, default=None)_)- Path of the reaction network image file. If None it will be set to inputfilename+'.svg'.
 - **stepinterval**(_int (optional, default=1)_)- Processing a timestep every N timesteps.
 - **p**(_list (optional, default=[0.5,0.5])_)- The initial state vector of HMM.
 - **a**(_list (optional, default=[[0.999,0.001],[0.001,0.999]])_)- The transition matrix of HMM.
@@ -71,7 +75,11 @@ runanddraw(inputfiletype='lammpsbondfile',inputfilename='bonds.reaxc',atomname=[
 - **n_color**(_int (optional, default=256)_)- Number of arrow colors in the reaction network.
 - **nolabel**(_boolen (optional, default=False)_)- If True generate a reaction network without node labels.
 - **filter**(_list (optional, default=[])_)- Filtered species in the reaction network.
-- **node_color**(_list (optional, default=[135/256,206/256,250/256])_)- The RGB color in the reaction network.
+- **node_color**(_list (optional, default=[78/256,196/256,238/256])_)- The RGB color in the reaction network.
 - **pos**(_dictionary (optional, default={})_)- Positions of nodes in the reaction network.
 - **showid**(_string (_boolen, default=True)_)- If True label species ID in nodes. Otherwise label names of them.
 - **k**(_int or None (optional, defaultNone)_)- k for position of nodes.
+**Methods:**
+- **ReacNetGenerator.runanddraw**() - Process the input file and draw the network.
+- **ReacNetGenerator.run**() - Only process the input file.
+- **ReacNetGenerator.draw**() - Only draw the network.
