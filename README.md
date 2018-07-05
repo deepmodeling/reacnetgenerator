@@ -3,9 +3,9 @@
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
-Author: Jinzhe Zeng
+**Author**: Jinzhe Zeng
 
-Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
+**Email**: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
 
 [Research Group](http://computchem.cn/)
 ## Features
@@ -79,6 +79,7 @@ class ReacNetGenerator(inputfiletype='lammpsbondfile',inputfilename='bonds.reaxc
 - **pos**(_dictionary (optional, default={})_)- Positions of nodes in the reaction network.
 - **showid**(_string (_boolen, default=True)_)- If True label species ID in nodes. Otherwise label names of them.
 - **k**(_int or None (optional, defaultNone)_)- k for position of nodes.
+
 **Methods:**
 - **ReacNetGenerator.runanddraw**() - Process the input file and draw the network.
 - **ReacNetGenerator.run**() - Only process the input file.
