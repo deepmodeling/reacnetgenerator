@@ -1,5 +1,5 @@
 # Reaction Network Generator (ReacNetGenerator)
-[![Anaconda-Server Badge](https://anaconda.org/njzjz/reacnetgenerator/badges/installer/conda.svg)](https://conda.anaconda.org/njzjz)
+[![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://badge.fury.io/py/ReacNetGenerator)[![pypi](https://badge.fury.io/py/ReacNetGenerator.svg)](https://badge.fury.io/py/ReacNetGenerator)[![Anaconda-Server Badge](https://anaconda.org/njzjz/reacnetgenerator/badges/version.svg)](https://conda.anaconda.org/njzjz/reacnetgenerator)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
