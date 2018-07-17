@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.2.2
-## updated at 2018/7/5 22:00
+## version 1.2.3
+## updated at 2018/7/17 20:00
 ## Author: Jinzhe Zeng
 ## Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
 #########     Features    #########
@@ -65,7 +65,7 @@ class ReacNetGenerator(object):
         self.inputfilename=inputfilename
         self.atomname=atomname
         self.originfilename=originfilename if originfilename else inputfilename+".origin"
-        self.hmmfilename=(hmmfilename if hmmfilename else inputfilename+".hmm" )if runHMM else originfilename
+        self.hmmfilename=(hmmfilename if hmmfilename else inputfilename+".hmm" )if runHMM else self.originfilename
         self.atomfilename=atomfilename if atomfilename else inputfilename+".atom"
         self.moleculefilename=moleculefilename if moleculefilename else inputfilename+".moname"
         self.atomroutefilename=atomroutefilename if atomroutefilename else inputfilename+".route"
