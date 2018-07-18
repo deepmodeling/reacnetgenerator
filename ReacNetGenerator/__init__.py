@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.2.3
-## updated at 2018/7/17 20:00
+## version 1.2.4
+## updated at 2018/7/18 11:00
 ## Author: Jinzhe Zeng
 ## Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
 #########     Features    #########
@@ -56,7 +56,7 @@ except ImportError as e:
 ######## class ########
 class ReacNetGenerator(object):
     def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0]):
-        self.version="1.2.2"
+        self.version="1.2.4"
         print("======= ReacNetGenerator "+self.version+" ======")
         print("Author: Jinzhe Zeng")
         print("Email: njzjz@qq.com  10154601140@stu.ecnu.edu.cn")
@@ -547,7 +547,7 @@ class ReacNetGenerator(object):
         mname=[]
         d={}
         em = iso.numerical_edge_match(['atom','level'], ["None",1])
-        with open(self.moleculefilename, 'w') as fm,open(self.moleculetempfilename) as ft,open(self.moleculestructurefilename,'w') as fs:
+        with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,open(self.moleculestructurefilename,'w') as fs:
             for line in ft:
                 list=line.split()
                 atoms=np.array([int(x) for x in list[0].split(",")])
@@ -589,7 +589,7 @@ class ReacNetGenerator(object):
         
     def printmoleculeSMILESname(self):
         mname=[]
-        with open(self.moleculefilename, 'w') as fm,open(self.moleculetempfilename) as ft,Pool(maxtasksperchild=100) as pool:
+        with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,Pool(maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap(self.calmoleculeSMILESname,self.produce(semaphore,ft,()),10)
             for result in results:
