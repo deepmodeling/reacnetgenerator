@@ -123,11 +123,11 @@ class ReacNetGenerator(object):
                 else:
                     print("networkx is not installed. Try \"pip install networkx\".")
                     raise InstallError("networkx")
-                    
+
         if self.runHMM and not hmmlearn_installed:
             self.runHMM=False
             print("Since you have not installed hmmlearn, HMM cannot be used to filter noise.")
-            
+
         ######start#####
         print("======Run HMM calculation:======")
         timearray=self.printtime([])
@@ -172,7 +172,7 @@ class ReacNetGenerator(object):
 
         #make color
         colorsRGB=[(self.start_color+i*(self.end_color-self.start_color) / self.n_color) for i in np.arange(self.n_color)]
-              
+
         G = nx.DiGraph()
         for i in range(len(table)):
             if name[i] in species and not name[i] in self.filter:
@@ -190,20 +190,20 @@ class ReacNetGenerator(object):
             print("The position of the species in the network is:")
             print(pos)
             print()
-            
+
             for with_labels in ([True] if not self.nolabel else [True,False]):
                 nx.draw(G,pos = pos,width=widths,node_size=self.node_size,font_size=self.font_size,with_labels=with_labels,edge_color=colors,node_color=self.node_color)
-                
+
                 plt.savefig(self.imagefilename if with_labels else "nolabel_"+self.imagefilename)
-                
+
                 if self.show:
                     plt.show()
-                    
+
                 plt.close()
 
         except Exception as e:
             print("Error: cannot draw images. Details:",e)
-        
+
         timearray=self.printtime(timearray)
         ####### end #######
         print()
@@ -221,15 +221,15 @@ class ReacNetGenerator(object):
             readstepfunc=self.readlammpsbondstep
         elif self.inputfiletype=="lammpscrdfile" or self.inputfiletype=="lammpsdumpfile":
             readNfunc=self.readlammpscrdN
-            readstepfunc=self.readlammpscrdstep   
+            readstepfunc=self.readlammpscrdstep
         self.readinputfile(readNfunc,readstepfunc)
-        
+
     def step2(self):
         if self.runHMM:
             self.initHMM()
         self.calhmm()
 
-    def step3(self): 
+    def step3(self):
         if self.SMILES:
             self.printmoleculeSMILESname()
         else:
@@ -241,7 +241,7 @@ class ReacNetGenerator(object):
     def step4(self,allmoleculeroute):
         allroute=self.getallroute(allmoleculeroute)
         self.printtable(allroute)
-        
+
     ####### functions #######
     def printtime(self,timearray):
         timearray.append(time.time())
@@ -249,14 +249,14 @@ class ReacNetGenerator(object):
            print("Step ",len(timearray)-1," has been completed. Time consumed: ",round(timearray[-1]-timearray[-2],3),"s")
         return timearray
 
-    def union_dict(self,x,y):  
+    def union_dict(self,x,y):
         for k, v in y.items():
             if k in x.keys():
                 x[k] += v
             else:
                 x[k] = v
         return x
-        
+
     def mo(self,i,bond,level,molecule,done,bondlist): #connect molecule
         molecule.append(i)
         done[i]=True
@@ -273,7 +273,7 @@ class ReacNetGenerator(object):
     def readinputfile(self,readNfunc,readstepfunc):
         steplinenum=readNfunc()
         self.getdandtimestep(readstepfunc,steplinenum)
-        
+
     def readlammpsbondN(self):
         with open(self.inputfilename) as file:
             iscompleted=False
@@ -290,7 +290,7 @@ class ReacNetGenerator(object):
                         atomtype=np.zeros(N+1,dtype=np.int)
                 else:
                     s=line.split()
-                    atomtype[int(s[0])]=int(s[1])    
+                    atomtype[int(s[0])]=int(s[1])
         steplinenum=stepbindex-stepaindex
         self.N=N
         self.atomtype=atomtype
@@ -304,15 +304,15 @@ class ReacNetGenerator(object):
             if line:
                 if line.startswith("#"):
                     if line.startswith("# Timestep"):
-                        timestep=step,[int(s) for s in line.split() if s.isdigit()][0]    
-                else:  
+                        timestep=step,[int(s) for s in line.split() if s.isdigit()][0]
+                else:
                     s=line.split()
                     for i in range(int(s[2])):
                         bond[int(s[0])].append(int(s[i+3]))
                         bondlevel=round(float(s[i+4+int(s[2])]))
                         if bondlevel==0:
                             bondlevel=1
-                        level[int(s[0])].append(bondlevel)     
+                        level[int(s[0])].append(bondlevel)
         d=self.connectmolecule({},step,bond,level)
         return d,timestep
 
@@ -374,7 +374,7 @@ class ReacNetGenerator(object):
         return d,timestep
 
     def getdandtimestep(self,readfunc,steplinenum):
-        d={} 
+        d={}
         timestep={}
         with open(self.inputfilename) as file,Pool(maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
@@ -386,8 +386,8 @@ class ReacNetGenerator(object):
                 semaphore.release()
         self.writemoleculetempfile(d)
         self.timestep=timestep
-        self.step=len(timestep)-1   
-        
+        self.step=len(timestep)-1
+
     def connectmolecule(self,d,step,bond,level):
         #init
         done=np.zeros(self.N+1,dtype=bool)
@@ -402,14 +402,14 @@ class ReacNetGenerator(object):
                 else:
                     d[(tuple(mole),tuple(bondlist))]=[step]
         return d
-        
+
     def writemoleculetempfile(self,d):
         with open(self.moleculetempfilename,'w') as f:
             for item in d.items():
                 key,value=item
                 print(",".join([str(x) for x in key[0]]),";".join([",".join([str(y) for y in x]) for x in key[1]]),",".join([str(x) for x in value]),file=f)
-        
-    def getbondfromcrd(self,atomtype,atomcrd,step,filename="crd"):  
+
+    def getbondfromcrd(self,atomtype,atomcrd,step,filename="crd"):
         xyzfilename=filename+"_"+str(step)+".xyz"
         mol2filename=filename+"_"+str(step)+".mol2"
         self.convertxyz(atomtype,atomcrd,xyzfilename)
@@ -421,7 +421,7 @@ class ReacNetGenerator(object):
         with open(xyzfilename,'w') as f:
             print(len(atomcrd),file=f)
             print("by ReacNetGenerator",file=f)
-            for type,(x,y,z) in zip(atomtype,atomcrd): 
+            for type,(x,y,z) in zip(atomtype,atomcrd):
                 print(self.atomname[type-1],x,y,z,file=f)
 
     def getbondfrommol2(self,atomnumber,mol2filename):
@@ -447,7 +447,7 @@ class ReacNetGenerator(object):
         self.model.startprob_= self.p
         self.model.transmat_= self.a
         self.model.emissionprob_= self.b
-                
+
     def produce(self,semaphore, list,parameter):
         for item in list:
             # Reduce Semaphore by 1 or wait if 0
@@ -514,7 +514,7 @@ class ReacNetGenerator(object):
                 for mroute in moleculeroute:
                     if not mroute in allmoleculeroute:
                         allmoleculeroute.append(mroute)
-                semaphore.release() 
+                semaphore.release()
         return allmoleculeroute
 
     def makemoleculegraph(self,atoms,bonds):
@@ -558,7 +558,7 @@ class ReacNetGenerator(object):
                     typenumber[self.atomtype[atomnumber]-1]+=1
                     atomtypes.append((atomnumber,self.atomtype[atomnumber]))
                 G=self.makemoleculegraph(atomtypes,bonds)
-                name="".join([self.atomname[i]+(str(typenumber[i] if typenumber[i]>1 else "")) if typenumber[i]>0 else "" for i in range(0,len(self.atomname))])                
+                name="".join([self.atomname[i]+(str(typenumber[i] if typenumber[i]>1 else "")) if typenumber[i]>0 else "" for i in range(0,len(self.atomname))])
                 if name in d:
                     for j in range(len(d[name])):
                         if nx.is_isomorphic(G,d[name][j],em):
@@ -586,7 +586,7 @@ class ReacNetGenerator(object):
             type[atomnumber]=self.atomname[self.atomtype[atomnumber]-1]
         name=self.convertSMILES(atoms,bonds,type)
         return name,atoms,bonds
-        
+
     def printmoleculeSMILESname(self):
         mname=[]
         with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,Pool(maxtasksperchild=100) as pool:
@@ -598,7 +598,7 @@ class ReacNetGenerator(object):
                 print(name,",".join([str(x) for x in atoms]),";".join([",".join([str(y) for y in x]) for x in bonds]),file=fm)
                 semaphore.release()
         self.mname=mname
-        
+
     def convertSMILES(self,atoms,bonds,type):
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d={}
@@ -609,7 +609,7 @@ class ReacNetGenerator(object):
             m.AddBond(d[atom1],d[atom2], Chem.BondType.DOUBLE if level==2 else (Chem.BondType.TRIPLE if level==3 else (Chem.BondType.AROMATIC if level==12 else Chem.BondType.SINGLE)))
         name=Chem.MolToSmiles(m)
         return name
-        
+
     def getatomeach(self):
         atomeach=np.zeros((self.N+1,self.step),dtype=np.int)
         with open(self.hmmfilename) as fh,open(self.moleculetemp2filename) as ft:
@@ -635,7 +635,7 @@ class ReacNetGenerator(object):
             if equation in allroute:
                 allroute[equation]+=1
             else:
-                allroute[equation]=1            
+                allroute[equation]=1
         return allroute
 
     def printtable(self,allroute):
@@ -648,7 +648,7 @@ class ReacNetGenerator(object):
                 reaction=k.split("->")
                 for i,spec in enumerate(reaction):
                     if spec in species:
-                        number=species.index(spec)    
+                        number=species.index(spec)
                     elif len(species)<100:
                         species.append(spec)
                         number=species.index(spec)
@@ -673,7 +673,7 @@ class ReacNetGenerator(object):
                 name.append(line.split()[0])
                 table.append([int(s) for s in line.split()[1:]])
         return table,name
-        
+
     def convertstructure(self,atoms,bonds):
         types={}
         atomtypes=[]
@@ -681,7 +681,7 @@ class ReacNetGenerator(object):
             atomtypes.append((i,self.atomname.index(atom)))
         G=self.makemoleculegraph(atomtypes,bonds)
         return G
-        
+
     def handlespecies(self,name):
         showname={}
         n=0
@@ -718,10 +718,10 @@ class ReacNetGenerator(object):
                 showname[specname]=str(n)
                 print(n,specname)
         return species_out,showname
-    
+
     def __enter__(self):return self
     def __exit__(self,Type, value, traceback):pass
-        
+
 class InstallError(Exception):
     def __init__(self,ErrorInfo):
         super().__init__(self)
@@ -730,10 +730,10 @@ class InstallError(Exception):
         return self.errorinfo+" is not installed."
 
 class Placeholder(object):
-    def __init__(self):pass    
+    def __init__(self):pass
     def __enter__(self):return self
     def __exit__(self,Type, value, traceback):pass
-    
+
 ##### main #####
 if __name__ == '__main__':
     ReacNetGenerator().runanddraw()
