@@ -17,7 +17,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 ## Linux 64 under anaconda python (fastest install)
 Before installation you need to [get conda](https://conda.io/docs/user-guide/install/index.html) first.
 ```sh
-$ conda install -c njzjz -c openbabel -c rdkit -c omnia reacnetgenerator
+$ conda install -c njzjz -c bioconda reacnetgenerator
 ```
 ## With pip
 If you install ReacNetGenerator with pip, you must install [RDKit](https://github.com/rdkit/rdkit) and [OpenBabel](https://github.com/openbabel/openbabel) on your own.
