@@ -14,6 +14,17 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 - Isomers identifying accoarding to SMILES
 - Generation of reaction network for visualization using force-directed algorithm
 - Parallel computing
+
+## Requirements
+* [numpy](https://github.com/numpy/numpy)
+* [scipy](https://github.com/scipy/scipy)
+* [networkx](https://github.com/networkx/networkx)
+* [scikit-learn](https://github.com/scikit-learn/scikit-learn)
+* [matplotlib](https://github.com/matplotlib/matplotlib)
+* [hmmlearn](https://github.com/hmmlearn/hmmlearn)
+* [OpenBabel](https://github.com/openbabel/openbabel)
+* [RDKit](https://github.com/rdkit/rdkit)
+
 ## Installation
 ### Linux 64 under anaconda python (fastest install)
 Before installation you need to [get conda](https://conda.io/docs/user-guide/install/index.html) first.
