@@ -724,11 +724,10 @@ class ReacNetGenerator(object):
         return species_out,showname
 
     def printspecies(self):
-        with open(self.moleculefilename) as f1,open(self.moleculetemp2filename) as f2,open(self.speciesfilename,'w') as fw:
+        with open(self.moleculetemp2filename) as f2,open(self.speciesfilename,'w') as fw:
             d=[{} for i in range(len(self.timestep))]
-            for line1,line2 in zip(f1,f2):
+            for name,line2 in zip(self.mname,f2):
                 for t in [int(x) for x in line2.split()[-1].split(",")]:
-                    name=line1.split()[0]
                     if name in d[t]:
                         d[t][name]+=1
                     else:
