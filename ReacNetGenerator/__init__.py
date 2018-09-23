@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.2.4
-## updated at 2018/7/18 11:00
+## version 1.2.5
+## updated at 2018/9/23 19:00
 ## Author: Jinzhe Zeng
 ## Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
 #########     Features    #########
@@ -55,8 +55,8 @@ except ImportError as e:
     rdkit_installed=False
 ######## class ########
 class ReacNetGenerator(object):
-    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0]):
-        self.version="1.2.4"
+    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0]):
+        self.version="1.2.5"
         print("======= ReacNetGenerator "+self.version+" ======")
         print("Author: Jinzhe Zeng")
         print("Email: njzjz@qq.com  10154601140@stu.ecnu.edu.cn")
@@ -75,6 +75,7 @@ class ReacNetGenerator(object):
         self.moleculetemp2filename=moleculetemp2filename if moleculetemp2filename else inputfilename+".temp2"
         self.moleculestructurefilename=moleculestructurefilename if moleculestructurefilename else inputfilename+".structure"
         self.imagefilename=imagefilename if imagefilename else inputfilename+".svg"
+        self.speciesfilename=speciesfilename if speciesfilename else inputfilename+".species"
         self.stepinterval=stepinterval
         self.p=np.array(p)
         self.a=np.array(a)
@@ -83,6 +84,7 @@ class ReacNetGenerator(object):
         self.SMILES=SMILES
         self.getoriginfile=getoriginfile
         self.species=species
+        self.needprintspecies=needprintspecies
         self.node_size=node_size
         self.font_size=font_size
         self.widthcoefficient=widthcoefficient
@@ -129,7 +131,7 @@ class ReacNetGenerator(object):
             print("Since you have not installed hmmlearn, HMM cannot be used to filter noise.")
 
         ######start#####
-        print("======Run HMM calculation:======")
+        print("======Run ReacNetGenerator:======")
         timearray=self.printtime([])
         for runstep in range(1,5):
             ######## step 1 ##### 
@@ -241,6 +243,8 @@ class ReacNetGenerator(object):
     def step4(self,allmoleculeroute):
         allroute=self.getallroute(allmoleculeroute)
         self.printtable(allroute)
+        if self.needprintspecies:
+            self.printspecies()
 
     ####### functions #######
     def printtime(self,timearray):
@@ -573,7 +577,7 @@ class ReacNetGenerator(object):
                     d[name]=[G]
                     print(self.getstructure(name,atoms,bonds),file=fs)
                 mname.append(name)
-                print(name,atoms,bonds, file=fm)
+                print(name,",".join([str(x) for x in atoms]),";".join([",".join([str(y) for y in x]) for x in bonds]), file=fm)
         self.mname=mname
 
     def calmoleculeSMILESname(self,item):
@@ -718,6 +722,23 @@ class ReacNetGenerator(object):
                 showname[specname]=str(n)
                 print(n,specname)
         return species_out,showname
+
+    def printspecies(self):
+        with open(self.moleculefilename) as f1,open(self.moleculetemp2filename) as f2,open(self.speciesfilename,'w') as fw:
+            d=[{} for i in range(len(self.timestep))]
+            for line1,line2 in zip(f1,f2):
+                for t in [int(x) for x in line2.split()[-1].split(",")]:
+                    name=line1.split()[0]
+                    if name in d[t]:
+                        d[t][name]+=1
+                    else:
+                        d[t][name]=1
+            for t in range(len(self.timestep)):
+                print("Timestep",self.timestep[t],":",end=' ',file=fw)
+                for name,num in d[t].items():
+                    print(name,num,end=' ',file=fw)
+                print(file=fw)
+
 
     def __enter__(self):return self
     def __exit__(self,Type, value, traceback):pass
