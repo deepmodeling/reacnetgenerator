@@ -16,6 +16,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 - Parallel computing
 
 ## Requirements
+* Python 3 (Note: Python 2 is not supported!)
 * [numpy](https://github.com/numpy/numpy)
 * [scipy](https://github.com/scipy/scipy)
 * [networkx](https://github.com/networkx/networkx)
