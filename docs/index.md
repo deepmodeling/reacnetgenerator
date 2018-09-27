@@ -4,7 +4,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 **Author**: Jinzhe Zeng
 
-**Email**: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
+**Email**: jzzeng@stu.ecnu.edu.cn
 
 [Research Group](http://computchem.cn/)
 # Features
