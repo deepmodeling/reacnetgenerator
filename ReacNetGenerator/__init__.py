@@ -6,7 +6,7 @@
 ## version 1.2.5
 ## updated at 2018/9/23 19:00
 ## Author: Jinzhe Zeng
-## Email: njzjz@qq.com 10154601140@stu.ecnu.edu.cn
+## Email: jzzeng@stu.ecnu.edu.cn
 #########     Features    #########
 ## * Processing of MD trajectory containing atomic coordinates or bond orders
 ## * Hidden Markov Model (HMM) based noise filtering
@@ -59,7 +59,7 @@ class ReacNetGenerator(object):
         self.version="1.2.5"
         print("======= ReacNetGenerator "+self.version+" ======")
         print("Author: Jinzhe Zeng")
-        print("Email: njzjz@qq.com  10154601140@stu.ecnu.edu.cn")
+        print("Email: jzzeng@stu.ecnu.edu.cn")
         print()
         self.inputfiletype=inputfiletype
         self.inputfilename=inputfilename
