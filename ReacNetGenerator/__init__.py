@@ -183,7 +183,7 @@ class ReacNetGenerator(object):
                     if name[j] in species and not name[j] in self.filter:
                         if table[i][j]>0:
                             G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
-        weights = np.array([math.log(G[u][v]['weight']) for u,v in G.edges()])
+        weights = np.array([math.log(G[u][v]['weight']+1) for u,v in G.edges()])
         widths=[weight/max(weights) *self.widthcoefficient for weight in weights]
         colors=[colorsRGB[math.floor(weight/max(weights)*(self.n_color-1))] for weight in weights]
         try:
