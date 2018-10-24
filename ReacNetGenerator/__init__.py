@@ -5,7 +5,7 @@
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
 ###################################
 _version='1.2.7'
-_data='2018/10/24'
+_date='2018/10/24'
 _author='Jinzhe Zeng'
 _email='jzzeng@stu.ecnu.edu.cn'
 #########     Features    #########
