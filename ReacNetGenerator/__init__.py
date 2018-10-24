@@ -3,8 +3,8 @@
 ###################################
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
-## version 1.2.5
-## updated at 2018/9/23 19:00
+## version 1.2.6
+## updated at 2018/10/13
 ## Author: Jinzhe Zeng
 ## Email: jzzeng@stu.ecnu.edu.cn
 #########     Features    #########
@@ -25,7 +25,7 @@ import time
 import os
 import gc
 import math
-from multiprocessing import Pool, Semaphore
+from multiprocessing import Pool, Semaphore, cpu_count
 import numpy as np
 from functools import reduce
 import itertools
@@ -55,12 +55,12 @@ except ImportError as e:
     rdkit_installed=False
 ######## class ########
 class ReacNetGenerator(object):
-    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0]):
-        self.version="1.2.5"
-        print("======= ReacNetGenerator "+self.version+" ======")
-        print("Author: Jinzhe Zeng")
-        print("Email: jzzeng@stu.ecnu.edu.cn")
-        print()
+    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0],nproc=None):
+        self.version="1.2.6"
+        self.logging("======= ReacNetGenerator "+self.version+" ======")
+        self.logging("Author: Jinzhe Zeng")
+        self.logging("Email: jzzeng@stu.ecnu.edu.cn")
+        self.logging()
         self.inputfiletype=inputfiletype
         self.inputfilename=inputfilename
         self.atomname=atomname
@@ -101,6 +101,7 @@ class ReacNetGenerator(object):
         self.k=k
         self.start_color=np.array(start_color)
         self.end_color=np.array(end_color)
+        self.nproc=nproc if nproc else cpu_count()
 
     #### run and draw ####
     def runanddraw(self):
@@ -113,25 +114,25 @@ class ReacNetGenerator(object):
             if not rdkit_installed:
                 if networkx_installed:
                     self.SMILES=False
-                    print("RDkit is not installed. SMILES cannot be used to identify isomers. VF2 algorithm is used.")
+                    self.logging("RDkit is not installed. SMILES cannot be used to identify isomers. VF2 algorithm is used.")
                 else:
-                    print("RDKit is not installed. If you have installed Anaconda, try \"conda install rdkit -c rdkit\".")
+                    self.logging("RDKit is not installed. If you have installed Anaconda, try \"conda install rdkit -c rdkit\".")
                     raise InstallError("RDkit")
         else:
             if not networkx_installed:
                 if rdkit_installed:
                     self.SMILES=True
-                    print("networkx is not installed. VF2 cannot be used to identify isomers. SMILES algorithm is used.")
+                    self.logging("networkx is not installed. VF2 cannot be used to identify isomers. SMILES algorithm is used.")
                 else:
-                    print("networkx is not installed. Try \"pip install networkx\".")
+                    self.logging("networkx is not installed. Try \"pip install networkx\".")
                     raise InstallError("networkx")
 
         if self.runHMM and not hmmlearn_installed:
             self.runHMM=False
-            print("Since you have not installed hmmlearn, HMM cannot be used to filter noise.")
+            self.logging("Since you have not installed hmmlearn, HMM cannot be used to filter noise.")
 
         ######start#####
-        print("======Run ReacNetGenerator:======")
+        self.logging("======Run ReacNetGenerator:======")
         timearray=self.printtime([])
         for runstep in range(1,5):
             ######## step 1 ##### 
@@ -150,23 +151,23 @@ class ReacNetGenerator(object):
             gc.collect()
             timearray=self.printtime(timearray)
         ####### end #######
-        print()
-        print("Time consumed:")
+        self.logging()
+        self.logging("Time consumed:")
         for i in range(1,len(timearray)):
-            print("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
-        print("Total time:",round(timearray[-1]-timearray[0],3),"s")
-        print()
+            self.logging("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
+        self.logging("Total time:",round(timearray[-1]-timearray[0],3),"s")
+        self.logging()
 
     #####draw#####    
     def draw(self):
         #start
         if not matplotlib_installed:
-            print("You must install matplotlib if you want to draw the reaction network. Try \"pip install matplotlib\" to install it.")
+            self.logging("You must install matplotlib if you want to draw the reaction network. Try \"pip install matplotlib\" to install it.")
             raise InstallError("matplotlib")
         elif not networkx_installed:
-            print("You must install networkx if you want to draw the reaction network. Try \"pip install networkx\" to install it.")
+            self.logging("You must install networkx if you want to draw the reaction network. Try \"pip install networkx\" to install it.")
             raise InstallError("networkx")
-        print("======Draw the image:======")
+        self.logging("======Draw the image:======")
         timearray=self.printtime([])
         #read table
         table,name=self.readtable()
@@ -188,10 +189,10 @@ class ReacNetGenerator(object):
         colors=[colorsRGB[math.floor(weight/max(weights)*(self.n_color-1))] for weight in weights]
         try:
             pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in pos])) if not self.k else (nx.spring_layout(G,k=self.k) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in self.pos],k=self.k))
-            print()
-            print("The position of the species in the network is:")
-            print(pos)
-            print()
+            self.logging()
+            self.logging("The position of the species in the network is:")
+            self.logging(pos)
+            self.logging()
 
             for with_labels in ([True] if not self.nolabel else [True,False]):
                 nx.draw(G,pos = pos,width=widths,node_size=self.node_size,font_size=self.font_size,with_labels=with_labels,edge_color=colors,node_color=self.node_color)
@@ -204,16 +205,16 @@ class ReacNetGenerator(object):
                 plt.close()
 
         except Exception as e:
-            print("Error: cannot draw images. Details:",e)
+            self.logging("Error: cannot draw images. Details:",e)
 
         timearray=self.printtime(timearray)
         ####### end #######
-        print()
-        print("Time consumed:")
+        self.logging()
+        self.logging("Time consumed:")
         for i in range(1,len(timearray)):
-            print("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
-        print("Total time:",round(timearray[-1]-timearray[0],3),"s")
-        print()
+            self.logging("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
+        self.logging("Total time:",round(timearray[-1]-timearray[0],3),"s")
+        self.logging()
         return pos
 
     ######## steps ######
@@ -247,10 +248,17 @@ class ReacNetGenerator(object):
             self.printspecies()
 
     ####### functions #######
+    def logging(self,*message):
+        if message:
+            localtime = time.asctime( time.localtime(time.time()) )
+            print(localtime,'ReacNetGenerator',self.version,*message)
+        else:
+            print()
+
     def printtime(self,timearray):
         timearray.append(time.time())
         if len(timearray)>1:
-           print("Step ",len(timearray)-1," has been completed. Time consumed: ",round(timearray[-1]-timearray[-2],3),"s")
+            self.logging("Step ",len(timearray)-1," has been completed. Time consumed: ",round(timearray[-1]-timearray[-2],3),"s")
         return timearray
 
     def union_dict(self,x,y):
@@ -380,7 +388,7 @@ class ReacNetGenerator(object):
     def getdandtimestep(self,readfunc,steplinenum):
         d={}
         timestep={}
-        with open(self.inputfilename) as file,Pool(maxtasksperchild=100) as pool:
+        with open(self.inputfilename) as file,Pool(self.nproc,maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap_unordered(readfunc,self.produce(semaphore,enumerate(itertools.islice(itertools.zip_longest(*[file]*steplinenum),0,None,self.stepinterval)),None),10)
             for dstep,timesteptuple in results:
@@ -472,7 +480,7 @@ class ReacNetGenerator(object):
             return origin,line
 
     def calhmm(self):
-        with open(self.originfilename, 'w') if self.getoriginfile or not self.runHMM else Placeholder() as fo,open(self.hmmfilename, 'w') if self.runHMM else Placeholder() as fh,open(self.moleculetempfilename) as ft,open(self.moleculetemp2filename,'w') as ft2,Pool(maxtasksperchild=100) as pool:
+        with open(self.originfilename, 'w') if self.getoriginfile or not self.runHMM else Placeholder() as fo,open(self.hmmfilename, 'w') if self.runHMM else Placeholder() as fh,open(self.moleculetempfilename) as ft,open(self.moleculetemp2filename,'w') as ft2,Pool(self.nproc,maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap_unordered(self.getoriginandhmm,self.produce(semaphore,ft,()),10)
             if self.runHMM:
@@ -508,7 +516,7 @@ class ReacNetGenerator(object):
         return moleculeroute,routestr
 
     def printatomroute(self,atomeach):
-        with open(self.atomroutefilename, 'w') as f,Pool(maxtasksperchild=100) as pool:
+        with open(self.atomroutefilename, 'w') as f,Pool(self.nproc,maxtasksperchild=100) as pool:
             allmoleculeroute=[]
             semaphore = Semaphore(360)
             results=pool.imap(self.getatomroute,self.produce(semaphore,enumerate(zip(atomeach[1:],self.atomtype[1:]),start=1),()),10)
@@ -593,7 +601,7 @@ class ReacNetGenerator(object):
 
     def printmoleculeSMILESname(self):
         mname=[]
-        with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,Pool(maxtasksperchild=100) as pool:
+        with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,Pool(self.nproc,maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap(self.calmoleculeSMILESname,self.produce(semaphore,ft,()),10)
             for result in results:
@@ -716,7 +724,7 @@ class ReacNetGenerator(object):
                     showname[specname]=value["showname"]
         if self.showid:
             print()
-            print("Species are:")
+            self.logging("Species are:")
             for specname,value in species_out.items():
                 n+=1
                 showname[specname]=str(n)
