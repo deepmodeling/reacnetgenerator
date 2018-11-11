@@ -192,7 +192,7 @@ class ReacNetGenerator(object):
         widths=[weight/max(weights) *self.widthcoefficient for weight in weights]
         colors=[colorsRGB[math.floor(weight/max(weights)*(self.n_color-1))] for weight in weights]
         try:
-            pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in pos])) if not self.k else (nx.spring_layout(G,k=self.k) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in self.pos],k=self.k))
+            pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in self.pos])) if not self.k else (nx.spring_layout(G,k=self.k) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in self.pos],k=self.k))
             self.logging()
             self.logging("The position of the species in the network is:")
             self.logging(pos)
