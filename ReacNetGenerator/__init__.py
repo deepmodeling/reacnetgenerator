@@ -4,8 +4,8 @@
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
 ###################################
-_version='1.2.7'
-_date='2018/10/24'
+_version='1.2.9'
+_date='2018/11/12'
 _author='Jinzhe Zeng'
 _email='jzzeng@stu.ecnu.edu.cn'
 #########     Features    #########
@@ -54,9 +54,10 @@ try:
     rdkit_installed=True
 except ImportError as e:
     rdkit_installed=False
+from ReacNetGenerator.reachtml import HTMLResult
 ######## class ########
 class ReacNetGenerator(object):
-    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[1,1,1],end_color=[0,0,0],nproc=None):
+    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,resultfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[0,0,1],end_color=[1,0,0],nproc=None):
         self.version=_version
         self.author=_author
         self.email=_email
@@ -80,6 +81,7 @@ class ReacNetGenerator(object):
         self.moleculestructurefilename=moleculestructurefilename if moleculestructurefilename else inputfilename+".structure"
         self.imagefilename=imagefilename if imagefilename else inputfilename+".svg"
         self.speciesfilename=speciesfilename if speciesfilename else inputfilename+".species"
+        self.resultfilename=resultfilename if resultfilename else inputfilename+".html"
         self.stepinterval=stepinterval
         self.p=np.array(p)
         self.a=np.array(a)
@@ -106,11 +108,15 @@ class ReacNetGenerator(object):
         self.start_color=np.array(start_color)
         self.end_color=np.array(end_color)
         self.nproc=nproc if nproc else cpu_count()
-
+        
     #### run and draw ####
-    def runanddraw(self):
-        self.run()
-        return self.draw()
+    def runanddraw(self,run=True,draw=True,report=True):
+        if run:
+            self.run()
+        if draw:
+            self.draw()
+        if report:
+            self.report()
 
     ######## run ########
     def run(self):
@@ -158,8 +164,8 @@ class ReacNetGenerator(object):
         self.logging()
         self.logging("Time consumed:")
         for i in range(1,len(timearray)):
-            self.logging("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
-        self.logging("Total time:",round(timearray[-1]-timearray[0],3),"s")
+            self.logging("Step %d consumed: %.3f s"%(i,timearray[i]-timearray[i-1]))
+        self.logging("Total time: %.3f s"%(timearray[-1]-timearray[0]))
         self.logging()
 
     #####draw#####    
@@ -189,7 +195,8 @@ class ReacNetGenerator(object):
                         if table[i][j]>0:
                             G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]),(showname[name[j]] if name[j] in showname else name[j]),table[i][j])])
         weights = np.array([math.log(G[u][v]['weight']+1) for u,v in G.edges()])
-        widths=[weight/max(weights) *self.widthcoefficient for weight in weights]
+        #widths=[weight/max(weights) *self.widthcoefficient for weight in weights]
+        widths=[weight/max(weights) *self.widthcoefficient*2 if weight>max(weights)*0.7 else weight/max(weights) *self.widthcoefficient*0.5 for weight in weights]
         colors=[colorsRGB[math.floor(weight/max(weights)*(self.n_color-1))] for weight in weights]
         try:
             pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in self.pos])) if not self.k else (nx.spring_layout(G,k=self.k) if not self.pos else nx.spring_layout(G,pos=self.pos,fixed=[p for p in self.pos],k=self.k))
@@ -216,11 +223,26 @@ class ReacNetGenerator(object):
         self.logging()
         self.logging("Time consumed:")
         for i in range(1,len(timearray)):
-            self.logging("Step ",i," consumed: ",round(timearray[i]-timearray[i-1],3),"s")
-        self.logging("Total time:",round(timearray[-1]-timearray[0],3),"s")
+            self.logging("Step %d consumed: %.3f s"%(i,timearray[i]-timearray[i-1]))
+        self.logging("Total time: %.3f s"%(timearray[-1]-timearray[0]))
         self.logging()
         return pos
 
+    ######## report #####
+    def report(self):
+        self.logging("======Report:======")
+        timearray=self.printtime([])
+        HTMLResult(reactionfile=self.reactionfilename,resultfile=self.resultfilename,imagefile=self.imagefilename,n_thread=self.nproc).report()
+        timearray=self.printtime(timearray)
+        ####### end #######
+        self.logging()
+        self.logging("Time consumed:")
+        for i in range(1,len(timearray)):
+            self.logging("Step %d consumed: %.3f s"%(i,timearray[i]-timearray[i-1]))
+        self.logging("Total time: %.3f s"%(timearray[-1]-timearray[0]))
+        self.logging()
+        self.logging("Please view %s for more details."%self.reactionfilename)
+        
     ######## steps ######
     def step1(self):
         if self.inputfiletype=="lammpsbondfile":
@@ -262,7 +284,7 @@ class ReacNetGenerator(object):
     def printtime(self,timearray):
         timearray.append(time.time())
         if len(timearray)>1:
-            self.logging("Step ",len(timearray)-1," has been completed. Time consumed: ",round(timearray[-1]-timearray[-2],3),"s")
+            self.logging("Step %d has been completed. Time consumed: %f s"%(len(timearray)-1,timearray[-1]-timearray[-2]))
         return timearray
 
     def union_dict(self,x,y):
@@ -510,13 +532,13 @@ class ReacNetGenerator(object):
         right=-1
         for j in range(0,self.step):
             if atomeachi[j]>0 and atomeachi[j]!=molecule:
-                routestrarr.append(self.mname[atomeachi[j]-1] + " ("+ str(atomeachi[j])+" step "+str(self.timestep[j])+")")
+                routestrarr.append("%s (%d step %d)"%(self.mname[atomeachi[j]-1],atomeachi[j],self.timestep[j]))
                 left=right
                 molecule=atomeachi[j]
                 right=molecule
                 if left>=0 and not (left,right) in moleculeroute:
                     moleculeroute.append((left,right))
-        routestr="Atom "+str(i)+" "+self.atomname[atomtypei-1]+": "+" -> ".join(routestrarr)
+        routestr="Atom %d %s: "%(i,self.atomname[atomtypei-1])+" -> ".join(routestrarr)
         return moleculeroute,routestr
 
     def printatomroute(self,atomeach):
@@ -765,7 +787,3 @@ class Placeholder(object):
     def __init__(self):pass
     def __enter__(self):return self
     def __exit__(self,Type, value, traceback):pass
-
-##### main #####
-if __name__ == '__main__':
-    ReacNetGenerator().runanddraw()
