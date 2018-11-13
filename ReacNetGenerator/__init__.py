@@ -4,7 +4,7 @@
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
 ###################################
-_version='1.2.10'
+_version='1.2.11'
 _date='2018/11/13'
 _author='Jinzhe Zeng'
 _email='jzzeng@stu.ecnu.edu.cn'

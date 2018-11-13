@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from multiprocessing.pool import ThreadPool
 from multiprocessing import cpu_count
