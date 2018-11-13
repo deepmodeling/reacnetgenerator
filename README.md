@@ -1,13 +1,16 @@
 # Reaction Network Generator (ReacNetGenerator)
-[![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://badge.fury.io/py/ReacNetGenerator)[![pypi](https://badge.fury.io/py/ReacNetGenerator.svg)](https://badge.fury.io/py/ReacNetGenerator)[![Anaconda-Server Badge](https://anaconda.org/njzjz/reacnetgenerator/badges/version.svg)](https://conda.anaconda.org/njzjz/reacnetgenerator)
+[![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)]
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
-**Author**: Jinzhe Zeng
+**Please cite:** J. Zeng, L. Cao, J.Z.H. Zhang, T. Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, to be submitted
 
-**Email**: jzzeng@stu.ecnu.edu.cn
+**Author**: [Jinzhe Zeng](https://cv.njzjz.win), Liqun Cao, [John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang), [Tong Zhu](http://computchem.cn/people/)
+
+**Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
 [Research Group](http://computchem.cn/)
+
 ## Features
 - Processing of MD trajectory containing atomic coordinates or bond orders
 - Hidden Markov Model (HMM) based noise filtering
@@ -16,40 +19,38 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 - Parallel computing
 
 ## Requirements
-* Python 3 (Note: Python 2 is not supported!)
-* [numpy](https://github.com/numpy/numpy)
-* [scipy](https://github.com/scipy/scipy)
-* [networkx](https://github.com/networkx/networkx)
-* [scikit-learn](https://github.com/scikit-learn/scikit-learn)
-* [matplotlib](https://github.com/matplotlib/matplotlib)
-* [hmmlearn](https://github.com/hmmlearn/hmmlearn)
-* [OpenBabel](https://github.com/openbabel/openbabel)
-* [RDKit](https://github.com/rdkit/rdkit)
+* Python 3 (**Note:** Python 2 is not supported!)
+* Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [htmlmin](https://github.com/mankyd/htmlmin/)
+* Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
 ## Installation
-### Linux 64 under anaconda python (fastest install)
-Before installation you need to [get conda](https://conda.io/docs/user-guide/install/index.html) first.
+1. [Get conda](https://conda.io/docs/user-guide/install/index.html) to install Python 3.
+
+2. Use pip to install required packages: 
+
 ```sh
-$ conda install -c njzjz -c bioconda reacnetgenerator
+$ pip install numpy scipy networkx scikit-learn matplotlib hmmlearn htmlmin
 ```
-### With pip
-If you install ReacNetGenerator with pip, you must install [RDKit](https://github.com/rdkit/rdkit) and [OpenBabel](https://github.com/openbabel/openbabel) on your own.
+
+3. Use conda to install extra packages:
+
 ```sh
-$ pip install reacnetgenerator
+conda install -c bioconda openbabel rdkit
 ```
-### Build from source
-If you build ReacNetGenerator from source, you must install [RDKit](https://github.com/rdkit/rdkit) and [OpenBabel](https://github.com/openbabel/openbabel) on your own.
+
+4. Download ReacNetGenerator and build it from source:
 ```sh
-$ git clone https://github.com/njzjz/ReacNetGenerator.git
 $ cd ReacNetGenerator/
 $ python3 setup.py install
 ```
+
 ## Simple example
 Process a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc.
 ```python
 >>> from ReacNetGenerator import ReacNetGenerator
 >>> ReacNetGenerator(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"]).runanddraw()
 ```
+
 ## Reference
 ### ReacNetGenerator.ReacNetGenerator
 ```python
