@@ -45,11 +45,12 @@ $ python3 setup.py install
 ```
 
 ## Simple example
-Process a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc.
+Process a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc, then run in Python:
 ```python
 >>> from ReacNetGenerator import ReacNetGenerator
 >>> ReacNetGenerator(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"]).runanddraw()
 ```
+[Analysis report](https://njzjz.github.io/ReacNetGenerator/report.html) will be generated automatically.  
 
 ## Reference
 ### ReacNetGenerator.ReacNetGenerator
