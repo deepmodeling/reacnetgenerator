@@ -1,5 +1,5 @@
 # Reaction Network Generator (ReacNetGenerator)
-[![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)]
+![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
@@ -27,13 +27,11 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 1. [Get conda](https://conda.io/docs/user-guide/install/index.html) to install Python 3.
 
 2. Use pip to install required packages: 
-
 ```sh
 $ pip install numpy scipy networkx scikit-learn matplotlib hmmlearn htmlmin
 ```
 
 3. Use conda to install extra packages:
-
 ```sh
 conda install -c bioconda openbabel rdkit
 ```
