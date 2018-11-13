@@ -242,7 +242,7 @@ class ReacNetGenerator(object):
             self.logging("Step %d consumed: %.3f s"%(i,timearray[i]-timearray[i-1]))
         self.logging("Total time: %.3f s"%(timearray[-1]-timearray[0]))
         self.logging()
-        self.logging("Please view %s for more details."%self.reactionfilename)
+        self.logging("Please view %s for more details."%self.resultfilename)
         
     ######## steps ######
     def step1(self):
