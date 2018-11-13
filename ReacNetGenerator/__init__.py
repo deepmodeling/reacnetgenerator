@@ -4,8 +4,8 @@
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
 ###################################
-_version='1.2.9'
-_date='2018/11/12'
+_version='1.2.10'
+_date='2018/11/13'
 _author='Jinzhe Zeng'
 _email='jzzeng@stu.ecnu.edu.cn'
 #########     Features    #########
@@ -57,7 +57,7 @@ except ImportError as e:
 from ReacNetGenerator.reachtml import HTMLResult
 ######## class ########
 class ReacNetGenerator(object):
-    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,resultfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[0,0,1],end_color=[1,0,0],nproc=None):
+    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],selectatoms=None,originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,resultfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[0,0,1],end_color=[1,0,0],nproc=None):
         self.version=_version
         self.author=_author
         self.email=_email
@@ -69,6 +69,7 @@ class ReacNetGenerator(object):
         self.inputfiletype=inputfiletype
         self.inputfilename=inputfilename
         self.atomname=atomname
+        self.selectatoms=selectatoms if selectatoms else self.atomname
         self.originfilename=originfilename if originfilename else inputfilename+".origin"
         self.hmmfilename=(hmmfilename if hmmfilename else inputfilename+".hmm" )if runHMM else self.originfilename
         self.atomfilename=atomfilename if atomfilename else inputfilename+".atom"
@@ -536,8 +537,9 @@ class ReacNetGenerator(object):
                 left=right
                 molecule=atomeachi[j]
                 right=molecule
-                if left>=0 and not (left,right) in moleculeroute:
-                    moleculeroute.append((left,right))
+                if self.atomname[atomtypei-1] in self.selectatoms:
+                    if left>=0 and not (left,right) in moleculeroute:
+                        moleculeroute.append((left,right))
         routestr="Atom %d %s: "%(i,self.atomname[atomtypei-1])+" -> ".join(routestrarr)
         return moleculeroute,routestr
 
