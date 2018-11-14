@@ -3,9 +3,9 @@
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
-**Please cite:** J. Zeng, L. Cao, J.Z.H. Zhang, T. Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, to be submitted
+**Please cite:** J. Zeng, L. Cao, J.Z.H. Zhang, C.H. Chin, T. Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, to be submitted
 
-**Author**: [Jinzhe Zeng](https://cv.njzjz.win), Liqun Cao, [John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang), [Tong Zhu](http://computchem.cn/people/)
+**Author**: [Jinzhe Zeng](https://cv.njzjz.win), Liqun Cao, [John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang), Chih-Hao Chin, [Tong Zhu](http://computchem.cn/people/)
 
 **Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
