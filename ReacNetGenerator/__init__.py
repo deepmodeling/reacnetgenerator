@@ -4,7 +4,7 @@
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
 ###################################
-_version='1.2.11'
+_version='1.2.12'
 _date='2018/11/13'
 _author='Jinzhe Zeng'
 _email='jzzeng@stu.ecnu.edu.cn'
@@ -109,6 +109,7 @@ class ReacNetGenerator(object):
         self.start_color=np.array(start_color)
         self.end_color=np.array(end_color)
         self.nproc=nproc if nproc else cpu_count()
+        self.loggingfreq=1000
         
     #### run and draw ####
     def runanddraw(self,run=True,draw=True,report=True):
@@ -275,12 +276,12 @@ class ReacNetGenerator(object):
             self.printspecies()
 
     ####### functions #######
-    def logging(self,*message):
+    def logging(self,*message,end='\n'):
         if message:
             localtime = time.asctime( time.localtime(time.time()) )
-            print(localtime,'ReacNetGenerator',self.version,*message)
+            print(localtime,'ReacNetGenerator',self.version,*message,end=end)
         else:
-            print()
+            print(end=end)
 
     def printtime(self,timearray):
         timearray.append(time.time())
@@ -418,7 +419,9 @@ class ReacNetGenerator(object):
         with open(self.inputfilename) as file,Pool(self.nproc,maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap_unordered(readfunc,self.produce(semaphore,enumerate(itertools.islice(itertools.zip_longest(*[file]*steplinenum),0,None,self.stepinterval)),None),10)
-            for dstep,timesteptuple in results:
+            for index,(dstep,timesteptuple) in enumerate(results):
+                if index%self.loggingfreq==0:
+                    self.logging("processing",index,"...",end='\r')
                 d=self.union_dict(d,dstep)
                 step,thetimestep=timesteptuple
                 timestep[step]=thetimestep
@@ -487,19 +490,15 @@ class ReacNetGenerator(object):
         self.model.transmat_= self.a
         self.model.emissionprob_= self.b
 
-    def produce(self,semaphore, list,parameter):
-        for i,item in enumerate(list):
-            # Reduce Semaphore by 1 or wait if 0
+    def produce(self,semaphore, plist,parameter):
+        for item in plist:
             semaphore.acquire()
-            # Now deliver an item to the caller (pool)
-            if i%1000==0:
-                self.logging(i,"/",len(list),end='\r')
             yield item,parameter
 
     def getoriginandhmm(self,item):
         line,_=item
-        list=line.split()
-        value=np.array([int(x)-1 for x in list[-1].split(",")])
+        s=line.split()
+        value=np.array([int(x)-1 for x in s[-1].split(",")])
         origin=np.zeros(self.step,dtype=np.int)
         origin[value]=1
         if self.runHMM:
@@ -513,7 +512,9 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results=pool.imap_unordered(self.getoriginandhmm,self.produce(semaphore,ft,()),10)
             if self.runHMM:
-                for originsignal,hmmsignal,mlist in results:
+                for index,(originsignal,hmmsignal,mlist) in enumerate(results):
+                    if index%self.loggingfreq==0:
+                        self.logging("processing",index,"...",end='\r')
                     if 1 in hmmsignal or self.printfiltersignal:
                         if self.getoriginfile:
                             print("".join([str(i) for i in originsignal]), file=fo)
@@ -521,7 +522,9 @@ class ReacNetGenerator(object):
                         print(mlist,end='',file=ft2)
                     semaphore.release()
             else:
-                for originsignal,mlist in results:
+                for index,(originsignal,mlist) in enumerate(results):
+                    if index%self.loggingfreq==0:
+                        self.logging("processing",index,end='\r')
                     print("".join([str(i) for i in originsignal]), file=fo)
                     print(mlist,end='',file=ft2)
                     semaphore.release()
@@ -550,7 +553,9 @@ class ReacNetGenerator(object):
             allmoleculeroute=[]
             semaphore = Semaphore(360)
             results=pool.imap(self.getatomroute,self.produce(semaphore,enumerate(zip(atomeach[1:],self.atomtype[1:]),start=1),()),10)
-            for route in results:
+            for index,route in enumerate(results):
+                if index%self.loggingfreq==0:
+                    self.logging("processing",index,"...",end='\r')
                 moleculeroute,routestr=route
                 print(routestr, file=f)
                 for mroute in moleculeroute:
@@ -578,10 +583,10 @@ class ReacNetGenerator(object):
         with open(self.moleculestructurefilename) as f:
             d={}
             for line in f:
-                list=line.split()
-                name=list[0]
-                atoms=[x for x in list[1].split(",")]
-                bonds=[tuple(int(y) for y in x.split(",")) for x in list[2].split(";")] if len(list)==3 else []
+                s=line.split()
+                name=s[0]
+                atoms=[x for x in s[1].split(",")]
+                bonds=[tuple(int(y) for y in x.split(",")) for x in s[2].split(";")] if len(s)==3 else []
                 d[name]=(atoms,bonds)
         return d
 
@@ -591,9 +596,9 @@ class ReacNetGenerator(object):
         em = iso.numerical_edge_match(['atom','level'], ["None",1])
         with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,open(self.moleculestructurefilename,'w') as fs:
             for line in ft:
-                list=line.split()
-                atoms=np.array([int(x) for x in list[0].split(",")])
-                bonds=np.array([tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else [])
+                s=line.split()
+                atoms=np.array([int(x) for x in s[0].split(",")])
+                bonds=np.array([tuple(int(y) for y in x.split(",")) for x in s[1].split(";")] if len(s)==3 else [])
                 typenumber=np.zeros(len(self.atomname),dtype=np.int)
                 atomtypes=[]
                 for atomnumber in atoms:
@@ -620,9 +625,9 @@ class ReacNetGenerator(object):
 
     def calmoleculeSMILESname(self,item):
         line,_=item
-        list=line.split()
-        atoms=np.array([int(x) for x in list[0].split(",")])
-        bonds=np.array([tuple(int(y) for y in x.split(",")) for x in list[1].split(";")] if len(list)==3 else [])
+        s=line.split()
+        atoms=np.array([int(x) for x in s[0].split(",")])
+        bonds=np.array([tuple(int(y) for y in x.split(",")) for x in s[1].split(";")] if len(s)==3 else [])
         type={}
         for atomnumber in atoms:
             type[atomnumber]=self.atomname[self.atomtype[atomnumber]-1]
@@ -634,7 +639,9 @@ class ReacNetGenerator(object):
         with open(self.moleculefilename, 'w') as fm,open(self.moleculetemp2filename) as ft,Pool(self.nproc,maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results=pool.imap(self.calmoleculeSMILESname,self.produce(semaphore,ft,()),10)
-            for result in results:
+            for index,result in enumerate(results):
+                if index%self.loggingfreq==0:
+                    self.logging("processing",index,"...",end='\r')
                 name,atoms,bonds=result
                 mname.append(name)
                 print(name,",".join([str(x) for x in atoms]),";".join([",".join([str(y) for y in x]) for x in bonds]),file=fm)
@@ -656,8 +663,8 @@ class ReacNetGenerator(object):
         atomeach=np.zeros((self.N+1,self.step),dtype=np.int)
         with open(self.hmmfilename) as fh,open(self.moleculetemp2filename) as ft:
             for i,(lineh,linet) in enumerate(zip(fh,ft),start=1):
-                list=linet.split()
-                key1=np.array([int(x) for x in list[0].split(",")])
+                s=linet.split()
+                key1=np.array([int(x) for x in s[0].split(",")])
                 index=np.array([j for j in range(len(lineh)) if lineh[j]=="1"])
                 if(len(index))>0:
                     atomeach[key1[:,None],index]=i
