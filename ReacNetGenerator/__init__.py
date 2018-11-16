@@ -488,10 +488,12 @@ class ReacNetGenerator(object):
         self.model.emissionprob_= self.b
 
     def produce(self,semaphore, list,parameter):
-        for item in list:
+        for i,item in enumerate(list):
             # Reduce Semaphore by 1 or wait if 0
             semaphore.acquire()
             # Now deliver an item to the caller (pool)
+            if i%1000==0:
+                self.logging(i,"/",len(list),end='\r')
             yield item,parameter
 
     def getoriginandhmm(self,item):
