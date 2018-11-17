@@ -4,7 +4,7 @@
 ## Reaction Network Generator(ReacNetGenerator)
 ## An automatic generator of reaction network for reactive molecular dynamics simulation.
 ###################################
-_version='1.2.12'
+_version='1.2.13'
 _date='2018/11/13'
 _author='Jinzhe Zeng'
 _email='jzzeng@stu.ecnu.edu.cn'
@@ -57,7 +57,7 @@ except ImportError as e:
 from ReacNetGenerator.reachtml import HTMLResult
 ######## class ########
 class ReacNetGenerator(object):
-    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],selectatoms=None,originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,resultfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[0,0,1],end_color=[1,0,0],nproc=None):
+    def __init__(self,inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"],selectatoms=None,originfilename=None,hmmfilename=None,atomfilename=None,moleculefilename=None,atomroutefilename=None,reactionfilename=None,tablefilename=None,moleculetempfilename=None,moleculetemp2filename=None,moleculestructurefilename=None,imagefilename=None,speciesfilename=None,resultfilename=None,stepinterval=1,p=[0.5,0.5],a=[[0.999,0.001],[0.001,0.999]],b=[[0.6, 0.4],[0.4, 0.6]],runHMM=True,SMILES=True,getoriginfile=False,species={},node_size=200,font_size=6,widthcoefficient=1,show=False,maxspecies=20,n_color=256,drawmolecule=False,nolabel=False,needprintspecies=True,filter=[],node_color=[78/256,196/256,238/256],pos={},printfiltersignal=False,showid=True,k=None,start_color=[0,0,1],end_color=[1,0,0],nproc=None,speciescenter=None):
         self.version=_version
         self.author=_author
         self.email=_email
@@ -110,6 +110,7 @@ class ReacNetGenerator(object):
         self.end_color=np.array(end_color)
         self.nproc=nproc if nproc else cpu_count()
         self.loggingfreq=1000
+        self.speciescenter=speciescenter
         
     #### run and draw ####
     def runanddraw(self,run=True,draw=True,report=True):
@@ -680,21 +681,52 @@ class ReacNetGenerator(object):
             rightname=self.mname[moleculeroute[1]-1]
             if leftname==rightname:
                 continue
-            equation=leftname+"->"+rightname
+            equation=(leftname,rightname)
             if equation in allroute:
                 allroute[equation]+=1
             else:
                 allroute[equation]=1
         return allroute
 
-    def printtable(self,allroute):
+    def printtable(self,allroute,n_searchspecies=2):#speciescenter
         species=[]
         table=np.zeros((100,100),dtype=np.int)
         reactionnumber=np.zeros((2),dtype=np.int)
+        sortedreactions=sorted(allroute.items(), key=lambda d: d[1] ,reverse=True)
+        # added on Nov 17, 2018
+        if self.speciescenter:
+            def searchspecies(originspec):
+                searchedspecies=[]
+                for reaction, n_reaction in sortedreactions:
+                    ii=1
+                    if originspec==reaction[1-ii]:
+                        if not reaction[ii] in species:
+                            searchedspecies.append((reaction[ii],(reaction,n_reaction)))
+                    if len(searchedspecies)>=n_searchspecies:
+                        break
+                return searchedspecies
+            
+            newreactions=[]
+            species=[self.speciescenter]
+            newspecies=[self.speciescenter]
+            while len(species)<100 or not newspecies:
+                newnewspecies=[]
+                for newspec in newspecies:
+                    searchedspecies=searchspecies(newspec)
+                    for searchedspec,searchedreaction in searchedspecies:
+                        if len(species)<100:
+                            newnewspecies.append(searchedspec)
+                            species.append(searchedspec)
+                            newreactions.append(searchedreaction)
+                newspecies=newnewspecies
+            for reac in sortedreactions:
+                if not reac in newreactions:
+                    newreactions.append(reac)
+            sortedreactions=newreactions
+        
         with open(self.reactionfilename,'w') as f:
-            for k, v in sorted(allroute.items(), key=lambda d: d[1] ,reverse=True):
-                print(v,k,file=f)
-                reaction=k.split("->")
+            for reaction, n_reaction in sortedreactions:
+                print(n_reaction,"->".join(reaction),file=f)
                 for i,spec in enumerate(reaction):
                     if spec in species:
                         number=species.index(spec)
@@ -705,7 +737,8 @@ class ReacNetGenerator(object):
                         number=-1
                     reactionnumber[i]=number
                 if all(reactionnumber>=0):
-                    table[reactionnumber[0]][reactionnumber[1]]=v
+                    table[reactionnumber[0]][reactionnumber[1]]=n_reaction
+     
         with open(self.tablefilename,'w') as f:
             print("\t"+"\t".join(species),file=f)
             for i in range(len(species)):
