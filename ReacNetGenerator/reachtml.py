@@ -13,6 +13,7 @@ class HTMLResult(object):
         self.specfolder=specfolder
         self.imagefile=imagefile
         self.n_thread=n_thread if n_thread else cpu_count()
+        self.script=""
 
     def re(self,smi):
         return smi.replace("O","[O]").replace("C","[C]").replace("[HH]","[H]")
@@ -66,7 +67,6 @@ class HTMLResult(object):
 
     def generateresult(self):
         self.result=self.html['page-top']
-        self.script=""
         self.generatenetwork()
         self.generatesvg()
         self.generatespecies()
