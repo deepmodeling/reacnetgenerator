@@ -66,6 +66,7 @@ class HTMLResult(object):
 
     def generateresult(self):
         self.result=self.html['page-top']
+        self.script=""
         self.generatenetwork()
         self.generatesvg()
         self.generatespecies()
@@ -95,6 +96,8 @@ class HTMLResult(object):
         for i,spec in enumerate(self.specs):
             buff+=self.html['species-each']%((("<tr>" if i<shownum else "<tr class='specnone'>") if i%line==0 else ""),spec,str(i+1),("</tr>" if i%line==line-1 else ""))
         buff+=self.html['species-bottom']
+        if len(self.specs)<=shownum:
+            self.script+=self.html['script-hidespec']
         self.result+=buff
 
     def generatereaction(self,line=4,reacnum=True,shownum=20):
@@ -102,6 +105,8 @@ class HTMLResult(object):
         for i,reac in enumerate(self.reaction):
             buff+=self.html['reactions-each']%((("<tr>" if i<shownum else "<tr class='reacnone'>") if i%line==0 else ""),str(i+1),reac[0],(str(reac[2]) if reacnum else ""),self.html['narrowurl'],reac[1],("</tr>" if i%line==line-1 else ""))
         buff+=self.html['reactions-bottom']
+        if len(self.reaction)<=shownum:
+            self.script+=self.html['script-hidereac']
         self.result+=buff
 
     @property
@@ -191,6 +196,7 @@ class HTMLResult(object):
                     static_js["scrollreveal.min.js"],
                     static_js["jquery.magnific-popup.min.js"],
                     static_js["creative.min.js"],
+                    self.script
                 ])),
             'network':"""<section id="network" class='bg-white mx-auto text-center'>
                     <div class="container my-auto">
@@ -247,5 +253,7 @@ class HTMLResult(object):
             'speciessvg-each':'''<svg id="%s">%s</svg>
             ''',
             'speciessvg-bottom':'''</defs></svg>
-            '''
+            ''',
+            'script-hidereac':'''$('#showmorereac').hide();''',
+            'script-hidespec':'''$('#showmorespec').hide();''',
         }
