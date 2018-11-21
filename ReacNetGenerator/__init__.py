@@ -709,7 +709,7 @@ class ReacNetGenerator(object):
             newreactions=[]
             species=[self.speciescenter]
             newspecies=[self.speciescenter]
-            while len(species)<100 or not newspecies:
+            while len(species)<100 and newspecies:
                 newnewspecies=[]
                 for newspec in newspecies:
                     searchedspecies=searchspecies(newspec)
