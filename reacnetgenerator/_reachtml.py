@@ -1,34 +1,39 @@
 # -*- coding: utf-8 -*-
+# Generate a web page to show the analysis report
+
 import re
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool
 import htmlmin
 import openbabel
-from ReacNetGenerator.htmlstatic import static_js, static_css, static_img
+from ._htmlstatic import _static_js, _static_css, _static_img
 
 
-class HTMLResult(object):
-    def __init__(self, reactionfile, resultfile, imagefile, specfolder="species", n_thread=None):
-        self.reactionfile = reactionfile
-        self.resultfile = resultfile
-        self.specfolder = specfolder
-        self.imagefile = imagefile
-        self.n_thread = n_thread if n_thread else cpu_count()
-        self.script = ""
-        self.svgfiles = {}
+class _HTMLResult(object):
+    def __init__(self, ReacNetGenerator):
+        self._reactionfile = ReacNetGenerator.reactionfilename
+        self._resultfile = ReacNetGenerator.resultfilename
+        self._imagefile = ReacNetGenerator.imagefilename
+        self._nproc = ReacNetGenerator.nproc
+        self._script = ""
+        self._svgfiles = {}
 
-    def re(self, smi):
+    def _report(self):
+        self._readdata()
+        self._generateresult()
+
+    def _re(self, smi):
         return smi.replace("O", "[O]").replace("C", "[C]").replace("[HH]", "[H]")
 
-    def readreaction(self):
+    def _readreaction(self):
         reaction = []
-        with open(self.reactionfile) as f:
+        with open(_self.reactionfile) as f:
             for line in f:
                 sx = line.split()
                 s = sx[1].split("->")
-                reaction.append((self.re(s[0]), self.re(s[1]), int(sx[0])))
+                reaction.append((self._re(s[0]), self._re(s[1]), int(sx[0])))
         return reaction
 
-    def convertsvg(self, smiles):
+    def _convertsvg(self, smiles):
         obConversion = openbabel.OBConversion()
         obConversion.SetInAndOutFormats("smi", "svg")
         mol = openbabel.OBMol()
@@ -36,73 +41,69 @@ class HTMLResult(object):
         svgfile=obConversion.WriteString(mol)
         return smiles, svgfile
 
-    def readspecies(self):
+    def _readspecies(self):
         specs = []
-        for reac in self.reaction:
+        for reac in self._reaction:
             for spec in reac[:2]:
                 if not spec in specs:
                     specs.append(spec)
-        with Pool(self.n_thread) as pool:
-            results = pool.imap(self.convertsvg, specs)
+        with Pool(self._nproc) as pool:
+            results = pool.imap(self._convertsvg, specs)
             for spec, svgfile in results:
-                self.svgfiles[spec] = svgfile
+                self._svgfiles[spec] = svgfile
         return specs
 
-    def report(self):
-        self.readdata()
-        self.generateresult()
+    def _readdata(self):
+        self._reaction = self._readreaction()
+        self._specs = self._readspecies()
 
-    def readdata(self):
-        self.reaction = self.readreaction()
-        self.specs = self.readspecies()
+    def _generateresult(self):
+        self._result = self._html['page-top']
+        self._generatenetwork()
+        self._generatesvg()
+        self._generatespecies()
+        self._generatereaction()
+        self._result += self._html['page-bottom']
+        with open(self._resultfile, 'w', encoding="utf-8") as f:
+            print(htmlmin.minify(self._result), file=f)
 
-    def generateresult(self):
-        self.result = self.html['page-top']
-        self.generatenetwork()
-        self.generatesvg()
-        self.generatespecies()
-        self.generatereaction()
-        self.result += self.html['page-bottom']
-        with open(self.resultfile, 'w', encoding="utf-8") as f:
-            print(htmlmin.minify(self.result), file=f)
-
-    def generatenetwork(self):
-        with open(self.imagefile) as f:
+    def _generatenetwork(self):
+        with open(self._imagefile) as f:
             svgdata = f.read().strip()
             svgdata = re.sub(r"\d+(\.\d+)?pt", "100%", svgdata, count=2)
-        self.result += self.html['network'] % svgdata
+        self._result += self._html['network'] % svgdata
 
-    def generatesvg(self):
-        buff = self.html['speciessvg-top']
-        for spec in self.specs:
-            svgdata = self.svgfiles[spec]
+    def _generatesvg(self):
+        buff = self._html['speciessvg-top']
+        for spec in self._specs:
+            svgdata = self._svgfiles[spec]
             svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
-            buff += self.html['speciessvg-each'] % (spec, svgdata)
-        buff += self.html['speciessvg-bottom']
-        self.result += buff
+            buff += self._html['speciessvg-each'] % (spec, svgdata)
+        buff += self._html['speciessvg-bottom']
+        self._result += buff
 
-    def generatespecies(self, line=10, shownum=30):
-        buff = self.html['species-top']
-        for i, spec in enumerate(self.specs):
-            buff += self.html['species-each'] % ((("<tr>" if i < shownum else "<tr class='specnone'>") if i %
+    def _generatespecies(self, line=10, shownum=30):
+        buff = self._html['species-top']
+        for i, spec in enumerate(self._specs):
+            buff += self._html['species-each'] % ((("<tr>" if i < shownum else "<tr class='specnone'>") if i %
                                                   line == 0 else ""), spec, str(i+1), ("</tr>" if i % line == line-1 else ""))
-        buff += self.html['species-bottom']
-        if len(self.specs) <= shownum:
-            self.script += self.html['script-hidespec']
-        self.result += buff
+        buff += self._html['species-bottom']
+        if len(self._specs) <= shownum:
+            self._script += self._html['script-hidespec']
+        self._result += buff
 
-    def generatereaction(self, line=4, reacnum=True, shownum=20):
-        buff = self.html['reactions-top']
-        for i, reac in enumerate(self.reaction):
-            buff += self.html['reactions-each'] % ((("<tr>" if i < shownum else "<tr class='reacnone'>") if i % line == 0 else ""), str(
-                i+1), reac[0], (str(reac[2]) if reacnum else ""), self.html['narrowurl'], reac[1], ("</tr>" if i % line == line-1 else ""))
-        buff += self.html['reactions-bottom']
-        if len(self.reaction) <= shownum:
-            self.script += self.html['script-hidereac']
-        self.result += buff
+    def _generatereaction(self, line=4, reacnum=True, shownum=20):
+        buff = self._html['reactions-top']
+        for i, reac in enumerate(self._reaction):
+            buff += self._html['reactions-each'] % ((("<tr>" if i < shownum else "<tr class='reacnone'>") if i % line == 0 else ""), str(
+                i+1), reac[0], (str(reac[2]) if reacnum else ""), self._html['narrowurl'], reac[1], ("</tr>" if i % line == line-1 else ""))
+        buff += self._html['reactions-bottom']
+        if len(self._reaction) <= shownum:
+            self._script += self._html['script-hidereac']
+        self._result += buff
 
     @property
-    def html(self):
+    def _html(self):
         return {
             'page-top': """
                 <html><head>
@@ -161,18 +162,18 @@ class HTMLResult(object):
                     </div>
                 </header>
                 """.format("".join([
-                static_css["bootstrap.min.css"],
-                static_css["creative.min.css"],
-                static_css["magnific-popup.min.css"],
+                _static_css["bootstrap.min.css"],
+                _static_css["creative.min.css"],
+                _static_css["magnific-popup.min.css"],
                 """.spec{height:100px;width:100px;}.content-table{font-size:14;margin-left:auto;margin-right:auto;text-align:center;}.reacnum{color:blue;}.specnone,.reacnone{display:none;}#info{background-image:url(%s)}""" % (
-                    static_img["fire.jpg"])
+                    _static_img["fire.jpg"])
             ])),
             'page-bottom': """
                 <section class="bg-dark text-white" id="foot">
                   <div class="container">
                     <div class="row">
                       <div class="col-lg-8 mx-auto text-center">
-                        <p>Generated by <a href="https://njzjz.github.io/ReacNetGenerator">ReacNetGenerator</a></p>
+                        <p>Generated by <a href="https://njzjz.github.io/reacnetgenerator">ReacNetGenerator</a></p>
                         <p><strong>Citation:</strong> J. Zeng, L. Cao, J.Z.H. Zhang, C.-H. Chin, T. Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, to be submitted</p>
                         <p><strong>Author:</strong> <a href="https://cv.njzjz.win/">Jinzhe Zeng</a>, Liqun Cao, <a href="https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang">John ZH Zhang</a>, Chih-Hao Chin, <a href="http://computchem.cn/people/">Tong Zhu</a></p>
                         <p><strong>Email:</strong> <a href="mailto:tzhu@lps.ecnu.edu.cn">tzhu@lps.ecnu.edu.cn</a>, <a href="mailto:jzzeng@stu.ecnu.edu.cn">jzzeng@stu.ecnu.edu.cn</a></p>
@@ -183,13 +184,13 @@ class HTMLResult(object):
                 <script>{}</script>
                 </body></html>
                 """.format("".join([
-                static_js["jquery.min.js"],
-                static_js["bootstrap.bundle.min.js"],
-                static_js["jquery.easing.min.js"],
-                static_js["scrollreveal.min.js"],
-                static_js["jquery.magnific-popup.min.js"],
-                static_js["creative.min.js"],
-                self.script
+                _static_js["jquery.min.js"],
+                _static_js["bootstrap.bundle.min.js"],
+                _static_js["jquery.easing.min.js"],
+                _static_js["scrollreveal.min.js"],
+                _static_js["jquery.magnific-popup.min.js"],
+                _static_js["creative.min.js"],
+                self._script
             ])),
             'network': """<section id="network" class='bg-white mx-auto text-center'>
                     <div class="container my-auto">

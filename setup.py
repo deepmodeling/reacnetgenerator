@@ -1,10 +1,10 @@
 from setuptools import setup
-setup(name='ReacNetGenerator',
-      version='1.2.15',
+setup(name='reacnetgenerator',
+      version='1.2.16',
       description='Reaction Network Generator',
       keywords="reaction network",
-      url='https://github.com/njzjz/ReacNetGenerator',
+      url='https://njzjz.github.io/reacnetgenerator/',
       author='Jinzhe Zeng',
       author_email='njzjz@qq.com',
-      packages=['ReacNetGenerator'],
-      install_requires=['numpy','scipy','networkx','scikit-learn','matplotlib','hmmlearn','htmlmin','ase'])
+      packages=['reacnetgenerator'],
+      install_requires=['numpy', 'scipy>=0.20.1', 'networkx', 'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase'])
