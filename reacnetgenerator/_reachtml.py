@@ -26,7 +26,7 @@ class _HTMLResult(object):
 
     def _readreaction(self):
         reaction = []
-        with open(_self.reactionfile) as f:
+        with open(self._reactionfile) as f:
             for line in f:
                 sx = line.split()
                 s = sx[1].split("->")

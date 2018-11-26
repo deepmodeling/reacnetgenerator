@@ -71,21 +71,21 @@ class ReacNetGenerator(object):
         self.atomname = atomname
         self.selectatoms = self._setparam(selectatoms, self.atomname)
         self.originfilename = self._setfilename(originfilename, "origin")
-        self.hmmfilename = self.setfilename(hmmfilename, "hmm")
-        self.atomfilename = self.setfilename(atomfilename, "atom")
-        self.moleculefilename = self.setfilename(moleculefilename, "moname")
-        self.atomroutefilename = self.setfilename(atomroutefilename, "route")
-        self.reactionfilename = self.setfilename(reactionfilename, "reaction")
-        self.tablefilename = self.setfilename(tablefilename, "table")
-        self.moleculetempfilename = self.setfilename(
+        self.hmmfilename = self._setfilename(hmmfilename, "hmm")
+        self.atomfilename = self._setfilename(atomfilename, "atom")
+        self.moleculefilename = self._setfilename(moleculefilename, "moname")
+        self.atomroutefilename = self._setfilename(atomroutefilename, "route")
+        self.reactionfilename = self._setfilename(reactionfilename, "reaction")
+        self.tablefilename = self._setfilename(tablefilename, "table")
+        self.moleculetempfilename = self._setfilename(
             moleculetempfilename, "temp")
-        self.moleculetemp2filename = self.setfilename(
+        self.moleculetemp2filename = self._setfilename(
             moleculetemp2filename, "temp2")
-        self.moleculestructurefilename = self.setfilename(
+        self.moleculestructurefilename = self._setfilename(
             moleculestructurefilename, "structure")
-        self.imagefilename = self.setfilename(imagefilename, "svg")
-        self.speciesfilename = self.setfilename(speciesfilename, "species")
-        self.resultfilename = self.setfilename(resultfilename, "html")
+        self.imagefilename = self._setfilename(imagefilename, "svg")
+        self.speciesfilename = self._setfilename(speciesfilename, "species")
+        self.resultfilename = self._setfilename(resultfilename, "html")
         self.stepinterval = stepinterval
         self.p = np.array(p)
         self.a = np.array(a)
@@ -206,8 +206,7 @@ class ReacNetGenerator(object):
         """ Generate the analysis report """
         self._statusidmax = max(self._statusidmax, 6)
         self._printtime(0)
-        _HTMLResult(reactionfile=self.reactionfilename, resultfile=self.resultfilename,
-                    imagefile=self.imagefilename, n_thread=self.nproc)._report()
+        _HTMLResult(self)._report()
         self._printtime(6)
 
     def _logging(self, *message, end='\n'):
@@ -370,7 +369,7 @@ class ReacNetGenerator(object):
         with open(self.inputfilename) as file, Pool(self.nproc, maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
             results = pool.imap_unordered(readfunc, self._produce(semaphore, enumerate(itertools.islice(
-                itertools.zip_longest(*[file]*steplinenum), 0, None, self._stepinterval)), None), 10)
+                itertools.zip_longest(*[file]*steplinenum), 0, None, self.stepinterval)), None), 10)
             for index, (dstep, timesteptuple) in enumerate(results):
                 self._loggingprocessing(index)
                 d = self._union_dict(d, dstep)
@@ -754,7 +753,7 @@ class ReacNetGenerator(object):
         return x if x else default
 
     def _setfilename(self, name, suffix):
-        return self._setparam(name, inputfilename+"."+suffix)
+        return self._setparam(name, self.inputfilename+"."+suffix)
 
     def _printspecies(self):
         with open(self.moleculetemp2filename) as f2, open(self.speciesfilename, 'w') as fw:
