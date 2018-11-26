@@ -7,4 +7,9 @@ setup(name='reacnetgenerator',
       author='Jinzhe Zeng',
       author_email='njzjz@qq.com',
       packages=['reacnetgenerator'],
-      install_requires=['numpy', 'scipy>=0.20.1', 'networkx', 'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase'])
+      install_requires=['numpy', 'scipy>=0.20.1', 'networkx',
+                        'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase'],
+      entry_points={
+          'console_scripts': ['reacnetgenerator=reacnetgenerator:_commandline']
+      }
+      )

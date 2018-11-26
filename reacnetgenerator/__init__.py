@@ -24,8 +24,14 @@ Features
 Simple example
 ==================
 Process a LAMMPS bond file named bonds.reaxc. (See http://lammps.sandia.gov/doc/fix_reax_bonds.html for details)
-> from ReacNetGenerator import ReacNetGenerator
-> ReacNetGenerator(inputfiletype="lammpsbondfile",inputfilename="bonds.reaxc",atomname=["C","H","O"]).runanddraw()
+$ reacnetgenerator -i bonds.reaxc -a C H O
+where C, H, and O are atomic names in the input file.
+
+A LAMMPS dump file is also supported. You can prepare it by running "dump 1 all custom 100 dump.reaxc id type x y z" in LAMMPS. (See https://lammps.sandia.gov/doc/dump.html for more details)
+$ reacnetgenerator --dump -i dump.reaxc -a C H O
+
+You can running the following script for help:
+$ reacnetgenerator -h
 """
 
 __version__ = '1.2.16'
@@ -39,6 +45,7 @@ __copyright__ = 'Copyright 2018, East China Normal University'
 
 
 import itertools
+import argparse
 from functools import reduce
 from multiprocessing import Pool, Semaphore, cpu_count
 import math
@@ -212,7 +219,8 @@ class ReacNetGenerator(object):
     def _logging(self, *message, end='\n'):
         if message:
             localtime = time.asctime(time.localtime(time.time()))
-            print(localtime, __name__, __version__, *message, end=end)
+            print(localtime, "ReacNetGenerator",
+                  __version__, *message, end=end)
         else:
             print(end=end)
 
@@ -778,6 +786,21 @@ class Placeholder(object):
     def __enter__(self): return self
 
     def __exit__(self, Type, value, traceback): pass
+
+
+def _commandline():
+    parser = argparse.ArgumentParser(description='ReacNetGenerator')
+    parser.add_argument('-i', '--inputfilename',
+                        help='Input trajectory file, e.g. bonds.reaxc', required=True)
+    parser.add_argument(
+        '-a', '--atomname', help='Atomic names in the trajectory, e.g. C H O', nargs='*', required=True)
+    parser.add_argument(
+        '--hmm', help='Process trajectory with Hidden Markov Model (HMM)', action="store_true")
+    parser.add_argument(
+        '--dump', help='Process the LAMMPS dump file', action="store_true")
+    args = parser.parse_args()
+    ReacNetGenerator(inputfilename=args.inputfilename, atomname=args.atomname, runHMM=args.hmm,
+                     inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile')).runanddraw()
 
 
 if __name__ == 'reacnetgenerator':
