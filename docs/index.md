@@ -1,5 +1,5 @@
 # ReacNetGenerator
-![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)
+![python3.7](https://img.shields.io/badge/python-3.7-blue.svg)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
