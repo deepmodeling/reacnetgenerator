@@ -62,7 +62,6 @@ from rdkit.Chem import Draw
 from rdkit import Chem
 import openbabel
 from ase import Atom, Atoms
-from ase.io import write as write_xyz
 from ._reachtml import _HTMLResult
 
 plt.switch_backend('Agg')
@@ -141,13 +140,7 @@ class ReacNetGenerator(object):
         self._printtime(0)
         for runstep in range(1, 5):
             if(runstep == 1):
-                if self.inputfiletype == "lammpsbondfile":
-                    readNfunc = self._readlammpsbondN
-                    readstepfunc = self._readlammpsbondstep
-                elif self.inputfiletype == "lammpscrdfile" or self.inputfiletype == "lammpsdumpfile":
-                    readNfunc = self._readlammpscrdN
-                    readstepfunc = self._readlammpscrdstep
-                self._readinputfile(readNfunc, readstepfunc)
+                self._readinputfile()
             elif(runstep == 2):
                 if self.runHMM:
                     self._initHMM()
@@ -195,10 +188,9 @@ class ReacNetGenerator(object):
         try:
             self.pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos])) if not self.k else (
                 nx.spring_layout(G, k=self.k) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos], k=self.k))
-            self._logging()
-            self._logging("The position of the species in the network is:")
-            self._logging(self.pos)
-            self._logging()
+            if self.pos:
+                self._logging("The position of the species in the network is:")
+                self._logging(self.pos)
             for with_labels in ([True] if not self.nolabel else [True, False]):
                 nx.draw(G, pos=self.pos, width=widths, node_size=self.node_size, font_size=self.font_size,
                         with_labels=with_labels, edge_color=colors, node_color=self.node_color)
@@ -246,7 +238,7 @@ class ReacNetGenerator(object):
 
     def _union_dict(self, x, y):
         for k, v in y.items():
-            if k in x.keys():
+            if k in x:
                 x[k] += v
             else:
                 x[k] = v
@@ -266,9 +258,23 @@ class ReacNetGenerator(object):
                     b, bond, level, molecule, done, bondlist)
         return molecule, done, bondlist
 
-    def _readinputfile(self, readNfunc, readstepfunc):
-        steplinenum = readNfunc()
-        self._getdandtimestep(readstepfunc, steplinenum)
+    @property
+    def _readNfunc(self):
+        if self.inputfiletype == "lammpsbondfile":
+            return self._readlammpsbondN
+        else:
+            return self._readlammpscrdN
+
+    @property
+    def _readstepfunc(self):
+        if self.inputfiletype == "lammpsbondfile":
+            return self._readlammpsbondstep
+        else:
+            return self._readlammpscrdstep
+
+    def _readinputfile(self):
+        self._steplinenum = self._readNfunc()
+        self._getdandtimestep()
 
     def _readlammpsbondN(self):
         with open(self.inputfilename) as file:
@@ -318,14 +324,8 @@ class ReacNetGenerator(object):
             iscompleted = False
             for index, line in enumerate(f):
                 if line.startswith("ITEM:"):
-                    if line.startswith("ITEM: TIMESTEP"):
-                        linecontent = 4
-                    elif line.startswith("ITEM: ATOMS"):
-                        linecontent = 3
-                    elif line.startswith("ITEM: NUMBER OF ATOMS"):
-                        linecontent = 1
-                    elif line.startswith("ITEM: BOX BOUNDS"):
-                        linecontent = 2
+                    linecontent = 4 if line.startswith("ITEM: TIMESTEP") else (3 if line.startswith(
+                        "ITEM: ATOMS") else (1 if line.startswith("ITEM: NUMBER OF ATOMS") else 2))
                 else:
                     if linecontent == 1:
                         if iscompleted:
@@ -350,14 +350,8 @@ class ReacNetGenerator(object):
         for line in lines:
             if line:
                 if line.startswith("ITEM:"):
-                    if line.startswith("ITEM: TIMESTEP"):
-                        linecontent = 4
-                    elif line.startswith("ITEM: ATOMS"):
-                        linecontent = 3
-                    elif line.startswith("ITEM: NUMBER OF ATOMS"):
-                        linecontent = 1
-                    elif line.startswith("ITEM: BOX BOUNDS"):
-                        linecontent = 2
+                    linecontent = 4 if line.startswith("ITEM: TIMESTEP") else (3 if line.startswith(
+                        "ITEM: ATOMS") else (1 if line.startswith("ITEM: NUMBER OF ATOMS") else 2))
                 else:
                     if linecontent == 3:
                         s = line.split()
@@ -367,17 +361,17 @@ class ReacNetGenerator(object):
                         timestep = step, int(line.split()[0])
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
         step_atoms = Atoms(step_atoms)
-        bond, level = self._getbondfromcrd(step_atoms, step)
+        bond, level = self._getbondfromcrd(step_atoms)
         d = self._connectmolecule({}, step, bond, level)
         return d, timestep
 
-    def _getdandtimestep(self, readfunc, steplinenum):
+    def _getdandtimestep(self):
         d = {}
         timestep = {}
         with open(self.inputfilename) as file, Pool(self.nproc, maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
-            results = pool.imap_unordered(readfunc, self._produce(semaphore, enumerate(itertools.islice(
-                itertools.zip_longest(*[file]*steplinenum), 0, None, self.stepinterval)), None), 10)
+            results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
+                itertools.zip_longest(*[file]*self._steplinenum), 0, None, self.stepinterval)), None), 10)
             for index, (dstep, timesteptuple) in enumerate(results):
                 self._loggingprocessing(index)
                 d = self._union_dict(d, dstep)
@@ -403,33 +397,29 @@ class ReacNetGenerator(object):
 
     def _writemoleculetempfile(self, d):
         with open(self.moleculetempfilename, 'w') as f:
-            for item in d.items():
-                key, value = item
+            for key, value in d.items():
                 print(",".join([str(x) for x in key[0]]), ";".join([",".join(
                     [str(y) for y in x]) for x in key[1]]), ",".join([str(x) for x in value]), file=f)
 
-    def _getbondfromcrd(self, step_atoms, step, filename="crd"):
-        xyzfilename = filename+"_"+str(step)+".xyz"
-        mol2filename = filename+"_"+str(step)+".mol2"
-        write_xyz(xyzfilename, step_atoms, format='xyz')
+    def _getbondfromcrd(self, step_atoms):
+        atomnumber=len(step_atoms)
+        xyzstring = "%d\n%s\n" % (atomnumber, __name__)+"\n".join(['%-2s %22.15f %22.15f %22.15f' % (
+            s, x, y, z) for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
         conv = openbabel.OBConversion()
-        conv.OpenInAndOutFiles(xyzfilename, mol2filename)
-        conv.Convert()
-        conv.CloseOutFile()
-        bond, bondlevel = self._getbondfrommol2(len(step_atoms), mol2filename)
-        return bond, bondlevel
-
-    def _getbondfrommol2(self, atomnumber, mol2filename):
+        conv.SetInAndOutFormats('xyz', 'mol2')
+        mol = openbabel.OBMol()
+        conv.ReadString(mol, xyzstring)
+        mol2string = conv.WriteString(mol)
         linecontent = -1
         bond = [[] for i in range(atomnumber+1)]
         bondlevel = [[] for i in range(atomnumber+1)]
-        with open(mol2filename) as f:
-            for line in f:
-                if line.startswith("@<TRIPOS>BOND"):
-                    linecontent = 0
-                else:
-                    if linecontent == 0:
-                        s = line.split()
+        for line in mol2string.split('\n'):
+            if line.startswith("@<TRIPOS>BOND"):
+                linecontent = 0
+            else:
+                if linecontent == 0:
+                    s = line.split()
+                    if len(s)>3:
                         bond[int(s[1])].append(int(s[2]))
                         bond[int(s[2])].append(int(s[1]))
                         level = 12 if s[3] == 'ar' else int(s[3])
