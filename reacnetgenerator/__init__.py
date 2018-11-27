@@ -208,6 +208,8 @@ class ReacNetGenerator(object):
         self._statusidmax = max(self._statusidmax, 6)
         self._printtime(0)
         _HTMLResult(self)._report()
+        self._logging("Report is generated. Please see %s for more details." % (
+            self.resultfilename))
         self._printtime(6)
 
     def _logging(self, *message, end='\n'):
@@ -237,14 +239,6 @@ class ReacNetGenerator(object):
                 self._logging("====== Summary ======")
                 self._logging("Total time: %.3f s" %
                               (self._timearray[-1]-self._timearray[0]))
-
-    def _union_dict(self, x, y):
-        for k, v in y.items():
-            if k in x:
-                x[k] += v
-            else:
-                x[k] = v
-        return x
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
         # connect molecule
@@ -319,8 +313,8 @@ class ReacNetGenerator(object):
                         if bondlevel == 0:
                             bondlevel = 1
                         level[int(s[0])-1].append(bondlevel)
-        d = self._connectmolecule({}, step, bond, level)
-        return d, timestep
+        molecules = self._connectmolecule(bond, level)
+        return molecules, timestep
 
     def _readlammpscrdN(self):
         with open(self.inputfilename) as f:
@@ -365,8 +359,8 @@ class ReacNetGenerator(object):
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms)
-        d = self._connectmolecule({}, step, bond, level)
-        return d, timestep
+        molecules = self._connectmolecule( bond, level)
+        return molecules, timestep
 
     def _getdandtimestep(self):
         d = {}
@@ -375,28 +369,29 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
                 itertools.zip_longest(*[file]*self._steplinenum), 0, None, self.stepinterval)), None), 10)
-            for index, (dstep, timesteptuple) in enumerate(results):
+            for index, (molecules, (step, thetimestep)) in enumerate(results):
                 self._loggingprocessing(index)
-                d = self._union_dict(d, dstep)
-                step, thetimestep = timesteptuple
+                for molecule in molecules:
+                    if molecule in d:
+                        d[molecule].append(step)
+                    else:
+                        d[molecule]=[step]
                 timestep[step] = thetimestep
                 semaphore.release()
         self._writemoleculetempfile(d)
         self._timestep = timestep
         self._step = len(timestep)-1
 
-    def _connectmolecule(self, d, step, bond, level):
+    def _connectmolecule(self, bond, level):
+        molecules=[]
         done = np.zeros(self._N, dtype=bool)
         for i in range(1, self._N+1):
             if not done[i-1]:
                 mole, done, bondlist = self._mo(i, bond, level, [], done, [])
                 mole.sort()
                 bondlist.sort()
-                if (tuple(mole), tuple(bondlist)) in d:
-                    d[(tuple(mole), tuple(bondlist))].append(step)
-                else:
-                    d[(tuple(mole), tuple(bondlist))] = [step]
-        return d
+                molecules.append((tuple(mole), tuple(bondlist)))
+        return molecules
 
     def _writemoleculetempfile(self, d):
         with open(self.moleculetempfilename, 'wb') as f:
