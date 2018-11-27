@@ -34,9 +34,9 @@ You can running the following script for help:
 $ reacnetgenerator -h
 """
 
-__version__ = '1.2.17'
+__version__ = '1.2.18'
 __date__ = '2018-03-11'
-__update__ = '2018-11-27'
+__update__ = '2018-11-28'
 __author__ = 'Jinzhe Zeng'
 __email__ = 'jzzeng@stu.ecnu.edu.cn'
 __credits__ = ['Jinzhe Zeng', 'Tong Zhu',

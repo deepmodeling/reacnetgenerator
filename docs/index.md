@@ -63,3 +63,10 @@ You can running the following script for help:
 ```sh
 $ reacnetgenerator -h
 ```
+
+## GUI version
+You can open a GUI version for ReacNetGenerator by typing:
+
+```sh
+$ reacnetgeneratorgui
+```

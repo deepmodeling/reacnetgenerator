@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from multiprocessing import Pool
 import htmlmin
 import openbabel
-from ._htmlstatic import _static_js, _static_css, _static_img
+from ._static import _static_js, _static_css, _static_img
 from ._htmltemplate import _html
 
 

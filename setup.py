@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(name='reacnetgenerator',
-      version='1.2.17',
+      version='1.2.18',
       description='Reaction Network Generator',
       keywords="reaction network",
       url='https://njzjz.github.io/reacnetgenerator/',
@@ -10,6 +10,6 @@ setup(name='reacnetgenerator',
       install_requires=['numpy', 'scipy>=0.20.1', 'networkx',
                         'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase'],
       entry_points={
-          'console_scripts': ['reacnetgenerator=reacnetgenerator:_commandline']
+          'console_scripts': ['reacnetgenerator=reacnetgenerator:_commandline', 'reacnetgeneratorgui=reacnetgenerator.gui:gui']
       }
       )
