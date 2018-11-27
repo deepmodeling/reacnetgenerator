@@ -781,9 +781,11 @@ def _commandline():
         '--nohmm', help='Process trajectory without Hidden Markov Model (HMM)', action="store_true")
     parser.add_argument(
         '--dump', help='Process the LAMMPS dump file', action="store_true")
+    parser.add_argument(
+        '-n', '-np', '--nproc', help='Number of processes')
     args = parser.parse_args()
     ReacNetGenerator(inputfilename=args.inputfilename, atomname=args.atomname, runHMM=not args.nohmm,
-                     inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile')).runanddraw()
+                     inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'), nproc=args.nproc).runanddraw()
 
 
 if __name__ == 'reacnetgenerator':
