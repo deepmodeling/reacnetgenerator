@@ -53,7 +53,7 @@ import gc
 import time
 import zlib
 import base64
-from collections import Counter
+from collections import Counter, defaultdict
 import numpy as np
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -141,20 +141,20 @@ class ReacNetGenerator(object):
         self._statusidmax = max(self._statusidmax, 4)
         self._printtime(0)
         for runstep in range(1, 5):
-            if(runstep == 1):
+            if runstep == 1:
                 self._readinputfile()
-            elif(runstep == 2):
+            elif runstep == 2:
                 if self.runHMM:
                     self._initHMM()
                 self._calhmm()
-            elif(runstep == 3):
+            elif runstep == 3:
                 if self.SMILES:
                     self._printmoleculeSMILESname()
                 else:
                     self._printmoleculename()
                 atomeach = self._getatomeach()
                 allmoleculeroute = self._printatomroute(atomeach)
-            elif(runstep == 4):
+            elif runstep == 4:
                 allroute = self._getallroute(allmoleculeroute)
                 self._printtable(allroute)
                 if self.needprintspecies:
@@ -244,13 +244,10 @@ class ReacNetGenerator(object):
         # connect molecule
         molecule.append(i)
         done[i-1] = True
-        for j in range(len(bond[i-1])):
-            b = bond[i-1][j]
-            l = level[i-1][j]
+        for b, l in zip(bond[i-1], level[i-1]):
             bo = (i, b, l) if i < b else (b, i, l)
-            if not bo in bondlist:
-                bondlist.append(bo)
             if not done[b-1]:
+                bondlist.append(bo)
                 molecule, done, bondlist = self._mo(
                     b, bond, level, molecule, done, bondlist)
         return molecule, done, bondlist
@@ -297,24 +294,20 @@ class ReacNetGenerator(object):
 
     def _readlammpsbondstep(self, item):
         (step, lines), _ = item
-        bond = [[] for x in range(self._N)]
-        level = [[] for x in range(self._N)]
+        bond = [None for x in range(self._N)]
+        level = [None for x in range(self._N)]
         for line in lines:
             if line:
                 if line.startswith("#"):
                     if line.startswith("# Timestep"):
-                        timestep = step, [
-                            int(s) for s in line.split() if s.isdigit()][0]
+                        timestep = int(line.split()[-1])
                 else:
                     s = line.split()
-                    for i in range(int(s[2])):
-                        bond[int(s[0])-1].append(int(s[i+3]))
-                        bondlevel = round(float(s[i+4+int(s[2])]))
-                        if bondlevel == 0:
-                            bondlevel = 1
-                        level[int(s[0])-1].append(bondlevel)
+                    bond[int(s[0])-1] = [int(x) for x in s[3:3+int(s[2])]]
+                    level[int(s[0])-1] = [max(1, round(float(x)))
+                                          for x in s[4+int(s[2]):4+2*int(s[2])]]
         molecules = self._connectmolecule(bond, level)
-        return molecules, timestep
+        return molecules, (step, timestep)
 
     def _readlammpscrdN(self):
         with open(self.inputfilename) as f:
@@ -359,11 +352,11 @@ class ReacNetGenerator(object):
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms)
-        molecules = self._connectmolecule( bond, level)
+        molecules = self._connectmolecule(bond, level)
         return molecules, timestep
 
     def _getdandtimestep(self):
-        d = {}
+        d = defaultdict(list)
         timestep = {}
         with open(self.inputfilename) as file, Pool(self.nproc, maxtasksperchild=100) as pool:
             semaphore = Semaphore(360)
@@ -372,10 +365,7 @@ class ReacNetGenerator(object):
             for index, (molecules, (step, thetimestep)) in enumerate(results):
                 self._loggingprocessing(index)
                 for molecule in molecules:
-                    if molecule in d:
-                        d[molecule].append(step)
-                    else:
-                        d[molecule]=[step]
+                    d[molecule].append(step)
                 timestep[step] = thetimestep
                 semaphore.release()
         self._writemoleculetempfile(d)
@@ -383,21 +373,21 @@ class ReacNetGenerator(object):
         self._step = len(timestep)-1
 
     def _connectmolecule(self, bond, level):
-        molecules=[]
+        molecules = []
         done = np.zeros(self._N, dtype=bool)
         for i in range(1, self._N+1):
             if not done[i-1]:
                 mole, done, bondlist = self._mo(i, bond, level, [], done, [])
-                mole.sort()
-                bondlist.sort()
-                molecules.append((tuple(mole), tuple(bondlist)))
+                moleculestr = ' '.join((",".join((str(x) for x in sorted(mole))), ";".join(
+                    (",".join([str(y) for y in x]) for x in sorted(bondlist)))))
+                molecules.append(moleculestr)
         return molecules
 
     def _writemoleculetempfile(self, d):
         with open(self.moleculetempfilename, 'wb') as f:
             for key, value in d.items():
-                f.write(self._compress('%s %s %s' % (",".join([str(x) for x in key[0]]), ";".join(
-                    [",".join([str(y) for y in x]) for x in key[1]]), ",".join([str(x) for x in value]))))
+                f.write(self._compress(
+                    ' '.join((key, ",".join((str(x) for x in value))))))
 
     def _getbondfromcrd(self, step_atoms):
         atomnumber = len(step_atoms)
@@ -409,8 +399,8 @@ class ReacNetGenerator(object):
         conv.ReadString(mol, xyzstring)
         mol2string = conv.WriteString(mol)
         linecontent = -1
-        bond = [[] for i in np.arange(atomnumber)]
-        bondlevel = [[] for i in np.arange(atomnumber)]
+        bond = [[] for i in range(atomnumber)]
+        bondlevel = [[] for i in range(atomnumber)]
         for line in mol2string.split('\n'):
             if line.startswith("@<TRIPOS>BOND"):
                 linecontent = 0
@@ -458,10 +448,10 @@ class ReacNetGenerator(object):
                 if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
                     if self.getoriginfile:
                         fo.write(self._compress(
-                            "".join([str(i) for i in originsignal])))
+                            "".join([str(i) for i in originsignal.tolist()])))
                     if self.runHMM:
                         fh.write(self._compress(
-                            "".join([str(i) for i in hmmsignal])))
+                            "".join([str(i) for i in hmmsignal.tolist()])))
                     ft2.write(self._compress(mlist.strip()))
                 semaphore.release()
 
@@ -471,11 +461,11 @@ class ReacNetGenerator(object):
         moleculeroute = []
         molecule = -1
         right = -1
-        for j in range(0, self._step):
-            if atomeachi[j] > 0 and atomeachi[j] != right:
+        for j, atomeachij in enumerate(atomeachi.tolist()):
+            if atomeachij > 0 and atomeachij != right:
                 routestrarr.append("%s (%d step %d)" % (
-                    self._mname[atomeachi[j]-1], atomeachi[j], self._timestep[j]))
-                left, right = right, atomeachi[j]
+                    self._mname[atomeachij-1], atomeachij, self._timestep[j]))
+                left, right = right, atomeachij
                 if self.atomname[atomtypei-1] in self.selectatoms:
                     if left >= 0 and not (left, right) in moleculeroute:
                         moleculeroute.append((left, right))
@@ -566,9 +556,9 @@ class ReacNetGenerator(object):
     def _calmoleculeSMILESname(self, item):
         line, _ = item
         s = self._decompress(line).split()
-        atoms = np.array([int(x) for x in s[0].split(",")])
-        bonds = np.array([tuple(int(y) for y in x.split(","))
-                          for x in s[1].split(";")] if len(s) == 3 else [])
+        atoms = [int(x) for x in s[0].split(",")]
+        bonds = [tuple(int(y) for y in x.split(","))
+                 for x in s[1].split(";")] if len(s) == 3 else []
         type = {}
         for atomnumber in atoms:
             type[atomnumber] = self.atomname[self._atomtype[atomnumber-1]-1]
@@ -645,7 +635,7 @@ class ReacNetGenerator(object):
                 break
         return searchedspecies
 
-    def _printtable(self, allroute, maxsize=100):  # speciescenter
+    def _printtable(self, allroute, maxsize=100):
         species = []
         table = np.zeros((maxsize, maxsize), dtype=np.int)
         reactionnumber = np.zeros((2), dtype=np.int)
