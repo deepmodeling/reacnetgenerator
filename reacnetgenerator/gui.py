@@ -18,6 +18,7 @@ class GUI():
 
     def __init__(self):
         '''Init GUI class'''
+        print(__doc__)
         self._filename = ''
 
     def gui(self):
@@ -101,7 +102,3 @@ class GUI():
 def gui():
     '''Open GUI version of ReacNetGenerator'''
     GUI().gui()
-
-
-if __name__ == 'reacnetgenerator.gui':
-    print(__doc__)

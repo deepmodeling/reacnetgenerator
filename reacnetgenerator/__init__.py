@@ -74,6 +74,9 @@ class ReacNetGenerator(object):
 
     def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculetempfilename=None, moleculetemp2filename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, filter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
         ''' Init ReacNetGenerator '''
+        print(__doc__)
+        print("Version: %s" % __version__, "Creation date: %s" %
+              __date__, "Update date: %s" % __update__)
         self.inputfiletype = inputfiletype
         self.inputfilename = inputfilename
         self.atomname = atomname
@@ -786,9 +789,3 @@ def _commandline():
     args = parser.parse_args()
     ReacNetGenerator(inputfilename=args.inputfilename, atomname=args.atomname, runHMM=not args.nohmm,
                      inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'), nproc=args.nproc).runanddraw()
-
-
-if __name__ == 'reacnetgenerator':
-    print(__doc__)
-    print("Version: %s" % __version__, "Creation date: %s" %
-          __date__, "Update date: %s" % __update__)
