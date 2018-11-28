@@ -5,6 +5,7 @@
 $ reacnetgeneratorgui
 '''
 import os
+from multiprocessing import cpu_count
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import webbrowser
@@ -45,13 +46,16 @@ class GUI():
         self._filetyperbtype = tk.Radiobutton(
             text="LAMMPS Dump file", value="lammpsdumpfile", variable=self._filetype)
         self._runhmmcb = tk.Checkbutton(
-            text="Noise filter by HMM", variable=self._runhmm, onvalue=1, offvalue=0)
+            text="HMM Filter", variable=self._runhmm, onvalue=1, offvalue=0)
         self._openpagecb = tk.Checkbutton(
-            text="Show the analysis report", variable=self._openpage, onvalue=1, offvalue=0)
+            text="Show Report", variable=self._openpage, onvalue=1, offvalue=0)
         self._atomnamelb = tk.Label(self._top, text="Atomic Symbol")
-        self._atomnameet = tk.Entry(self._top, width=36)
+        self._atomnameet = tk.Entry(self._top, width=18)
         self._atomnameet.insert(0, "C H O")
         self._runbtn = tk.Button(self._top, text="Analyze", command=self._run)
+        self._nproclb = tk.Label(self._top, text="Processor Number")
+        self._nprocet = tk.Entry(self._top, width=4)
+        self._nprocet.insert(0, cpu_count())
 
         self._titlelb.grid(row=0, column=0, columnspan=8, padx=20, pady=20)
         self._filenamelb.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
@@ -63,22 +67,27 @@ class GUI():
         self._filetyperbtype.grid(
             row=2, column=4, columnspan=2, padx=5, pady=5)
         self._atomnamelb.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
-        self._atomnameet.grid(row=3, column=2, columnspan=3, padx=5, pady=5)
+        self._atomnameet.grid(row=3, column=2, columnspan=2, padx=5, pady=5)
         self._runhmmcb.grid(row=2, column=6, columnspan=2, padx=5, pady=5)
-        self._openpagecb.grid(row=3, column=5, columnspan=3, padx=5, pady=5)
+        self._openpagecb.grid(row=3, column=6, columnspan=3, padx=5, pady=5)
         self._runbtn.grid(row=4, column=0, columnspan=8, padx=10, pady=10)
+        self._nproclb.grid(row=3, column=4, padx=5, pady=5)
+        self._nprocet.grid(row=3, column=5, padx=5, pady=5)
 
         self._top.mainloop()
 
     def _run(self):
         filename = self._filenameet.get()
         if os.path.exists(filename):
-            reacnetgenerator = ReacNetGenerator(inputfilename=self._filenameet.get(
-            ), inputfiletype=self._filetype.get(), atomname=self._atomnameet.get().split(), runHMM=(self._runhmm.get() == 1))
-            reacnetgenerator.runanddraw()
-            if self._openpage.get() == 1:
-                webbrowser.open_new(os.path.abspath(
-                    reacnetgenerator.resultfilename))
+            try:
+                reacnetgenerator = ReacNetGenerator(inputfilename=self._filenameet.get(
+                ), inputfiletype=self._filetype.get(), atomname=self._atomnameet.get().split(), runHMM=(self._runhmm.get() == 1), nproc=int(self._nprocet.get()))
+                reacnetgenerator.runanddraw()
+                if self._openpage.get() == 1:
+                    webbrowser.open_new(os.path.abspath(
+                        reacnetgenerator.resultfilename))
+            except Exception as e:
+                tk.messagebox.showinfo("Error", e)
         else:
             tk.messagebox.showinfo("Error", "File not exsit.")
 
