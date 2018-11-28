@@ -20,21 +20,21 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Requirements
 * Python 3 (**Note:** Python 2 is not supported!)
-* Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [htmlmin](https://github.com/mankyd/htmlmin/)
+* Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [htmlmin](https://github.com/mankyd/htmlmin/), [ASE](https://gitlab.com/ase/ase)
 * Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
 ## Installation
 1. [Get conda](https://conda.io/docs/user-guide/install/index.html) to install Python 3.
 
-2. Use pip to install required packages: 
-```sh
-$ pip install numpy scipy networkx scikit-learn matplotlib hmmlearn htmlmin ase
-```
-
-3. Use conda to install extra packages:
+2. Use conda to install extra packages:
 ```sh
 conda install -c openbabel openbabel 
 conda install -c rdkit rdkit
+```
+
+3. Use pip to install required packages: 
+```sh
+$ pip install numpy scipy networkx scikit-learn matplotlib hmmlearn htmlmin ase
 ```
 
 4. Download ReacNetGenerator and build it from source:
