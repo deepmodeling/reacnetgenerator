@@ -248,9 +248,8 @@ class ReacNetGenerator(object):
         molecule.append(i)
         done[i-1] = True
         for b, l in zip(bond[i-1], level[i-1]):
-            bo = (i, b, l) if i < b else (b, i, l)
             if not done[b-1]:
-                bondlist.append(bo)
+                bondlist.append((i, b, l) if i < b else (b, i, l))
                 molecule, done, bondlist = self._mo(
                     b, bond, level, molecule, done, bondlist)
         return molecule, done, bondlist
