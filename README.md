@@ -50,7 +50,7 @@ Prepare a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) n
 $ reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
-where C, H, and O are atomic names in the input file. [Analysis report](https://njzjz.github.io/ReacNetGenerator/report.html) will be generated automatically.  
+where C, H, and O are atomic names in the input file. [Analysis report](https://njzjz.github.io/reacnetgenerator/report.html) will be generated automatically.  
 
 A [LAMMPS dump file](https://lammps.sandia.gov/doc/dump.html) is also supported. You can prepare it by running "dump 1 all custom 100 dump.reaxc id type x y z" in LAMMPS.
 
