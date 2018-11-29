@@ -36,7 +36,7 @@ $ reacnetgenerator -h
 
 __version__ = '1.2.18'
 __date__ = '2018-03-11'
-__update__ = '2018-11-28'
+__update__ = '2018-11-29'
 __author__ = 'Jinzhe Zeng'
 __email__ = 'jzzeng@stu.ecnu.edu.cn'
 __credits__ = ['Jinzhe Zeng', 'Tong Zhu',
@@ -75,8 +75,8 @@ class ReacNetGenerator(object):
     def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculetempfilename=None, moleculetemp2filename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, filter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
         ''' Init ReacNetGenerator '''
         print(__doc__)
-        print("Version: %s" % __version__, "Creation date: %s" %
-              __date__, "Update date: %s" % __update__)
+        print(
+            f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
         self.inputfiletype = inputfiletype
         self.inputfilename = inputfilename
         self.atomname = atomname
@@ -211,21 +211,21 @@ class ReacNetGenerator(object):
         self._statusidmax = max(self._statusidmax, 6)
         self._printtime(0)
         _HTMLResult(self)._report()
-        self._logging("Report is generated. Please see %s for more details." % (
-            self.resultfilename))
+        self._logging(
+            f"Report is generated. Please see {self.resultfilename} for more details.")
         self._printtime(6)
 
     def _logging(self, *message, end='\n'):
         if message:
             localtime = time.asctime(time.localtime(time.time()))
-            print(localtime, "ReacNetGenerator",
-                  __version__, *message, end=end)
+            print(f"{localtime} ReacNetGenerator {__version__}",
+                  *message, end=end)
         else:
             print(end=end)
 
     def _loggingprocessing(self, index):
         if index % self.loggingfreq == 0:
-            self._logging("processing", index, "...", end='\r')
+            self._logging(f"processing {index} ...", end='\r')
 
     @property
     def _status(self):
@@ -236,12 +236,12 @@ class ReacNetGenerator(object):
         if len(self._timearray) == 0 or self._statusid > 0:
             self._timearray.append(time.time())
             if statusid > 0:
-                self._logging("Step %d: Done! Time consumed: %f s (%s)" % (
-                    len(self._timearray)-1, self._timearray[-1]-self._timearray[-2], self._status))
+                self._logging(
+                    f"Step {len(self._timearray)-1}: Done! Time consumed (s): {self._timearray[-1]-self._timearray[-2]:.3f} ({self._status})")
             if statusid >= self._statusidmax:
                 self._logging("====== Summary ======")
-                self._logging("Total time: %.3f s" %
-                              (self._timearray[-1]-self._timearray[0]))
+                self._logging(
+                    f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
         # connect molecule
@@ -393,8 +393,8 @@ class ReacNetGenerator(object):
 
     def _getbondfromcrd(self, step_atoms):
         atomnumber = len(step_atoms)
-        xyzstring = "%d\n%s\n" % (atomnumber, __name__)+"\n".join(['%-2s %22.15f %22.15f %22.15f' % (
-            s, x, y, z) for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
+        xyzstring = f"{atomnumber}\nReacNetGenerator\n"+"\n".join(
+            [f'{s:-2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
         conv = openbabel.OBConversion()
         conv.SetInAndOutFormats('xyz', 'mol2')
         mol = openbabel.OBMol()
@@ -465,14 +465,14 @@ class ReacNetGenerator(object):
         right = -1
         for j, atomeachij in enumerate(atomeachi.tolist()):
             if atomeachij > 0 and atomeachij != right:
-                routestrarr.append("%s (%d step %d)" % (
-                    self._mname[atomeachij-1], atomeachij, self._timestep[j]))
+                routestrarr.append(
+                    f"{self._mname[atomeachij-1]} ({atomeachij} step { self._timestep[j]})")
                 left, right = right, atomeachij
                 if self.atomname[atomtypei-1] in self.selectatoms:
                     if left >= 0 and not (left, right) in moleculeroute:
                         moleculeroute.append((left, right))
-        routestr = "Atom %d %s: " % (
-            i, self.atomname[atomtypei-1])+" -> ".join(routestrarr)
+        routestr = f"Atom {i} {self.atomname[atomtypei-1]}: " + \
+            " -> ".join(routestrarr)
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach):
