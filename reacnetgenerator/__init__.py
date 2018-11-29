@@ -34,7 +34,7 @@ You can running the following script for help:
 $ reacnetgenerator -h
 """
 
-__version__ = '1.2.18'
+__version__ = '1.2.19'
 __date__ = '2018-03-11'
 __update__ = '2018-11-29'
 __author__ = 'Jinzhe Zeng'
@@ -53,6 +53,7 @@ import gc
 import time
 import zlib
 import base64
+from io import StringIO
 from collections import Counter, defaultdict
 import numpy as np
 import networkx as nx
@@ -64,6 +65,7 @@ from rdkit.Chem import Draw
 from rdkit import Chem
 import openbabel
 from ase import Atom, Atoms
+import scour.scour
 from ._reachtml import _HTMLResult
 
 plt.switch_backend('Agg')
@@ -199,8 +201,11 @@ class ReacNetGenerator(object):
             for with_labels in ([True] if not self.nolabel else [True, False]):
                 nx.draw(G, pos=self.pos, width=widths, node_size=self.node_size, font_size=self.font_size,
                         with_labels=with_labels, edge_color=colors, node_color=self.node_color)
-                plt.savefig(
-                    self.imagefilename if with_labels else "nolabel_"+self.imagefilename)
+                imagefilename = "".join(
+                    (("" if with_labels else "nolabel_"), self.imagefilename))
+                with StringIO() as stringio, open(imagefilename, 'w') as f:
+                    plt.savefig(stringio, format='svg')
+                    f.write(scour.scour.scourString(stringio.getvalue()))
                 plt.close()
         except Exception as e:
             self._logging("Error: cannot draw images. Details:", e)

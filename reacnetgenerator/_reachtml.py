@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from multiprocessing import Pool
 import htmlmin
 import openbabel
+import scour.scour
 from ._static import _static_js, _static_css, _static_img
 from ._htmltemplate import _html
 
@@ -94,11 +95,13 @@ class _HTMLResult(object):
         buff = [_html['speciessvg-top']]
         for spec in self._specs:
             svgdata = self._svgfiles[spec]
+            svgdata = scour.scour.scourString(svgdata)
             svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
             svgdata = re.sub(
-                r"""rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
+                r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
             svgdata = re.sub(
-                r"""<title("[^"]*"|'[^']*'|[^'">])*<\/title>""", '', svgdata)
+                r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
+            svgdata = re.sub(r"""<title>*<\/title>""", '', svgdata)
             buff.append(_html['speciessvg-each'] % (spec, svgdata))
         buff.append(_html['speciessvg-bottom'])
         self._result.extend(buff)
