@@ -786,6 +786,8 @@ def _commandline():
         '--dump', help='Process the LAMMPS dump file', action="store_true")
     parser.add_argument(
         '-n', '-np', '--nproc', help='Number of processes')
+    parser.add_argument('-s', '--selectatoms',
+                        help='Select atoms in the reaction network, e.g. C', nargs='*')
     args = parser.parse_args()
     ReacNetGenerator(inputfilename=args.inputfilename, atomname=args.atomname, runHMM=not args.nohmm,
-                     inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'), nproc=args.nproc).runanddraw()
+                     inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'), nproc=args.nproc, selectatoms=args.selectatoms).runanddraw()
