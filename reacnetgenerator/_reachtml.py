@@ -101,7 +101,7 @@ class _HTMLResult(object):
                 r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
             svgdata = re.sub(
                 r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-            svgdata = re.sub(r"""<title>*<\/title>""", '', svgdata)
+            svgdata = re.sub(r"""<title>.*?<\/title>""", '', svgdata)
             buff.append(_html['speciessvg-each'] % (spec, svgdata))
         buff.append(_html['speciessvg-bottom'])
         self._result.extend(buff)
