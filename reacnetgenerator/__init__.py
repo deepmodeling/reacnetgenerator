@@ -561,10 +561,7 @@ class ReacNetGenerator(object):
         atoms = [int(x) for x in s[0].split(",")]
         bonds = [tuple(int(y) for y in x.split(","))
                  for x in s[1].split(";")] if len(s) == 3 else []
-        type = {}
-        for atomnumber in atoms:
-            type[atomnumber] = self.atomname[self._atomtype[atomnumber-1]-1]
-        name = self._convertSMILES(atoms, bonds, type)
+        name = self._convertSMILES(atoms, bonds)
         return name, atoms, bonds
 
     def _printmoleculeSMILESname(self):
@@ -573,22 +570,21 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results = pool.imap(self._calmoleculeSMILESname,
                                 self._produce(semaphore, ft, ()), 10)
-            for index, result in enumerate(results):
+            for index, (name, atoms, bonds) in enumerate(results):
                 self._loggingprocessing(index)
-                name, atoms, bonds = result
                 mname.append(name)
                 print(name, ",".join([str(x) for x in atoms]), ";".join(
                     [",".join([str(y) for y in x]) for x in bonds]), file=fm)
                 semaphore.release()
         self._mname = mname
 
-    def _convertSMILES(self, atoms, bonds, type):
+    def _convertSMILES(self, atoms, bonds):
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d = {}
         for atomnumber in atoms:
-            d[atomnumber] = m.AddAtom(Chem.Atom(type[atomnumber]))
-        for bond in bonds:
-            atom1, atom2, level = bond
+            d[atomnumber] = m.AddAtom(
+                Chem.Atom(self.atomname[self._atomtype[atomnumber-1]-1]))
+        for atom1, atom2, level in bonds:
             m.AddBond(d[atom1], d[atom2], Chem.BondType.DOUBLE if level == 2 else (
                 Chem.BondType.TRIPLE if level == 3 else (Chem.BondType.AROMATIC if level == 12 else Chem.BondType.SINGLE)))
         name = Chem.MolToSmiles(m)
