@@ -365,7 +365,7 @@ class ReacNetGenerator(object):
     def _getdandtimestep(self):
         d = defaultdict(list)
         timestep = {}
-        with open(self.inputfilename) as file, Pool(self.nproc, maxtasksperchild=100) as pool:
+        with open(self.inputfilename) as file, Pool(self.nproc, maxtasksperchild=1000) as pool:
             semaphore = Semaphore(360)
             results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
                 itertools.zip_longest(*[file]*self._steplinenum), 0, None, self.stepinterval)), None), 10)
@@ -446,7 +446,7 @@ class ReacNetGenerator(object):
         return origin, (np.array(hmm) if self.runHMM else np.array([])), line
 
     def _calhmm(self):
-        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else Placeholder() as fo, open(self.hmmfilename, 'wb') if self.runHMM else Placeholder() as fh, open(self.moleculetempfilename, 'rb') as ft, open(self.moleculetemp2filename, 'wb') as ft2, Pool(self.nproc, maxtasksperchild=100) as pool:
+        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else Placeholder() as fo, open(self.hmmfilename, 'wb') if self.runHMM else Placeholder() as fh, open(self.moleculetempfilename, 'rb') as ft, open(self.moleculetemp2filename, 'wb') as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
             semaphore = Semaphore(360)
             results = pool.imap_unordered(
                 self._getoriginandhmm, self._produce(semaphore, ft, ()), 10)
@@ -481,7 +481,7 @@ class ReacNetGenerator(object):
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach):
-        with open(self.atomroutefilename, 'w') as f, Pool(self.nproc, maxtasksperchild=100) as pool:
+        with open(self.atomroutefilename, 'w') as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
             allmoleculeroute = []
             semaphore = Semaphore(360)
             results = pool.imap(self._getatomroute, self._produce(
@@ -571,7 +571,7 @@ class ReacNetGenerator(object):
 
     def _printmoleculeSMILESname(self):
         mname = []
-        with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, Pool(self.nproc, maxtasksperchild=100) as pool:
+        with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, Pool(self.nproc, maxtasksperchild=1000) as pool:
             semaphore = Semaphore(360)
             results = pool.imap(self._calmoleculeSMILESname,
                                 self._produce(semaphore, ft, ()), 10)
