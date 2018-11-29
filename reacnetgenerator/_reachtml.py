@@ -39,6 +39,7 @@ class _HTMLResult(object):
     def _convertsvg(self, smiles):
         obConversion = openbabel.OBConversion()
         obConversion.SetInAndOutFormats("smi", "svg")
+        obConversion.AddOption('x')
         mol = openbabel.OBMol()
         obConversion.ReadString(mol, smiles)
         svgfile = obConversion.WriteString(mol)
@@ -85,6 +86,8 @@ class _HTMLResult(object):
         with open(self._imagefile) as f:
             svgdata = f.read().strip()
             svgdata = re.sub(r"\d+(\.\d+)?pt", "100%", svgdata, count=2)
+            svgdata = re.sub(
+                r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
         self._result.append(_html['network'] % svgdata)
 
     def _generatesvg(self):
@@ -92,6 +95,10 @@ class _HTMLResult(object):
         for spec in self._specs:
             svgdata = self._svgfiles[spec]
             svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
+            svgdata = re.sub(
+                r"""rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
+            svgdata = re.sub(
+                r"""<title("[^"]*"|'[^']*'|[^'">])*<\/title>""", '', svgdata)
             buff.append(_html['speciessvg-each'] % (spec, svgdata))
         buff.append(_html['speciessvg-bottom'])
         self._result.extend(buff)

@@ -113,7 +113,7 @@ _html = {
             </div>
         </div>
     </section>""",
-    'narrowurl': '''<svg width="25" height="14.33" version="1"><use xlink:href="#narrow"/></svg>''',
+    'narrowurl': '''<svg width="25" height="14.33"><use xlink:href="#narrow"/></svg>''',
     'speciessvg-top': '''<svg class="d-none"><defs>''',
     'speciessvg-each': '''<svg id="%s">%s</svg>''',
     'speciessvg-bottom': '''</defs></svg>''',
