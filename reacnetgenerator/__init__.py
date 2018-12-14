@@ -466,7 +466,6 @@ class ReacNetGenerator(object):
         (i, (atomeachi, atomtypei)), _ = item
         routestrarr = []
         moleculeroute = []
-        molecule = -1
         right = -1
         for j, atomeachij in enumerate(atomeachi.tolist()):
             if atomeachij > 0 and atomeachij != right:
@@ -626,7 +625,7 @@ class ReacNetGenerator(object):
             allroute[equation] += 1
         return allroute
 
-    def _searchspecies(originspec):
+    def _searchspecies(self, originspec, sortedreactions, species):
         searchedspecies = []
         for reaction, n_reaction in sortedreactions:
             ii = 1
@@ -652,7 +651,8 @@ class ReacNetGenerator(object):
             while len(species) < maxsize and newspecies:
                 newnewspecies = []
                 for newspec in newspecies:
-                    searchedspecies = self._searchspecies(newspec)
+                    searchedspecies = self._searchspecies(
+                        newspec, sortedreactions, species)
                     for searchedspec, searchedreaction in searchedspecies:
                         if len(species) < maxsize:
                             newnewspecies.append(searchedspec)
@@ -697,9 +697,8 @@ class ReacNetGenerator(object):
         return np.array(table), name
 
     def _convertstructure(self, atoms, bonds):
-        types = {}
         atomtypes = []
-        for atom in enumerate(atoms, start=1):
+        for i, atom in enumerate(atoms, start=1):
             atomtypes.append((i, self.atomname.index(atom)))
         G = self._makemoleculegraph(atomtypes, bonds)
         return G
@@ -716,15 +715,15 @@ class ReacNetGenerator(object):
                 specname, value = spec
                 if "structure" in value:
                     atoms, bonds = value["structure"]
-                    G1 = convertstructure(atoms, bonds)
+                    G1 = self._convertstructure(atoms, bonds)
                     if b:
-                        structures = readstrcture()
+                        structures = self._readstrcture()
                         em = iso.numerical_edge_match(
                             ['atom', 'level'], ["None", 1])
                         b = False
                     i = 1
                     while (specname+"_"+str(i) if i > 1 else specname) in structures:
-                        G2 = convertstructure(structures[(
+                        G2 = self._convertstructure(structures[(
                             specname+"_"+str(i) if i > 1 else specname)][0], structures[(specname+"_"+str(i) if i > 1 else specname)][1])
                         if nx.is_isomorphic(G1, G2, em):
                             if i > 1:
