@@ -36,7 +36,7 @@ $ reacnetgenerator -h
 
 __version__ = '1.2.19'
 __date__ = '2018-03-11'
-__update__ = '2018-11-29'
+__update__ = '2018-12-15'
 __author__ = 'Jinzhe Zeng'
 __email__ = 'jzzeng@stu.ecnu.edu.cn'
 __credits__ = ['Jinzhe Zeng', 'Tong Zhu',
