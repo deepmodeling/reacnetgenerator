@@ -387,14 +387,14 @@ class ReacNetGenerator(object):
                 mole, done, bondlist = self._mo(i, bond, level, [], done, [])
                 moleculestr = ' '.join((",".join((str(x) for x in sorted(mole))), ";".join(
                     (",".join([str(y) for y in x]) for x in sorted(bondlist)))))
-                molecules.append(moleculestr)
+                molecules.append(self._compress(moleculestr))
         return molecules
 
     def _writemoleculetempfile(self, d):
         with open(self.moleculetempfilename, 'wb') as f:
             for key, value in d.items():
                 f.write(self._compress(
-                    ' '.join((key, ",".join((str(x) for x in value))))))
+                    ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
 
     def _getbondfromcrd(self, step_atoms):
         atomnumber = len(step_atoms)
