@@ -1,5 +1,5 @@
 # ReacNetGenerator
-![python3.7](https://img.shields.io/badge/python-3.7-blue.svg)
+![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
@@ -19,7 +19,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 - Parallel computing
 
 ## Requirements
-* Python >= 3.6 (**Note:** Python 2 is not supported!)
+* Python 3.6 (**Note:** Python 2, 3.1-3.5, 3.7 is not supported!)
 * Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [htmlmin](https://github.com/mankyd/htmlmin/), [ASE](https://gitlab.com/ase/ase), [scour](https://github.com/scour-project/scour)
 * Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
