@@ -36,7 +36,7 @@ $ reacnetgenerator -h
 
 __version__ = '1.2.19'
 __date__ = '2018-03-11'
-__update__ = '2018-12-15'
+__update__ = '2019-01-03'
 __author__ = 'Jinzhe Zeng'
 __email__ = 'jzzeng@stu.ecnu.edu.cn'
 __credits__ = ['Jinzhe Zeng', 'Tong Zhu',
@@ -399,7 +399,7 @@ class ReacNetGenerator(object):
     def _getbondfromcrd(self, step_atoms):
         atomnumber = len(step_atoms)
         xyzstring = f"{atomnumber}\nReacNetGenerator\n"+"\n".join(
-            [f'{s:-2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
+            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
         conv = openbabel.OBConversion()
         conv.SetInAndOutFormats('xyz', 'mol2')
         mol = openbabel.OBMol()
