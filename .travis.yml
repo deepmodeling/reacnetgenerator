@@ -16,7 +16,7 @@ install:
 
 before_script:
   - mkdir test && cd test
-  - wget https://drive.google.com/uc?authuser=0&id=16k7bv6GS6qZekrE8B0LcEyjizIDdVryW&export=download -O bonds.reaxc
+  - wget "https://drive.google.com/uc?authuser=0&id=16k7bv6GS6qZekrE8B0LcEyjizIDdVryW&export=download" -O bonds.reaxc
 
 script:
   - reacnetgenerator -i bonds.reaxc -a H O
