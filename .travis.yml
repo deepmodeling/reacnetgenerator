@@ -16,7 +16,7 @@ install:
 
 before_script:
   - mkdir test && cd test
-  - wget https://dev.tencent.com/api/share/download/18504f9b-4995-40fd-8322-c56571dc9049 -O bonds.reaxc
+  - wget https://drive.google.com/uc?authuser=0&id=16k7bv6GS6qZekrE8B0LcEyjizIDdVryW&export=download -O bonds.reaxc
 
 script:
   - reacnetgenerator -i bonds.reaxc -a H O
