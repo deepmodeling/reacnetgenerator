@@ -38,7 +38,7 @@ class TestReacNetGen(unittest.TestCase):
         print("Here are reactions:")
         with open(r.reactionfilename) as f:
             for line in f:
-                print(line)
+                print(line.strip())
         self.assertTrue(isinstance(os.path.exists(r.resultfilename)))
 
 
