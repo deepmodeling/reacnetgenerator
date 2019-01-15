@@ -21,7 +21,7 @@ def download_file(url, local_filename):
 class TestReacNetGen(unittest.TestCase):
     def test_reacnetgen(self):
         # download bonds.reaxc
-        file_url = "https://dev.tencent.com/api/share/download/18504f9b-4995-40fd-8322-c56571dc9049"
+        file_url = "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download"
         folder = "test"
         filename = "bonds.reaxc"
         bondfilename = os.path.join(folder, filename)
