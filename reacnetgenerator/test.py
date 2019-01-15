@@ -39,7 +39,7 @@ class TestReacNetGen(unittest.TestCase):
         with open(r.reactionfilename) as f:
             for line in f:
                 print(line.strip())
-        self.assertTrue(isinstance(os.path.exists(r.resultfilename)))
+        self.assertTrue(os.path.exists(r.resultfilename))
 
 
 if __name__ == '__main__':
