@@ -43,6 +43,11 @@ $ cd ReacNetGenerator/
 $ python3 setup.py install
 ```
 
+You can test whether ReacNetGenerator is running normally:
+```sh
+% python3 setup.py test
+```
+
 ## Simple example
 Prepare a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc, then run the script:
 
