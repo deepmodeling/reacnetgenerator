@@ -14,11 +14,5 @@ install:
   - conda install rdkit -c rdkit
   - python setup.py install
 
-before_script:
-  - mkdir test && cd test
-  - wget https://dev.tencent.com/api/share/download/18504f9b-4995-40fd-8322-c56571dc9049 -O bonds.reaxc
-
 script:
-  - reacnetgenerator -i bonds.reaxc -a H O
-  - ls
-  - cat bonds.reaxc.reaction
+  - python setup.py test
