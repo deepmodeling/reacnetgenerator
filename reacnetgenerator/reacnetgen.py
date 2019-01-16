@@ -177,15 +177,15 @@ class ReacNetGenerator(object):
         species, showname = self._handlespecies(name)
 
         G = nx.DiGraph()
-        for i in range(len(table)):
+        for i, tablei in enumerate(table):
             if name[i] in species and not name[i] in self.filter:
                 G.add_node(showname[name[i]] if name[i]
                            in showname else name[i])
-                for j in range(len(table)):
+                for j, tableij in enumerate(tablei):
                     if name[j] in species and not name[j] in self.filter:
-                        if table[i][j] > 0:
+                        if tableij > 0:
                             G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]), (
-                                showname[name[j]] if name[j] in showname else name[j]), table[i][j])])
+                                showname[name[j]] if name[j] in showname else name[j]), tableij)])
         weights = np.array([math.log(G[u][v]['weight']+1)
                             for u, v in G.edges()])
         widths = [weight/max(weights) * self.widthcoefficient*2 if weight > max(weights)
@@ -238,7 +238,7 @@ class ReacNetGenerator(object):
 
     def _printtime(self, statusid):
         self._statusid = statusid
-        if len(self._timearray) == 0 or self._statusid > 0:
+        if not self._timearray or self._statusid > 0:
             self._timearray.append(time.time())
             if statusid > 0:
                 self._logging(
@@ -263,15 +263,13 @@ class ReacNetGenerator(object):
     def _readNfunc(self):
         if self.inputfiletype == "lammpsbondfile":
             return self._readlammpsbondN
-        else:
-            return self._readlammpscrdN
+        return self._readlammpscrdN
 
     @property
     def _readstepfunc(self):
         if self.inputfiletype == "lammpsbondfile":
             return self._readlammpsbondstep
-        else:
-            return self._readlammpscrdstep
+        return self._readlammpscrdstep
 
     def _readinputfile(self):
         self._steplinenum = self._readNfunc()
@@ -473,7 +471,7 @@ class ReacNetGenerator(object):
                     f"{self._mname[atomeachij-1]} ({atomeachij} step { self._timestep[j]})")
                 left, right = right, atomeachij
                 if self.atomname[atomtypei-1] in self.selectatoms:
-                    if left >= 0 and not (left, right) in moleculeroute:
+                    if left >= 0 and (left, right) not in moleculeroute:
                         moleculeroute.append((left, right))
         routestr = f"Atom {i} {self.atomname[atomtypei-1]}: " + \
             " -> ".join(routestrarr)
@@ -760,17 +758,22 @@ class ReacNetGenerator(object):
                     print(name, num, end=' ', file=fw)
                 print(file=fw)
 
-    def __enter__(self): return self
+    def __enter__(self):
+        return self
 
-    def __exit__(self, Type, value, traceback): pass
+    def __exit__(self, Type, value, traceback):
+        pass
 
 
 class Placeholder(object):
-    def __init__(self): pass
+    def __init__(self):
+        pass
 
-    def __enter__(self): return self
+    def __enter__(self):
+        return self
 
-    def __exit__(self, Type, value, traceback): pass
+    def __exit__(self, Type, value, traceback):
+        pass
 
 
 def _commandline():
