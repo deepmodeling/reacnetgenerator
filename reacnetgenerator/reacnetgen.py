@@ -238,7 +238,7 @@ class ReacNetGenerator(object):
 
     def _printtime(self, statusid):
         self._statusid = statusid
-        if self._timearray or self._statusid > 0:
+        if not self._timearray or self._statusid > 0:
             self._timearray.append(time.time())
             if statusid > 0:
                 self._logging(
