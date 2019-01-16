@@ -473,7 +473,7 @@ class ReacNetGenerator(object):
                     f"{self._mname[atomeachij-1]} ({atomeachij} step { self._timestep[j]})")
                 left, right = right, atomeachij
                 if self.atomname[atomtypei-1] in self.selectatoms:
-                    if left >= 0 and not (left, right) in moleculeroute:
+                    if left >= 0 and (left, right) not in moleculeroute:
                         moleculeroute.append((left, right))
         routestr = f"Atom {i} {self.atomname[atomtypei-1]}: " + \
             " -> ".join(routestrarr)
