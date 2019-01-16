@@ -263,15 +263,13 @@ class ReacNetGenerator(object):
     def _readNfunc(self):
         if self.inputfiletype == "lammpsbondfile":
             return self._readlammpsbondN
-        else:
-            return self._readlammpscrdN
+        return self._readlammpscrdN
 
     @property
     def _readstepfunc(self):
         if self.inputfiletype == "lammpsbondfile":
             return self._readlammpsbondstep
-        else:
-            return self._readlammpscrdstep
+        return self._readlammpscrdstep
 
     def _readinputfile(self):
         self._steplinenum = self._readNfunc()
