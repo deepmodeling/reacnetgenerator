@@ -760,17 +760,22 @@ class ReacNetGenerator(object):
                     print(name, num, end=' ', file=fw)
                 print(file=fw)
 
-    def __enter__(self): return self
+    def __enter__(self):
+        return self
 
-    def __exit__(self, Type, value, traceback): pass
+    def __exit__(self, Type, value, traceback):
+        pass
 
 
 class Placeholder(object):
-    def __init__(self): pass
+    def __init__(self):
+        pass
 
-    def __enter__(self): return self
+    def __enter__(self):
+        return self
 
-    def __exit__(self, Type, value, traceback): pass
+    def __exit__(self, Type, value, traceback):
+        pass
 
 
 def _commandline():
