@@ -74,7 +74,7 @@ plt.switch_backend('Agg')
 class ReacNetGenerator(object):
     ''' Use ReacNetGenerator for trajectory analysis'''
 
-    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculetempfilename=None, moleculetemp2filename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, filter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
+    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculetempfilename=None, moleculetemp2filename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
         ''' Init ReacNetGenerator '''
         print(__doc__)
         print(
@@ -113,7 +113,7 @@ class ReacNetGenerator(object):
         self.widthcoefficient = widthcoefficient
         self.maxspecies = maxspecies
         self.nolabel = nolabel
-        self.filter = filter
+        self.speciesfilter = speciesfilter
         self.node_color = np.array(node_color)
         self.pos = pos
         self.printfiltersignal = printfiltersignal
@@ -178,11 +178,11 @@ class ReacNetGenerator(object):
 
         G = nx.DiGraph()
         for i, tablei in enumerate(table):
-            if name[i] in species and not name[i] in self.filter:
+            if name[i] in species and not name[i] in self.speciesfilter:
                 G.add_node(showname[name[i]] if name[i]
                            in showname else name[i])
                 for j, tableij in enumerate(tablei):
-                    if name[j] in species and not name[j] in self.filter:
+                    if name[j] in species and not name[j] in self.speciesfilter:
                         if tableij > 0:
                             G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]), (
                                 showname[name[j]] if name[j] in showname else name[j]), tableij)])
