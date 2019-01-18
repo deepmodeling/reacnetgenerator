@@ -608,7 +608,7 @@ class ReacNetGenerator(object):
                 key1 = np.array([int(x) for x in s[0].split(",")])
                 index = np.array(
                     [j for j in range(len(lineh)) if lineh[j] == "1"])
-                if(len(index)) > 0:
+                if index.size:
                     atomeach[key1[:, None]-1, index] = i
         return atomeach
 
@@ -679,8 +679,8 @@ class ReacNetGenerator(object):
 
         with open(self.tablefilename, 'w') as f:
             print("\t"+"\t".join(species), file=f)
-            for i in range(len(species)):
-                print(species[i], end='\t', file=f)
+            for i, speciesi in enumerate(species):
+                print(speciesi, end='\t', file=f)
                 for j in range(len(species)):
                     print(table[i][j], end='\t', file=f)
                 print(file=f)
