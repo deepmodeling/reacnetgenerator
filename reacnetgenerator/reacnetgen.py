@@ -679,8 +679,8 @@ class ReacNetGenerator(object):
 
         with open(self.tablefilename, 'w') as f:
             print("\t"+"\t".join(species), file=f)
-            for i in range(len(species)):
-                print(species[i], end='\t', file=f)
+            for i, speciesi in enumerate(species):
+                print(speciesi, end='\t', file=f)
                 for j in range(len(species)):
                     print(table[i][j], end='\t', file=f)
                 print(file=f)
