@@ -1,6 +1,5 @@
 from setuptools import setup
 setup(name='reacnetgenerator',
-      version='1.2.20',
       description='Reaction Network Generator',
       keywords="reaction network",
       url='https://njzjz.github.io/reacnetgenerator/',
@@ -15,4 +14,6 @@ setup(name='reacnetgenerator',
       },
       test_suite='reacnetgenerator.test',
       tests_require=['requests'],
+      use_scm_version=True,
+      setup_requires=['setuptools_scm'],
       )
