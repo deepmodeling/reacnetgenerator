@@ -55,6 +55,7 @@ import zlib
 import base64
 from io import StringIO
 from collections import Counter, defaultdict
+from pkg_resources import get_distribution, DistributionNotFound
 import numpy as np
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -70,6 +71,11 @@ from ._reachtml import _HTMLResult
 
 plt.switch_backend('Agg')
 
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    pass
 
 class ReacNetGenerator(object):
     ''' Use ReacNetGenerator for trajectory analysis'''
