@@ -7,6 +7,7 @@ setup(name='reacnetgenerator',
       author='Jinzhe Zeng',
       author_email='njzjz@qq.com',
       packages=['reacnetgenerator'],
+      python_requires='~=3.6.0',
       install_requires=['numpy', 'scipy>=0.20.1', 'networkx',
                         'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase', 'scour'],
       entry_points={
