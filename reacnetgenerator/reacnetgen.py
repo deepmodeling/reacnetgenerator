@@ -608,7 +608,7 @@ class ReacNetGenerator(object):
                 key1 = np.array([int(x) for x in s[0].split(",")])
                 index = np.array(
                     [j for j in range(len(lineh)) if lineh[j] == "1"])
-                if(len(index)) > 0:
+                if index:
                     atomeach[key1[:, None]-1, index] = i
         return atomeach
 
