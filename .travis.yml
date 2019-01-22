@@ -1,6 +1,7 @@
 language: python
 python:
   - "3.6"
+  - "3.7"
 install:
   - sudo apt-get update
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -10,8 +11,8 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install openbabel -c openbabel
-  - conda install rdkit -c conda-forge
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
+  - source activate test-environment
   - python setup.py install
 
 script:
