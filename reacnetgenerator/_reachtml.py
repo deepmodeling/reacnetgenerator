@@ -7,6 +7,7 @@ from multiprocessing import Pool
 import htmlmin
 import openbabel
 import scour.scour
+from jinja2 import Template
 from ._static import _html, _static_js, _static_css, _static_img
 
 
@@ -16,9 +17,12 @@ class _HTMLResult(object):
         self._resultfile = ReacNetGenerator.resultfilename
         self._imagefile = ReacNetGenerator.imagefilename
         self._nproc = ReacNetGenerator.nproc
-        self._script = []
-        self._result = []
-        self._svgfiles = {}
+        self._templatedict = {
+            "speciesline": 10,
+            "speciesshownum": 30,
+            "reactionsline": 10,
+            "reactionsshownum": 20,
+        }
 
     def _report(self):
         self._readdata()
@@ -52,6 +56,7 @@ class _HTMLResult(object):
                 if not spec in specs:
                     specs.append(spec)
         with Pool(self._nproc) as pool:
+            self._svgfiles = {}
             results = pool.imap(self._convertsvg, specs)
             for spec, svgfile in results:
                 self._svgfiles[spec] = svgfile
@@ -62,26 +67,28 @@ class _HTMLResult(object):
         self._specs = self._readspecies()
 
     def _generateresult(self):
-        self._result.append(_html['page-top'].format("".join([
+        self._generatenetwork()
+        self._generatesvg()
+        self._templatedict["species"] = self._specs
+        self._templatedict["reactions"] = self._reaction
+        self._templatedict["css"] = ''.join([
             _static_css["bootstrap.min.css"],
             _static_css["creative.min.css"],
             _static_css["magnific-popup.min.css"],
-            _html['bk-css'] % (_static_img["fire.jpg"])])))
-        self._generatenetwork()
-        self._generatesvg()
-        self._generatespecies()
-        self._generatereaction()
-        self._result.append(_html['page-bottom'].format("".join([
+            _html['bk-css']])
+        self._templatedict["bkimage"] = _static_img["fire.jpg"]
+        self._templatedict["javascript"] = "".join([
             _static_js["jquery.min.js"],
             _static_js["bootstrap.bundle.min.js"],
             _static_js["jquery.easing.min.js"],
             _static_js["scrollreveal.min.js"],
             _static_js["jquery.magnific-popup.min.js"],
             _static_js["creative.min.js"],
-            "".join(self._script),
-        ])))
+        ])
+        template = Template(_html["template"])
+        webpage = template.render(**self._templatedict)
         with open(self._resultfile, 'w', encoding="utf-8") as f:
-            print(htmlmin.minify("".join(self._result)), file=f)
+            f.write(htmlmin.minify(webpage))
 
     def _generatenetwork(self):
         with open(self._imagefile) as f:
@@ -89,10 +96,10 @@ class _HTMLResult(object):
             svgdata = re.sub(r"\d+(\.\d+)?pt", "100%", svgdata, count=2)
             svgdata = re.sub(
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-        self._result.append(_html['network'] % svgdata)
+        self._templatedict["network_svg"] = svgdata
 
     def _generatesvg(self):
-        buff = [_html['speciessvg-top']]
+        self._templatedict["speciessvg"] = []
         for spec in self._specs:
             svgdata = self._svgfiles[spec]
             svgdata = scour.scour.scourString(svgdata)
@@ -102,26 +109,5 @@ class _HTMLResult(object):
             svgdata = re.sub(
                 r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
             svgdata = re.sub(r"""<title>.*?<\/title>""", '', svgdata)
-            buff.append(_html['speciessvg-each'] % (spec, svgdata))
-        buff.append(_html['speciessvg-bottom'])
-        self._result.extend(buff)
-
-    def _generatespecies(self, line=10, shownum=30):
-        buff = [_html['species-top']]
-        for i, spec in enumerate(self._specs):
-            buff.append(_html['species-each'] % (((_html['tr-top'] if i < shownum else _html['tr-specnone'])
-                                                  if i % line == 0 else ""), spec, str(i+1), (_html['tr-bottom'] if i % line == line-1 else "")))
-        buff.append(_html['species-bottom'])
-        if len(self._specs) <= shownum:
-            self._script .append(_html['script-hidespec'])
-        self._result.extend(buff)
-
-    def _generatereaction(self, line=4, reacnum=True, shownum=20):
-        buff = [_html['reactions-top']]
-        for i, reac in enumerate(self._reaction):
-            buff.append(_html['reactions-each'] % (((_html['tr-top'] if i < shownum else _html['tr-reacnone']) if i % line == 0 else ""), str(
-                i+1), reac[0], (str(reac[2]) if reacnum else ""), _html['narrowurl'], reac[1], (_html['tr-bottom'] if i % line == line-1 else "")))
-        buff.append(_html['reactions-bottom'])
-        if len(self._reaction) <= shownum:
-            self._script.append(_html['script-hidereac'])
-        self._result.extend(buff)
+            self._templatedict["speciessvg"].append(
+                {"name": spec, "svg": svgdata})

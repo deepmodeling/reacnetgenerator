@@ -1,1 +1,0 @@
-$('#showmorespec').hide();
