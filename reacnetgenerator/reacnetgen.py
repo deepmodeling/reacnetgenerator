@@ -44,30 +44,34 @@ __credits__ = ['Jinzhe Zeng', 'Tong Zhu',
 __copyright__ = 'Copyright 2018, East China Normal University'
 
 
-import itertools
 import argparse
-from functools import reduce
-from multiprocessing import Pool, Semaphore, cpu_count
-import math
+import base64
 import gc
+import itertools
+import logging
+import math
 import time
 import zlib
-import base64
-from io import StringIO
 from collections import Counter, defaultdict
-from pkg_resources import get_distribution, DistributionNotFound
-import numpy as np
-import networkx as nx
-import networkx.algorithms.isomorphism as iso
+from functools import reduce
+from io import StringIO
+from multiprocessing import Pool, Semaphore, cpu_count
+
+from pkg_resources import DistributionNotFound, get_distribution
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from hmmlearn import hmm
-from tqdm import tqdm
-from rdkit.Chem import Draw
-from rdkit import Chem
+import networkx as nx
+import networkx.algorithms.isomorphism as iso
+import numpy as np
 import openbabel
-from ase import Atom, Atoms
 import scour.scour
+from ase import Atom, Atoms
+from hmmlearn import hmm
+from rdkit import Chem
+from rdkit.Chem import Draw
+from tqdm import tqdm
+
 from ._reachtml import _HTMLResult
 
 plt.switch_backend('Agg')
@@ -77,6 +81,9 @@ try:
 except DistributionNotFound:
     # package is not installed
     pass
+
+logging.basicConfig(
+    format=f'%(asctime)s - ReacNetGen {__version__} - %(levelname)s: %(message)s', level=logging.INFO)
 
 
 class ReacNetGenerator(object):
@@ -204,8 +211,8 @@ class ReacNetGenerator(object):
             self.pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos])) if not self.k else (
                 nx.spring_layout(G, k=self.k) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos], k=self.k))
             if self.pos:
-                self._logging("The position of the species in the network is:")
-                self._logging(self.pos)
+                logging.info("The position of the species in the network is:")
+                logging.info(self.pos)
             for with_labels in ([True] if not self.nolabel else [True, False]):
                 nx.draw(G, pos=self.pos, width=widths, node_size=self.node_size, font_size=self.font_size,
                         with_labels=with_labels, edge_color=colors, node_color=self.node_color)
@@ -216,7 +223,7 @@ class ReacNetGenerator(object):
                     f.write(scour.scour.scourString(stringio.getvalue()))
                 plt.close()
         except Exception as e:
-            self._logging("Error: cannot draw images. Details:", e)
+            logging.error(f"Error: cannot draw images. Details: {e}")
         self._printtime(5)
 
     def report(self):
@@ -224,17 +231,9 @@ class ReacNetGenerator(object):
         self._statusidmax = max(self._statusidmax, 6)
         self._printtime(0)
         _HTMLResult(self)._report()
-        self._logging(
+        logging.info(
             f"Report is generated. Please see {self.resultfilename} for more details.")
         self._printtime(6)
-
-    def _logging(self, *message, end='\n'):
-        if message:
-            localtime = time.asctime(time.localtime(time.time()))
-            print(f"{localtime} ReacNetGenerator {__version__}",
-                  *message, end=end)
-        else:
-            print(end=end)
 
     @property
     def _status(self):
@@ -245,11 +244,11 @@ class ReacNetGenerator(object):
         if not self._timearray or self._statusid > 0:
             self._timearray.append(time.time())
             if statusid > 0:
-                self._logging(
+                logging.info(
                     f"Step {len(self._timearray)-1}: Done! Time consumed (s): {self._timearray[-1]-self._timearray[-2]:.3f} ({self._status})")
             if statusid >= self._statusidmax:
-                self._logging("====== Summary ======")
-                self._logging(
+                logging.info("====== Summary ======")
+                logging.info(
                     f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
@@ -737,8 +736,8 @@ class ReacNetGenerator(object):
                     showname[specname] = value["showname"]
         if self.showid:
             if species_out:
-                self._logging()
-                self._logging("Species are:")
+                print()
+                logging.info("Species are:")
                 for n, (specname, value) in enumerate(species_out.items(), start=1):
                     showname[specname] = str(n)
                     print(n, specname)
