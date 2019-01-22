@@ -24,7 +24,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 * Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
 ## Installation
-1. [Get conda](https://conda.io/docs/user-guide/install/index.html) and install Anaconda or Miniconda.
+1. [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
 
 2. Use conda to create environment:
 ```sh

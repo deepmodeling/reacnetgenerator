@@ -7,8 +7,7 @@ from multiprocessing import Pool
 import htmlmin
 import openbabel
 import scour.scour
-from ._static import _static_js, _static_css, _static_img
-from ._htmltemplate import _html
+from ._static import _html, _static_js, _static_css, _static_img
 
 
 class _HTMLResult(object):
@@ -79,7 +78,8 @@ class _HTMLResult(object):
             _static_js["scrollreveal.min.js"],
             _static_js["jquery.magnific-popup.min.js"],
             _static_js["creative.min.js"],
-            "".join(self._script)])))
+            "".join(self._script),
+        ])))
         with open(self._resultfile, 'w', encoding="utf-8") as f:
             print(htmlmin.minify("".join(self._result)), file=f)
 
