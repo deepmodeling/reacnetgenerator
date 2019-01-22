@@ -1,25 +1,11 @@
-matrix:
-  include:
-    - os : linux
-      python: 3.7
-      dist: xenial
-      sudo: true
-    - os : linux
-      python: "3.6"
-    - os : windows
-      language : shell
-      python: "3.7"
-      dist: xenial
-      sudo: true
-    - os : windows
-      language : shell
-      python: "3.6"
-    - os : osx
-      python: "3.7"
-      dist: xenial
-      sudo: true
-    - os : osx
-      python: "3.6"
+env:
+  - PYTHON_VERSION=3.7
+  - PYTHON_VERSION=3.6 
+
+os:
+  - linux
+  - osx
+  - windows
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -38,7 +24,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
+  - conda create -q -n test-environment python=$PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
   - source activate test-environment
   - python setup.py install
 
