@@ -5,5 +5,9 @@ linters:
   pep8:
     python: 3
     fixer: true
+  csslint:
+  eslint:
+  jshint:
+  standardjs:
 fixers:
   enable: true
