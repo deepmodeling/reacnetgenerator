@@ -1,1 +1,19 @@
-.spec{height:100px;width:100px;}.content-table{font-size:14;margin-left:auto;margin-right:auto;text-align:center;}.reacnum{color:blue;}.specnone,.reacnone{display:none;}#info{background-image:url(data:image/jpeg;base64,%s)}
+.spec {
+    height: 100px;
+    width: 100px;
+}
+
+.content-table {
+    font-size: 14;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.reacnum {
+    color: blue;
+}
+
+.specnone, .reacnone {
+    display: none;
+}

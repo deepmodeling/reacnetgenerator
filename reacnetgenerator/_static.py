@@ -15,28 +15,9 @@ def imgtobase64(path):
 
 # HTML template
 _html = {
-    'page-top': getresource('static/html/page-top.html'),
     'bk-css': getresource('static/css/bk-css.css'),
-    'page-bottom': getresource('static/html/page-bottom.html'),
-    'network': getresource('static/html/network.html'),
-    'species-top': getresource('static/html/species-top.html'),
-    'species-each': getresource('static/html/species-each.html'),
-    'species-bottom': getresource('static/html/species-bottom.html'),
-    'reactions-top': getresource('static/html/reactions-top.html'),
-    'reactions-each': getresource('static/html/reactions-each.html'),
-    'reactions-bottom': getresource('static/html/reactions-bottom.html'),
-    'narrowurl':  getresource('static/html/narrowurl.html'),
-    'speciessvg-top': getresource('static/html/speciessvg-top.html'),
-    'speciessvg-each': getresource('static/html/speciessvg-each.html'),
-    'speciessvg-bottom': getresource('static/html/speciessvg-bottom.html'),
-    'script-hidereac': getresource('static/js/script-hidereac.js'),
-    'script-hidespec': getresource('static/js/script-hidespec.js'),
-    'tr-top': getresource('static/html/tr-top.html'),
-    'tr-specnone': getresource('static/html/tr-specnone.html'),
-    'tr-reacnone': getresource('static/html/tr-reacnone.html'),
-    'tr-bottom': getresource('static/html/tr-bottom.html'),
+    'template': getresource('static/html/template.html'),
 }
-
 
 _static_js = {
     "jquery.min.js": getresource('static/js/jquery.min.js'),
