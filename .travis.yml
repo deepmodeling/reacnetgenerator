@@ -1,9 +1,10 @@
 language: python
-python:
-  - "3.6"
-  - "3.7"
-    dist: xenial
-    sudo: true
+matrix:
+  include:
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
 install:
   - sudo apt-get update
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
