@@ -12,6 +12,12 @@
 
 .reacnum {
     color: blue;
+    margin-top: 20px;
+}
+
+.reacid {
+    line-height: 100px;
+    width: 20px;
 }
 
 .specnone, .reacnone {
