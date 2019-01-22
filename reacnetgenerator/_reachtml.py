@@ -53,7 +53,7 @@ class _HTMLResult(object):
         specs = []
         for reac in self._reaction:
             for spec in reac[:2]:
-                if not spec in specs:
+                if spec not in specs:
                     specs.append(spec)
         with Pool(self._nproc) as pool:
             self._svgfiles = {}

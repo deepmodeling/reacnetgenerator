@@ -89,22 +89,18 @@
             <div class="row">
                 <div class="mx-auto text-center">
                     <h2 class='text-center'>Species</h2>
-                    <table class='content-table'>
-                        {% for spec in species %}
-                        {% if loop.index%speciesline==1 %}
-                        {% if loop.index<=speciesshownum %} <tr>
-                            {% else %}
-                            <tr class='specnone'>
-                                {% endif %}
-                                {% endif %}
-                                <td><svg class='spec'>
-                                        <use xlink:href="#{{ spec }}"></use>
-                                    </svg><br />{{ loop.index }}</td>
-                                {% if loop.index%speciesline==0 %}
-                            </tr>
-                            {% endif %}
+                    <div class="container-fluid p-0">
+                        <div class="row no-gutters">
+                            {% for spec in species %}
+                            <div class="mx-auto">
+                                <div><svg class='spec'>
+                                    <use xlink:href="#{{ spec }}"></use>
+                                </svg></div>
+                                <div>{{ loop.index }}</div>
+                            </div>
                             {% endfor %}
-                    </table>
+                        </div>
+                    </div>
                 </div>
                 {% if species|length > speciesshownum %}
                 <div class="mx-auto text-center mt-5">
@@ -121,36 +117,33 @@
                 <div class="mx-auto text-center">
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(sorted by frequency)</h4>
-                    <table class='content-table'>
-                        {% for reac in reactions %}
-                        {% if loop.index%reactionsline==1 %}
-                        {% if loop.index<=reactionsshownum %} <tr>
-                            {% else %}
-                            <tr class='reacnone'>
-                                {% endif %}
-                                {% endif %}
-                                <td>{{ loop.index }}</td>
-                                <td><svg class='spec'>
+                    <div class="container-fluid p-0">
+                        <div class="row no-gutters">
+                            {% for reac in reactions %}
+                            <div class="row mx-auto">
+                                <div class="reacid">{{ loop.index }}</div>
+                                <div><svg class='spec'>
                                         <use xlink:href="#{{ reac[0] }}"></use>
-                                    </svg></td>
-                                <td class="reacnum">{{ reac[2] }}<br /><svg width="25" height="14.33">
-                                        <use xlink:href="#narrow" /></svg></td>
-                                <td><svg class='spec'>
+                                    </svg></div>
+                                <div>
+                                    <div class="reacnum">{{ reac[2] }}</div>
+                                    <div><svg width="25" height="14.33">
+                                            <use xlink:href="#narrow" /></svg></div>
+                                </div>
+                                <div><svg class='spec'>
                                         <use xlink:href="#{{ reac[1] }}"></use>
-                                    </svg></td>
-                                {% if loop.index%reactionsline==0 %}
-                            </tr>
-                            {% endif %}
+                                    </svg></div>
+                            </div>
                             {% endfor %}
-                    </table>
+                        </div>
+                    </div>
+                    {% if reactions|length > reactionsshownum %}
+                    <div class="mx-auto text-center mt-5">
+                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacnone').show();$('#showmorereac').hide();"
+                            id="showmorereac">Show all</a>
+                    </div>
+                    {% endif %}
                 </div>
-                {% if reactions|length > reactionsshownum %}
-                <div class="mx-auto text-center mt-5">
-                    <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacnone').show();$('#showmorereac').hide();"
-                        id="showmorereac">Show all</a>
-                </div>
-                {% endif %}
-            </div>
     </section>
 
     <section class="bg-dark text-white" id="foot">
