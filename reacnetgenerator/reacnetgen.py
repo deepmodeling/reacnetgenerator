@@ -69,7 +69,6 @@ import scour.scour
 from ase import Atom, Atoms
 from hmmlearn import hmm
 from rdkit import Chem
-from rdkit.Chem import Draw
 from tqdm import tqdm
 
 from ._reachtml import _HTMLResult
