@@ -40,7 +40,7 @@ $ python setup.py install
 
 You can test whether ReacNetGenerator is running normally:
 ```sh
-% python setup.py test
+$ python setup.py test
 ```
 
 ## Simple example
