@@ -1,19 +1,26 @@
 '''Test ReacNetGen'''
 
 
+import hashlib
+import json
 import os
 import unittest
-import hashlib
+import math
+
+import pkg_resources
 
 import reacnetgenerator
 import requests
+from tqdm import tqdm
 
 
 def download_file(url, local_filename):
     # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
     r = requests.get(url, stream=True)
+    total_size = int(r.headers.get('content-length', 0))
+    block_size = 1024
     with open(local_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
+        for chunk in tqdm(r.iter_content(chunk_size=1024), total=math.ceil(total_size//block_size), unit='KB', unit_scale=True, desc=f"Downloading {local_filename}..."):
             if chunk:
                 f.write(chunk)
     return local_filename
@@ -34,22 +41,20 @@ def checkmd5(filename):
 
 class TestReacNetGen(unittest.TestCase):
     def test_reacnetgen(self):
-        # download bonds.reaxc
-        file_url = "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download"
-        file_md5 = "d41d8cd98f00b204e9800998ecf8427e"
+        testparm = json.load(
+            pkg_resources.resource_stream(__name__, 'test.json'))
+        pathfilename = os.path.join(testparm['folder'], testparm['filename'])
+        # download if not exists
+        while not os.path.isfile(pathfilename) or checkmd5(pathfilename) != testparm['md5']:
+            try:
+                os.makedirs(testparm['folder'])
+            except OSError:
+                pass
+            print(f"Downloading  ...")
+            download_file(testparm['url'], pathfilename)
 
-        folder = "test"
-        filename = "bonds.reaxc"
-        bondfilename = os.path.join(folder, filename)
-
-        while not os.path.isfile(bondfilename) or checkmd5(bondfilename) != file_md5:
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            print(f"Downloading {filename} ...")
-            download_file(file_url, bondfilename)
-
-        r = reacnetgenerator.ReacNetGenerator(inputfilename=bondfilename, atomname=[
-            'H', 'O'], inputfiletype='lammpsbondfile', runHMM=True)
+        r = reacnetgenerator.ReacNetGenerator(
+            inputfilename=pathfilename, atomname=testparm['atomname'], inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])
         r.runanddraw()
 
         print("Here are reactions:")

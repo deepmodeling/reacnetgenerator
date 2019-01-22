@@ -1,0 +1,12 @@
+{
+    "url": "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download",
+    "md5": "d41d8cd98f00b204e9800998ecf8427e",
+    "folder": "test",
+    "filename": "bonds.reaxc",
+    "atomname": [
+        "H",
+        "O"
+    ],
+    "inputfiletype": "lammpsbondfile",
+    "hmm": true
+}
