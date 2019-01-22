@@ -62,6 +62,7 @@ import networkx.algorithms.isomorphism as iso
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from hmmlearn import hmm
+from tqdm import tqdm
 from rdkit.Chem import Draw
 from rdkit import Chem
 import openbabel
@@ -76,6 +77,7 @@ try:
 except DistributionNotFound:
     # package is not installed
     pass
+
 
 class ReacNetGenerator(object):
     ''' Use ReacNetGenerator for trajectory analysis'''
@@ -234,10 +236,6 @@ class ReacNetGenerator(object):
         else:
             print(end=end)
 
-    def _loggingprocessing(self, index):
-        if index % self.loggingfreq == 0:
-            self._logging(f"processing {index} ...", end='\r')
-
     @property
     def _status(self):
         return ["Init", "Read bond information and Detect molecules", "HMM filter", "Indentify isomers and collect reaction paths", "Reaction matrix generation", "Draw reaction network", "Generate analysis report"][self._statusid]
@@ -373,8 +371,7 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
                 itertools.zip_longest(*[file]*self._steplinenum), 0, None, self.stepinterval)), None), 10)
-            for index, (molecules, (step, thetimestep)) in enumerate(results):
-                self._loggingprocessing(index)
+            for molecules, (step, thetimestep) in tqdm(results, desc="Read bond information and Detect molecules", unit="timestep"):
                 for molecule in molecules:
                     d[molecule].append(step)
                 timestep[step] = thetimestep
@@ -396,9 +393,10 @@ class ReacNetGenerator(object):
 
     def _writemoleculetempfile(self, d):
         with open(self.moleculetempfilename, 'wb') as f:
-            for key, value in d.items():
+            for index, (key, value) in enumerate(d.items(), 1):
                 f.write(self._compress(
                     ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
+        self._temp1it = index
 
     def _getbondfromcrd(self, step_atoms):
         atomnumber = len(step_atoms)
@@ -454,8 +452,8 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results = pool.imap_unordered(
                 self._getoriginandhmm, self._produce(semaphore, ft, ()), 10)
-            for index, (originsignal, hmmsignal, mlist) in enumerate(results):
-                self._loggingprocessing(index)
+            hmmit = 0
+            for originsignal, hmmsignal, mlist in tqdm(results, total=self._temp1it, desc="HMM filter", unit="molecule"):
                 if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
                     if self.getoriginfile:
                         fo.write(self._compress(
@@ -463,8 +461,10 @@ class ReacNetGenerator(object):
                     if self.runHMM:
                         fh.write(self._compress(
                             "".join([str(i) for i in hmmsignal.tolist()])))
+                        hmmit += 1
                     ft2.write(self._compress(mlist.strip()))
                 semaphore.release()
+        self._hmmit = hmmit
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
@@ -489,8 +489,7 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results = pool.imap(self._getatomroute, self._produce(
                 semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 10)
-            for index, route in enumerate(results):
-                self._loggingprocessing(index)
+            for route in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
                 moleculeroute, routestr = route
                 print(routestr, file=f)
                 for mroute in moleculeroute:
@@ -578,8 +577,7 @@ class ReacNetGenerator(object):
             semaphore = Semaphore(360)
             results = pool.imap(self._calmoleculeSMILESname,
                                 self._produce(semaphore, ft, ()), 10)
-            for index, (name, atoms, bonds) in enumerate(results):
-                self._loggingprocessing(index)
+            for name, atoms, bonds in tqdm(results, total=self._hmmit, desc="Indentify isomers", unit="molecule"):
                 mname.append(name)
                 print(name, ",".join([str(x) for x in atoms]), ";".join(
                     [",".join([str(y) for y in x]) for x in bonds]), file=fm)
