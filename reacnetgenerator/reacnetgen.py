@@ -136,7 +136,6 @@ class ReacNetGenerator(object):
         self.start_color = np.array(start_color)
         self.end_color = np.array(end_color)
         self.nproc = self._setparam(nproc, cpu_count())
-        self.loggingfreq = 1000
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
         self._timearray = []
