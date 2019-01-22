@@ -490,7 +490,7 @@ class ReacNetGenerator(object):
                 moleculeroute, routestr = route
                 print(routestr, file=f)
                 for mroute in moleculeroute:
-                    if not mroute in allmoleculeroute:
+                    if mroute not in allmoleculeroute:
                         allmoleculeroute.append(mroute)
                 semaphore.release()
         return allmoleculeroute
@@ -659,7 +659,7 @@ class ReacNetGenerator(object):
                             newreactions.append(searchedreaction)
                 newspecies = newnewspecies
             for reac in sortedreactions:
-                if not reac in newreactions:
+                if reac not in newreactions:
                     newreactions.append(reac)
             sortedreactions = newreactions
 
