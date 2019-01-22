@@ -784,7 +784,8 @@ class Placeholder(object):
 
 
 def _commandline():
-    parser = argparse.ArgumentParser(description=f'ReacNetGenerator {__version__}')
+    parser = argparse.ArgumentParser(
+        description=f'ReacNetGenerator {__version__}')
     parser.add_argument('-i', '--inputfilename',
                         help='Input trajectory file, e.g. bonds.reaxc', required=True)
     parser.add_argument(
