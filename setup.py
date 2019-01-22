@@ -8,7 +8,7 @@ setup(name='reacnetgenerator',
       packages=['reacnetgenerator'],
       python_requires='~=3.6.0',
       install_requires=['numpy', 'scipy>=0.20.1', 'networkx',
-                        'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase', 'scour'],
+                        'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1', 'htmlmin', 'ase', 'scour', 'tqdm'],
       entry_points={
           'console_scripts': ['reacnetgenerator=reacnetgenerator.reacnetgen:_commandline', 'reacnetgeneratorgui=reacnetgenerator.gui:gui']
       },
