@@ -1,5 +1,5 @@
 # ReacNetGenerator
-![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)
+![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)![python3.7](https://img.shields.io/badge/python-3.7-blue.svg)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
@@ -19,33 +19,28 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 - Parallel computing
 
 ## Requirements
-* Python 3.6 (**Note:** Python 2, 3.1-3.5, 3.7 is not supported!)
+* Python 3.6 - 3.7 (**Note:** Python <= 3.5 is not supported!)
 * Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [htmlmin](https://github.com/mankyd/htmlmin/), [ASE](https://gitlab.com/ase/ase), [scour](https://github.com/scour-project/scour)
 * Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
 ## Installation
-1. [Get conda](https://conda.io/docs/user-guide/install/index.html) to install Python 3.
+1. [Get conda](https://conda.io/docs/user-guide/install/index.html) and install Anaconda or Miniconda.
 
-2. Use conda to install extra packages:
+2. Use conda to create environment:
 ```sh
-conda install -c openbabel openbabel 
-conda install -c rdkit rdkit
+conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
+source activate reacnetgenerator
 ```
 
-3. Use pip to install required packages: 
+3. Download ReacNetGenerator and build it from source:
 ```sh
-$ pip install numpy scipy networkx scikit-learn matplotlib hmmlearn htmlmin ase scour
-```
-
-4. Download ReacNetGenerator and build it from source:
-```sh
-$ cd ReacNetGenerator/
-$ python3 setup.py install
+$ cd reacnetgenerator/
+$ python setup.py install
 ```
 
 You can test whether ReacNetGenerator is running normally:
 ```sh
-% python3 setup.py test
+% python setup.py test
 ```
 
 ## Simple example
