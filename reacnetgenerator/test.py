@@ -11,7 +11,7 @@ import pkg_resources
 
 import reacnetgenerator
 import requests
-import tqdm
+from tqdm import tqdm
 
 
 def download_file(url, local_filename):
