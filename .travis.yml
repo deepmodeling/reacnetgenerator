@@ -11,7 +11,7 @@ install:
   - conda update -q conda
   - conda info -a
   - conda install openbabel -c openbabel
-  - conda install rdkit -c rdkit
+  - conda install rdkit -c conda-forge
   - python setup.py install
 
 script:
