@@ -16,4 +16,7 @@ setup(name='reacnetgenerator',
       tests_require=['requests'],
       use_scm_version=True,
       setup_requires=['setuptools_scm'],
+      package_data={
+          'reacnetgenerator': ['static/html/*.html', 'static/js/*.js', 'static/css/*.css', 'static/img/*.png'],
+      },
       )
