@@ -11,7 +11,7 @@ setup(name='reacnetgenerator',
                         'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
                         'htmlmin', 'ase', 'scour', 'tqdm',
                         'jinja2',
-                    ],
+                        ],
       entry_points={
           'console_scripts': ['reacnetgenerator=reacnetgenerator.reacnetgen:_commandline',
                               'reacnetgeneratorgui=reacnetgenerator.gui:gui']
@@ -21,7 +21,7 @@ setup(name='reacnetgenerator',
       use_scm_version=True,
       setup_requires=['setuptools_scm'],
       package_data={
-          'reacnetgenerator': ['static/html/*.html', 'static/js/*.js', 
-          'static/css/*.css', 'static/img/*.png', 'test.json'],
+          'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
+                               'static/css/*.css', 'static/img/*.png', 'test.json'],
       },
       )
