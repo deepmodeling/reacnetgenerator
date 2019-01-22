@@ -50,6 +50,8 @@ import gc
 import itertools
 import logging
 import math
+import os
+import tempfile
 import time
 import zlib
 from collections import Counter, defaultdict
@@ -88,7 +90,7 @@ logging.basicConfig(
 class ReacNetGenerator(object):
     ''' Use ReacNetGenerator for trajectory analysis'''
 
-    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculetempfilename=None, moleculetemp2filename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
+    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
         ''' Init ReacNetGenerator '''
         print(__doc__)
         print(
@@ -104,10 +106,6 @@ class ReacNetGenerator(object):
         self.atomroutefilename = self._setfilename(atomroutefilename, "route")
         self.reactionfilename = self._setfilename(reactionfilename, "reaction")
         self.tablefilename = self._setfilename(tablefilename, "table")
-        self.moleculetempfilename = self._setfilename(
-            moleculetempfilename, "temp")
-        self.moleculetemp2filename = self._setfilename(
-            moleculetemp2filename, "temp2")
         self.moleculestructurefilename = self._setfilename(
             moleculestructurefilename, "structure")
         self.imagefilename = self._setfilename(imagefilename, "svg")
@@ -177,6 +175,12 @@ class ReacNetGenerator(object):
                 self._printtable(allroute)
                 if self.needprintspecies:
                     self._printspecies()
+                # delete tempfile
+                for tempfilename in (self.moleculetempfilename, self.moleculetemp2filename):
+                    try:
+                        os.remove(tempfilename)
+                    except OSError:
+                        pass
             # garbage collect
             gc.collect()
             self._printtime(runstep)
@@ -389,11 +393,12 @@ class ReacNetGenerator(object):
         return molecules
 
     def _writemoleculetempfile(self, d):
-        with open(self.moleculetempfilename, 'wb') as f:
-            for index, (key, value) in enumerate(d.items(), 1):
+        with tempfile.NamedTemporaryFile('wb', delete=False) as f:
+            self.moleculetempfilename = f.name
+            for key, value in d.items():
                 f.write(self._compress(
                     ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
-        self._temp1it = index
+        self._temp1it = len(d)
 
     def _getbondfromcrd(self, step_atoms):
         atomnumber = len(step_atoms)
@@ -445,7 +450,8 @@ class ReacNetGenerator(object):
         return origin, (np.array(hmm) if self.runHMM else np.array([])), line
 
     def _calhmm(self):
-        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else Placeholder() as fo, open(self.hmmfilename, 'wb') if self.runHMM else Placeholder() as fh, open(self.moleculetempfilename, 'rb') as ft, open(self.moleculetemp2filename, 'wb') as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
+        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else Placeholder() as fo, open(self.hmmfilename, 'wb') if self.runHMM else Placeholder() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
+            self.moleculetemp2filename = ft2.name
             semaphore = Semaphore(360)
             results = pool.imap_unordered(
                 self._getoriginandhmm, self._produce(semaphore, ft, ()), 10)
@@ -745,7 +751,7 @@ class ReacNetGenerator(object):
         return x if x else default
 
     def _setfilename(self, name, suffix):
-        return self._setparam(name, self.inputfilename+"."+suffix)
+        return self._setparam(name, f"{self.inputfilename}.{suffix}")
 
     def _printspecies(self):
         with open(self.moleculetemp2filename, 'rb') as f2, open(self.speciesfilename, 'w') as fw:
