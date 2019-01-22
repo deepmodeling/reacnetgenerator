@@ -48,8 +48,8 @@ class TestReacNetGen(unittest.TestCase):
             print(f"Downloading {filename} ...")
             download_file(file_url, bondfilename)
 
-        r=reacnetgenerator.ReacNetGenerator(inputfilename = bondfilename, atomname = [
-                                              'H', 'O'], inputfiletype = 'lammpsbondfile', runHMM = True)
+        r = reacnetgenerator.ReacNetGenerator(inputfilename=bondfilename, atomname=[
+            'H', 'O'], inputfiletype='lammpsbondfile', runHMM=True)
         r.runanddraw()
 
         print("Here are reactions:")
