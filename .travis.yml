@@ -20,3 +20,6 @@ install:
 
 script:
   - python setup.py test
+
+after_success:
+  - coveralls
