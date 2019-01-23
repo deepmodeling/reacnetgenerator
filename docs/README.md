@@ -1,5 +1,5 @@
 # ReacNetGenerator
-![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)![python3.7](https://img.shields.io/badge/python-3.7-blue.svg)
+![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)![python3.7](https://img.shields.io/badge/python-3.7-blue.svg) [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)[![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
