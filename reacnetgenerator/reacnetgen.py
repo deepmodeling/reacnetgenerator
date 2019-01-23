@@ -795,7 +795,7 @@ def _commandline():
     parser.add_argument(
         '--dump', help='Process the LAMMPS dump file', action="store_true")
     parser.add_argument(
-        '-n', '-np', '--nproc', help='Number of processes')
+        '-n', '-np', '--nproc', help='Number of processes', type=int)
     parser.add_argument('-s', '--selectatoms',
                         help='Select atoms in the reaction network, e.g. C', nargs='*')
     args = parser.parse_args()
