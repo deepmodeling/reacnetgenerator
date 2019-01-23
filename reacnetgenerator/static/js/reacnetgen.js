@@ -33,6 +33,11 @@ jsnx.draw(G, {
     },
     edgeStyle: {
         fill: '#999'
+    },
+    edgeAttr: {
+        ondblclick: function (d) {
+            return "G.removeEdge('"+d.edge[0]+"','"+d.edge[1]+"');";
+        },
     }
 }, true);
 $("#canvassec").addClass("mfp-hide");
