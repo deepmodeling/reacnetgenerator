@@ -22,9 +22,7 @@ class _HTMLResult(object):
         self._imagefile = ReacNetGenerator.imagefilename
         self._nproc = ReacNetGenerator.nproc
         self._templatedict = {
-            "speciesline": 10,
             "speciesshownum": 30,
-            "reactionsline": 10,
             "reactionsshownum": 20,
         }
         self._linkreac = defaultdict(list)
