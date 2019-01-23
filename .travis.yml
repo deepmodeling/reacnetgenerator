@@ -20,7 +20,8 @@ install:
   - pip install coveralls
 
 script:
-  - coverage run --source=reacnetgenerator setup.py test coverage combine
+  - coverage run --source=reacnetgenerator setup.py test
+  - coverage combine
 
 after_success:
   - coveralls
