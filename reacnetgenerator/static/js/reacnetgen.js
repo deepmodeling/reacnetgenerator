@@ -11,7 +11,7 @@ jsnx.draw(G, {
         gravity: 0.05,
     },
     panZoom: {
-        enabled: true
+        enabled: false
     },
     nodeShape: "use",
     nodeAttr: {
