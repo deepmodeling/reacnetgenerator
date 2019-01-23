@@ -17,9 +17,10 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
   - source activate test-environment
   - python setup.py install
+  - pip install coveralls
 
 script:
-  - python setup.py test
+  - coverage run --source=reacnetgenerator setup.py test
 
 after_success:
   - coveralls
