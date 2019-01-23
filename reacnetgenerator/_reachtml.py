@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 # Generate a web page to show the analysis report
 
+import json
 import re
+from collections import defaultdict
 from collections.abc import Mapping
 from multiprocessing import Pool
+
 import htmlmin
 import openbabel
 import scour.scour
 from jinja2 import Template
-from ._static import _html, _static_js, _static_css, _static_img
+
+from ._static import _html, _static_css, _static_img, _static_js
 
 
 class _HTMLResult(object):
@@ -18,11 +22,10 @@ class _HTMLResult(object):
         self._imagefile = ReacNetGenerator.imagefilename
         self._nproc = ReacNetGenerator.nproc
         self._templatedict = {
-            "speciesline": 10,
             "speciesshownum": 30,
-            "reactionsline": 10,
             "reactionsshownum": 20,
         }
+        self._linkreac = defaultdict(list)
 
     def _report(self):
         self._readdata()
@@ -37,7 +40,10 @@ class _HTMLResult(object):
             for line in f:
                 sx = line.split()
                 s = sx[1].split("->")
-                reaction.append((self._re(s[0]), self._re(s[1]), int(sx[0])))
+                left, right, num = self._re(s[0]), self._re(s[1]), int(sx[0])
+                reaction.append((left, right, num))
+                if len(self._linkreac[left]) < 5:
+                    self._linkreac[left].append(right)
         return reaction
 
     def _convertsvg(self, smiles):
@@ -71,20 +77,25 @@ class _HTMLResult(object):
         self._generatesvg()
         self._templatedict["species"] = self._specs
         self._templatedict["reactions"] = self._reaction
-        self._templatedict["css"] = ''.join([
+        self._templatedict["css"] = [
             _static_css["bootstrap.min.css"],
             _static_css["creative.min.css"],
             _static_css["magnific-popup.min.css"],
-            _html['bk-css']])
+            _html['bk-css']
+        ]
         self._templatedict["bkimage"] = _static_img["fire.jpg"]
-        self._templatedict["javascript"] = "".join([
+        self._templatedict["javascript"] = [
             _static_js["jquery.min.js"],
             _static_js["bootstrap.bundle.min.js"],
             _static_js["jquery.easing.min.js"],
             _static_js["scrollreveal.min.js"],
             _static_js["jquery.magnific-popup.min.js"],
             _static_js["creative.min.js"],
-        ])
+            _static_js["d3.min.js"],
+            _static_js["jsnetworkx.js"],
+            _static_js["reacnetgen.js"],
+        ]
+        self._templatedict["linkreac"] = json.dumps(self._linkreac)
         template = Template(_html["template"])
         webpage = template.render(**self._templatedict)
         with open(self._resultfile, 'w', encoding="utf-8") as f:

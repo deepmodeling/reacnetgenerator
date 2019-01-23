@@ -7,12 +7,17 @@
 </head>
 
 <body id="page-top">
-    <style>{{ css }}</style>
+    <style>
+        {% for c in css %}
+            {{ c }}
+        {% endfor %}
+    </style>
 
     <svg class="d-none">
         <defs>
             <path id="narrow" style="text-align:start;line-height:100%;-inkscape-font-specification:Arial Unicode MS" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z"
                 font-size="39.506" font-weight="400" font-family="Arial Unicode MS" />
+            <circle id="circle" cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />
         </defs>
     </svg>
 
@@ -80,9 +85,19 @@
         <defs>
             {% for spec in speciessvg %}
             <svg id="{{ spec.name }}">{{ spec.svg }}</svg>
+            <svg id="{{ spec.name }}_border">
+                    <use xlink:href="#circle"></use>
+                    <use xlink:href="#{{ spec.name }}"></use>
+            </svg>
             {% endfor %}
         </defs>
     </svg>
+
+    <div id="canvassec" class='bg-white mx-auto'>
+        <div class="container">
+            <div class="w-100 h-100" id="canvas"></div>
+        </div>
+    </div>
 
     <section id="species" class='bg-white mx-auto'>
         <div class="container">
@@ -92,10 +107,10 @@
                     <div class="container-fluid p-0">
                         <div class="row no-gutters">
                             {% for spec in species %}
-                            <div class="mx-auto">
-                                <div><svg class='spec'>
+                            <div class="mx-auto {% if loop.index> speciesshownum %} specnone{% endif %}">
+                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');"><svg class='spec'>
                                     <use xlink:href="#{{ spec }}"></use>
-                                </svg></div>
+                                </svg></a></div>
                                 <div>{{ loop.index }}</div>
                             </div>
                             {% endfor %}
@@ -104,7 +119,7 @@
                 </div>
                 {% if species|length > speciesshownum %}
                 <div class="mx-auto text-center mt-5">
-                    <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.specnone').show();$('#showmorespec').hide();"
+                    <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.specnone').removeClass('specnone');$('#showmorespec').hide();"
                         id="showmorespec">Show all</a>
                 </div>
                 {% endif %}
@@ -120,26 +135,26 @@
                     <div class="container-fluid p-0">
                         <div class="row no-gutters">
                             {% for reac in reactions %}
-                            <div class="row mx-auto">
+                            <div class="row mx-auto{% if loop.index> reactionsshownum %} reacnone{% endif %}">
                                 <div class="reacid">{{ loop.index }}</div>
-                                <div><svg class='spec'>
+                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ reac[0] }}');"></a><svg class='spec'>
                                         <use xlink:href="#{{ reac[0] }}"></use>
-                                    </svg></div>
+                                    </svg></a></div>
                                 <div>
                                     <div class="reacnum">{{ reac[2] }}</div>
                                     <div><svg width="25" height="14.33">
                                             <use xlink:href="#narrow" /></svg></div>
                                 </div>
-                                <div><svg class='spec'>
+                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ reac[1] }}');"></a><svg class='spec'>
                                         <use xlink:href="#{{ reac[1] }}"></use>
-                                    </svg></div>
+                                    </svg></a></div>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
                     {% if reactions|length > reactionsshownum %}
                     <div class="mx-auto text-center mt-5">
-                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacnone').show();$('#showmorereac').hide();"
+                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacnone').removeClass('reacnone');$('#showmorereac').hide();"
                             id="showmorereac">Show all</a>
                     </div>
                     {% endif %}
@@ -165,7 +180,14 @@
             </div>
         </div>
     </section>
-    <script>{{ javascript }}</script>
+
+
+    <script>
+        linkreac={{ linkreac }}
+        {% for js in javascript %}
+            {{ js }}
+        {% endfor %}
+    </script>
 </body>
 
 </html>
