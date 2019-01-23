@@ -26,6 +26,9 @@ _static_js = {
     "scrollreveal.min.js": getresource('static/js/scrollreveal.min.js'),
     "jquery.magnific-popup.min.js": getresource('static/js/jquery.magnific-popup.min.js'),
     "creative.min.js": getresource('static/js/creative.min.js'),
+    "d3.min.js": getresource('static/js/d3.min.js'),
+    "jsnetworkx.js": getresource('static/js/jsnetworkx.min.js'),
+    "reacnetgen.js": getresource('static/js/reacnetgen.js'),
 }
 _static_css = {
     "bootstrap.min.css": getresource('static/css/bootstrap.min.css'),
