@@ -62,6 +62,7 @@ from multiprocessing import Pool, Semaphore, cpu_count
 from pkg_resources import DistributionNotFound, get_distribution
 
 import matplotlib as mpl
+mpl.use("svg")
 import matplotlib.pyplot as plt
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -74,8 +75,6 @@ from rdkit import Chem
 from tqdm import tqdm
 
 from ._reachtml import _HTMLResult
-
-plt.switch_backend('Agg')
 
 try:
     __version__ = get_distribution(__name__).version

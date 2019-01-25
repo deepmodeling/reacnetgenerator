@@ -1,18 +1,18 @@
-language: python
-matrix:
-  include:
-    - python: 3.6
-    - python: 3.7
-      dist: xenial
-      sudo: true
+language: c
+env:
+  - BUILD_TARGET=3.7
+  - BUILD_TARGET=3.6 
+  
+os:
+  - linux
+  - osx
+
 install:
-  - sudo apt-get update
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then MINICONDA_OS=Linux; else MINICONDA_OS=MacOSX; fi
+  - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-$MINICONDA_OS-x86_64.sh -O miniconda.sh
+  - bash miniconda.sh -b -p "$HOME"/miniconda
+  - export PATH="$HOME"/miniconda:"$HOME"/miniconda/bin:$PATH
+  - conda config --set always_yes yes --set changeps1 no --set auto_update_conda false
   - conda info -a
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
   - source activate test-environment
