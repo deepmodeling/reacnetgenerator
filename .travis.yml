@@ -1,8 +1,8 @@
 language: c
 env:
   - BUILD_TARGET=3.7
-  - BUILD_TARGET=3.6 
-  
+  - BUILD_TARGET=3.6
+
 os:
   - linux
   - osx
@@ -17,7 +17,7 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
   - source activate test-environment
   - python setup.py install
-  - pip install coveralls
+  - pip install coveralls codecov
 
 script:
   - coverage run --source=reacnetgenerator setup.py test
@@ -25,3 +25,4 @@ script:
 
 after_success:
   - coveralls
+  - codecov
