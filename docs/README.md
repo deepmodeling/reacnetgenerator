@@ -2,6 +2,7 @@
 [![python version](https://img.shields.io/pypi/pyversions/reacnetgenerator.svg?logo=python&logoColor=white)](https://pypi.org/project/reacnetgenerator)
 [![PyPI](https://img.shields.io/pypi/v/reacnetgenerator.svg)](https://pypi.org/project/reacnetgenerator)
 [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
+[![Build status](https://ci.appveyor.com/api/projects/status/uh7o1ge0ra9eec5e/branch/master?svg=true)](https://ci.appveyor.com/project/njzjz52847/reacnetgenerator/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
 [![DOI:10.26434/chemrxiv.7421534](https://zenodo.org/badge/DOI/10.26434/chemrxiv.7421534.svg)](https://doi.org/10.26434/chemrxiv.7421534)
 
