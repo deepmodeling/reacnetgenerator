@@ -1,0 +1,2 @@
+# reacnetgenerator
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c0ef4a117d424aa592e5ef2328b11a3a)](https://app.codacy.com/app/jzzeng/reacnetgenerator?utm_source=github.com&utm_medium=referral&utm_content=njzjz/reacnetgenerator&utm_campaign=Badge_Grade_Settings)
