@@ -111,8 +111,10 @@ class ReacNetGenerator(object):
         self.resultfilename = self._setfilename(resultfilename, "html")
         self.stepinterval = stepinterval
         self.p = self._setparam(np.array(p), np.array([0.5, 0.5]))
-        self.a = self._setparam(np.array(a), np.array([[0.999, 0.001], [0.001, 0.999]]))
-        self.b = self._setparam(np.array(b), np.array([[0.6, 0.4], [0.4, 0.6]]))
+        self.a = self._setparam(np.array(a), np.array(
+            [[0.999, 0.001], [0.001, 0.999]]))
+        self.b = self._setparam(
+            np.array(b), np.array([[0.6, 0.4], [0.4, 0.6]]))
         self.runHMM = runHMM
         self.SMILES = SMILES
         self.getoriginfile = getoriginfile if self.runHMM else True
@@ -123,14 +125,17 @@ class ReacNetGenerator(object):
         self.widthcoefficient = widthcoefficient
         self.maxspecies = maxspecies
         self.nolabel = nolabel
-        self.speciesfilter = self._setparam(speciesfilter,[])
-        self.node_color = self._setparam(np.array(node_color),np.array([78/256, 196/256, 238/256]))
+        self.speciesfilter = self._setparam(speciesfilter, [])
+        self.node_color = self._setparam(
+            np.array(node_color), np.array([78/256, 196/256, 238/256]))
         self.pos = self._setparam(pos, {})
         self.printfiltersignal = printfiltersignal
         self.showid = showid
         self.k = k
-        self.start_color = self._setparam(np.array(start_color), np.array([0, 0, 1]))
-        self.end_color = self._setparam(np.array(end_color), np.array([1, 0, 0]))
+        self.start_color = self._setparam(
+            np.array(start_color), np.array([0, 0, 1]))
+        self.end_color = self._setparam(
+            np.array(end_color), np.array([1, 0, 0]))
         self.nproc = self._setparam(nproc, cpu_count())
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
