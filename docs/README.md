@@ -4,6 +4,8 @@
 [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
 [![Build status](https://ci.appveyor.com/api/projects/status/uh7o1ge0ra9eec5e/branch/master?svg=true)](https://ci.appveyor.com/project/njzjz52847/reacnetgenerator/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
+[![codecov](https://codecov.io/gh/njzjz/reacnetgenerator/branch/master/graph/badge.svg)](https://codecov.io/gh/njzjz/reacnetgenerator)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b2336e2a2ff04aceab42604792c1c3e1)](https://www.codacy.com/app/jzzeng/reacnetgenerator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=njzjz/reacnetgenerator&amp;utm_campaign=Badge_Grade)
 [![DOI:10.26434/chemrxiv.7421534](https://zenodo.org/badge/DOI/10.26434/chemrxiv.7421534.svg)](https://doi.org/10.26434/chemrxiv.7421534)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
