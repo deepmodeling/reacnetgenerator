@@ -19,11 +19,11 @@ if __name__ == '__main__':
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'htmlmin', 'ase', 'scour', 'tqdm',
               'jinja2',
-              ],
+          ],
           entry_points={'console_scripts': [
               'reacnetgenerator=reacnetgenerator.reacnetgen:_commandline',
               'reacnetgeneratorgui=reacnetgenerator.gui:gui'
-              ]
+          ]
           },
           test_suite='reacnetgenerator.test',
           tests_require=['requests'],
