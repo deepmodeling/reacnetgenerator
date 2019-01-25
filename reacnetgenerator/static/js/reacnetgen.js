@@ -1,4 +1,4 @@
-var canvas = document.getElementById('canvas');
+var canvas = document.getElementById("canvas");
 
 var G = new jsnx.Graph();
 var timer=null;
@@ -15,12 +15,12 @@ jsnx.draw(G, {
     },
     nodeShape: "use",
     nodeAttr: {
-        title: function (d) { return d.label; },
-        "xlink:href":function (d) {return "#"+d.node+"_border"; }, 
-        onclick: function (d) {
+        title(d) { return d.label; },
+        "xlink:href"(d) {return "#"+d.node+"_border"; }, 
+        onclick(d) {
             return "clearTimeout(timer);timer = setTimeout(function(){addnode('"+d.node+"')}, 300);";
         }, 
-        ondblclick: function (d) {
+        ondblclick(d) {
             return "clearTimeout(timer);G.removeNode('"+d.node+"');";
         },
         width: 100,
@@ -32,25 +32,27 @@ jsnx.draw(G, {
         border: "1px solid #ddd"
     },
     edgeStyle: {
-        fill: '#999'
+        fill: "#999"
     },
     edgeAttr: {
-        ondblclick: function (d) {
+        ondblclick(d) {
             return "G.removeEdge('"+d.edge[0]+"','"+d.edge[1]+"');";
         },
     }
 }, true);
 $("#canvassec").addClass("mfp-hide");
 
-$('.popup-modal').magnificPopup({
-    type: 'inline',
+$(".popup-modal").magnificPopup({
+    type: "inline",
     preloader: false,
 });
 
 function addnode(spec){
     G.addNode(spec);
     for (var i in linkreac[spec]){
-        G.addNode(linkreac[spec][i]);
-        G.addEdge(linkreac[spec][i],spec);
+        if ({}.hasOwnProperty.call(linkreac[spec], i)) {
+            G.addNode(linkreac[spec][i]);
+            G.addEdge(linkreac[spec][i],spec);
+        }
     }
 }
