@@ -32,12 +32,13 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 2. Use conda to create environment:
 ```sh
-conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
-source activate reacnetgenerator
+$ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
+$ source activate reacnetgenerator
 ```
 
 3. Download ReacNetGenerator and build it from source:
 ```sh
+$ git clone https://github.com/njzjz/reacnetgenerator
 $ cd reacnetgenerator/
 $ python setup.py install
 ```
