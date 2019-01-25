@@ -4,7 +4,6 @@
 import json
 import re
 from collections import defaultdict
-from collections.abc import Mapping
 from multiprocessing import Pool
 
 import htmlmin
@@ -31,7 +30,8 @@ class _HTMLResult(object):
         self._readdata()
         self._generateresult()
 
-    def _re(self, smi):
+    @classmethod
+    def _re(cls, smi):
         return smi.replace("O", "[O]").replace("C", "[C]").replace("[HH]", "[H]")
 
     def _readreaction(self):
@@ -46,7 +46,8 @@ class _HTMLResult(object):
                     self._linkreac[left].append(right)
         return reaction
 
-    def _convertsvg(self, smiles):
+    @classmethod
+    def _convertsvg(cls, smiles):
         obConversion = openbabel.OBConversion()
         obConversion.SetInAndOutFormats("smi", "svg")
         obConversion.AddOption('x')

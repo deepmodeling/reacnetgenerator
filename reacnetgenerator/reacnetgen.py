@@ -55,7 +55,6 @@ import tempfile
 import time
 import zlib
 from collections import Counter, defaultdict
-from functools import reduce
 from io import StringIO
 from multiprocessing import Pool, Semaphore, cpu_count
 
@@ -89,14 +88,14 @@ logging.basicConfig(
 class ReacNetGenerator(object):
     ''' Use ReacNetGenerator for trajectory analysis'''
 
-    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=["C", "H", "O"], selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=[0.5, 0.5], a=[[0.999, 0.001], [0.001, 0.999]], b=[[0.6, 0.4], [0.4, 0.6]], runHMM=True, SMILES=True, getoriginfile=False, species={}, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=[], node_color=[78/256, 196/256, 238/256], pos={}, printfiltersignal=False, showid=True, k=None, start_color=[0, 0, 1], end_color=[1, 0, 0], nproc=None, speciescenter=None, n_searchspecies=2):
+    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=None, selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=None, a=None, b=None, runHMM=True, SMILES=True, getoriginfile=False, species=None, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=None, node_color=None, pos=None, printfiltersignal=False, showid=True, k=None, start_color=None, end_color=None, nproc=None, speciescenter=None, n_searchspecies=2):
         ''' Init ReacNetGenerator '''
         print(__doc__)
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
         self.inputfiletype = inputfiletype
         self.inputfilename = inputfilename
-        self.atomname = atomname
+        self.atomname = self._setparam(atomname, ["C", "H", "O"])
         self.selectatoms = self._setparam(selectatoms, self.atomname)
         self.originfilename = self._setfilename(originfilename, "origin")
         self.hmmfilename = self._setfilename(hmmfilename, "hmm")
@@ -111,27 +110,32 @@ class ReacNetGenerator(object):
         self.speciesfilename = self._setfilename(speciesfilename, "species")
         self.resultfilename = self._setfilename(resultfilename, "html")
         self.stepinterval = stepinterval
-        self.p = np.array(p)
-        self.a = np.array(a)
-        self.b = np.array(b)
+        self.p = self._setparam(np.array(p), np.array([0.5, 0.5]))
+        self.a = self._setparam(np.array(a), np.array(
+            [[0.999, 0.001], [0.001, 0.999]]))
+        self.b = self._setparam(
+            np.array(b), np.array([[0.6, 0.4], [0.4, 0.6]]))
         self.runHMM = runHMM
         self.SMILES = SMILES
         self.getoriginfile = getoriginfile if self.runHMM else True
-        self.species = species
+        self.species = self._setparam(species, {})
         self.needprintspecies = needprintspecies
         self.node_size = node_size
         self.font_size = font_size
         self.widthcoefficient = widthcoefficient
         self.maxspecies = maxspecies
         self.nolabel = nolabel
-        self.speciesfilter = speciesfilter
-        self.node_color = np.array(node_color)
-        self.pos = pos
+        self.speciesfilter = self._setparam(speciesfilter, [])
+        self.node_color = self._setparam(
+            np.array(node_color), np.array([78/256, 196/256, 238/256]))
+        self.pos = self._setparam(pos, {})
         self.printfiltersignal = printfiltersignal
         self.showid = showid
         self.k = k
-        self.start_color = np.array(start_color)
-        self.end_color = np.array(end_color)
+        self.start_color = self._setparam(
+            np.array(start_color), np.array([0, 0, 1]))
+        self.end_color = self._setparam(
+            np.array(end_color), np.array([1, 0, 0]))
         self.nproc = self._setparam(nproc, cpu_count())
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
@@ -399,7 +403,8 @@ class ReacNetGenerator(object):
                     ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
         self._temp1it = len(d)
 
-    def _getbondfromcrd(self, step_atoms):
+    @classmethod
+    def _getbondfromcrd(cls, step_atoms):
         atomnumber = len(step_atoms)
         xyzstring = f"{atomnumber}\nReacNetGenerator\n"+"\n".join(
             [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
@@ -431,7 +436,8 @@ class ReacNetGenerator(object):
         self._model.transmat_ = self.a
         self._model.emissionprob_ = self.b
 
-    def _produce(self, semaphore, plist, parameter):
+    @classmethod
+    def _produce(cls, semaphore, plist, parameter):
         for item in plist:
             semaphore.acquire()
             yield item, parameter
@@ -500,7 +506,8 @@ class ReacNetGenerator(object):
                 semaphore.release()
         return allmoleculeroute
 
-    def _makemoleculegraph(self, atoms, bonds):
+    @classmethod
+    def _makemoleculegraph(cls, atoms, bonds):
         G = nx.Graph()
         for line in bonds:
             G.add_edge(line[0], line[1], level=line[2])
@@ -598,10 +605,12 @@ class ReacNetGenerator(object):
         name = Chem.MolToSmiles(m)
         return name
 
-    def _compress(self, x):
+    @classmethod
+    def _compress(cls, x):
         return base64.a85encode(zlib.compress(x.encode()))+b'\n'
 
-    def _decompress(self, x):
+    @classmethod
+    def _decompress(cls, x):
         return zlib.decompress(base64.a85decode(x.strip())).decode()
 
     def _getatomeach(self):
@@ -746,7 +755,8 @@ class ReacNetGenerator(object):
                     print(n, specname)
         return species_out, showname
 
-    def _setparam(self, x, default):
+    @classmethod
+    def _setparam(cls, x, default):
         return x if x else default
 
     def _setfilename(self, name, suffix):
