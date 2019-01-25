@@ -9,5 +9,7 @@ linters:
   eslint:
   jshint:
   standardjs:
+  remarklint:
+    fixer: true
 fixers:
   enable: true
