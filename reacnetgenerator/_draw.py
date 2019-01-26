@@ -12,15 +12,12 @@ import scour.scour
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from ._path import _CollectMolPaths
-
 
 class _DrawNetwork:
     def __init__(self, rng):
         self.atomname = rng.atomname
         self.tablefilename = rng.tablefilename
         self.imagefilename = rng.imagefilename
-        self.moleculestructurefilename = rng.moleculestructurefilename
         self.maxspecies = rng.maxspecies
         self.species = rng.species
         self.speciesfilter = rng.speciesfilter
@@ -85,26 +82,8 @@ class _DrawNetwork:
                 name) <= self.maxspecies else name[0:self.maxspecies])])
         else:
             species_out = {}
-            b = True
             for spec in self.species.items():
                 specname, value = spec
-                if "structure" in value:
-                    atoms, bonds = value["structure"]
-                    G1 = self._convertstructure(atoms, bonds)
-                    if b:
-                        structures = self._readstrcture()
-                        em = iso.numerical_edge_match(
-                            ['atom', 'level'], ["None", 1])
-                        b = False
-                    i = 1
-                    while (f"{specname}_{i}" if i > 1 else specname) in structures:
-                        G2 = self._convertstructure(structures[(
-                            f"{specname}_{i}" if i > 1 else specname)][0], structures[(f"{specname}_{i}" if i > 1 else specname)][1])
-                        if nx.is_isomorphic(G1, G2, em):
-                            if i > 1:
-                                specname += f"_{i}"
-                            break
-                        i += 1
                 species_out[specname] = {}
                 if "showname" in value:
                     showname[specname] = value["showname"]
@@ -116,22 +95,3 @@ class _DrawNetwork:
                     showname[specname] = str(n)
                     print(n, specname)
         return species_out, showname
-
-    def _readstrcture(self):
-        with open(self.moleculestructurefilename) as f:
-            d = {}
-            for line in f:
-                s = line.split()
-                name = s[0]
-                atoms = [x for x in s[1].split(",")]
-                bonds = [tuple(int(y) for y in x.split(","))
-                         for x in s[2].split(";")] if len(s) == 3 else []
-                d[name] = (atoms, bonds)
-        return d
-
-    def _convertstructure(self, atoms, bonds):
-        atomtypes = []
-        for i, atom in enumerate(atoms, start=1):
-            atomtypes.append((i, self.atomname.index(atom)))
-        G = _CollectMolPaths._makemoleculegraph(atomtypes, bonds)
-        return G

@@ -45,20 +45,20 @@ class _HMMFilter:
         line_c, _ = item
         line = self._decompress(line_c)
         s = line.split()
-        value = np.array([int(x)-1 for x in s[-1].split(",")])
+        value = np.array([int(x) for x in s[-1].split(",")])
         origin = np.zeros(self._step, dtype=np.int8)
-        origin[value] = 1
+        origin[value-1] = 1
         if self.runHMM:
             _, hmm = self._model.decode(
                 np.array([origin]).T, algorithm="viterbi")
-        return origin, (np.array(hmm) if self.runHMM else np.array([])), line
+        return origin, (np.array(hmm) if self.runHMM else np.zeros(0)), line
 
     def _calhmm(self):
         with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else ExitStack() as fo, open(self.hmmfilename, 'wb') if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
             self.moleculetemp2filename = ft2.name
-            semaphore = Semaphore(self.nproc*15)
+            semaphore = Semaphore(self.nproc*150)
             results = pool.imap_unordered(
-                self._getoriginandhmm, self._produce(semaphore, ft, ()), 10)
+                self._getoriginandhmm, self._produce(semaphore, ft, ()), 100)
             hmmit = 0
             for originsignal, hmmsignal, mlist in tqdm(results, total=self._temp1it, desc="HMM filter", unit="molecule"):
                 if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:

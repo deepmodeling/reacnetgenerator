@@ -75,9 +75,9 @@ class _Detect(metaclass=ABCMeta):
         with open(self.inputfilename) as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
             _steplinenum = self._readNfunc(f)
             f.seek(0)
-            semaphore = Semaphore(self.nproc*15)
+            semaphore = Semaphore(self.nproc*150)
             results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
-                itertools.zip_longest(*[f]*_steplinenum), 0, None, self.stepinterval)), None), 10)
+                itertools.zip_longest(*[f]*_steplinenum), 0, None, self.stepinterval)), None), 100)
             for molecules, (step, thetimestep) in tqdm(results, desc="Read bond information and Detect molecules", unit="timestep"):
                 for molecule in molecules:
                     d[molecule].append(step)

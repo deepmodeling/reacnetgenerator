@@ -2,6 +2,7 @@
 
 from abc import ABCMeta, abstractmethod
 from multiprocessing import Pool, Semaphore
+from collections import Counter, defaultdict
 
 import numpy as np
 from tqdm import tqdm
@@ -30,6 +31,7 @@ class _CollectPaths(metaclass=ABCMeta):
         self._decompress = rng.decompress
         self._produce = rng.produce
         self._mname = None
+        self._atomnames = None
 
     @staticmethod
     def getstype(SMILES):
@@ -39,6 +41,7 @@ class _CollectPaths(metaclass=ABCMeta):
 
     def collect(self):
         ''' Collect paths'''
+        self._atomnames = self.atomname[self._atomtype-1]
         self._printmoleculename()
         atomeach = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
@@ -82,9 +85,9 @@ class _CollectPaths(metaclass=ABCMeta):
     def _printatomroute(self, atomeach):
         with open(self.atomroutefilename, 'w') as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
             allmoleculeroute = []
-            semaphore = Semaphore(self.nproc*15)
+            semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._getatomroute, self._produce(
-                semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 10)
+                semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 100)
             for route in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
                 moleculeroute, routestr = route
                 print(routestr, file=f)
@@ -94,97 +97,96 @@ class _CollectPaths(metaclass=ABCMeta):
                 semaphore.release()
         return allmoleculeroute
 
+    def _convertSMILES(self, atoms, bonds):
+        m = Chem.RWMol(Chem.MolFromSmiles(''))
+        d = {}
+        for name, number in zip(self._atomnames[atoms-1], atoms):
+            d[number] = m.AddAtom(Chem.Atom(name))
+        for atom1, atom2, level in bonds:
+            m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
+        name = Chem.MolToSmiles(m)
+        return name
+
 
 class _CollectMolPaths(_CollectPaths):
-    def __init__(self, rng):
-        super(_CollectMolPaths, self).__init__(rng)
-        self.moleculestructurefilename = rng.moleculestructurefilename
-
     def _printmoleculename(self):
         mname = []
-        d = {}
+        d = defaultdict(list)
         em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
-        with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, open(self.moleculestructurefilename, 'w') as fs:
+        with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft:
             for line in ft:
                 s = self._decompress(line).split()
                 atoms = np.array([int(x) for x in s[0].split(",")])
-                bonds = np.array([tuple(int(y) for y in x.split(","))
-                                  for x in s[1].split(";")] if len(s) == 3 else [])
-                typenumber = np.zeros(len(self.atomname), dtype=np.int)
-                atomtypes = []
-                for atomnumber in atoms:
-                    typenumber[self._atomtype[atomnumber-1]-1] += 1
-                    atomtypes.append(
-                        (atomnumber, self._atomtype[atomnumber-1]))
-                G = self._makemoleculegraph(atomtypes, bonds)
-                name = "".join([self.atomname[i]+(str(typenumber[i] if typenumber[i] > 1 else ""))
-                                if typenumber[i] > 0 else "" for i in range(0, len(self.atomname))])
-                if name in d:
-                    for j in range(len(d[name])):
-                        if nx.is_isomorphic(G, d[name][j], em):
-                            if j > 0:
-                                name += "_"+str(j+1)
-                            break
-                    else:
-                        d[name].append(G)
-                        name += "_"+str(len(d[name]))
-                        print(self._getstructure(name, atoms, bonds), file=fs)
+                bonds = tuple(tuple(int(y) for y in x.split(","))
+                        for x in s[1].split(";")) if len(s) == 3 else ()
+                molecule = self._molecule(self, atoms, bonds)
+                for isomer in d[str(molecule)]:
+                    if isomer.isomorphic(molecule, em):
+                        molecule.smiles = isomer.smiles
+                        break
                 else:
-                    d[name] = [G]
-                    print(self._getstructure(name, atoms, bonds), file=fs)
-                mname.append(name)
-                print(name, ",".join([str(x) for x in atoms]), ";".join(
+                    d[str(molecule)].append(molecule)
+                mname.append(molecule.smiles)
+                print(molecule.smiles, ",".join([str(x) for x in atoms]), ";".join(
                     [",".join([str(y) for y in x]) for x in bonds]), file=fm)
         self._mname = mname
+    
+    class _molecule:
+        def __init__(self, cmp, atoms, bonds):
+            self.atoms = atoms
+            self.bonds = bonds
+            self._atomtypes = cmp._atomtype[atoms-1]
+            self._atomnames = cmp._atomnames[atoms-1]
+            self.graph = self._makemoleculegraph()
+            counter = Counter(self._atomnames)
+            self.name = "".join([f"{atomname}{counter[atomname]}" for atomname in cmp.atomname])
+            self._smiles = None
+            self._convertSMILES = cmp._convertSMILES
 
-    def _getstructure(self, name, atoms, bonds):
-        index = {}
-        for i, atom in enumerate(atoms, start=1):
-            index[atom] = i
-        return " ".join((name, ",".join([self.atomname[self._atomtype[x-1]-1] for x in atoms]), ";".join([",".join((str(index[x[0]]), str(index[x[1]]), str(x[2]))) for x in bonds])))
+        def __str__(self):
+            return self.name
 
-    @staticmethod
-    def _makemoleculegraph(atoms, bonds):
-        G = nx.Graph()
-        for line in bonds:
-            G.add_edge(line[0], line[1], level=line[2])
-        for atom in atoms:
-            atomnumber, atomtype = atom
-            G.add_node(atomnumber, atom=atomtype)
-        return G
+        @property
+        def smiles(self):
+            if self._smiles is None:
+                self._smiles = self._convertSMILES(self.atoms, self.bonds)
+            return self._smiles
+
+        @smiles.setter
+        def smiles(self, value):
+            self._smiles = value
+
+        def _makemoleculegraph(self):
+            graph = nx.Graph()
+            for line in self.bonds:
+                graph.add_edge(line[0], line[1], level=line[2])
+            for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
+                graph.add_node(atomnumber, atom=atomtype)
+            return graph
+
+        def isomorphic(self, mol, em):
+            return nx.is_isomorphic(self.graph, mol.graph, em)
 
 
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
         with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            semaphore = Semaphore(self.nproc*15)
+            semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._calmoleculeSMILESname,
-                                self._produce(semaphore, ft, ()), 10)
+                                self._produce(semaphore, ft, None), 100)
             for name, atoms, bonds in tqdm(results, total=self._hmmit, desc="Indentify isomers", unit="molecule"):
                 mname.append(name)
-                print(name, ",".join([str(x) for x in atoms]), ";".join(
-                    [",".join([str(y) for y in x]) for x in bonds]), file=fm)
+                fm.write(' '.join((name, ",".join((str(x) for x in atoms)), ";".join(
+                    (",".join((str(y) for y in x)) for x in bonds)), '\n')))
                 semaphore.release()
         self._mname = mname
 
     def _calmoleculeSMILESname(self, item):
         line, _ = item
         s = self._decompress(line).split()
-        atoms = [int(x) for x in s[0].split(",")]
-        bonds = [tuple(int(y) for y in x.split(","))
-                 for x in s[1].split(";")] if len(s) == 3 else []
+        atoms = np.array([int(x) for x in s[0].split(",")])
+        bonds = tuple(tuple(int(y) for y in x.split(","))
+                 for x in s[1].split(";")) if len(s) == 3 else ()
         name = self._convertSMILES(atoms, bonds)
         return name, atoms, bonds
-
-    def _convertSMILES(self, atoms, bonds):
-        m = Chem.RWMol(Chem.MolFromSmiles(''))
-        d = {}
-        for atomnumber in atoms:
-            d[atomnumber] = m.AddAtom(
-                Chem.Atom(self.atomname[self._atomtype[atomnumber-1]-1]))
-        for atom1, atom2, level in bonds:
-            m.AddBond(d[atom1], d[atom2], Chem.BondType.DOUBLE if level == 2 else (
-                Chem.BondType.TRIPLE if level == 3 else (Chem.BondType.AROMATIC if level == 12 else Chem.BondType.SINGLE)))
-        name = Chem.MolToSmiles(m)
-        return name
