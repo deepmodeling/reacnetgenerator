@@ -9,11 +9,11 @@ from multiprocessing import cpu_count
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import webbrowser
-from . import ReacNetGenerator
+from . import ReacNetGenerator, __version__
 from ._static import _static_img
 
 
-class GUI():
+class GUI:
     '''GUI class'''
 
     def __init__(self):
@@ -21,10 +21,8 @@ class GUI():
         print(__doc__)
         self._filename = ''
 
-    def gui(self):
-        '''start the GUI'''
         self._top = tk.Tk()
-        self._top.title("ReacNetGenerator")
+        self._top.title(f"ReacNetGenerator {__version__}")
         self._top.columnconfigure(4, weight=2)
 
         self._filetype = tk.StringVar()
@@ -75,6 +73,8 @@ class GUI():
         self._nproclb.grid(row=3, column=4, padx=5, pady=5)
         self._nprocet.grid(row=3, column=5, padx=5, pady=5)
 
+    def gui(self):
+        '''start the GUI'''
         self._top.mainloop()
 
     def _run(self):

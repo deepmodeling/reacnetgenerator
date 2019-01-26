@@ -1,7 +1,16 @@
+'''
+Welcome to install ReacNetGenerator!
+Just use the following command to install:
+$ python setup.py install
+Note you should install OpenBabel and RDkit first:
+$ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
+$ source activate reacnetgenerator
+'''
 from setuptools import setup
 from os import path
 
 if __name__ == '__main__':
+    print(__doc__)
     this_directory = path.abspath(path.dirname(__file__))
     with open(path.join(this_directory, 'docs', 'README.md')) as f:
         long_description = f.read()

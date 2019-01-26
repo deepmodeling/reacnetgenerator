@@ -60,20 +60,20 @@ from multiprocessing import Pool, Semaphore, cpu_count
 
 from pkg_resources import DistributionNotFound, get_distribution
 
+from ._reachtml import _HTMLResult
+from tqdm import tqdm
+from rdkit import Chem
+from hmmlearn import hmm
+from ase import Atom, Atoms
+import scour.scour
+import openbabel
+import numpy as np
+import networkx.algorithms.isomorphism as iso
+import networkx as nx
 import matplotlib as mpl
 mpl.use("svg")
 import matplotlib.pyplot as plt
-import networkx as nx
-import networkx.algorithms.isomorphism as iso
-import numpy as np
-import openbabel
-import scour.scour
-from ase import Atom, Atoms
-from hmmlearn import hmm
-from rdkit import Chem
-from tqdm import tqdm
 
-from ._reachtml import _HTMLResult
 
 try:
     __version__ = get_distribution(__name__).version
@@ -85,7 +85,7 @@ logging.basicConfig(
     format=f'%(asctime)s - ReacNetGen {__version__} - %(levelname)s: %(message)s', level=logging.INFO)
 
 
-class ReacNetGenerator(object):
+class ReacNetGenerator:
     ''' Use ReacNetGenerator for trajectory analysis'''
 
     def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=None, selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, moleculestructurefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=None, a=None, b=None, runHMM=True, SMILES=True, getoriginfile=False, species=None, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=None, node_color=None, pos=None, printfiltersignal=False, showid=True, k=None, start_color=None, end_color=None, nproc=None, speciescenter=None, n_searchspecies=2):
@@ -142,6 +142,17 @@ class ReacNetGenerator(object):
         self._timearray = []
         self._statusid = 0
         self._statusidmax = 0
+        # define attribute
+        self._atomtype = None
+        self._step = None
+        self._model = None
+        self._hmmit = None
+        self._timestep = None
+        self._steplinenum = None
+        self._N = None
+        self._temp1it = None
+        self.moleculetempfilename = None
+        self.moleculetemp2filename = None
 
     def runanddraw(self, run=True, draw=True, report=True):
         ''' Analyze the trajectory from MD simulation '''
@@ -235,7 +246,7 @@ class ReacNetGenerator(object):
         """ Generate the analysis report """
         self._statusidmax = max(self._statusidmax, 6)
         self._printtime(0)
-        _HTMLResult(self)._report()
+        _HTMLResult(self).report()
         logging.info(
             f"Report is generated. Please see {self.resultfilename} for more details.")
         self._printtime(6)
@@ -520,7 +531,7 @@ class ReacNetGenerator(object):
         index = {}
         for i, atom in enumerate(atoms, start=1):
             index[atom] = i
-        return name+" "+",".join([self.atomname[self._atomtype[x-1]-1] for x in atoms])+" "+";".join([str(index[x[0]])+","+str(index[x[1]])+","+str(x[2]) for x in bonds])
+        return " ".join((name, ",".join([self.atomname[self._atomtype[x-1]-1] for x in atoms]), ";".join([",".join((str(index[x[0]]), str(index[x[1]]), str(x[2]))) for x in bonds])))
 
     def _readstrcture(self):
         with open(self.moleculestructurefilename) as f:
@@ -781,7 +792,7 @@ class ReacNetGenerator(object):
         pass
 
 
-class Placeholder(object):
+class Placeholder:
     def __init__(self):
         pass
 

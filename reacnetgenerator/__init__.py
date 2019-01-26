@@ -2,4 +2,4 @@
 """ReacNetGen"""
 
 
-from .reacnetgen import ReacNetGenerator
+from .reacnetgen import ReacNetGenerator, __version__
