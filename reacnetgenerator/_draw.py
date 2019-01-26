@@ -116,7 +116,7 @@ class _DrawNetwork:
                     showname[specname] = str(n)
                     print(n, specname)
         return species_out, showname
-    
+
     def _readstrcture(self):
         with open(self.moleculestructurefilename) as f:
             d = {}

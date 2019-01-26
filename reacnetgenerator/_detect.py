@@ -12,12 +12,15 @@ from ase import Atom, Atoms
 from tqdm import tqdm
 import openbabel
 
+
 class InputFileType(Enum):
     LAMMPSBOND = auto()
     LAMMPSDUMP = auto()
 
+
 class _Detect(metaclass=ABCMeta):
     '''Detect molecules'''
+
     def __init__(self, rng):
         self.rng = rng
         self.inputfilename = rng.inputfilename
@@ -83,7 +86,7 @@ class _Detect(metaclass=ABCMeta):
         self._writemoleculetempfile(d)
         self._timestep = timestep
         self._step = len(timestep)-1
-    
+
     @abstractmethod
     def _readNfunc(self, f):
         pass
@@ -110,6 +113,7 @@ class _Detect(metaclass=ABCMeta):
                 f.write(self._compress(
                     ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
         self._temp1it = len(d)
+
 
 class _DetectLAMMPSbond(_Detect):
     def _readNfunc(self, f):
@@ -146,9 +150,10 @@ class _DetectLAMMPSbond(_Detect):
                     s = line.split()
                     bond[int(s[0])-1] = [int(x) for x in s[3:3+int(s[2])]]
                     level[int(s[0])-1] = [max(1, round(float(x)))
-                                        for x in s[4+int(s[2]):4+2*int(s[2])]]
+                                          for x in s[4+int(s[2]):4+2*int(s[2])]]
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
+
 
 class _DetectLAMMPSdump(_Detect):
     class LineType(Enum):
@@ -188,7 +193,7 @@ class _DetectLAMMPSdump(_Detect):
             if line:
                 if line.startswith("ITEM:"):
                     linecontent = self.LineType.TIMESTEP if line.startswith("ITEM: TIMESTEP") else (self.LineType.ATOMS if line.startswith(
-                    "ITEM: ATOMS") else (self.LineType.NUMBER if line.startswith("ITEM: NUMBER OF ATOMS") else self.LineType.OTHER))
+                        "ITEM: ATOMS") else (self.LineType.NUMBER if line.startswith("ITEM: NUMBER OF ATOMS") else self.LineType.OTHER))
                 else:
                     if linecontent == self.LineType.ATOMS:
                         s = line.split()

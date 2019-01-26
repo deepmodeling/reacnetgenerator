@@ -9,6 +9,7 @@ import networkx as nx
 import networkx.algorithms.isomorphism as iso
 from rdkit import Chem
 
+
 class _CollectPaths(metaclass=ABCMeta):
     def __init__(self, rng):
         self.rng = rng
@@ -60,7 +61,7 @@ class _CollectPaths(metaclass=ABCMeta):
                 if index.size:
                     atomeach[key1[:, None]-1, index] = i
         return atomeach
-    
+
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
         routestrarr = []
@@ -92,6 +93,7 @@ class _CollectPaths(metaclass=ABCMeta):
                         allmoleculeroute.append(mroute)
                 semaphore.release()
         return allmoleculeroute
+
 
 class _CollectMolPaths(_CollectPaths):
     def __init__(self, rng):
@@ -151,6 +153,7 @@ class _CollectMolPaths(_CollectPaths):
             G.add_node(atomnumber, atom=atomtype)
         return G
 
+
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
@@ -164,7 +167,7 @@ class _CollectSMILESPaths(_CollectPaths):
                     [",".join([str(y) for y in x]) for x in bonds]), file=fm)
                 semaphore.release()
         self._mname = mname
-    
+
     def _calmoleculeSMILESname(self, item):
         line, _ = item
         s = self._decompress(line).split()

@@ -5,8 +5,9 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
+
 class _GenerateMatrix:
-    def __init__(self,rng):
+    def __init__(self, rng):
         self.rng = rng
         self.tablefilename = rng.tablefilename
         self.speciesfilename = rng.speciesfilename
@@ -79,9 +80,10 @@ class _GenerateMatrix:
                 if all(reactionnumber >= 0):
                     table[reactionnumber] = n_reaction
 
-        df=pd.DataFrame(table[:len(species),:len(species)], index=species, columns=species)
-        df.to_csv(self.tablefilename,sep=' ')
-            
+        df = pd.DataFrame(table[:len(species), :len(
+            species)], index=species, columns=species)
+        df.to_csv(self.tablefilename, sep=' ')
+
     def _searchspecies(self, originspec, sortedreactions, species):
         searchedspecies = []
         for reaction, n_reaction in sortedreactions:
@@ -101,7 +103,7 @@ class _GenerateMatrix:
                 for t in [int(x) for x in self._decompress(line2).split()[-1].split(",")]:
                     d[t][name] += 1
             for t in range(len(self._timestep)):
-                buff=[f"Timestep {self._timestep[t]}:"]
+                buff = [f"Timestep {self._timestep[t]}:"]
                 buff.extend([f"{name} {num}" for name, num in d[t].items()])
                 buff.append('\n')
                 fw.write(' '.join(buff))

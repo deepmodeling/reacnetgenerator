@@ -22,11 +22,13 @@ class TestReacNetGen(unittest.TestCase):
         ''' Test main process of ReacNetGen'''
         testparms = json.load(
             pkg_resources.resource_stream(__name__, 'test.json'))
-        
+
         for testparm in testparms:
-            pathfilename = os.path.join(testparm['folder'], testparm['filename'])
-            
-            self._download_file(testparm['url'], pathfilename, testparm['sha256'])
+            pathfilename = os.path.join(
+                testparm['folder'], testparm['filename'])
+
+            self._download_file(
+                testparm['url'], pathfilename, testparm['sha256'])
 
             r = reacnetgenerator.ReacNetGenerator(
                 inputfilename=pathfilename, atomname=testparm['atomname'], SMILES=testparm['smiles'],
@@ -38,7 +40,7 @@ class TestReacNetGen(unittest.TestCase):
                 for line in f:
                     print(line.strip())
             self.assertTrue(os.path.exists(r.resultfilename))
-    
+
     def _download_file(self, url, pathfilename, sha256):
         # download if not exists
         while not os.path.isfile(pathfilename) or self._checksha256(pathfilename) != sha256:
@@ -61,11 +63,11 @@ class TestReacNetGen(unittest.TestCase):
     def _checksha256(filename):
         if not os.path.isfile(filename):
             return
-        h  = hashlib.sha256()
-        b  = bytearray(128*1024)
+        h = hashlib.sha256()
+        b = bytearray(128*1024)
         mv = memoryview(b)
         with open(filename, 'rb', buffering=0) as f:
-            for n in iter(lambda : f.readinto(mv), 0):
+            for n in iter(lambda: f.readinto(mv), 0):
                 h.update(mv[:n])
         sha256 = h.hexdigest()
         logging.info(f"SHA256 of {filename}: {sha256}")

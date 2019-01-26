@@ -34,7 +34,7 @@ class _HMMFilter:
             self._initHMM()
         self._calhmm()
         self.rng.moleculetemp2filename = self.moleculetemp2filename
-    
+
     def _initHMM(self):
         self._model = hmm.MultinomialHMM(n_components=2)
         self._model.startprob_ = self.p

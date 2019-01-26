@@ -82,7 +82,7 @@ class ReacNetGenerator:
         print(__doc__)
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
-        self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype=="lammpsbondfile" else InputFileType.LAMMPSDUMP
+        self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype == "lammpsbondfile" else InputFileType.LAMMPSDUMP
         self.inputfilename = inputfilename
         self.atomname = self._setparam(atomname, ["C", "H", "O"])
         self.selectatoms = self._setparam(selectatoms, self.atomname)
@@ -187,7 +187,7 @@ class ReacNetGenerator:
 
     def _process(self, steps):
         timearray = [time.time()]
-        for i, runstep in enumerate(steps,1):
+        for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self.inputfiletype)(self).detect()
             elif runstep == self.Status.HMM:
