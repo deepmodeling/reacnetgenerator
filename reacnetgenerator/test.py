@@ -29,7 +29,8 @@ class TestReacNetGen(unittest.TestCase):
             self._download_file(testparm['url'], pathfilename, testparm['sha256'])
 
             r = reacnetgenerator.ReacNetGenerator(
-                inputfilename=pathfilename, atomname=testparm['atomname'], inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])
+                inputfilename=pathfilename, atomname=testparm['atomname'], SMILES=testparm['smiles'],
+                inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])
             r.runanddraw()
 
             logging.info("Here are reactions:")
