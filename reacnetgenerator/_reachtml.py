@@ -3,6 +3,7 @@
 
 import json
 import re
+import logging
 from collections import defaultdict
 from multiprocessing import Pool
 
@@ -32,6 +33,7 @@ class _HTMLResult:
         ''' Generate a web page to show the result. '''
         self._readdata()
         self._generateresult()
+        logging.info(f"Report is generated. Please see {self._resultfile} for more details.")
 
     @classmethod
     def _re(cls, smi):

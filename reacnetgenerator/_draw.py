@@ -10,12 +10,17 @@ import networkx as nx
 import numpy as np
 import scour.scour
 import matplotlib.pyplot as plt
+import pandas as pd
+
+from ._path import _CollectMolPaths
 
 
 class _DrawNetwork:
     def __init__(self, rng):
+        self.atomname = rng.atomname
         self.tablefilename = rng.tablefilename
         self.imagefilename = rng.imagefilename
+        self.moleculestructurefilename = rng.moleculestructurefilename
         self.maxspecies = rng.maxspecies
         self.species = rng.species
         self.speciesfilter = rng.speciesfilter
@@ -29,8 +34,6 @@ class _DrawNetwork:
         self.pos = rng.pos
         self.nolabel = rng.nolabel
         self.showid = rng.showid
-        self._convertstructure = rng._convertstructure
-        self._readstrcture = rng._readstrcture
 
     def draw(self):
         ''' Draw the network '''
@@ -72,13 +75,8 @@ class _DrawNetwork:
             logging.error(f"Error: cannot draw images. Details: {e}")
 
     def _readtable(self):
-        table = []
-        name = []
-        with open(self.tablefilename) as file:
-            for line in itertools.islice(file, 1, None):
-                name.append(line.split()[0])
-                table.append([int(s) for s in line.split()[1:]])
-        return np.array(table), name
+        df = pd.read_csv(self.tablefilename, sep=' ', index_col=0, header=0)
+        return df.values, df.index
 
     def _handlespecies(self, name):
         showname = {}
@@ -99,12 +97,12 @@ class _DrawNetwork:
                             ['atom', 'level'], ["None", 1])
                         b = False
                     i = 1
-                    while (specname+"_"+str(i) if i > 1 else specname) in structures:
+                    while (f"{specname}_{i}" if i > 1 else specname) in structures:
                         G2 = self._convertstructure(structures[(
-                            specname+"_"+str(i) if i > 1 else specname)][0], structures[(specname+"_"+str(i) if i > 1 else specname)][1])
+                            f"{specname}_{i}" if i > 1 else specname)][0], structures[(f"{specname}_{i}" if i > 1 else specname)][1])
                         if nx.is_isomorphic(G1, G2, em):
                             if i > 1:
-                                specname += "_"+str(i)
+                                specname += f"_{i}"
                             break
                         i += 1
                 species_out[specname] = {}
@@ -118,3 +116,22 @@ class _DrawNetwork:
                     showname[specname] = str(n)
                     print(n, specname)
         return species_out, showname
+    
+    def _readstrcture(self):
+        with open(self.moleculestructurefilename) as f:
+            d = {}
+            for line in f:
+                s = line.split()
+                name = s[0]
+                atoms = [x for x in s[1].split(",")]
+                bonds = [tuple(int(y) for y in x.split(","))
+                         for x in s[2].split(";")] if len(s) == 3 else []
+                d[name] = (atoms, bonds)
+        return d
+
+    def _convertstructure(self, atoms, bonds):
+        atomtypes = []
+        for i, atom in enumerate(atoms, start=1):
+            atomtypes.append((i, self.atomname.index(atom)))
+        G = _CollectMolPaths._makemoleculegraph(atomtypes, bonds)
+        return G

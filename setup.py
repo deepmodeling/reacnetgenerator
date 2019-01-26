@@ -28,6 +28,7 @@ if __name__ == '__main__':
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'htmlmin', 'ase', 'scour', 'tqdm',
               'jinja2', 'coloredlogs', 'jsmin', 'cssmin',
+              'pandas'
           ],
           entry_points={'console_scripts': [
               'reacnetgenerator=reacnetgenerator.reacnetgen:_commandline',

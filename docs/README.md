@@ -27,7 +27,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Requirements
 * Python 3.6 - 3.7 (**Note:** Python <= 3.5 is not supported!)
-* Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [ASE](https://gitlab.com/ase/ase), [scour](https://github.com/scour-project/scour), [tqdm](https://github.com/tqdm/tqdm), [jinja2](https://github.com/pallets/jinja), [coloredlogs](https://github.com/xolox/python-coloredlogs), [htmlmin](https://github.com/mankyd/htmlmin/), [jsmin](https://github.com/tikitu/jsmin/), [cssmin](https://github.com/zacharyvoase/cssmin)
+* Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [pandas](https://github.com/pandas-dev/pandas), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [ASE](https://gitlab.com/ase/ase), [scour](https://github.com/scour-project/scour), [tqdm](https://github.com/tqdm/tqdm), [jinja2](https://github.com/pallets/jinja), [coloredlogs](https://github.com/xolox/python-coloredlogs), [htmlmin](https://github.com/mankyd/htmlmin/), [jsmin](https://github.com/tikitu/jsmin/), [cssmin](https://github.com/zacharyvoase/cssmin)
 * Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
 ## Installation
