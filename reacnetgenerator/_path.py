@@ -1,7 +1,7 @@
 ''' Collect paths '''
 
 from abc import ABCMeta, abstractmethod
-from multiprocessing import Pool, Semaphore, cpu_count
+from multiprocessing import Pool, Semaphore
 
 import numpy as np
 from tqdm import tqdm
