@@ -4,6 +4,9 @@
 import pkg_resources
 import base64
 
+from jsmin import jsmin
+from cssmin import cssmin
+
 
 def _getresource(path):
     return pkg_resources.resource_string(__name__, path).decode()
@@ -15,7 +18,8 @@ def _imgtobase64(path):
 
 # HTML template
 _html = {
-    'bk-css': _getresource('static/css/bk-css.css'),
+    'bk-css': cssmin(_getresource('static/css/bk-css.css')),
+    "reacnetgen.js": jsmin(_getresource('static/js/reacnetgen.js')),
     'template': _getresource('static/html/template.html'),
 }
 
@@ -28,7 +32,6 @@ _static_js = {
     "creative.min.js": _getresource('static/js/creative.min.js'),
     "d3.min.js": _getresource('static/js/d3.min.js'),
     "jsnetworkx.js": _getresource('static/js/jsnetworkx.min.js'),
-    "reacnetgen.js": _getresource('static/js/reacnetgen.js'),
 }
 _static_css = {
     "bootstrap.min.css": _getresource('static/css/bootstrap.min.css'),

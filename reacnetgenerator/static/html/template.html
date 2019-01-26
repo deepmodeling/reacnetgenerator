@@ -7,11 +7,7 @@
 </head>
 
 <body id="page-top">
-    <style>
-        {% for c in css %}
-            {{ c }}
-        {% endfor %}
-    </style>
+    <style>{% for c in css %}{{ c }}{% endfor %}</style>
 
     <svg class="d-none">
         <defs>
@@ -182,12 +178,7 @@
     </section>
 
 
-    <script>
-        linkreac={{ linkreac }}
-        {% for js in javascript %}
-            {{ js }}
-        {% endfor %}
-    </script>
+    <script>linkreac={{ linkreac }};{% for js in javascript %}{{ js }}{% endfor %}</script>
 </body>
 
 </html>

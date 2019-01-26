@@ -97,7 +97,7 @@ class _HTMLResult:
             _static_js["creative.min.js"],
             _static_js["d3.min.js"],
             _static_js["jsnetworkx.js"],
-            _static_js["reacnetgen.js"],
+            _html["reacnetgen.js"],
         ]
         self._templatedict["linkreac"] = json.dumps(self._linkreac)
         template = Template(_html["template"])
