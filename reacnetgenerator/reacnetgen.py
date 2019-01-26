@@ -54,8 +54,8 @@ import os
 import tempfile
 import time
 import zlib
-from enum import Enum, auto
-from collections import Counter, defaultdict
+from enum import Enum
+from collections import Counter
 from multiprocessing import Pool, Semaphore, cpu_count
 
 from pkg_resources import DistributionNotFound, get_distribution
@@ -63,12 +63,11 @@ from pkg_resources import DistributionNotFound, get_distribution
 from tqdm import tqdm
 from rdkit import Chem
 from hmmlearn import hmm
-from ase import Atom, Atoms
-import openbabel
 import numpy as np
 import networkx.algorithms.isomorphism as iso
 import networkx as nx
 
+from ._detect import _Detect, InputFileType
 from ._draw import _DrawNetwork
 from ._reachtml import _HTMLResult
 
@@ -87,7 +86,7 @@ class ReacNetGenerator:
         print(__doc__)
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
-        self.inputfiletype = self.InputFileType.LAMMPSBOND if inputfiletype=="lammpsbondfile" else self.InputFileType.LAMMPSDUMP
+        self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype=="lammpsbondfile" else InputFileType.LAMMPSDUMP
         self.inputfilename = inputfilename
         self.atomname = self._setparam(atomname, ["C", "H", "O"])
         self.selectatoms = self._setparam(selectatoms, self.atomname)
@@ -172,14 +171,13 @@ class ReacNetGenerator:
             self.Status.MATRIX,
         ))
 
-
     def draw(self):
         """ Draw the reaction network """
         self._process((self.Status.NETWORK))
 
     def report(self):
         """ Generate the analysis report """
-        self._statusidmax = max(self._statusidmax, 6)
+        self._process((self.Status.REPORT))
 
     class Status(Enum):
         INIT = "Init"
@@ -198,7 +196,7 @@ class ReacNetGenerator:
         for runstep in steps:
             self._status = runstep
             if runstep == self.Status.DETECT:
-                self._readinputfile()
+                _Detect.gettype(self.inputfiletype)(self).detect()
             elif runstep == self.Status.HMM:
                 if self.runHMM:
                     self._initHMM()
@@ -245,184 +243,6 @@ class ReacNetGenerator:
         logging.info("====== Summary ======")
         logging.info(
             f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
-
-    def _mo(self, i, bond, level, molecule, done, bondlist):
-        # connect molecule
-        molecule.append(i)
-        done[i-1] = True
-        for b, l in zip(bond[i-1], level[i-1]):
-            if not done[b-1]:
-                bondlist.append((i, b, l) if i < b else (b, i, l))
-                molecule, done, bondlist = self._mo(
-                    b, bond, level, molecule, done, bondlist)
-        return molecule, done, bondlist
-
-    class InputFileType(Enum):
-        LAMMPSBOND = auto()
-        LAMMPSDUMP = auto()
-
-    @property
-    def _readNfunc(self):
-        if self.inputfiletype == self.InputFileType.LAMMPSBOND:
-            return self._readlammpsbondN
-        return self._readlammpscrdN
-
-    @property
-    def _readstepfunc(self):
-        if self.inputfiletype == self.InputFileType.LAMMPSBOND:
-            return self._readlammpsbondstep
-        return self._readlammpscrdstep
-
-    def _readinputfile(self):
-        self._steplinenum = self._readNfunc()
-        self._getdandtimestep()
-
-    def _readlammpsbondN(self):
-        with open(self.inputfilename) as file:
-            iscompleted = False
-            for index, line in enumerate(file):
-                if line.startswith("#"):
-                    if line.startswith("# Number of particles"):
-                        if iscompleted:
-                            stepbindex = index
-                            break
-                        else:
-                            iscompleted = True
-                            stepaindex = index
-                        N = [int(s) for s in line.split() if s.isdigit()][0]
-                        atomtype = np.zeros(N, dtype=np.int)
-                else:
-                    s = line.split()
-                    atomtype[int(s[0])-1] = int(s[1])
-        steplinenum = stepbindex-stepaindex
-        self._N = N
-        self._atomtype = atomtype
-        return steplinenum
-
-    def _readlammpsbondstep(self, item):
-        (step, lines), _ = item
-        bond = [None for x in range(self._N)]
-        level = [None for x in range(self._N)]
-        for line in lines:
-            if line:
-                if line.startswith("#"):
-                    if line.startswith("# Timestep"):
-                        timestep = int(line.split()[-1])
-                else:
-                    s = line.split()
-                    bond[int(s[0])-1] = [int(x) for x in s[3:3+int(s[2])]]
-                    level[int(s[0])-1] = [max(1, round(float(x)))
-                                          for x in s[4+int(s[2]):4+2*int(s[2])]]
-        molecules = self._connectmolecule(bond, level)
-        return molecules, (step, timestep)
-
-    def _readlammpscrdN(self):
-        with open(self.inputfilename) as f:
-            iscompleted = False
-            for index, line in enumerate(f):
-                if line.startswith("ITEM:"):
-                    linecontent = 4 if line.startswith("ITEM: TIMESTEP") else (3 if line.startswith(
-                        "ITEM: ATOMS") else (1 if line.startswith("ITEM: NUMBER OF ATOMS") else 2))
-                else:
-                    if linecontent == 1:
-                        if iscompleted:
-                            stepbindex = index
-                            break
-                        else:
-                            iscompleted = True
-                            stepaindex = index
-                        N = int(line.split()[0])
-                        atomtype = np.zeros(N, dtype=np.int)
-                    elif linecontent == 3:
-                        s = line.split()
-                        atomtype[int(s[0])-1] = int(s[1])
-        steplinenum = stepbindex-stepaindex
-        self._N = N
-        self._atomtype = atomtype
-        return steplinenum
-
-    def _readlammpscrdstep(self, item):
-        (step, lines), _ = item
-        step_atoms = []
-        for line in lines:
-            if line:
-                if line.startswith("ITEM:"):
-                    linecontent = 4 if line.startswith("ITEM: TIMESTEP") else (3 if line.startswith(
-                        "ITEM: ATOMS") else (1 if line.startswith("ITEM: NUMBER OF ATOMS") else 2))
-                else:
-                    if linecontent == 3:
-                        s = line.split()
-                        step_atoms.append(
-                            (int(s[0]), Atom(self.atomname[int(s[1])-1], [float(x) for x in s[2:5]])))
-                    elif linecontent == 4:
-                        timestep = step, int(line.split()[0])
-        _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
-        step_atoms = Atoms(step_atoms)
-        bond, level = self._getbondfromcrd(step_atoms)
-        molecules = self._connectmolecule(bond, level)
-        return molecules, timestep
-
-    def _getdandtimestep(self):
-        d = defaultdict(list)
-        timestep = {}
-        with open(self.inputfilename) as file, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            semaphore = Semaphore(360)
-            results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
-                itertools.zip_longest(*[file]*self._steplinenum), 0, None, self.stepinterval)), None), 10)
-            for molecules, (step, thetimestep) in tqdm(results, desc="Read bond information and Detect molecules", unit="timestep"):
-                for molecule in molecules:
-                    d[molecule].append(step)
-                timestep[step] = thetimestep
-                semaphore.release()
-        self._writemoleculetempfile(d)
-        self._timestep = timestep
-        self._step = len(timestep)-1
-
-    def _connectmolecule(self, bond, level):
-        molecules = []
-        done = np.zeros(self._N, dtype=bool)
-        for i in range(1, self._N+1):
-            if not done[i-1]:
-                mole, done, bondlist = self._mo(i, bond, level, [], done, [])
-                moleculestr = ' '.join((",".join((str(x) for x in sorted(mole))), ";".join(
-                    (",".join([str(y) for y in x]) for x in sorted(bondlist)))))
-                molecules.append(self._compress(moleculestr))
-        return molecules
-
-    def _writemoleculetempfile(self, d):
-        with tempfile.NamedTemporaryFile('wb', delete=False) as f:
-            self.moleculetempfilename = f.name
-            for key, value in d.items():
-                f.write(self._compress(
-                    ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
-        self._temp1it = len(d)
-
-    @classmethod
-    def _getbondfromcrd(cls, step_atoms):
-        atomnumber = len(step_atoms)
-        xyzstring = f"{atomnumber}\nReacNetGenerator\n"+"\n".join(
-            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
-        conv = openbabel.OBConversion()
-        conv.SetInAndOutFormats('xyz', 'mol2')
-        mol = openbabel.OBMol()
-        conv.ReadString(mol, xyzstring)
-        mol2string = conv.WriteString(mol)
-        linecontent = -1
-        bond = [[] for i in range(atomnumber)]
-        bondlevel = [[] for i in range(atomnumber)]
-        for line in mol2string.split('\n'):
-            if line.startswith("@<TRIPOS>BOND"):
-                linecontent = 0
-            else:
-                if linecontent == 0:
-                    s = line.split()
-                    if len(s) > 3:
-                        bond[int(s[1])-1].append(int(s[2]))
-                        bond[int(s[2])-1].append(int(s[1]))
-                        level = 12 if s[3] == 'ar' else int(s[3])
-                        bondlevel[int(s[1])-1].append(level)
-                        bondlevel[int(s[2])-1].append(level)
-        return bond, bondlevel
 
     def _initHMM(self):
         self._model = hmm.MultinomialHMM(n_components=2)
@@ -715,10 +535,10 @@ class ReacNetGenerator:
                 for t in [int(x) for x in self._decompress(line2).split()[-1].split(",")]:
                     d[t][name] += 1
             for t in range(len(self._timestep)):
-                print("Timestep", self._timestep[t], ":", end=' ', file=fw)
-                for name, num in d[t].items():
-                    print(name, num, end=' ', file=fw)
-                print(file=fw)
+                buff=[f"Timestep {self._timestep[t]}:"]
+                buff.extend([f"{name} {num}" for name, num in d[t].items()])
+                buff.append('\n')
+                fw.write(' '.join(buff))
 
     def __enter__(self):
         return self
