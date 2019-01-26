@@ -1,12 +1,38 @@
-{
-    "url": "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download",
-    "md5": "d41d8cd98f00b204e9800998ecf8427e",
-    "folder": "test",
-    "filename": "bonds.reaxc",
-    "atomname": [
-        "H",
-        "O"
-    ],
-    "inputfiletype": "lammpsbondfile",
-    "hmm": true
-}
+[
+    {
+        "url": "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download",
+        "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304",
+        "folder": "test",
+        "filename": "bonds.reaxc",
+        "atomname": [
+            "H",
+            "O"
+        ],
+        "inputfiletype": "lammpsbondfile",
+        "hmm": false
+    },
+    {
+        "url": "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download",
+        "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304",
+        "folder": "test",
+        "filename": "bonds.reaxc",
+        "atomname": [
+            "H",
+            "O"
+        ],
+        "inputfiletype": "lammpsbondfile",
+        "hmm": true
+    },
+    {
+        "url": "https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download",
+        "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e",
+        "folder": "test",
+        "filename": "dump.reaxc",
+        "atomname": [
+            "H",
+            "O"
+        ],
+        "inputfiletype": "lammpsdumpfile",
+        "hmm": true
+    }
+]

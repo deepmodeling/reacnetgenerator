@@ -62,12 +62,12 @@ from pkg_resources import DistributionNotFound, get_distribution
 
 from tqdm import tqdm
 from rdkit import Chem
-from hmmlearn import hmm
 import numpy as np
 import networkx.algorithms.isomorphism as iso
 import networkx as nx
 
 from ._detect import _Detect, InputFileType
+from ._hmmfilter import _HMMFilter
 from ._draw import _DrawNetwork
 from ._reachtml import _HTMLResult
 
@@ -137,7 +137,6 @@ class ReacNetGenerator:
         # define attribute
         self._atomtype = None
         self._step = None
-        self._model = None
         self._hmmit = None
         self._timestep = None
         self._steplinenum = None
@@ -198,9 +197,7 @@ class ReacNetGenerator:
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self.inputfiletype)(self).detect()
             elif runstep == self.Status.HMM:
-                if self.runHMM:
-                    self._initHMM()
-                self._calhmm()
+                _HMMFilter(self).filter()
             elif runstep == self.Status.PATH:
                 if self.SMILES:
                     self._printmoleculeSMILESname()
@@ -244,11 +241,7 @@ class ReacNetGenerator:
         logging.info(
             f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
 
-    def _initHMM(self):
-        self._model = hmm.MultinomialHMM(n_components=2)
-        self._model.startprob_ = self.p
-        self._model.transmat_ = self.a
-        self._model.emissionprob_ = self.b
+
 
     @classmethod
     def _produce(cls, semaphore, plist, parameter):
@@ -256,37 +249,7 @@ class ReacNetGenerator:
             semaphore.acquire()
             yield item, parameter
 
-    def _getoriginandhmm(self, item):
-        line_c, _ = item
-        line = self._decompress(line_c)
-        s = line.split()
-        value = np.array([int(x)-1 for x in s[-1].split(",")])
-        origin = np.zeros(self._step, dtype=np.int)
-        origin[value] = 1
-        if self.runHMM:
-            _, hmm = self._model.decode(
-                np.array([origin]).T, algorithm="viterbi")
-        return origin, (np.array(hmm) if self.runHMM else np.array([])), line
 
-    def _calhmm(self):
-        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else Placeholder() as fo, open(self.hmmfilename, 'wb') if self.runHMM else Placeholder() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            self.moleculetemp2filename = ft2.name
-            semaphore = Semaphore(360)
-            results = pool.imap_unordered(
-                self._getoriginandhmm, self._produce(semaphore, ft, ()), 10)
-            hmmit = 0
-            for originsignal, hmmsignal, mlist in tqdm(results, total=self._temp1it, desc="HMM filter", unit="molecule"):
-                if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
-                    if self.getoriginfile:
-                        fo.write(self._compress(
-                            "".join([str(i) for i in originsignal.tolist()])))
-                    if self.runHMM:
-                        fh.write(self._compress(
-                            "".join([str(i) for i in hmmsignal.tolist()])))
-                        hmmit += 1
-                    ft2.write(self._compress(mlist.strip()))
-                semaphore.release()
-        self._hmmit = hmmit
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
@@ -547,15 +510,7 @@ class ReacNetGenerator:
         pass
 
 
-class Placeholder:
-    def __init__(self):
-        pass
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, Type, value, traceback):
-        pass
 
 
 def _commandline():
