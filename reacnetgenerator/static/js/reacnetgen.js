@@ -1,6 +1,6 @@
 /* global jsnx */
 /* global linkreac */
-var canvas = $document.getElementById("canvas");
+var canvas = $(document)[0].getElementById("canvas");
 
 var G = new jsnx.Graph();
 var timer = null;
@@ -51,9 +51,11 @@ $(".popup-modal").magnificPopup({
 
 function addnode(spec) {
     G.addNode(spec);
-    var rightspecs = linkreac[spec]
-    for (var i = 0; i < rightspecs.length; i++) {
-        G.addNode(rightspecs[i]);
-        G.addEdge(rightspecs[i], spec);
+    if (spec in linkreac){
+        var rightspecs = linkreac[spec]
+        for (var i = 0; i < rightspecs.length; i++) {
+            G.addNode(rightspecs[i]);
+            G.addEdge(rightspecs[i], spec);
+        }
     }
 }
