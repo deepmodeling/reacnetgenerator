@@ -129,13 +129,13 @@ class ReacNetGenerator:
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
         # define attribute
-        self._atomtype = None
-        self._step = None
-        self._hmmit = None
-        self._timestep = None
-        self._steplinenum = None
-        self._N = None
-        self._temp1it = None
+        self.atomtype = None
+        self.step = None
+        self.hmmit = None
+        self.timestep = None
+        self.steplinenum = None
+        self.N = None
+        self.temp1it = None
         self.moleculetempfilename = None
         self.moleculetemp2filename = None
         self.allmoleculeroute = None
@@ -218,17 +218,17 @@ class ReacNetGenerator:
         logging.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
 
     @classmethod
-    def _produce(cls, semaphore, plist, parameter):
+    def produce(cls, semaphore, plist, parameter):
         for item in plist:
             semaphore.acquire()
             yield item, parameter
 
     @classmethod
-    def _compress(cls, x):
+    def compress(cls, x):
         return base64.a85encode(zlib.compress(x.encode()))+b'\n'
 
     @classmethod
-    def _decompress(cls, x):
+    def decompress(cls, x):
         return zlib.decompress(base64.a85decode(x.strip())).decode()
 
     @classmethod

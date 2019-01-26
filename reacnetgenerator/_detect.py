@@ -27,9 +27,9 @@ class _Detect(metaclass=ABCMeta):
         self.atomname = rng.atomname
         self.stepinterval = rng.stepinterval
         self.nproc = rng.nproc
-        self._produce = rng._produce
-        self._compress = rng._compress
-        self._decompress = rng._decompress
+        self._produce = rng.produce
+        self._compress = rng.compress
+        self._decompress = rng.decompress
 
         self._N = None
         self._atomtype = None
@@ -51,12 +51,12 @@ class _Detect(metaclass=ABCMeta):
     def detect(self):
         ''' Detect molecules'''
         self._readinputfile()
-        self.rng._N = self._N
-        self.rng._atomtype = self._atomtype
-        self.rng._step = self._step
-        self.rng._timestep = self._timestep
+        self.rng.N = self._N
+        self.rng.atomtype = self._atomtype
+        self.rng.step = self._step
+        self.rng.timestep = self._timestep
         self.rng.moleculetempfilename = self.moleculetempfilename
-        self.rng._temp1it = self._temp1it
+        self.rng.temp1it = self._temp1it
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
         ''' connect molecule '''

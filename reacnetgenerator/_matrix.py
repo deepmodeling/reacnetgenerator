@@ -17,9 +17,9 @@ class _GenerateMatrix:
         self.needprintspecies = rng.needprintspecies
         self.allmoleculeroute = rng.allmoleculeroute
         self.speciescenter = rng.speciescenter
-        self._mname = rng._mname
-        self._timestep = rng._timestep
-        self._decompress = rng._decompress
+        self._mname = rng.mname
+        self._timestep = rng.timestep
+        self._decompress = rng.decompress
 
     def generate(self):
         allroute = self._getallroute(self.allmoleculeroute)

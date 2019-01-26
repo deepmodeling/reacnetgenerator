@@ -19,14 +19,14 @@ class _HMMFilter:
         self.printfiltersignal = rng.printfiltersignal
         self.moleculetempfilename = rng.moleculetempfilename
         self.nproc = rng.nproc
-        self._temp1it = rng._temp1it
+        self._temp1it = rng.temp1it
         self.p = rng.p
         self.a = rng.a
         self.b = rng.b
-        self._step = rng._step
-        self._compress = rng._compress
-        self._decompress = rng._decompress
-        self._produce = rng._produce
+        self._step = rng.step
+        self._compress = rng.compress
+        self._decompress = rng.decompress
+        self._produce = rng.produce
         self._model = None
 
     def filter(self):

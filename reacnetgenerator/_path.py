@@ -14,9 +14,9 @@ class _CollectPaths(metaclass=ABCMeta):
     def __init__(self, rng):
         self.rng = rng
         self.runHMM = rng.runHMM
-        self._N = rng._N
-        self._step = rng._step
-        self._timestep = rng._timestep
+        self._N = rng.N
+        self._step = rng.step
+        self._timestep = rng.timestep
         self.atomname = rng.atomname
         self.originfilename = rng.originfilename
         self.hmmfilename = rng.hmmfilename
@@ -24,11 +24,11 @@ class _CollectPaths(metaclass=ABCMeta):
         self.moleculetemp2filename = rng.moleculetemp2filename
         self.atomroutefilename = rng.atomroutefilename
         self.nproc = rng.nproc
-        self._hmmit = rng._hmmit
-        self._atomtype = rng._atomtype
+        self._hmmit = rng.hmmit
+        self._atomtype = rng.atomtype
         self.selectatoms = rng.selectatoms
-        self._decompress = rng._decompress
-        self._produce = rng._produce
+        self._decompress = rng.decompress
+        self._produce = rng.produce
         self._mname = None
 
     @staticmethod
@@ -42,7 +42,7 @@ class _CollectPaths(metaclass=ABCMeta):
         self._printmoleculename()
         atomeach = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
-        self.rng._mname = self._mname
+        self.rng.mname = self._mname
 
     @abstractmethod
     def _printmoleculename(self):
