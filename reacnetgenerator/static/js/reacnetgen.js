@@ -52,7 +52,7 @@ $(".popup-modal").magnificPopup({
 function addnode(spec) {
     G.addNode(spec);
     if (spec in linkreac){
-        var rightspecs = linkreac[spec]
+        var rightspecs = linkreac[spec];
         for (var i = 0; i < rightspecs.length; i++) {
             G.addNode(rightspecs[i]);
             G.addEdge(rightspecs[i], spec);
