@@ -81,10 +81,6 @@ except DistributionNotFound:
     # package is not installed
     pass
 
-logging.basicConfig(
-    format=f'%(asctime)s - ReacNetGen {__version__} - %(levelname)s: %(message)s', level=logging.INFO)
-
-
 class ReacNetGenerator:
     ''' Use ReacNetGenerator for trajectory analysis'''
 
