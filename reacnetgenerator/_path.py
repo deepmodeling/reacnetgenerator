@@ -118,7 +118,7 @@ class _CollectMolPaths(_CollectPaths):
                 s = self._decompress(line).split()
                 atoms = np.array([int(x) for x in s[0].split(",")])
                 bonds = tuple(tuple(int(y) for y in x.split(","))
-                        for x in s[1].split(";")) if len(s) == 3 else ()
+                              for x in s[1].split(";")) if len(s) == 3 else ()
                 molecule = self._molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
                     if isomer.isomorphic(molecule, em):
@@ -130,7 +130,7 @@ class _CollectMolPaths(_CollectPaths):
                 print(molecule.smiles, ",".join([str(x) for x in atoms]), ";".join(
                     [",".join([str(y) for y in x]) for x in bonds]), file=fm)
         self._mname = mname
-    
+
     class _molecule:
         def __init__(self, cmp, atoms, bonds):
             self.atoms = atoms
@@ -139,7 +139,8 @@ class _CollectMolPaths(_CollectPaths):
             self._atomnames = cmp._atomnames[atoms-1]
             self.graph = self._makemoleculegraph()
             counter = Counter(self._atomnames)
-            self.name = "".join([f"{atomname}{counter[atomname]}" for atomname in cmp.atomname])
+            self.name = "".join(
+                [f"{atomname}{counter[atomname]}" for atomname in cmp.atomname])
             self._smiles = None
             self._convertSMILES = cmp._convertSMILES
 
@@ -187,6 +188,6 @@ class _CollectSMILESPaths(_CollectPaths):
         s = self._decompress(line).split()
         atoms = np.array([int(x) for x in s[0].split(",")])
         bonds = tuple(tuple(int(y) for y in x.split(","))
-                 for x in s[1].split(";")) if len(s) == 3 else ()
+                      for x in s[1].split(";")) if len(s) == 3 else ()
         name = self._convertSMILES(atoms, bonds)
         return name, atoms, bonds

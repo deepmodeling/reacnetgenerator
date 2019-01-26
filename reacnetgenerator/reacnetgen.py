@@ -111,7 +111,8 @@ class ReacNetGenerator:
         self.maxspecies = maxspecies
         self.nolabel = nolabel
         self.speciesfilter = self._setparam(speciesfilter, [])
-        self.node_color = np.array(self._setparam(node_color, [78/256, 196/256, 238/256]))
+        self.node_color = np.array(self._setparam(
+            node_color, [78/256, 196/256, 238/256]))
         self.pos = self._setparam(pos, {})
         self.printfiltersignal = printfiltersignal
         self.showid = showid
