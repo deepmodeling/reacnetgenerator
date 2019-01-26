@@ -1,6 +1,7 @@
 ''' HMM Filter '''
 
 from multiprocessing import Pool, Semaphore
+from contextlib import ExitStack
 import tempfile
 
 import numpy as np
@@ -45,7 +46,7 @@ class _HMMFilter:
         line = self._decompress(line_c)
         s = line.split()
         value = np.array([int(x)-1 for x in s[-1].split(",")])
-        origin = np.zeros(self._step, dtype=np.int)
+        origin = np.zeros(self._step, dtype=np.int8)
         origin[value] = 1
         if self.runHMM:
             _, hmm = self._model.decode(
@@ -53,9 +54,9 @@ class _HMMFilter:
         return origin, (np.array(hmm) if self.runHMM else np.array([])), line
 
     def _calhmm(self):
-        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else Placeholder() as fo, open(self.hmmfilename, 'wb') if self.runHMM else Placeholder() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
+        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else ExitStack() as fo, open(self.hmmfilename, 'wb') if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
             self.moleculetemp2filename = ft2.name
-            semaphore = Semaphore(360)
+            semaphore = Semaphore(self.nproc*15)
             results = pool.imap_unordered(
                 self._getoriginandhmm, self._produce(semaphore, ft, ()), 10)
             hmmit = 0
@@ -67,18 +68,7 @@ class _HMMFilter:
                     if self.runHMM:
                         fh.write(self._compress(
                             "".join([str(i) for i in hmmsignal.tolist()])))
-                        hmmit += 1
+                    hmmit += 1
                     ft2.write(self._compress(mlist.strip()))
                 semaphore.release()
         self._hmmit = hmmit
-
-
-class Placeholder:
-    def __init__(self):
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, Type, value, traceback):
-        pass

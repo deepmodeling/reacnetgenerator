@@ -241,15 +241,11 @@ class ReacNetGenerator:
         logging.info(
             f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
 
-
-
     @classmethod
     def _produce(cls, semaphore, plist, parameter):
         for item in plist:
             semaphore.acquire()
             yield item, parameter
-
-
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
@@ -271,7 +267,7 @@ class ReacNetGenerator:
     def _printatomroute(self, atomeach):
         with open(self.atomroutefilename, 'w') as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
             allmoleculeroute = []
-            semaphore = Semaphore(360)
+            semaphore = Semaphore(self.nproc*15)
             results = pool.imap(self._getatomroute, self._produce(
                 semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 10)
             for route in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
@@ -360,7 +356,7 @@ class ReacNetGenerator:
     def _printmoleculeSMILESname(self):
         mname = []
         with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            semaphore = Semaphore(360)
+            semaphore = Semaphore(self.nproc*15)
             results = pool.imap(self._calmoleculeSMILESname,
                                 self._produce(semaphore, ft, ()), 10)
             for name, atoms, bonds in tqdm(results, total=self._hmmit, desc="Indentify isomers", unit="molecule"):
@@ -508,10 +504,6 @@ class ReacNetGenerator:
 
     def __exit__(self, Type, value, traceback):
         pass
-
-
-
-
 
 def _commandline():
     parser = argparse.ArgumentParser(
