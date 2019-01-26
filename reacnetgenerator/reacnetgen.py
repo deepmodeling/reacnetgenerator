@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-from ._reachtml import _HTMLResult
-from tqdm import tqdm
-from rdkit import Chem
-from hmmlearn import hmm
-from ase import Atom, Atoms
-import scour.scour
-import openbabel
-import numpy as np
-import networkx.algorithms.isomorphism as iso
-import networkx as nx
-import matplotlib.pyplot as plt
 """
 ==================
 ReacNetGenerator
@@ -71,8 +60,19 @@ from multiprocessing import Pool, Semaphore, cpu_count
 
 from pkg_resources import DistributionNotFound, get_distribution
 
+from ._reachtml import _HTMLResult
+from tqdm import tqdm
+from rdkit import Chem
+from hmmlearn import hmm
+from ase import Atom, Atoms
+import scour.scour
+import openbabel
+import numpy as np
+import networkx.algorithms.isomorphism as iso
+import networkx as nx
 import matplotlib as mpl
 mpl.use("svg")
+import matplotlib.pyplot as plt
 
 
 try:
