@@ -14,7 +14,7 @@ import requests
 from tqdm import tqdm
 
 
-def download_file(url, local_filename):
+def _download_file(url, local_filename):
     # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
     r = requests.get(url, stream=True)
     total_size = int(r.headers.get('content-length', 0))
@@ -26,7 +26,7 @@ def download_file(url, local_filename):
     return local_filename
 
 
-def checkmd5(filename):
+def _checkmd5(filename):
     if not os.path.isfile(filename):
         return
     myhash = hashlib.md5()
@@ -40,18 +40,21 @@ def checkmd5(filename):
 
 
 class TestReacNetGen(unittest.TestCase):
+    '''Test ReacNetGenerator'''
+
     def test_reacnetgen(self):
+        ''' Test main process of ReacNetGen'''
         testparm = json.load(
             pkg_resources.resource_stream(__name__, 'test.json'))
         pathfilename = os.path.join(testparm['folder'], testparm['filename'])
         # download if not exists
-        while not os.path.isfile(pathfilename) or checkmd5(pathfilename) != testparm['md5']:
+        while not os.path.isfile(pathfilename) or _checkmd5(pathfilename) != testparm['md5']:
             try:
                 os.makedirs(testparm['folder'])
             except OSError:
                 pass
             print(f"Downloading  ...")
-            download_file(testparm['url'], pathfilename)
+            _download_file(testparm['url'], pathfilename)
 
         r = reacnetgenerator.ReacNetGenerator(
             inputfilename=pathfilename, atomname=testparm['atomname'], inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Generate a web page to show the analysis report
+''' Generate a web page to show the analysis report '''
 
 import json
 import re
@@ -14,7 +14,7 @@ from jinja2 import Template
 from ._static import _html, _static_css, _static_img, _static_js
 
 
-class _HTMLResult(object):
+class _HTMLResult:
     def __init__(self, ReacNetGenerator):
         self._reactionfile = ReacNetGenerator.reactionfilename
         self._resultfile = ReacNetGenerator.resultfilename
@@ -25,8 +25,10 @@ class _HTMLResult(object):
             "reactionsshownum": 20,
         }
         self._linkreac = defaultdict(list)
+        # define instance
+        self._specs = None
 
-    def _report(self):
+    def report(self):
         self._readdata()
         self._generateresult()
 
