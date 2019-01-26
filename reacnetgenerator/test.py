@@ -57,7 +57,7 @@ class TestReacNetGen(unittest.TestCase):
                 for chunk in tqdm(r.iter_content(chunk_size=1024), total=math.ceil(total_size//block_size), unit='KB', unit_scale=True, desc=f"Downloading {pathfilename}..."):
                     if chunk:
                         f.write(chunk)
-            return pathfilename
+        return pathfilename
 
     @staticmethod
     def _checksha256(filename):
