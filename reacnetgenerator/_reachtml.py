@@ -29,6 +29,7 @@ class _HTMLResult:
         self._specs = None
 
     def report(self):
+        ''' Generate a web page to show the result. '''
         self._readdata()
         self._generateresult()
 
