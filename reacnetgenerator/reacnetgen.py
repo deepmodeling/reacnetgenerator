@@ -54,25 +54,23 @@ import os
 import tempfile
 import time
 import zlib
+from enum import Enum, auto
 from collections import Counter, defaultdict
-from io import StringIO
 from multiprocessing import Pool, Semaphore, cpu_count
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from ._reachtml import _HTMLResult
 from tqdm import tqdm
 from rdkit import Chem
 from hmmlearn import hmm
 from ase import Atom, Atoms
-import scour.scour
 import openbabel
 import numpy as np
 import networkx.algorithms.isomorphism as iso
 import networkx as nx
-import matplotlib as mpl
-mpl.use("svg")
-import matplotlib.pyplot as plt
+
+from ._draw import _DrawNetwork
+from ._reachtml import _HTMLResult
 
 
 try:
@@ -89,7 +87,7 @@ class ReacNetGenerator:
         print(__doc__)
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
-        self.inputfiletype = inputfiletype
+        self.inputfiletype = self.InputFileType.LAMMPSBOND if inputfiletype=="lammpsbondfile" else self.InputFileType.LAMMPSDUMP
         self.inputfilename = inputfilename
         self.atomname = self._setparam(atomname, ["C", "H", "O"])
         self.selectatoms = self._setparam(selectatoms, self.atomname)
@@ -136,8 +134,7 @@ class ReacNetGenerator:
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
         self._timearray = []
-        self._statusid = 0
-        self._statusidmax = 0
+        self._status = self.Status.INIT
         # define attribute
         self._atomtype = None
         self._step = None
@@ -152,116 +149,102 @@ class ReacNetGenerator:
 
     def runanddraw(self, run=True, draw=True, report=True):
         ''' Analyze the trajectory from MD simulation '''
-        self._statusidmax = max(
-            self._statusidmax, (6 if report else (5 if draw else 4)))
-        self._printtime(0)
+        processthing = []
         if run:
-            self.run()
+            processthing.extend((
+                self.Status.DETECT,
+                self.Status.HMM,
+                self.Status.PATH,
+                self.Status.MATRIX,
+            ))
         if draw:
-            self.draw()
+            processthing.append(self.Status.NETWORK)
         if report:
-            self.report()
+            processthing.append(self.Status.REPORT)
+        self._process(processthing)
 
     def run(self):
         """ Processing of MD trajectory """
-        self._statusidmax = max(self._statusidmax, 4)
-        self._printtime(0)
-        for runstep in range(1, 5):
-            if runstep == 1:
+        self._process((
+            self.Status.DETECT,
+            self.Status.HMM,
+            self.Status.PATH,
+            self.Status.MATRIX,
+        ))
+
+
+    def draw(self):
+        """ Draw the reaction network """
+        self._process((self.Status.NETWORK))
+
+    def report(self):
+        """ Generate the analysis report """
+        self._statusidmax = max(self._statusidmax, 6)
+
+    class Status(Enum):
+        INIT = "Init"
+        DETECT = "Read bond information and Detect molecules"
+        HMM = "HMM filter"
+        PATH = "Indentify isomers and collect reaction paths"
+        MATRIX = "Reaction matrix generation"
+        NETWORK = "Draw reaction network"
+        REPORT = "Generate analysis report"
+
+        def __str__(self):
+            return self.value
+
+    def _process(self, steps):
+        self._printtime()
+        for runstep in steps:
+            self._status = runstep
+            if runstep == self.Status.DETECT:
                 self._readinputfile()
-            elif runstep == 2:
+            elif runstep == self.Status.HMM:
                 if self.runHMM:
                     self._initHMM()
                 self._calhmm()
-            elif runstep == 3:
+            elif runstep == self.Status.PATH:
                 if self.SMILES:
                     self._printmoleculeSMILESname()
                 else:
                     self._printmoleculename()
                 atomeach = self._getatomeach()
                 allmoleculeroute = self._printatomroute(atomeach)
-            elif runstep == 4:
+            elif runstep == self.Status.MATRIX:
                 allroute = self._getallroute(allmoleculeroute)
                 self._printtable(allroute)
                 if self.needprintspecies:
                     self._printspecies()
-                # delete tempfile
-                for tempfilename in (self.moleculetempfilename, self.moleculetemp2filename):
-                    try:
-                        os.remove(tempfilename)
-                    except OSError:
-                        pass
+            elif runstep == self.Status.NETWORK:
+                _DrawNetwork(self).draw()
+            elif runstep == self.Status.REPORT:
+                _HTMLResult(self).report()
+                logging.info(
+                    f"Report is generated. Please see {self.resultfilename} for more details.")
             # garbage collect
             gc.collect()
-            self._printtime(runstep)
+            self._printtime()
 
-    def draw(self):
-        """ Draw the reaction network """
-        self._statusidmax = max(self._statusidmax, 5)
-        self._printtime(0)
-        # read table
-        table, name = self._readtable()
-        species, showname = self._handlespecies(name)
+        # delete tempfile
+        for tempfilename in (self.moleculetempfilename, self.moleculetemp2filename):
+            if tempfilename is not None:
+                try:
+                    os.remove(tempfilename)
+                except OSError:
+                    pass
+        # Summary
+        self._summary()
 
-        G = nx.DiGraph()
-        for i, tablei in enumerate(table):
-            if name[i] in species and not name[i] in self.speciesfilter:
-                G.add_node(showname[name[i]] if name[i]
-                           in showname else name[i])
-                for j, tableij in enumerate(tablei):
-                    if name[j] in species and not name[j] in self.speciesfilter:
-                        if tableij > 0:
-                            G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]), (
-                                showname[name[j]] if name[j] in showname else name[j]), tableij)])
-        weights = np.array([math.log(G[u][v]['weight']+1)
-                            for u, v in G.edges()])
-        widths = [weight/max(weights) * self.widthcoefficient*2 if weight > max(weights)
-                  * 0.7 else weight/max(weights) * self.widthcoefficient*0.5 for weight in weights]
-        colors = [self.start_color + weight /
-                  max(weights) * (self.end_color-self.start_color) for weight in weights]
-        try:
-            self.pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos])) if not self.k else (
-                nx.spring_layout(G, k=self.k) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos], k=self.k))
-            if self.pos:
-                logging.info("The position of the species in the network is:")
-                logging.info(self.pos)
-            for with_labels in ([True] if not self.nolabel else [True, False]):
-                nx.draw(G, pos=self.pos, width=widths, node_size=self.node_size, font_size=self.font_size,
-                        with_labels=with_labels, edge_color=colors, node_color=self.node_color)
-                imagefilename = "".join(
-                    (("" if with_labels else "nolabel_"), self.imagefilename))
-                with StringIO() as stringio, open(imagefilename, 'w') as f:
-                    plt.savefig(stringio, format='svg')
-                    f.write(scour.scour.scourString(stringio.getvalue()))
-                plt.close()
-        except Exception as e:
-            logging.error(f"Error: cannot draw images. Details: {e}")
-        self._printtime(5)
+    def _printtime(self):
+        self._timearray.append(time.time())
+        if self._status != self.Status.INIT:
+            logging.info(
+                f"Step {len(self._timearray)-1}: Done! Time consumed (s): {self._timearray[-1]-self._timearray[-2]:.3f} ({self._status})")
 
-    def report(self):
-        """ Generate the analysis report """
-        self._statusidmax = max(self._statusidmax, 6)
-        self._printtime(0)
-        _HTMLResult(self).report()
+    def _summary(self):
+        logging.info("====== Summary ======")
         logging.info(
-            f"Report is generated. Please see {self.resultfilename} for more details.")
-        self._printtime(6)
-
-    @property
-    def _status(self):
-        return ["Init", "Read bond information and Detect molecules", "HMM filter", "Indentify isomers and collect reaction paths", "Reaction matrix generation", "Draw reaction network", "Generate analysis report"][self._statusid]
-
-    def _printtime(self, statusid):
-        self._statusid = statusid
-        if not self._timearray or self._statusid > 0:
-            self._timearray.append(time.time())
-            if statusid > 0:
-                logging.info(
-                    f"Step {len(self._timearray)-1}: Done! Time consumed (s): {self._timearray[-1]-self._timearray[-2]:.3f} ({self._status})")
-            if statusid >= self._statusidmax:
-                logging.info("====== Summary ======")
-                logging.info(
-                    f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
+            f"Total time(s): {self._timearray[-1]-self._timearray[0]:.3f} s")
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
         # connect molecule
@@ -274,15 +257,19 @@ class ReacNetGenerator:
                     b, bond, level, molecule, done, bondlist)
         return molecule, done, bondlist
 
+    class InputFileType(Enum):
+        LAMMPSBOND = auto()
+        LAMMPSDUMP = auto()
+
     @property
     def _readNfunc(self):
-        if self.inputfiletype == "lammpsbondfile":
+        if self.inputfiletype == self.InputFileType.LAMMPSBOND:
             return self._readlammpsbondN
         return self._readlammpscrdN
 
     @property
     def _readstepfunc(self):
-        if self.inputfiletype == "lammpsbondfile":
+        if self.inputfiletype == self.InputFileType.LAMMPSBOND:
             return self._readlammpsbondstep
         return self._readlammpscrdstep
 
@@ -707,60 +694,12 @@ class ReacNetGenerator:
                     print(table[i][j], end='\t', file=f)
                 print(file=f)
 
-    def _readtable(self):
-        table = []
-        name = []
-        with open(self.tablefilename) as file:
-            for line in itertools.islice(file, 1, None):
-                name.append(line.split()[0])
-                table.append([int(s) for s in line.split()[1:]])
-        return np.array(table), name
-
     def _convertstructure(self, atoms, bonds):
         atomtypes = []
         for i, atom in enumerate(atoms, start=1):
             atomtypes.append((i, self.atomname.index(atom)))
         G = self._makemoleculegraph(atomtypes, bonds)
         return G
-
-    def _handlespecies(self, name):
-        showname = {}
-        if self.species == {}:
-            species_out = dict([(x, {}) for x in (name if len(
-                name) <= self.maxspecies else name[0:self.maxspecies])])
-        else:
-            species_out = {}
-            b = True
-            for spec in self.species.items():
-                specname, value = spec
-                if "structure" in value:
-                    atoms, bonds = value["structure"]
-                    G1 = self._convertstructure(atoms, bonds)
-                    if b:
-                        structures = self._readstrcture()
-                        em = iso.numerical_edge_match(
-                            ['atom', 'level'], ["None", 1])
-                        b = False
-                    i = 1
-                    while (specname+"_"+str(i) if i > 1 else specname) in structures:
-                        G2 = self._convertstructure(structures[(
-                            specname+"_"+str(i) if i > 1 else specname)][0], structures[(specname+"_"+str(i) if i > 1 else specname)][1])
-                        if nx.is_isomorphic(G1, G2, em):
-                            if i > 1:
-                                specname += "_"+str(i)
-                            break
-                        i += 1
-                species_out[specname] = {}
-                if "showname" in value:
-                    showname[specname] = value["showname"]
-        if self.showid:
-            if species_out:
-                print()
-                logging.info("Species are:")
-                for n, (specname, value) in enumerate(species_out.items(), start=1):
-                    showname[specname] = str(n)
-                    print(n, specname)
-        return species_out, showname
 
     @classmethod
     def _setparam(cls, x, default):

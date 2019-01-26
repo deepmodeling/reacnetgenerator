@@ -4,6 +4,8 @@
 
 import logging
 import coloredlogs
+import matplotlib as mpl
+mpl.use("svg")
 
 from .reacnetgen import ReacNetGenerator, __version__
 

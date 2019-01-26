@@ -27,7 +27,7 @@ if __name__ == '__main__':
               'numpy>=1.15', 'scipy>=0.20.1', 'networkx',
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'htmlmin', 'ase', 'scour', 'tqdm',
-              'jinja2', 'coloredlogs',
+              'jinja2', 'coloredlogs', 'jsmin', 'cssmin',
           ],
           entry_points={'console_scripts': [
               'reacnetgenerator=reacnetgenerator.reacnetgen:_commandline',

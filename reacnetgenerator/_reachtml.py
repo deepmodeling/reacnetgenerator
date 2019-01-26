@@ -15,11 +15,11 @@ from ._static import _html, _static_css, _static_img, _static_js
 
 
 class _HTMLResult:
-    def __init__(self, ReacNetGenerator):
-        self._reactionfile = ReacNetGenerator.reactionfilename
-        self._resultfile = ReacNetGenerator.resultfilename
-        self._imagefile = ReacNetGenerator.imagefilename
-        self._nproc = ReacNetGenerator.nproc
+    def __init__(self, rng):
+        self._reactionfile = rng.reactionfilename
+        self._resultfile = rng.resultfilename
+        self._imagefile = rng.imagefilename
+        self._nproc = rng.nproc
         self._templatedict = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
