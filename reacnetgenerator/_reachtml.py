@@ -3,6 +3,7 @@
 
 import json
 import re
+import logging
 from collections import defaultdict
 from multiprocessing import Pool
 
@@ -15,11 +16,11 @@ from ._static import _html, _static_css, _static_img, _static_js
 
 
 class _HTMLResult:
-    def __init__(self, ReacNetGenerator):
-        self._reactionfile = ReacNetGenerator.reactionfilename
-        self._resultfile = ReacNetGenerator.resultfilename
-        self._imagefile = ReacNetGenerator.imagefilename
-        self._nproc = ReacNetGenerator.nproc
+    def __init__(self, rng):
+        self._reactionfile = rng.reactionfilename
+        self._resultfile = rng.resultfilename
+        self._imagefile = rng.imagefilename
+        self._nproc = rng.nproc
         self._templatedict = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
@@ -32,6 +33,8 @@ class _HTMLResult:
         ''' Generate a web page to show the result. '''
         self._readdata()
         self._generateresult()
+        logging.info(
+            f"Report is generated. Please see {self._resultfile} for more details.")
 
     @classmethod
     def _re(cls, smi):
@@ -97,7 +100,7 @@ class _HTMLResult:
             _static_js["creative.min.js"],
             _static_js["d3.min.js"],
             _static_js["jsnetworkx.js"],
-            _static_js["reacnetgen.js"],
+            _html["reacnetgen.js"],
         ]
         self._templatedict["linkreac"] = json.dumps(self._linkreac)
         template = Template(_html["template"])

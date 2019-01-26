@@ -19,27 +19,32 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 [Research Group](http://computchem.cn/)
 
 ## Features
-- Processing of MD trajectory containing atomic coordinates or bond orders
-- Hidden Markov Model (HMM) based noise filtering
-- Isomers identifying accoarding to SMILES
-- Generation of reaction network for visualization using force-directed algorithm
-- Parallel computing
+
+-   Processing of MD trajectory containing atomic coordinates or bond orders
+-   Hidden Markov Model (HMM) based noise filtering
+-   Isomers identifying accoarding to SMILES
+-   Generation of reaction network for visualization using force-directed algorithm
+-   Parallel computing
 
 ## Requirements
-* Python 3.6 - 3.7 (**Note:** Python <= 3.5 is not supported!)
-* Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [htmlmin](https://github.com/mankyd/htmlmin/), [ASE](https://gitlab.com/ase/ase), [scour](https://github.com/scour-project/scour), [tqdm](https://github.com/tqdm/tqdm), [jinja2](https://github.com/pallets/jinja)
-* Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
+
+-   Python 3.6 - 3.7 (**Note:** Python &lt;= 3.5 is not supported!)
+-   Python packages: [numpy](https://github.com/numpy/numpy), [scipy](https://github.com/scipy/scipy), [pandas](https://github.com/pandas-dev/pandas), [networkx](https://github.com/networkx/networkx), [scikit-learn](https://github.com/scikit-learn/scikit-learn), [matplotlib](https://github.com/matplotlib/matplotlib), [hmmlearn](https://github.com/hmmlearn/hmmlearn), [ASE](https://gitlab.com/ase/ase), [scour](https://github.com/scour-project/scour), [tqdm](https://github.com/tqdm/tqdm), [jinja2](https://github.com/pallets/jinja), [coloredlogs](https://github.com/xolox/python-coloredlogs), [htmlmin](https://github.com/mankyd/htmlmin/), [jsmin](https://github.com/tikitu/jsmin/), [cssmin](https://github.com/zacharyvoase/cssmin)
+-   Extra packages: [OpenBabel](https://github.com/openbabel/openbabel), [RDKit](https://github.com/rdkit/rdkit)
 
 ## Installation
-1. [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
 
-2. Use conda to create environment:
+1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
+
+2.  Use conda to create environment:
+
 ```sh
 $ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
 $ source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
 ```
 
-3. Download ReacNetGenerator and build it from source:
+3.  Download ReacNetGenerator and build it from source:
+
 ```sh
 $ git clone https://github.com/njzjz/reacnetgenerator
 $ cd reacnetgenerator/

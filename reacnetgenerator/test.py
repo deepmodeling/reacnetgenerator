@@ -6,6 +6,7 @@ import json
 import os
 import unittest
 import math
+import logging
 
 import pkg_resources
 
@@ -14,57 +15,63 @@ import requests
 from tqdm import tqdm
 
 
-def _download_file(url, local_filename):
-    # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
-    r = requests.get(url, stream=True)
-    total_size = int(r.headers.get('content-length', 0))
-    block_size = 1024
-    with open(local_filename, 'wb') as f:
-        for chunk in tqdm(r.iter_content(chunk_size=1024), total=math.ceil(total_size//block_size), unit='KB', unit_scale=True, desc=f"Downloading {local_filename}..."):
-            if chunk:
-                f.write(chunk)
-    return local_filename
-
-
-def _checkmd5(filename):
-    if not os.path.isfile(filename):
-        return
-    myhash = hashlib.md5()
-    with open(filename, 'rb') as f:
-        while True:
-            b = f.read(8096)
-            if not b:
-                break
-        myhash.update(b)
-    return myhash.hexdigest()
-
-
 class TestReacNetGen(unittest.TestCase):
     '''Test ReacNetGenerator'''
 
     def test_reacnetgen(self):
         ''' Test main process of ReacNetGen'''
-        testparm = json.load(
+        testparms = json.load(
             pkg_resources.resource_stream(__name__, 'test.json'))
-        pathfilename = os.path.join(testparm['folder'], testparm['filename'])
+
+        for testparm in testparms:
+            pathfilename = os.path.join(
+                testparm['folder'], testparm['filename'])
+
+            self._download_file(
+                testparm['url'], pathfilename, testparm['sha256'])
+
+            r = reacnetgenerator.ReacNetGenerator(
+                inputfilename=pathfilename, atomname=testparm['atomname'], SMILES=testparm['smiles'],
+                inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])
+            r.runanddraw()
+
+            logging.info("Here are reactions:")
+            with open(r.reactionfilename) as f:
+                for line in f:
+                    print(line.strip())
+            self.assertTrue(os.path.exists(r.resultfilename))
+
+    def _download_file(self, url, pathfilename, sha256):
         # download if not exists
-        while not os.path.isfile(pathfilename) or _checkmd5(pathfilename) != testparm['md5']:
+        while not os.path.isfile(pathfilename) or self._checksha256(pathfilename) != sha256:
             try:
-                os.makedirs(testparm['folder'])
+                os.makedirs(os.path.split(pathfilename)[0])
             except OSError:
                 pass
-            print(f"Downloading  ...")
-            _download_file(testparm['url'], pathfilename)
 
-        r = reacnetgenerator.ReacNetGenerator(
-            inputfilename=pathfilename, atomname=testparm['atomname'], inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])
-        r.runanddraw()
+            # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+            r = requests.get(url, stream=True)
+            total_size = int(r.headers.get('content-length', 0))
+            block_size = 1024
+            with open(pathfilename, 'wb') as f:
+                for chunk in tqdm(r.iter_content(chunk_size=1024), total=math.ceil(total_size//block_size), unit='KB', unit_scale=True, desc=f"Downloading {pathfilename}..."):
+                    if chunk:
+                        f.write(chunk)
+        return pathfilename
 
-        print("Here are reactions:")
-        with open(r.reactionfilename) as f:
-            for line in f:
-                print(line.strip())
-        self.assertTrue(os.path.exists(r.resultfilename))
+    @staticmethod
+    def _checksha256(filename):
+        if not os.path.isfile(filename):
+            return
+        h = hashlib.sha256()
+        b = bytearray(128*1024)
+        mv = memoryview(b)
+        with open(filename, 'rb', buffering=0) as f:
+            for n in iter(lambda: f.readinto(mv), 0):
+                h.update(mv[:n])
+        sha256 = h.hexdigest()
+        logging.info(f"SHA256 of {filename}: {sha256}")
+        return sha256
 
 
 if __name__ == '__main__':
