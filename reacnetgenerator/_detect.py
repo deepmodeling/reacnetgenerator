@@ -1,4 +1,22 @@
-''' Detect molecules '''
+''' Detect molecules:
+There are two types of input files that could be imported by ReacNetGen,
+the first part of necessary is the trajectory from reactive MD, the second
+part can be the bond information normally given by simulation using ReaxFF.
+In fact, atomic coordinates can be converted to the bond information with
+the Open Babel software. As a results, ReacNetGen can both processes ReaxFF
+trajectories, AIMD trajectories, and other kinds of reactive trajectories.
+With the bond information, molecules can be detected from atoms by Depth-first
+search at every timestep. By using this way, all molecules in a given
+trajectory can be acquired. Molecules consisting of same atoms and bonds can
+be considered as the same molecule.
+
+Reference:
+[1] O’Boyle, N. M.; Banck, M.; James, C. A.; Morley, C.; Vandermeersch, T.;
+Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
+33-47.
+[2] Tarjan, R. Depth-first search and linear graph algorithms. SIAM J. Comput.
+1972, 1 (2), 146-160.
+'''
 
 import itertools
 from collections import defaultdict
@@ -59,7 +77,7 @@ class _Detect(metaclass=ABCMeta):
         self.rng.temp1it = self._temp1it
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
-        ''' connect molecule '''
+        ''' connect molecule with Depth-First Search '''
         molecule.append(i)
         done[i-1] = True
         for b, l in zip(bond[i-1], level[i-1]):
@@ -92,7 +110,7 @@ class _Detect(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _readstepfunc(self):
+    def _readstepfunc(self, item):
         pass
 
     def _connectmolecule(self, bond, level):
@@ -210,8 +228,8 @@ class _DetectLAMMPSdump(_Detect):
     @classmethod
     def _getbondfromcrd(cls, step_atoms):
         atomnumber = len(step_atoms)
-        xyzstring = f"{atomnumber}\nReacNetGenerator\n"+"\n".join(
-            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])
+        xyzstring = ''.join((f"{atomnumber}\nReacNetGenerator\n", "\n".join(
+            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])))
         conv = openbabel.OBConversion()
         conv.SetInAndOutFormats('xyz', 'mol2')
         mol = openbabel.OBMol()

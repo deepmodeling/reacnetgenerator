@@ -1,4 +1,19 @@
-''' HMM Filter '''
+''' HMM Filter:
+In order to filter noise, a two-state HMM was adopted, which can be
+described as a transition matrix A, an emission matrix B, and an initial
+state vector π. The existence of molecules can be converted into 0-1 signals.
+In order to predict the state sequence according to the output sequence,
+Viterbi Algorithm is used to acquire the path with the most likely hidden
+state sequence V called Viterbi path.
+
+Reference:
+[1] Wang, L.-P.; McGibbon, R. T.; Pande, V. S.; Martínez, T. J. Automated
+discovery and refinement of reactive molecular dynamics pathways. J. Chem.
+Theory Comput. 2016, 12(2), 638-649.
+[2] Rabiner, L. R. A trtorial on hidden Markov models and selected
+applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
+[3] Forney, G. D. The viterbi algorithm. Porc. IEEE 1973, 61(3), 268-278.
+'''
 
 from multiprocessing import Pool, Semaphore
 from contextlib import ExitStack

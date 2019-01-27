@@ -1,4 +1,8 @@
-''' Generate Matrix'''
+''' Generate Matrix:
+A reaction network cannot accommodate too many species, so only the first
+species which have the most reactions are taken. A reaction matrix can be
+generated.
+'''
 
 from collections import Counter
 
