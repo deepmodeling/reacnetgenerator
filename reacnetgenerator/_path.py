@@ -80,10 +80,13 @@ class _CollectPaths(metaclass=ABCMeta):
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
-        route = [atomeachij for atomeachij, _ in groupby(atomeachi.tolist()) if atomeachij>0]
-        moleculeroute = list(zip(route, route[1:])) if self.atomname[atomtypei-1] in self.selectatoms else []
+        route = [atomeachij for atomeachij, _ in groupby(
+            atomeachi.tolist()) if atomeachij > 0]
+        moleculeroute = list(
+            zip(route, route[1:])) if self.atomname[atomtypei-1] in self.selectatoms else []
         names = self._mname[np.array(route)-1]
-        routestr = "".join([f"Atom {i} {self.atomname[atomtypei-1]}: ", " -> ".join(names)])
+        routestr = "".join(
+            [f"Atom {i} {self.atomname[atomtypei-1]}: ", " -> ".join(names)])
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach):
@@ -94,7 +97,8 @@ class _CollectPaths(metaclass=ABCMeta):
                 semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 100)
             for moleculeroute, routestr in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
                 f.write("".join([routestr, '\n']))
-                allmoleculeroute.extend(list(set(moleculeroute)-set(allmoleculeroute)))
+                allmoleculeroute.extend(
+                    list(set(moleculeroute)-set(allmoleculeroute)))
                 semaphore.release()
         return allmoleculeroute
 

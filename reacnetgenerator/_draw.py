@@ -92,10 +92,11 @@ class _DrawNetwork:
 
     def _handlespecies(self, name):
         showname = {}
-        species = self.species if self.species.size>0 else name[:min(len(name),self.maxspecies)]
-       
+        species = self.species if self.species.size > 0 else name[:min(
+            len(name), self.maxspecies)]
+
         if self.showid:
-            if species.size>0:
+            if species.size > 0:
                 print()
                 logging.info("Species are:")
                 showname = dict(enumerate(species, start=1))
