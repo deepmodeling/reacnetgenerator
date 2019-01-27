@@ -16,6 +16,7 @@ and Machine Intelligence 2004, 26, 1367-1372.
 from abc import ABCMeta, abstractmethod
 from multiprocessing import Pool, Semaphore
 from collections import Counter, defaultdict
+from itertools import groupby
 
 import numpy as np
 from tqdm import tqdm
@@ -30,7 +31,6 @@ class _CollectPaths(metaclass=ABCMeta):
         self.runHMM = rng.runHMM
         self._N = rng.N
         self._step = rng.step
-        self._timestep = rng.timestep
         self.atomname = rng.atomname
         self.originfilename = rng.originfilename
         self.hmmfilename = rng.hmmfilename
@@ -80,19 +80,10 @@ class _CollectPaths(metaclass=ABCMeta):
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
-        routestrarr = []
-        moleculeroute = []
-        right = -1
-        for j, atomeachij in enumerate(atomeachi.tolist()):
-            if atomeachij > 0 and atomeachij != right:
-                routestrarr.append(
-                    f"{self._mname[atomeachij-1]} ({atomeachij} step { self._timestep[j]})")
-                left, right = right, atomeachij
-                if self.atomname[atomtypei-1] in self.selectatoms:
-                    if left >= 0 and (left, right) not in moleculeroute:
-                        moleculeroute.append((left, right))
-        routestr = f"Atom {i} {self.atomname[atomtypei-1]}: " + \
-            " -> ".join(routestrarr)
+        route = [atomeachij for atomeachij, _ in groupby(atomeachi.tolist()) if atomeachij>0]
+        moleculeroute = list(zip(route, route[1:])) if self.atomname[atomtypei-1] in self.selectatoms else []
+        names = self._mname[np.array(route)-1]
+        routestr = "".join([f"Atom {i} {self.atomname[atomtypei-1]}: ", " -> ".join(names)])
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach):
@@ -101,12 +92,9 @@ class _CollectPaths(metaclass=ABCMeta):
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._getatomroute, self._produce(
                 semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 100)
-            for route in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
-                moleculeroute, routestr = route
-                print(routestr, file=f)
-                for mroute in moleculeroute:
-                    if mroute not in allmoleculeroute:
-                        allmoleculeroute.append(mroute)
+            for moleculeroute, routestr in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
+                f.write("".join([routestr, '\n']))
+                allmoleculeroute.extend(list(set(moleculeroute)-set(allmoleculeroute)))
                 semaphore.release()
         return allmoleculeroute
 
@@ -142,7 +130,7 @@ class _CollectMolPaths(_CollectPaths):
                 mname.append(molecule.smiles)
                 print(molecule.smiles, ",".join([str(x) for x in atoms]), ";".join(
                     [",".join([str(y) for y in x]) for x in bonds]), file=fm)
-        self._mname = mname
+        self._mname = np.array(mname)
 
     class _molecule:
         def __init__(self, cmp, atoms, bonds):
@@ -194,7 +182,7 @@ class _CollectSMILESPaths(_CollectPaths):
                 fm.write(' '.join((name, ",".join((str(x) for x in atoms)), ";".join(
                     (",".join((str(y) for y in x)) for x in bonds)), '\n')))
                 semaphore.release()
-        self._mname = mname
+        self._mname = np.array(mname)
 
     def _calmoleculeSMILESname(self, item):
         line, _ = item
