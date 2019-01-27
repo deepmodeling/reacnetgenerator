@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-"""
-==================
-ReacNetGenerator
-==================
-Automatic generator of reaction network for reactive molecular dynamics simulation.
+"""ReacNetGenerator.
 
-Plase cite: J. Zeng, L. Cao, J.Z.H. Zhang, C.-H. Chin, T Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, to be submitted
+Automatic generator of reaction network for reactive molecular dynamics
+simulation.
+
+Plase cite: J. Zeng, L. Cao, J.Z.H. Zhang, C.-H. Chin, T Zhu: ReacNetGen: an
+Automatic Reaction Network Generator for Reactive Molecular Dynamic
+Simulations, doi: 10.26434/chemrxiv.7421534
 
 Author: Jinzhe Zeng, Liqun Cao, John ZH Zhang, Chih-Hao Chin, Tong Zhu
+
 Email: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
 ==================
@@ -17,7 +19,8 @@ Features
 * Processing of MD trajectory containing atomic coordinates or bond orders
 * Hidden Markov Model (HMM) based noise filtering
 * Isomers identifying accoarding to SMILES
-* Generation of reaction network for visualization using force-directed algorithm
+* Generation of reaction network for visualization using force-directed
+  algorithm
 * Parallel computing
 
 ==================
@@ -75,10 +78,23 @@ except DistributionNotFound:
     # package is not installed
     pass
 
+
 class ReacNetGenerator:
     ''' Use ReacNetGenerator for trajectory analysis'''
 
-    def __init__(self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc', atomname=None, selectatoms=None, originfilename=None, hmmfilename=None, atomfilename=None, moleculefilename=None, atomroutefilename=None, reactionfilename=None, tablefilename=None, imagefilename=None, speciesfilename=None, resultfilename=None, stepinterval=1, p=None, a=None, b=None, runHMM=True, SMILES=True, getoriginfile=False, species=None, node_size=200, font_size=6, widthcoefficient=1,  maxspecies=20, nolabel=False, needprintspecies=True, speciesfilter=None, node_color=None, pos=None, printfiltersignal=False, showid=True, k=None, start_color=None, end_color=None, nproc=None, speciescenter=None, n_searchspecies=2):
+    def __init__(
+            self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc',
+            atomname=None, selectatoms=None, originfilename=None,
+            hmmfilename=None, atomfilename=None, moleculefilename=None,
+            atomroutefilename=None, reactionfilename=None, tablefilename=None,
+            imagefilename=None, speciesfilename=None, resultfilename=None,
+            stepinterval=1, p=None, a=None, b=None, runHMM=True, SMILES=True,
+            getoriginfile=False, species=None, node_size=200, font_size=6,
+            widthcoefficient=1, maxspecies=20, nolabel=False,
+            needprintspecies=True, speciesfilter=None, node_color=None,
+            pos=None, printfiltersignal=False, showid=True, k=None,
+            start_color=None, end_color=None, nproc=None, speciescenter=None,
+            n_searchspecies=2):
         ''' Init ReacNetGenerator '''
         print(__doc__)
         print(
@@ -204,7 +220,8 @@ class ReacNetGenerator:
                 f"Step {i}: Done! Time consumed (s): {timearray[-1]-timearray[-2]:.3f} ({runstep})")
 
         # delete tempfile
-        for tempfilename in (self.moleculetempfilename, self.moleculetemp2filename):
+        for tempfilename in (
+                self.moleculetempfilename, self.moleculetemp2filename):
             if tempfilename is not None:
                 try:
                     os.remove(tempfilename)
@@ -239,21 +256,29 @@ class ReacNetGenerator:
     def _setfilename(self, name, suffix):
         return self._setparam(name, f"{self.inputfilename}.{suffix}")
 
+
 def _commandline():
     parser = argparse.ArgumentParser(
         description=f'ReacNetGenerator {__version__}')
-    parser.add_argument('-i', '--inputfilename',
-                        help='Input trajectory file, e.g. bonds.reaxc', required=True)
     parser.add_argument(
-        '-a', '--atomname', help='Atomic names in the trajectory, e.g. C H O', nargs='*', required=True)
+        '-i', '--inputfilename',
+        help='Input trajectory file, e.g. bonds.reaxc', required=True)
+    parser.add_argument('-a', '--atomname',
+                        help='Atomic names in the trajectory, e.g. C H O',
+                        nargs='*', required=True)
     parser.add_argument(
-        '--nohmm', help='Process trajectory without Hidden Markov Model (HMM)', action="store_true")
+        '--nohmm', help='Process trajectory without Hidden Markov Model (HMM)',
+        action="store_true")
     parser.add_argument(
         '--dump', help='Process the LAMMPS dump file', action="store_true")
     parser.add_argument(
         '-n', '-np', '--nproc', help='Number of processes', type=int)
-    parser.add_argument('-s', '--selectatoms',
-                        help='Select atoms in the reaction network, e.g. C', nargs='*')
+    parser.add_argument(
+        '-s', '--selectatoms',
+        help='Select atoms in the reaction network, e.g. C', nargs='*')
     args = parser.parse_args()
-    ReacNetGenerator(inputfilename=args.inputfilename, atomname=args.atomname, runHMM=not args.nohmm,
-                     inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'), nproc=args.nproc, selectatoms=args.selectatoms).runanddraw()
+    ReacNetGenerator(
+        inputfilename=args.inputfilename, atomname=args.atomname,
+        runHMM=not args.nohmm,
+        inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'),
+        nproc=args.nproc, selectatoms=args.selectatoms).runanddraw()

@@ -1,4 +1,5 @@
-''' Detect molecules:
+"""Detect molecules.
+
 There are two types of input files that could be imported by ReacNetGen,
 the first part of necessary is the trajectory from reactive MD, the second
 part can be the bond information normally given by simulation using ReaxFF.
@@ -16,7 +17,7 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 33-47.
 [2] Tarjan, R. Depth-first search and linear graph algorithms. SIAM J. Comput.
 1972, 1 (2), 146-160.
-'''
+"""
 
 import itertools
 from collections import defaultdict
@@ -99,9 +100,18 @@ class _Detect(metaclass=ABCMeta):
             _steplinenum = self._readNfunc(f)
             f.seek(0)
             semaphore = Semaphore(self.nproc*150)
-            results = pool.imap_unordered(self._readstepfunc, self._produce(semaphore, enumerate(itertools.islice(
-                itertools.zip_longest(*[f]*_steplinenum), 0, None, self.stepinterval)), None), 100)
-            for molecules, (step, thetimestep) in tqdm(results, desc="Read bond information and Detect molecules", unit="timestep"):
+            results = pool.imap_unordered(
+                self._readstepfunc, self._produce(
+                    semaphore,
+                    enumerate(
+                        itertools.islice(
+                            itertools.zip_longest(*[f] * _steplinenum),
+                            0, None, self.stepinterval)),
+                    None),
+                100)
+            for molecules, (step, thetimestep) in tqdm(results,
+                                                       desc="Read bond information and Detect molecules",
+                                                       unit="timestep"):
                 for molecule in molecules:
                     d[molecule].append(step)
                 timestep[step] = thetimestep
@@ -124,8 +134,11 @@ class _Detect(metaclass=ABCMeta):
         for i in range(1, self._N+1):
             if not done[i-1]:
                 mole, done, bondlist = self._mo(i, bond, level, [], done, [])
-                moleculestr = ' '.join((",".join((str(x) for x in sorted(mole))), ";".join(
-                    (",".join([str(y) for y in x]) for x in sorted(bondlist)))))
+                moleculestr = ' '.join(
+                    (",".join((str(x) for x in sorted(mole))),
+                     ";".join(
+                         (",".join([str(y) for y in x])
+                          for x in sorted(bondlist)))))
                 molecules.append(self._compress(moleculestr))
         return molecules
 
@@ -133,8 +146,11 @@ class _Detect(metaclass=ABCMeta):
         with tempfile.NamedTemporaryFile('wb', delete=False) as f:
             self.moleculetempfilename = f.name
             for key, value in d.items():
-                f.write(self._compress(
-                    ' '.join((self._decompress(key), ",".join((str(x) for x in value))))))
+                f.write(
+                    self._compress(
+                        ' '.join(
+                            (self._decompress(key),
+                             ",".join((str(x) for x in value))))))
         self._temp1it = len(d)
 
 
@@ -190,8 +206,14 @@ class _DetectLAMMPSdump(_Detect):
         iscompleted = False
         for index, line in enumerate(f):
             if line.startswith("ITEM:"):
-                linecontent = self.LineType.TIMESTEP if line.startswith("ITEM: TIMESTEP") else (self.LineType.ATOMS if line.startswith(
-                    "ITEM: ATOMS") else (self.LineType.NUMBER if line.startswith("ITEM: NUMBER OF ATOMS") else self.LineType.OTHER))
+                linecontent = self.LineType.TIMESTEP if line.startswith(
+                    "ITEM: TIMESTEP") else(
+                    self.LineType.ATOMS
+                    if line.startswith("ITEM: ATOMS")
+                    else(
+                        self.LineType.NUMBER
+                        if line.startswith("ITEM: NUMBER OF ATOMS") else
+                        self.LineType.OTHER))
             else:
                 if linecontent == self.LineType.NUMBER:
                     if iscompleted:
@@ -216,13 +238,22 @@ class _DetectLAMMPSdump(_Detect):
         for line in lines:
             if line:
                 if line.startswith("ITEM:"):
-                    linecontent = self.LineType.TIMESTEP if line.startswith("ITEM: TIMESTEP") else (self.LineType.ATOMS if line.startswith(
-                        "ITEM: ATOMS") else (self.LineType.NUMBER if line.startswith("ITEM: NUMBER OF ATOMS") else self.LineType.OTHER))
+                    linecontent = self.LineType.TIMESTEP if line.startswith(
+                        "ITEM: TIMESTEP") else(
+                        self.LineType.ATOMS
+                        if line.startswith("ITEM: ATOMS")
+                        else(
+                            self.LineType.NUMBER
+                            if line.startswith("ITEM: NUMBER OF ATOMS") else
+                            self.LineType.OTHER))
                 else:
                     if linecontent == self.LineType.ATOMS:
                         s = line.split()
                         step_atoms.append(
-                            (int(s[0]), Atom(self.atomname[int(s[1])-1], [float(x) for x in s[2:5]])))
+                            (int(s[0]),
+                             Atom(
+                                 self.atomname[int(s[1]) - 1],
+                                 [float(x) for x in s[2: 5]])))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
@@ -235,7 +266,12 @@ class _DetectLAMMPSdump(_Detect):
     def _getbondfromcrd(cls, step_atoms):
         atomnumber = len(step_atoms)
         xyzstring = ''.join((f"{atomnumber}\nReacNetGenerator\n", "\n".join(
-            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}' for s, (x, y, z) in zip(step_atoms.get_chemical_symbols(), step_atoms.positions)])))
+            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}'
+             for s, (x, y, z)
+             in
+             zip(
+                 step_atoms.get_chemical_symbols(),
+                 step_atoms.positions)])))
         conv = openbabel.OBConversion()
         conv.SetInAndOutFormats('xyz', 'mol2')
         mol = openbabel.OBMol()

@@ -1,4 +1,4 @@
-'''Test ReacNetGen'''
+"""Test ReacNetGen."""
 
 
 import hashlib
@@ -31,9 +31,12 @@ class TestReacNetGen(unittest.TestCase):
                 testparm['url'], pathfilename, testparm['sha256'])
 
             r = reacnetgenerator.ReacNetGenerator(
-                inputfilename=pathfilename, atomname=testparm['atomname'], SMILES=testparm['smiles'],
-                inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'],
-                speciescenter=testparm['speciescenter'] if 'speciescenter' in testparm else None)
+                inputfilename=pathfilename, atomname=testparm['atomname'],
+                SMILES=testparm['smiles'],
+                inputfiletype=testparm['inputfiletype'],
+                runHMM=testparm['hmm'],
+                speciescenter=testparm['speciescenter']
+                if 'speciescenter' in testparm else None)
             r.runanddraw()
 
             logging.info("Here are reactions:")
@@ -44,7 +47,8 @@ class TestReacNetGen(unittest.TestCase):
 
     def _download_file(self, url, pathfilename, sha256):
         # download if not exists
-        while not os.path.isfile(pathfilename) or self._checksha256(pathfilename) != sha256:
+        while not os.path.isfile(pathfilename) or self._checksha256(
+                pathfilename) != sha256:
             try:
                 os.makedirs(os.path.split(pathfilename)[0])
             except OSError:
@@ -55,7 +59,11 @@ class TestReacNetGen(unittest.TestCase):
             total_size = int(r.headers.get('content-length', 0))
             block_size = 1024
             with open(pathfilename, 'wb') as f:
-                for chunk in tqdm(r.iter_content(chunk_size=1024), total=math.ceil(total_size//block_size), unit='KB', unit_scale=True, desc=f"Downloading {pathfilename}..."):
+                for chunk in tqdm(
+                        r.iter_content(chunk_size=1024),
+                        total=math.ceil(total_size // block_size),
+                        unit='KB', unit_scale=True,
+                        desc=f"Downloading {pathfilename}..."):
                     if chunk:
                         f.write(chunk)
         return pathfilename

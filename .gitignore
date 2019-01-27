@@ -102,3 +102,6 @@ ENV/
 
 # test files
 test/
+
+#vscode
+.vscode

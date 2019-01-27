@@ -1,4 +1,5 @@
-''' Collect paths:
+"""Collect paths.
+
 To produce a reaction network, every molecule (species) should be treated as a
 node in the network. Therefore, all detected species are indexed by canonical
 SMILES to guarantee its uniqueness. Isomers are also identified according to
@@ -11,7 +12,7 @@ Reference:
 [2] Cordella, L. P.; Foggia, P.; Sansone, C.; Vento, M. A (Sub)Graph
 Isomorphism Algorith for Matching Large Graphs. IEEE Trans. Pattern Analysis
 and Machine Intelligence 2004, 26, 1367-1372.
-'''
+"""
 
 from abc import ABCMeta, abstractmethod
 from multiprocessing import Pool, Semaphore
@@ -99,7 +100,9 @@ class _CollectPaths(metaclass=ABCMeta):
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._getatomroute, self._produce(
                 semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
-            for moleculeroute, routestr in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
+            for moleculeroute, routestr in tqdm(
+                    results, total=self._N, desc="Collect reaction paths",
+                    unit="atom"):
                 f.write("".join([routestr, '\n']))
                 allmoleculeroute.extend(
                     list(set(moleculeroute)-set(allmoleculeroute)))
@@ -149,8 +152,8 @@ class _CollectMolPaths(_CollectPaths):
             self._atomnames = cmp.atomnames[atoms-1]
             self.graph = self._makemoleculegraph()
             counter = Counter(self._atomnames)
-            self.name = "".join(
-                [f"{atomname}{counter[atomname]}" for atomname in cmp.atomname])
+            self.name = "".join([f"{atomname}{counter[atomname]}"
+                                 for atomname in cmp.atomname])
             self._smiles = None
             self._convertSMILES = cmp.convertSMILES
 
@@ -188,10 +191,16 @@ class _CollectSMILESPaths(_CollectPaths):
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._calmoleculeSMILESname,
                                 self._produce(semaphore, ft, None), 100)
-            for name, atoms, bonds in tqdm(results, total=self._hmmit, desc="Indentify isomers", unit="molecule"):
+            for name, atoms, bonds in tqdm(
+                    results, total=self._hmmit, desc="Indentify isomers",
+                    unit="molecule"):
                 mname.append(name)
-                fm.write(' '.join((name, ",".join((str(x) for x in atoms)), ";".join(
-                    (",".join((str(y) for y in x)) for x in bonds)), '\n')))
+                fm.write(' '.join(
+                    (name, ",".join((str(x) for x in atoms)),
+                     ";".join(
+                        (",".join((str(y) for y in x))
+                         for x in bonds)),
+                     '\n')))
                 semaphore.release()
         self._mname = np.array(mname)
 
