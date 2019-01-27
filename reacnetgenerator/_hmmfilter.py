@@ -51,7 +51,7 @@ class _HMMFilter:
         O^m=(o_t^m) is given by o_t^m={1, if m exists; 0, otherwise}.
         Similarly, a hidden state sequence I^m=(i_t^m) is given by
         i_t^m={1, if m exists; 0, otherwise.}
-        ''' 
+        '''
 
         if self.runHMM:
             self._initHMM()
