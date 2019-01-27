@@ -32,7 +32,8 @@ class TestReacNetGen(unittest.TestCase):
 
             r = reacnetgenerator.ReacNetGenerator(
                 inputfilename=pathfilename, atomname=testparm['atomname'], SMILES=testparm['smiles'],
-                inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'])
+                inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'],
+                speciescenter=testparm['speciescenter'] if 'speciescenter' in testparm else None)
             r.runanddraw()
 
             logging.info("Here are reactions:")

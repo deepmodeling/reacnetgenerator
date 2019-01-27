@@ -23,6 +23,7 @@
         ],
         "inputfiletype": "lammpsdumpfile",
         "hmm": false,
-        "smiles": false
+        "smiles": false,
+        "speciescenter": "[H][H]"
     }
 ]
