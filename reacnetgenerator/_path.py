@@ -201,5 +201,5 @@ class _CollectSMILESPaths(_CollectPaths):
         atoms = np.array([int(x) for x in s[0].split(",")])
         bonds = tuple(tuple(int(y) for y in x.split(","))
                       for x in s[1].split(";")) if len(s) == 3 else ()
-        name = self._convertSMILES(atoms, bonds)
+        name = self.convertSMILES(atoms, bonds)
         return name, atoms, bonds
