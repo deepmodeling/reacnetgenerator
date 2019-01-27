@@ -17,12 +17,12 @@ jsnx.draw(G, {
     },
     "nodeShape": "use",
     "nodeAttr": {
-        title(d) { return d.label; },
-        "xlink:href"(d) { return "#" + d.node + "_border"; },
-        onclick(d) {
+        "title" (d) { return d.label; },
+        "xlink:href" (d) { return "#" + d.node + "_border"; },
+        "onclick" (d) {
             return "clearTimeout(timer);timer = setTimeout(function(){addnode('" + d.node + "')}, 300);";
         },
-        ondblclick(d) {
+        "ondblclick" (d) {
             return "clearTimeout(timer);G.removeNode('" + d.node + "');";
         },
         "width": 100,
@@ -37,7 +37,7 @@ jsnx.draw(G, {
         "fill": "#999"
     },
     "edgeAttr": {
-        ondblclick(d) {
+        "ondblclick" (d) {
             return "G.removeEdge('" + d.edge[0] + "','" + d.edge[1] + "');";
         },
     }
@@ -45,8 +45,8 @@ jsnx.draw(G, {
 $("#canvassec").addClass("mfp-hide");
 
 $(".popup-modal").magnificPopup({
-    type: "inline",
-    preloader: false,
+    "type": "inline",
+    "preloader": false,
 });
 
 /**
@@ -54,7 +54,7 @@ $(".popup-modal").magnificPopup({
 */
 function addnode(spec) {
     G.addNode(spec);
-    if (spec in linkreac){
+    if (spec in linkreac) {
         var rightspecs = linkreac[spec];
         for (var i = 0; i < rightspecs.length; i++) {
             G.addNode(rightspecs[i]);
