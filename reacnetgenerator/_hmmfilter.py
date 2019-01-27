@@ -43,8 +43,16 @@ class _HMMFilter:
         self._decompress = rng.decompress
         self._produce = rng.produce
         self._model = None
+        self.moleculetemp2filename = None
+        self._hmmit = None
 
     def filter(self):
+        '''Timesteps of molecules are converted to a visible output sequence
+        O^m=(o_t^m) is given by o_t^m={1, if m exists; 0, otherwise}.
+        Similarly, a hidden state sequence I^m=(i_t^m) is given by
+        i_t^m={1, if m exists; 0, otherwise.}
+        ''' 
+
         if self.runHMM:
             self._initHMM()
         self._calhmm()

@@ -23,11 +23,14 @@ Features
 ==================
 Simple example
 ==================
-Process a LAMMPS bond file named bonds.reaxc. (See http://lammps.sandia.gov/doc/fix_reax_bonds.html for details)
+Process a LAMMPS bond file named bonds.reaxc. (See
+http://lammps.sandia.gov/doc/fix_reax_bonds.html for details)
 $ reacnetgenerator -i bonds.reaxc -a C H O
 where C, H, and O are atomic names in the input file.
 
-A LAMMPS dump file is also supported. You can prepare it by running "dump 1 all custom 100 dump.reaxc id type x y z" in LAMMPS. (See https://lammps.sandia.gov/doc/dump.html for more details)
+A LAMMPS dump file is also supported. You can prepare it by running "dump 1
+all custom 100 dump.reaxc id type x y z" in LAMMPS. (See
+https://lammps.sandia.gov/doc/dump.html for more details)
 $ reacnetgenerator --dump -i dump.reaxc -a C H O
 
 You can running the following script for help:
@@ -47,10 +50,8 @@ __copyright__ = 'Copyright 2018, East China Normal University'
 import argparse
 import base64
 import gc
-import itertools
 import logging
 import os
-import tempfile
 import time
 import zlib
 from enum import Enum
@@ -168,6 +169,8 @@ class ReacNetGenerator:
         self._process((self.Status.REPORT))
 
     class Status(Enum):
+        ''' The ReacNetGen consists of several modules and algorithms to
+        process the information from the given trajectory.'''
         INIT = "Init"
         DETECT = "Read bond information and Detect molecules"
         HMM = "HMM filter"
@@ -213,16 +216,20 @@ class ReacNetGenerator:
 
     @classmethod
     def produce(cls, semaphore, plist, parameter):
+        '''Prevent large memory usage due to slow IO.'''
         for item in plist:
             semaphore.acquire()
             yield item, parameter
 
     @classmethod
     def compress(cls, x):
+        ''' Compress the line. This function reduces IO overhead to speed up
+        the program.'''
         return base64.a85encode(zlib.compress(x.encode()))+b'\n'
 
     @classmethod
     def decompress(cls, x):
+        ''' Decompress the line. '''
         return zlib.decompress(base64.a85decode(x.strip())).decode()
 
     @classmethod

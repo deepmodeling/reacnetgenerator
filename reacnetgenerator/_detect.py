@@ -32,6 +32,10 @@ import openbabel
 
 
 class InputFileType(Enum):
+    ''' Now ReacNetGen support the following files:
+    LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
+    LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
+    '''
     LAMMPSBOND = auto()
     LAMMPSDUMP = auto()
 
@@ -58,6 +62,7 @@ class _Detect(metaclass=ABCMeta):
 
     @staticmethod
     def gettype(inputtype):
+        '''Get the class for the input file type.'''
         if inputtype == InputFileType.LAMMPSBOND:
             detectclass = _DetectLAMMPSbond
         elif inputtype == InputFileType.LAMMPSDUMP:
@@ -175,6 +180,7 @@ class _DetectLAMMPSbond(_Detect):
 
 class _DetectLAMMPSdump(_Detect):
     class LineType(Enum):
+        ''' Line type in the LAMMPS dump files. '''
         TIMESTEP = auto()
         ATOMS = auto()
         NUMBER = auto()

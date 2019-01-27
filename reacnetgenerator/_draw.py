@@ -5,7 +5,7 @@ Fruchterman-Reingold force-directed algorithm is used to make layout of nodes
 relate to reaction quantity and different colors and widths of lines are drawn
 depending on reaction quantity. The distance of two species in the network,
 the color and thickness of the line between them are determined by the number
-of their reactions, making the reaction network more intuitive. 
+of their reactions, making the reaction network more intuitive.
 
 Reference:
 [1] Hagberg, A.; Swart, P.; Daniel, S. C. Exploring network structure,
@@ -18,9 +18,7 @@ placement. Software: Practice and experince. 1991, 21(11),1129-1164.
 import logging
 import math
 from io import StringIO
-import itertools
 
-import networkx.algorithms.isomorphism as iso
 import networkx as nx
 import numpy as np
 import scour.scour

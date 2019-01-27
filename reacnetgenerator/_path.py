@@ -9,7 +9,7 @@ and the number of intermolecular reactions can be calculated.
 Reference:
 [1] Landrum, G. RDKit: Open-Source Cheminformatics Software 2016.
 [2] Cordella, L. P.; Foggia, P.; Sansone, C.; Vento, M. A (Sub)Graph
-Isomorphism Algorith for Matching Large Graphs. IEEE Trans. Pattern Analysis 
+Isomorphism Algorith for Matching Large Graphs. IEEE Trans. Pattern Analysis
 and Machine Intelligence 2004, 26, 1367-1372.
 '''
 
@@ -39,22 +39,26 @@ class _CollectPaths(metaclass=ABCMeta):
         self.atomroutefilename = rng.atomroutefilename
         self.nproc = rng.nproc
         self._hmmit = rng.hmmit
-        self._atomtype = rng.atomtype
+        self.atomtype = rng.atomtype
         self.selectatoms = rng.selectatoms
         self._decompress = rng.decompress
         self._produce = rng.produce
         self._mname = None
-        self._atomnames = None
+        self.atomnames = None
 
     @staticmethod
     def getstype(SMILES):
+        '''Following methonds are used to identify isomers:
+        * SMILES (default)
+        * VF2
+        '''
         if SMILES:
             return _CollectSMILESPaths
         return _CollectMolPaths
 
     def collect(self):
         ''' Collect paths'''
-        self._atomnames = self.atomname[self._atomtype-1]
+        self.atomnames = self.atomname[self.atomtype-1]
         self._printmoleculename()
         atomeach = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
@@ -94,7 +98,7 @@ class _CollectPaths(metaclass=ABCMeta):
             allmoleculeroute = []
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._getatomroute, self._produce(
-                semaphore, enumerate(zip(atomeach, self._atomtype), start=1), ()), 100)
+                semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
             for moleculeroute, routestr in tqdm(results, total=self._N, desc="Collect reaction paths", unit="atom"):
                 f.write("".join([routestr, '\n']))
                 allmoleculeroute.extend(
@@ -102,10 +106,11 @@ class _CollectPaths(metaclass=ABCMeta):
                 semaphore.release()
         return allmoleculeroute
 
-    def _convertSMILES(self, atoms, bonds):
+    def convertSMILES(self, atoms, bonds):
+        '''Convert atoms and bonds information to SMILES.'''
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d = {}
-        for name, number in zip(self._atomnames[atoms-1], atoms):
+        for name, number in zip(self.atomnames[atoms-1], atoms):
             d[number] = m.AddAtom(Chem.Atom(name))
         for atom1, atom2, level in bonds:
             m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
@@ -140,20 +145,21 @@ class _CollectMolPaths(_CollectPaths):
         def __init__(self, cmp, atoms, bonds):
             self.atoms = atoms
             self.bonds = bonds
-            self._atomtypes = cmp._atomtype[atoms-1]
-            self._atomnames = cmp._atomnames[atoms-1]
+            self._atomtypes = cmp.atomtype[atoms-1]
+            self._atomnames = cmp.atomnames[atoms-1]
             self.graph = self._makemoleculegraph()
             counter = Counter(self._atomnames)
             self.name = "".join(
                 [f"{atomname}{counter[atomname]}" for atomname in cmp.atomname])
             self._smiles = None
-            self._convertSMILES = cmp._convertSMILES
+            self._convertSMILES = cmp.convertSMILES
 
         def __str__(self):
             return self.name
 
         @property
         def smiles(self):
+            '''Return SMILES of a molecule.'''
             if self._smiles is None:
                 self._smiles = self._convertSMILES(self.atoms, self.bonds)
             return self._smiles
@@ -171,6 +177,7 @@ class _CollectMolPaths(_CollectPaths):
             return graph
 
         def isomorphic(self, mol, em):
+            '''Return whether two molecules are isomorphic.'''
             return nx.is_isomorphic(self.graph, mol.graph, em)
 
 

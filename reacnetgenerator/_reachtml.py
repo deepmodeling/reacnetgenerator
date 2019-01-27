@@ -34,6 +34,8 @@ class _HTMLResult:
         self._linkreac = defaultdict(list)
         # define instance
         self._specs = None
+        self._reaction = None
+        self._svgfiles = {}
 
     def report(self):
         ''' Generate a web page to show the result. '''
@@ -75,7 +77,6 @@ class _HTMLResult:
                 if spec not in specs:
                     specs.append(spec)
         with Pool(self._nproc) as pool:
-            self._svgfiles = {}
             results = pool.imap(self._convertsvg, specs)
             for spec, svgfile in results:
                 self._svgfiles[spec] = svgfile
