@@ -45,7 +45,8 @@ class TestReacNetGen(unittest.TestCase):
                     print(line.strip())
             self.assertTrue(os.path.exists(r.resultfilename))
 
-    def test_gui(self):
+    @classmethod
+    def test_gui(cls):
         """Test GUI of ReacNetGen."""
         reacnetgenerator.gui.GUI()
 
