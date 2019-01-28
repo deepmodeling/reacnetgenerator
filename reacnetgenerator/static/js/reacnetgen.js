@@ -4,6 +4,7 @@ var canvas = $(document)[0].getElementById("canvas");
 
 var G = new jsnx.Graph();
 var timer = null;
+var flag = 0;
 
 jsnx.draw(G, {
     "element": canvas,
@@ -20,11 +21,13 @@ jsnx.draw(G, {
         "title" (d) { return d.label; },
         "xlink:href" (d) { return "#" + d.node + "_border"; },
         "onclick" (d) {
-            return "clearTimeout(timer);timer = setTimeout(function(){addnode('" + d.node + "')}, 300);";
+            return "if(flag === 0){clearTimeout(timer);timer = setTimeout(function(){addnode('" + d.node + "')}, 300);}";
         },
         "ondblclick" (d) {
-            return "clearTimeout(timer);G.removeNode('" + d.node + "');";
+            return "if(flag === 0){clearTimeout(timer);G.removeNode('" + d.node + "');}";
         },
+        "onmousedown": "flag = 0;",
+        "onmousemove": "flag = 1;",
         "width": 100,
         "height": 100,
         "x": -50,
