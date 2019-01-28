@@ -1,25 +1,25 @@
-'''Test ReacNetGen'''
+"""Test ReacNetGen."""
 
 
 import hashlib
 import json
+import logging
+import math
 import os
 import unittest
-import math
-import logging
 
 import pkg_resources
-
 import reacnetgenerator
+import reacnetgenerator.gui
 import requests
 from tqdm import tqdm
 
 
 class TestReacNetGen(unittest.TestCase):
-    '''Test ReacNetGenerator'''
+    """Test ReacNetGenerator."""
 
     def test_reacnetgen(self):
-        ''' Test main process of ReacNetGen'''
+        """Test main process of ReacNetGen."""
         testparms = json.load(
             pkg_resources.resource_stream(__name__, 'test.json'))
 
@@ -31,9 +31,12 @@ class TestReacNetGen(unittest.TestCase):
                 testparm['url'], pathfilename, testparm['sha256'])
 
             r = reacnetgenerator.ReacNetGenerator(
-                inputfilename=pathfilename, atomname=testparm['atomname'], SMILES=testparm['smiles'],
-                inputfiletype=testparm['inputfiletype'], runHMM=testparm['hmm'],
-                speciescenter=testparm['speciescenter'] if 'speciescenter' in testparm else None)
+                inputfilename=pathfilename, atomname=testparm['atomname'],
+                SMILES=testparm['smiles'],
+                inputfiletype=testparm['inputfiletype'],
+                runHMM=testparm['hmm'],
+                speciescenter=testparm['speciescenter']
+                if 'speciescenter' in testparm else None)
             r.runanddraw()
 
             logging.info("Here are reactions:")
@@ -42,9 +45,15 @@ class TestReacNetGen(unittest.TestCase):
                     print(line.strip())
             self.assertTrue(os.path.exists(r.resultfilename))
 
+    @classmethod
+    def test_gui(cls):
+        """Test GUI of ReacNetGen."""
+        reacnetgenerator.gui.GUI()
+
     def _download_file(self, url, pathfilename, sha256):
         # download if not exists
-        while not os.path.isfile(pathfilename) or self._checksha256(pathfilename) != sha256:
+        while not os.path.isfile(pathfilename) or self._checksha256(
+                pathfilename) != sha256:
             try:
                 os.makedirs(os.path.split(pathfilename)[0])
             except OSError:
@@ -55,7 +64,11 @@ class TestReacNetGen(unittest.TestCase):
             total_size = int(r.headers.get('content-length', 0))
             block_size = 1024
             with open(pathfilename, 'wb') as f:
-                for chunk in tqdm(r.iter_content(chunk_size=1024), total=math.ceil(total_size//block_size), unit='KB', unit_scale=True, desc=f"Downloading {pathfilename}..."):
+                for chunk in tqdm(
+                        r.iter_content(chunk_size=1024),
+                        total=math.ceil(total_size // block_size),
+                        unit='KB', unit_scale=True,
+                        desc=f"Downloading {pathfilename}..."):
                     if chunk:
                         f.write(chunk)
         return pathfilename

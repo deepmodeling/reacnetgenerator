@@ -26,4 +26,4 @@ script:
 after_success:
   - coveralls
   - codecov
-  - python-codacy-coverage -r coverage.xml
+  - CODACY_PROJECT_TOKEN=c0ef4a117d424aa592e5ef2328b11a3a python-codacy-coverage -r coverage.xml

@@ -1,23 +1,25 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-'''GUI version of ReacNetGenerator
+"""GUI version of ReacNetGenerator.
+
 ====  Usage  ====
 $ reacnetgeneratorgui
-'''
+"""
 import os
-from multiprocessing import cpu_count
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import webbrowser
+from multiprocessing import cpu_count
+
 from . import ReacNetGenerator, __version__
 from ._static import _static_img
 
 
 class GUI:
-    '''GUI class'''
+    """GUI class."""
 
     def __init__(self):
-        '''Init GUI class'''
+        """Init GUI class."""
         print(__doc__)
         self._filename = ''
 
@@ -41,9 +43,11 @@ class GUI:
             self._top, text="Select File", command=self._openfiles)
         self._filetypelb = tk.Label(self._top, text="File Type")
         self._filetyperbbond = tk.Radiobutton(
-            text="LAMMPS Bond file", value="lammpsbondfile", variable=self._filetype)
+            text="LAMMPS Bond file", value="lammpsbondfile",
+            variable=self._filetype)
         self._filetyperbtype = tk.Radiobutton(
-            text="LAMMPS Dump file", value="lammpsdumpfile", variable=self._filetype)
+            text="LAMMPS Dump file", value="lammpsdumpfile",
+            variable=self._filetype)
         self._runhmmcb = tk.Checkbutton(
             text="HMM Filter", variable=self._runhmm, onvalue=1, offvalue=0)
         self._openpagecb = tk.Checkbutton(
@@ -74,15 +78,19 @@ class GUI:
         self._nprocet.grid(row=3, column=5, padx=5, pady=5)
 
     def gui(self):
-        '''start the GUI'''
+        """Start the GUI."""
         self._top.mainloop()
 
     def _run(self):
         filename = self._filenameet.get()
         if os.path.exists(filename):
             try:
-                reacnetgenerator = ReacNetGenerator(inputfilename=self._filenameet.get(
-                ), inputfiletype=self._filetype.get(), atomname=self._atomnameet.get().split(), runHMM=(self._runhmm.get() == 1), nproc=int(self._nprocet.get()))
+                reacnetgenerator = ReacNetGenerator(
+                    inputfilename=self._filenameet.get(),
+                    inputfiletype=self._filetype.get(),
+                    atomname=self._atomnameet.get().split(),
+                    runHMM=(self._runhmm.get() == 1),
+                    nproc=int(self._nprocet.get()))
                 reacnetgenerator.runanddraw()
                 if self._openpage.get() == 1:
                     webbrowser.open_new(os.path.abspath(
@@ -100,5 +108,5 @@ class GUI:
 
 
 def gui():
-    '''Open GUI version of ReacNetGenerator'''
+    """Open GUI version of ReacNetGenerator."""
     GUI().gui()

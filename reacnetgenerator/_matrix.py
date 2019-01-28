@@ -1,8 +1,9 @@
-''' Generate Matrix:
+"""Generate Matrix.
+
 A reaction network cannot accommodate too many species, so only the first
 species which have the most reactions are taken. A reaction matrix can be
 generated.
-'''
+"""
 
 from collections import Counter
 
@@ -26,9 +27,12 @@ class _GenerateMatrix:
         self._decompress = rng.decompress
 
     def generate(self):
-        '''A reaction matrix can be generated as
+        """Generate a reaction matrix and print species.
+
+        A reaction matrix can be generated as
             R=[a_ij ], i=1,2,…,100;j=1,2,…,100
-        where aij is the number of reactions from species si to sj.'''
+        where aij is the number of reactions from species si to sj.
+        """
         allroute = self._getallroute(self.allmoleculeroute)
         self._printtable(allroute)
         if self.needprintspecies:
@@ -107,7 +111,9 @@ class _GenerateMatrix:
         with open(self.moleculetemp2filename, 'rb') as f2, open(self.speciesfilename, 'w') as fw:
             d = [Counter() for i in range(len(self._timestep))]
             for name, line2 in zip(self._mname, f2):
-                for t in [int(x) for x in self._decompress(line2).split()[-1].split(",")]:
+                for t in [
+                        int(x)
+                        for x in self._decompress(line2).split()[-1].split(",")]:
                     d[t][name] += 1
             for t in range(len(self._timestep)):
                 buff = [f"Timestep {self._timestep[t]}:"]

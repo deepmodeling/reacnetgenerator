@@ -1,4 +1,5 @@
-''' HMM Filter:
+"""HMM Filter.
+
 In order to filter noise, a two-state HMM was adopted, which can be
 described as a transition matrix A, an emission matrix B, and an initial
 state vector π. The existence of molecules can be converted into 0-1 signals.
@@ -13,15 +14,15 @@ Theory Comput. 2016, 12(2), 638-649.
 [2] Rabiner, L. R. A trtorial on hidden Markov models and selected
 applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 [3] Forney, G. D. The viterbi algorithm. Porc. IEEE 1973, 61(3), 268-278.
-'''
+"""
 
-from multiprocessing import Pool, Semaphore
-from contextlib import ExitStack
 import tempfile
+from contextlib import ExitStack
+from multiprocessing import Pool, Semaphore
 
 import numpy as np
-from tqdm import tqdm
 from hmmlearn import hmm
+from tqdm import tqdm
 
 
 class _HMMFilter:
@@ -47,12 +48,13 @@ class _HMMFilter:
         self._hmmit = None
 
     def filter(self):
-        '''Timesteps of molecules are converted to a visible output sequence
+        """HMM Filters.
+
+        Timesteps of molecules are converted to a visible output sequence.
         O^m=(o_t^m) is given by o_t^m={1, if m exists; 0, otherwise}.
         Similarly, a hidden state sequence I^m=(i_t^m) is given by
         i_t^m={1, if m exists; 0, otherwise.}
-        '''
-
+        """
         if self.runHMM:
             self._initHMM()
         self._calhmm()
@@ -83,7 +85,9 @@ class _HMMFilter:
             results = pool.imap_unordered(
                 self._getoriginandhmm, self._produce(semaphore, ft, ()), 100)
             hmmit = 0
-            for originsignal, hmmsignal, mlist in tqdm(results, total=self._temp1it, desc="HMM filter", unit="molecule"):
+            for originsignal, hmmsignal, mlist in tqdm(
+                    results, total=self._temp1it, desc="HMM filter",
+                    unit="molecule"):
                 if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
                     if self.getoriginfile:
                         fo.write(self._compress(

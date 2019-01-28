@@ -1,4 +1,5 @@
-''' Draw reaction network:
+"""Draw reaction network.
+
 With the reaction matrix, a reaction network can be drawn. Here the NetworkX
 package is used to make a graph which indicates reactions between species.
 Fruchterman-Reingold force-directed algorithm is used to make layout of nodes
@@ -13,17 +14,17 @@ dynamics, and function using NetworkX; Los Alamos National Lab. (LANL), Los
 Alamos, NM (United States): 2008.
 [2] Fruchterman, T. M.; Reingold, E. M. Graph drawing by force-directed
 placement. Software: Practice and experince. 1991, 21(11),1129-1164.
-'''
+"""
 
 import logging
 import math
 from io import StringIO
 
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import scour.scour
-import matplotlib.pyplot as plt
 import pandas as pd
+import scour.scour
 
 
 class _DrawNetwork:
@@ -46,7 +47,7 @@ class _DrawNetwork:
         self.showid = rng.showid
 
     def draw(self):
-        ''' Draw the network '''
+        """Draw the network."""
         table, name = self._readtable()
         species, showname = self._handlespecies(name)
 
@@ -58,14 +59,21 @@ class _DrawNetwork:
                 for j, tableij in enumerate(tablei):
                     if name[j] in species and not name[j] in self.speciesfilter:
                         if tableij > 0:
-                            G.add_weighted_edges_from([((showname[name[i]] if name[i] in showname else name[i]), (
-                                showname[name[j]] if name[j] in showname else name[j]), tableij)])
+                            G.add_weighted_edges_from(
+                                [((showname[name[i]]
+                                   if name[i] in showname else name[i]),
+                                  (showname[name[j]]
+                                   if name[j] in showname else name[j]),
+                                  tableij)])
         weights = np.array([math.log(G[u][v]['weight']+1)
                             for u, v in G.edges()])
-        widths = [weight/max(weights) * self.widthcoefficient*2 if weight > max(weights)
-                  * 0.7 else weight/max(weights) * self.widthcoefficient*0.5 for weight in weights]
-        colors = [self.start_color + weight /
-                  max(weights) * (self.end_color-self.start_color) for weight in weights]
+        widths = [
+            weight / max(weights) * self.widthcoefficient * 2
+            if weight > max(weights) * 0.7 else weight / max(weights) * self.widthcoefficient *
+            0.5 for weight in weights]
+        colors = [
+            self.start_color + weight / max(weights) *
+            (self.end_color - self.start_color) for weight in weights]
         try:
             self.pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos])) if not self.k else (
                 nx.spring_layout(G, k=self.k) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos], k=self.k))
@@ -73,8 +81,10 @@ class _DrawNetwork:
                 logging.info("The position of the species in the network is:")
                 logging.info(self.pos)
             for with_labels in ([True] if not self.nolabel else [True, False]):
-                nx.draw(G, pos=self.pos, width=widths, node_size=self.node_size, font_size=self.font_size,
-                        with_labels=with_labels, edge_color=colors, node_color=self.node_color)
+                nx.draw(
+                    G, pos=self.pos, width=widths, node_size=self.node_size,
+                    font_size=self.font_size, with_labels=with_labels,
+                    edge_color=colors, node_color=self.node_color)
                 imagefilename = "".join(
                     (("" if with_labels else "nolabel_"), self.imagefilename))
                 with StringIO() as stringio, open(imagefilename, 'w') as f:

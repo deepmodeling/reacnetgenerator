@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-''' Store static resources '''
+"""Store static resources."""
 
-import pkg_resources
 import base64
 
-from jsmin import jsmin
+import pkg_resources
 from cssmin import cssmin
+from jsmin import jsmin
 
 
 def _getresource(path):
@@ -13,7 +13,8 @@ def _getresource(path):
 
 
 def _imgtobase64(path):
-    return base64.b64encode(pkg_resources.resource_string(__name__, path)).decode()
+    return base64.b64encode(
+        pkg_resources.resource_string(__name__, path)).decode()
 
 
 # HTML template
