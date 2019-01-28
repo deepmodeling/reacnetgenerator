@@ -16,10 +16,10 @@ from ._static import _static_img
 
 
 class GUI:
-    '''GUI class'''
+    """GUI class."""
 
     def __init__(self):
-        '''Init GUI class'''
+        """Init GUI class."""
         print(__doc__)
         self._filename = ''
 
@@ -78,7 +78,7 @@ class GUI:
         self._nprocet.grid(row=3, column=5, padx=5, pady=5)
 
     def gui(self):
-        '''start the GUI'''
+        """Start the GUI."""
         self._top.mainloop()
 
     def _run(self):
@@ -108,5 +108,5 @@ class GUI:
 
 
 def gui():
-    '''Open GUI version of ReacNetGenerator'''
+    """Open GUI version of ReacNetGenerator."""
     GUI().gui()

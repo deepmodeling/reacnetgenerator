@@ -39,7 +39,7 @@ class _HTMLResult:
         self._svgfiles = {}
 
     def report(self):
-        ''' Generate a web page to show the result. '''
+        """Generate a web page to show the result."""
         self._readdata()
         self._generateresult()
         logging.info(

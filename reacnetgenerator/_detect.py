@@ -199,7 +199,8 @@ class _DetectLAMMPSbond(_Detect):
 
 class _DetectLAMMPSdump(_Detect):
     class LineType(Enum):
-        ''' Line type in the LAMMPS dump files. '''
+        """Line type in the LAMMPS dump files."""
+
         TIMESTEP = auto()
         ATOMS = auto()
         NUMBER = auto()

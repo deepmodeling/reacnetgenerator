@@ -112,7 +112,7 @@ class _CollectPaths(metaclass=ABCMeta):
         return allmoleculeroute
 
     def convertSMILES(self, atoms, bonds):
-        '''Convert atoms and bonds information to SMILES.'''
+        """Convert atoms and bonds information to SMILES."""
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d = {}
         for name, number in zip(self.atomnames[atoms-1], atoms):
@@ -164,7 +164,7 @@ class _CollectMolPaths(_CollectPaths):
 
         @property
         def smiles(self):
-            '''Return SMILES of a molecule.'''
+            """Return SMILES of a molecule."""
             if self._smiles is None:
                 self._smiles = self._convertSMILES(self.atoms, self.bonds)
             return self._smiles
@@ -182,7 +182,7 @@ class _CollectMolPaths(_CollectPaths):
             return graph
 
         def isomorphic(self, mol, em):
-            '''Return whether two molecules are isomorphic.'''
+            """Return whether two molecules are isomorphic."""
             return nx.is_isomorphic(self.graph, mol.graph, em)
 
 

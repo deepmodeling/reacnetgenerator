@@ -58,7 +58,7 @@ import os
 import time
 import zlib
 from enum import Enum
-from multiprocessing import Semaphore, cpu_count
+from multiprocessing import cpu_count
 
 import numpy as np
 from pkg_resources import DistributionNotFound, get_distribution
@@ -166,7 +166,7 @@ class ReacNetGenerator:
         self._process(processthing)
 
     def run(self):
-        """Processing of MD trajectory."""
+        """Process MD trajectory."""
         self._process((
             self.Status.DETECT,
             self.Status.HMM,
