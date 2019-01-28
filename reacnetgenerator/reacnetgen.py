@@ -78,7 +78,7 @@ except DistributionNotFound:
 
 
 class ReacNetGenerator:
-    ''' Use ReacNetGenerator for trajectory analysis'''
+    """Use ReacNetGenerator for trajectory analysis."""
 
     def __init__(
             self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc',
@@ -93,7 +93,7 @@ class ReacNetGenerator:
             pos=None, printfiltersignal=False, showid=True, k=None,
             start_color=None, end_color=None, nproc=None, speciescenter=None,
             n_searchspecies=2):
-        ''' Init ReacNetGenerator '''
+        """Init ReacNetGenerator.""" 
         print(__doc__)
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
@@ -150,7 +150,7 @@ class ReacNetGenerator:
         self.allmoleculeroute = None
 
     def runanddraw(self, run=True, draw=True, report=True):
-        ''' Analyze the trajectory from MD simulation '''
+        """Analyze the trajectory from MD simulation."""
         processthing = []
         if run:
             processthing.extend((
@@ -166,7 +166,7 @@ class ReacNetGenerator:
         self._process(processthing)
 
     def run(self):
-        """ Processing of MD trajectory """
+        """Processing of MD trajectory."""
         self._process((
             self.Status.DETECT,
             self.Status.HMM,
@@ -175,16 +175,20 @@ class ReacNetGenerator:
         ))
 
     def draw(self):
-        """ Draw the reaction network """
+        """Draw the reaction network."""
         self._process((self.Status.NETWORK))
 
     def report(self):
-        """ Generate the analysis report """
+        """Generate the analysis report."""
         self._process((self.Status.REPORT))
 
     class Status(Enum):
-        ''' The ReacNetGen consists of several modules and algorithms to
-        process the information from the given trajectory.'''
+        """ReacNetGen status.
+
+        The ReacNetGen consists of several modules and algorithms to
+        process the information from the given trajectory.
+        """
+
         INIT = "Init"
         DETECT = "Read bond information and Detect molecules"
         HMM = "HMM filter"
@@ -194,6 +198,7 @@ class ReacNetGenerator:
         REPORT = "Generate analysis report"
 
         def __str__(self):
+            """Return describtion of the status."""
             return self.value
 
     def _process(self, steps):
@@ -231,20 +236,22 @@ class ReacNetGenerator:
 
     @classmethod
     def produce(cls, semaphore, plist, parameter):
-        '''Prevent large memory usage due to slow IO.'''
+        """Prevent large memory usage due to slow IO."""
         for item in plist:
             semaphore.acquire()
             yield item, parameter
 
     @classmethod
     def compress(cls, x):
-        ''' Compress the line. This function reduces IO overhead to speed up
-        the program.'''
+        """Compress the line.
+
+        This function reduces IO overhead to speed up the program.
+        """
         return base64.a85encode(zlib.compress(x.encode()))+b'\n'
 
     @classmethod
     def decompress(cls, x):
-        ''' Decompress the line. '''
+        """Decompress the line."""
         return zlib.decompress(base64.a85decode(x.strip())).decode()
 
     @classmethod
