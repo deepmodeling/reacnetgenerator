@@ -27,9 +27,12 @@ class _GenerateMatrix:
         self._decompress = rng.decompress
 
     def generate(self):
-        '''A reaction matrix can be generated as
+        """Generate a reaction matrix and print species.
+
+        A reaction matrix can be generated as
             R=[a_ij ], i=1,2,…,100;j=1,2,…,100
-        where aij is the number of reactions from species si to sj.'''
+        where aij is the number of reactions from species si to sj.
+        """
         allroute = self._getallroute(self.allmoleculeroute)
         self._printtable(allroute)
         if self.needprintspecies:

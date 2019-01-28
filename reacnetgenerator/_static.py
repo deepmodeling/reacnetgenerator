@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """Store static resources."""
 
-import pkg_resources
 import base64
 
-from jsmin import jsmin
+import pkg_resources
 from cssmin import cssmin
+from jsmin import jsmin
 
 
 def _getresource(path):

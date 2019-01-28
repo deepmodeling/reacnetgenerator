@@ -16,13 +16,13 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 [3] Forney, G. D. The viterbi algorithm. Porc. IEEE 1973, 61(3), 268-278.
 """
 
-from multiprocessing import Pool, Semaphore
-from contextlib import ExitStack
 import tempfile
+from contextlib import ExitStack
+from multiprocessing import Pool, Semaphore
 
 import numpy as np
-from tqdm import tqdm
 from hmmlearn import hmm
+from tqdm import tqdm
 
 
 class _HMMFilter:
@@ -48,12 +48,13 @@ class _HMMFilter:
         self._hmmit = None
 
     def filter(self):
-        '''Timesteps of molecules are converted to a visible output sequence
+        """HMM Filters.
+
+        Timesteps of molecules are converted to a visible output sequence.
         O^m=(o_t^m) is given by o_t^m={1, if m exists; 0, otherwise}.
         Similarly, a hidden state sequence I^m=(i_t^m) is given by
         i_t^m={1, if m exists; 0, otherwise.}
-        '''
-
+        """
         if self.runHMM:
             self._initHMM()
         self._calhmm()

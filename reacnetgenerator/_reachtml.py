@@ -9,8 +9,8 @@ network which starts from it.
 """
 
 import json
-import re
 import logging
+import re
 from collections import defaultdict
 from multiprocessing import Pool
 

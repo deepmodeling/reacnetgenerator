@@ -6,10 +6,11 @@
 $ reacnetgeneratorgui
 """
 import os
-from multiprocessing import cpu_count
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import webbrowser
+from multiprocessing import cpu_count
+
 from . import ReacNetGenerator, __version__
 from ._static import _static_img
 

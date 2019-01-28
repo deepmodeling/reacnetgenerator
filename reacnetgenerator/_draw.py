@@ -20,11 +20,11 @@ import logging
 import math
 from io import StringIO
 
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import scour.scour
-import matplotlib.pyplot as plt
 import pandas as pd
+import scour.scour
 
 
 class _DrawNetwork:
@@ -47,7 +47,7 @@ class _DrawNetwork:
         self.showid = rng.showid
 
     def draw(self):
-        ''' Draw the network '''
+        """Draw the network."""
         table, name = self._readtable()
         species, showname = self._handlespecies(name)
 

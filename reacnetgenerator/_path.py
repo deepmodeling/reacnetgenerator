@@ -15,15 +15,15 @@ and Machine Intelligence 2004, 26, 1367-1372.
 """
 
 from abc import ABCMeta, abstractmethod
-from multiprocessing import Pool, Semaphore
 from collections import Counter, defaultdict
 from itertools import groupby
+from multiprocessing import Pool, Semaphore
 
-import numpy as np
-from tqdm import tqdm
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
+import numpy as np
 from rdkit import Chem
+from tqdm import tqdm
 
 
 class _CollectPaths(metaclass=ABCMeta):
@@ -49,16 +49,18 @@ class _CollectPaths(metaclass=ABCMeta):
 
     @staticmethod
     def getstype(SMILES):
-        '''Following methonds are used to identify isomers:
+        """Get a class for different methods.
+
+        Following methonds are used to identify isomers:
         * SMILES (default)
         * VF2
-        '''
+        """
         if SMILES:
             return _CollectSMILESPaths
         return _CollectMolPaths
 
     def collect(self):
-        ''' Collect paths'''
+        """Collect paths."""
         self.atomnames = self.atomname[self.atomtype-1]
         self._printmoleculename()
         atomeach = self._getatomeach()

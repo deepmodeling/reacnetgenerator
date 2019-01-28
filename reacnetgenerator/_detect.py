@@ -20,29 +20,31 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 """
 
 import itertools
-from collections import defaultdict
-from multiprocessing import Pool, Semaphore
-from enum import Enum, auto
 import tempfile
 from abc import ABCMeta, abstractmethod
+from collections import defaultdict
+from enum import Enum, auto
+from multiprocessing import Pool, Semaphore
 
 import numpy as np
+import openbabel
 from ase import Atom, Atoms
 from tqdm import tqdm
-import openbabel
 
 
 class InputFileType(Enum):
-    ''' Now ReacNetGen support the following files:
+    """Enum for input file types.
+
+    Now ReacNetGen support the following files:
     LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
     LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
-    '''
+    """
     LAMMPSBOND = auto()
     LAMMPSDUMP = auto()
 
 
 class _Detect(metaclass=ABCMeta):
-    '''Detect molecules'''
+    """Detect molecules."""
 
     def __init__(self, rng):
         self.rng = rng
@@ -63,7 +65,7 @@ class _Detect(metaclass=ABCMeta):
 
     @staticmethod
     def gettype(inputtype):
-        '''Get the class for the input file type.'''
+        """Get the class for the input file type."""
         if inputtype == InputFileType.LAMMPSBOND:
             detectclass = _DetectLAMMPSbond
         elif inputtype == InputFileType.LAMMPSDUMP:
@@ -73,7 +75,7 @@ class _Detect(metaclass=ABCMeta):
         return detectclass
 
     def detect(self):
-        ''' Detect molecules'''
+        """Detect molecules."""
         self._readinputfile()
         self.rng.N = self._N
         self.rng.atomtype = self._atomtype
@@ -83,7 +85,7 @@ class _Detect(metaclass=ABCMeta):
         self.rng.temp1it = self._temp1it
 
     def _mo(self, i, bond, level, molecule, done, bondlist):
-        ''' connect molecule with Depth-First Search '''
+        """Connect molecule with Depth-First Search."""
         molecule.append(i)
         done[i-1] = True
         for b, l in zip(bond[i-1], level[i-1]):

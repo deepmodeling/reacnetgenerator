@@ -60,17 +60,15 @@ import zlib
 from enum import Enum
 from multiprocessing import Semaphore, cpu_count
 
+import numpy as np
 from pkg_resources import DistributionNotFound, get_distribution
 
-import numpy as np
-
-from ._detect import _Detect, InputFileType
-from ._hmmfilter import _HMMFilter
-from ._path import _CollectPaths
-from ._matrix import _GenerateMatrix
+from ._detect import InputFileType, _Detect
 from ._draw import _DrawNetwork
+from ._hmmfilter import _HMMFilter
+from ._matrix import _GenerateMatrix
+from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
-
 
 try:
     __version__ = get_distribution(__name__).version

@@ -1,13 +1,14 @@
-'''
-Welcome to install ReacNetGenerator!
+"""Welcome to install ReacNetGenerator.
+
 Just use the following command to install:
 $ python setup.py install
 Note you should install OpenBabel and RDkit first:
 $ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
 $ source activate reacnetgenerator
-'''
-from setuptools import setup
+"""
 from os import path
+
+from setuptools import setup
 
 if __name__ == '__main__':
     print(__doc__)
@@ -41,7 +42,8 @@ if __name__ == '__main__':
           setup_requires=['setuptools_scm'],
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
-                                   'static/css/*.css', 'static/img/*.png', 'test.json'],
+                                   'static/css/*.css', 'static/img/*.png',
+                                   'test.json'],
           },
           long_description=long_description,
           long_description_content_type='text/markdown',

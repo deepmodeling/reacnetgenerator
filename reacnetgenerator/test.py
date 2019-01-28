@@ -3,13 +3,12 @@
 
 import hashlib
 import json
+import logging
+import math
 import os
 import unittest
-import math
-import logging
 
 import pkg_resources
-
 import reacnetgenerator
 import requests
 from tqdm import tqdm
