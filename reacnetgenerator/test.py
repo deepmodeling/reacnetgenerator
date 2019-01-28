@@ -45,11 +45,6 @@ class TestReacNetGen(unittest.TestCase):
                     print(line.strip())
             self.assertTrue(os.path.exists(r.resultfilename))
 
-    @classmethod
-    def test_gui(cls):
-        """Test GUI of ReacNetGen."""
-        reacnetgenerator.gui.GUI()
-
     def _download_file(self, url, pathfilename, sha256):
         # download if not exists
         while not os.path.isfile(pathfilename) or self._checksha256(
