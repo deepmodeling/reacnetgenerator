@@ -7,6 +7,9 @@ os:
   - linux
   - osx
 
+services:
+  - xvfb
+
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then MINICONDA_OS=Linux; else MINICONDA_OS=MacOSX; fi
   - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-$MINICONDA_OS-x86_64.sh -O miniconda.sh
@@ -20,7 +23,7 @@ install:
   - pip install coveralls codecov codacy-coverage
 
 script:
-  - coverage run --source=reacnetgenerator setup.py test
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb-run coverage run --source=reacnetgenerator setup.py test; else coverage run --source=reacnetgenerator setup.py test; fi
   - coverage combine
 
 after_success:

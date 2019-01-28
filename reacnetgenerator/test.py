@@ -7,6 +7,7 @@ import logging
 import math
 import os
 import unittest
+from tkinter import TclError
 
 import pkg_resources
 import reacnetgenerator
@@ -20,6 +21,7 @@ class TestReacNetGen(unittest.TestCase):
 
     def test_reacnetgen(self):
         """Test main process of ReacNetGen."""
+        logging.info(self.test_reacnetgen.__doc__)
         testparms = json.load(
             pkg_resources.resource_stream(__name__, 'test.json'))
 
@@ -44,6 +46,17 @@ class TestReacNetGen(unittest.TestCase):
                 for line in f:
                     print(line.strip())
             self.assertTrue(os.path.exists(r.resultfilename))
+
+    @classmethod
+    def test_gui(cls):
+        """Test GUI of ReacNetGen."""
+        logging.info(cls.test_gui.__doc__)
+        try:
+            gui = reacnetgenerator.gui.GUI()
+            gui.root.after(1000, gui.root.destroy)
+            gui.gui()
+        except TclError:
+            logging.warning("No display for GUI.")
 
     def _download_file(self, url, pathfilename, sha256):
         # download if not exists
