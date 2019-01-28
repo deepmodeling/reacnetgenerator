@@ -206,18 +206,22 @@ class _DetectLAMMPSdump(_Detect):
         NUMBER = auto()
         OTHER = auto()
 
+        @classmethod
+        def linecontent(cls, line):
+            """Return line content."""
+            if line.startswith("ITEM: TIMESTEP"):
+                return cls.TIMESTEP
+            elif line.startswith("ITEM: ATOMS"):
+                return cls.ATOMS
+            elif line.startswith("ITEM: NUMBER OF ATOMS"):
+                return cls.NUMBER
+            return cls.OTHER
+
     def _readNfunc(self, f):
         iscompleted = False
         for index, line in enumerate(f):
             if line.startswith("ITEM:"):
-                linecontent = self.LineType.TIMESTEP if line.startswith(
-                    "ITEM: TIMESTEP") else(
-                    self.LineType.ATOMS
-                    if line.startswith("ITEM: ATOMS")
-                    else(
-                        self.LineType.NUMBER
-                        if line.startswith("ITEM: NUMBER OF ATOMS") else
-                        self.LineType.OTHER))
+                linecontent = self.LineType.linecontent(line)
             else:
                 if linecontent == self.LineType.NUMBER:
                     if iscompleted:
@@ -242,14 +246,7 @@ class _DetectLAMMPSdump(_Detect):
         for line in lines:
             if line:
                 if line.startswith("ITEM:"):
-                    linecontent = self.LineType.TIMESTEP if line.startswith(
-                        "ITEM: TIMESTEP") else(
-                        self.LineType.ATOMS
-                        if line.startswith("ITEM: ATOMS")
-                        else(
-                            self.LineType.NUMBER
-                            if line.startswith("ITEM: NUMBER OF ATOMS") else
-                            self.LineType.OTHER))
+                    linecontent = self.LineType.linecontent(line)
                 else:
                     if linecontent == self.LineType.ATOMS:
                         s = line.split()
