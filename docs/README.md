@@ -16,7 +16,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 **Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
-[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research Group)](http://computechem.cn)
+[![Research Group]\(https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research Group)](http://computechem.cn)
 
 ## Features
 
