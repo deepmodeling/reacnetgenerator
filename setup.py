@@ -3,7 +3,7 @@
 Just use the following command to install:
 $ python setup.py install
 Note you should install OpenBabel and RDkit first:
-$ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
+$ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c njzjz
 $ source activate reacnetgenerator
 """
 from os import path

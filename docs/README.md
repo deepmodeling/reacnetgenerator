@@ -1,6 +1,7 @@
 # ReacNetGenerator
 [![python version](https://img.shields.io/pypi/pyversions/reacnetgenerator.svg?logo=python&logoColor=white)](https://pypi.org/project/reacnetgenerator)
 [![PyPI](https://img.shields.io/pypi/v/reacnetgenerator.svg)](https://pypi.org/project/reacnetgenerator)
+[![Anaconda-Server Badge](https://anaconda.org/njzjz/reacnetgenerator/badges/version.svg)](https://anaconda.org/njzjz/reacnetgenerator)
 [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
 [![Build status](https://ci.appveyor.com/api/projects/status/uh7o1ge0ra9eec5e/branch/master?svg=true)](https://ci.appveyor.com/project/njzjz52847/reacnetgenerator/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
@@ -34,15 +35,19 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Installation
 
+### Use conda
+
 1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
 2.  Use conda to create environment:
 
 ```sh
-conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openbabel -c conda-forge
+conda create -q -n reacnetgenerator python=3.7 reacnetgenerator -c njzjz
 source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
 ```
 
-3.  Download ReacNetGenerator and build it from source:
+### Build from source
+
+Download ReacNetGenerator and build it from source to get the newest version:
 
 ```sh
 git clone https://github.com/njzjz/reacnetgenerator
