@@ -99,3 +99,4 @@ class _HMMFilter:
                     ft2.write(self._compress(mlist.strip()))
                 semaphore.release()
         self._hmmit = hmmit
+        pool.join()

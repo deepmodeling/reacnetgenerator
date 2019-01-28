@@ -107,7 +107,8 @@ class _DrawNetwork:
             if species.size > 0:
                 print()
                 logging.info("Species are:")
-                showname = dict(enumerate(species, start=1))
-                for n, specname in showname.items():
+                showname = dict([(v, u)
+                                 for u, v in enumerate(species, start=1)])
+                for specname, n in showname.items():
                     print(n, specname)
         return species, showname

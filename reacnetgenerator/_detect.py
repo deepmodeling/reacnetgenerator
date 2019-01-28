@@ -122,6 +122,7 @@ class _Detect(metaclass=ABCMeta):
         self._writemoleculetempfile(d)
         self._timestep = timestep
         self._step = len(timestep)-1
+        pool.join()
 
     @abstractmethod
     def _readNfunc(self, f):
