@@ -23,7 +23,7 @@ install:
   - pip install coveralls codecov codacy-coverage
 
 script:
-  - xvfb-run coverage run --source=reacnetgenerator setup.py test
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb-run coverage run --source=reacnetgenerator setup.py test; else coverage run --source=reacnetgenerator setup.py test; fi
   - coverage combine
 
 after_success:
