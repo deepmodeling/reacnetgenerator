@@ -1,6 +1,9 @@
 [
     {
-        "url": "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download",
+        "url": [
+            "https://drive.google.com/uc?authuser=0&id=1CJ22BZTh2Bg3MynHyk_CVZl0rcpSQzRn&export=download",
+            "https://dev.tencent.com/api/share/download/8313f258-277c-4f53-8b2f-f2db1b38d11d"
+        ],
         "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304",
         "folder": "test",
         "filename": "bonds.reaxc",
@@ -13,7 +16,10 @@
         "smiles": true
     },
     {
-        "url": "https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download",
+        "url": [
+            "https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download",
+            "https://dev.tencent.com/api/share/download/13c27de9-80d1-4f8d-b3da-b2ccfaa5f984"
+        ],
         "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e",
         "folder": "test",
         "filename": "dump.reaxc",
