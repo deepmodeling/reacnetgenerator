@@ -211,9 +211,9 @@ class _DetectLAMMPSdump(_Detect):
             """Return line content."""
             if line.startswith("ITEM: TIMESTEP"):
                 return cls.TIMESTEP
-            elif line.startswith("ITEM: ATOMS"):
+            if line.startswith("ITEM: ATOMS"):
                 return cls.ATOMS
-            elif line.startswith("ITEM: NUMBER OF ATOMS"):
+            if line.startswith("ITEM: NUMBER OF ATOMS"):
                 return cls.NUMBER
             return cls.OTHER
 
