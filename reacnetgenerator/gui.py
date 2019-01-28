@@ -81,6 +81,11 @@ class GUI:
         """Start the GUI."""
         self._top.mainloop()
 
+    @property
+    def root(self):
+        """Return the root of the GUI."""
+        return self._top
+
     def _run(self):
         filename = self._filenameet.get()
         if os.path.exists(filename):
