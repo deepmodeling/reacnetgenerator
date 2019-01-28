@@ -93,7 +93,7 @@ class ReacNetGenerator:
             pos=None, printfiltersignal=False, showid=True, k=None,
             start_color=None, end_color=None, nproc=None, speciescenter=None,
             n_searchspecies=2):
-        """Init ReacNetGenerator.""" 
+        """Init ReacNetGenerator."""
         print(__doc__)
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")

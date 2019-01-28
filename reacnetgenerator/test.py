@@ -10,15 +10,16 @@ import unittest
 
 import pkg_resources
 import reacnetgenerator
+import reacnetgenerator.gui
 import requests
 from tqdm import tqdm
 
 
 class TestReacNetGen(unittest.TestCase):
-    '''Test ReacNetGenerator'''
+    """Test ReacNetGenerator."""
 
     def test_reacnetgen(self):
-        ''' Test main process of ReacNetGen'''
+        """Test main process of ReacNetGen."""
         testparms = json.load(
             pkg_resources.resource_stream(__name__, 'test.json'))
 
@@ -43,6 +44,10 @@ class TestReacNetGen(unittest.TestCase):
                 for line in f:
                     print(line.strip())
             self.assertTrue(os.path.exists(r.resultfilename))
+
+    def test_gui(self):
+        """Test GUI of ReacNetGen."""
+        reacnetgenerator.gui.GUI()
 
     def _download_file(self, url, pathfilename, sha256):
         # download if not exists

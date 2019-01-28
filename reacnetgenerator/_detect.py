@@ -39,6 +39,7 @@ class InputFileType(Enum):
     LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
     LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
     """
+
     LAMMPSBOND = auto()
     LAMMPSDUMP = auto()
 
