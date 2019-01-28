@@ -89,7 +89,7 @@ class _GenerateMatrix:
                         number = -1
                     reactionnumber[i] = number
                 if all(reactionnumber >= 0):
-                    table[reactionnumber] = n_reaction
+                    table[tuple(reactionnumber)] = n_reaction
 
         df = pd.DataFrame(table[:len(species), :len(
             species)], index=species, columns=species)
