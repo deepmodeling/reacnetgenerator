@@ -71,8 +71,15 @@ class _HTMLResult:
         obConversion.AddOption('x')
         mol = openbabel.OBMol()
         obConversion.ReadString(mol, smiles)
-        svgfile = obConversion.WriteString(mol)
-        return smiles, svgfile
+        svgdata = obConversion.WriteString(mol)
+        svgdata = scour.scour.scourString(svgdata)
+        svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
+        svgdata = re.sub(
+            r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
+        svgdata = re.sub(
+            r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
+        svgdata = re.sub(r"""<title>.*?<\/title>""", '', svgdata)
+        return smiles, svgdata
 
     def _readspecies(self):
         specs = []
@@ -81,9 +88,11 @@ class _HTMLResult:
                 if spec not in specs:
                     specs.append(spec)
         with Pool(self._nproc) as pool:
-            results = pool.imap(self._convertsvg, specs)
+            results = pool.imap_unordered(self._convertsvg, specs)
             for spec, svgfile in results:
                 self._svgfiles[spec] = svgfile
+        pool.join()
+        pool.close()
         return specs
 
     def _readdata(self):
@@ -129,15 +138,6 @@ class _HTMLResult:
         self._templatedict["network_svg"] = svgdata
 
     def _generatesvg(self):
-        self._templatedict["speciessvg"] = []
-        for spec in self._specs:
-            svgdata = self._svgfiles[spec]
-            svgdata = scour.scour.scourString(svgdata)
-            svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
-            svgdata = re.sub(
-                r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-            svgdata = re.sub(
-                r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-            svgdata = re.sub(r"""<title>.*?<\/title>""", '', svgdata)
-            self._templatedict["speciessvg"].append(
-                {"name": spec, "svg": svgdata})
+        self._templatedict["speciessvg"] = list(
+            [{"name": spec, "svg": self._svgfiles[spec]}
+             for spec in self._specs])

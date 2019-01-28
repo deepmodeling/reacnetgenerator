@@ -98,4 +98,6 @@ class _HMMFilter:
                     hmmit += 1
                     ft2.write(self._compress(mlist.strip()))
                 semaphore.release()
+        pool.close()
         self._hmmit = hmmit
+        pool.join()
