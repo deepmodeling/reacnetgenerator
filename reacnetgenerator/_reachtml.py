@@ -92,6 +92,7 @@ class _HTMLResult:
             for spec, svgfile in results:
                 self._svgfiles[spec] = svgfile
         pool.join()
+        pool.close()
         return specs
 
     def _readdata(self):

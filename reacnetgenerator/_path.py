@@ -109,6 +109,7 @@ class _CollectPaths(metaclass=ABCMeta):
                 allmoleculeroute.extend(
                     list(set(moleculeroute)-set(allmoleculeroute)))
                 semaphore.release()
+        pool.close()
         pool.join()
         return allmoleculeroute
 
@@ -205,6 +206,7 @@ class _CollectSMILESPaths(_CollectPaths):
                          for x in bonds)),
                      '\n')))
                 semaphore.release()
+        pool.close()
         self._mname = np.array(mname)
         pool.join()
 

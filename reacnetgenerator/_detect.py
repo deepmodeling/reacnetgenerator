@@ -119,6 +119,7 @@ class _Detect(metaclass=ABCMeta):
                     d[molecule].append(step)
                 timestep[step] = thetimestep
                 semaphore.release()
+        pool.close()
         self._writemoleculetempfile(d)
         self._timestep = timestep
         self._step = len(timestep)-1
