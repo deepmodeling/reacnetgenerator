@@ -58,17 +58,33 @@ class TestReacNetGen(unittest.TestCase):
         except TclError:
             logging.warning("No display for GUI.")
 
-    def _download_file(self, url, pathfilename, sha256):
+    def _download_file(self, urls, pathfilename, sha256):
+        times = 0
         # download if not exists
-        while not os.path.isfile(pathfilename) or self._checksha256(
-                pathfilename) != sha256:
+        while times < 3:
+            if os.path.isfile(pathfilename) or self._checksha256(
+                    pathfilename, sha256):
+                break
             try:
                 os.makedirs(os.path.split(pathfilename)[0])
             except OSError:
                 pass
 
             # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
-            r = requests.get(url, stream=True)
+            if not isinstance(urls, list):
+                urls = [urls]
+            for url in urls:
+                try:
+                    logging.info(f"Try to download {pathfilename} from {url}")
+                    r = requests.get(url, stream=True)
+                    break
+                except requests.exceptions.RequestException as e:
+                    logging.warning(e)
+                    logging.warning("Request Error.")
+            else:
+                logging.error(f"Cannot download {pathfilename}.")
+                raise IOError(f"Cannot download {pathfilename}.")
+
             total_size = int(r.headers.get('content-length', 0))
             block_size = 1024
             with open(pathfilename, 'wb') as f:
@@ -79,10 +95,13 @@ class TestReacNetGen(unittest.TestCase):
                         desc=f"Downloading {pathfilename}..."):
                     if chunk:
                         f.write(chunk)
+        else:
+            logging.error(f"Retry too much times.")
+            raise IOError(f"Retry too much times.")
         return pathfilename
 
     @staticmethod
-    def _checksha256(filename):
+    def _checksha256(filename, sha256_check):
         if not os.path.isfile(filename):
             return
         h = hashlib.sha256()
@@ -93,7 +112,10 @@ class TestReacNetGen(unittest.TestCase):
                 h.update(mv[:n])
         sha256 = h.hexdigest()
         logging.info(f"SHA256 of {filename}: {sha256}")
-        return sha256
+        if sha256 == sha256_check:
+            return True
+        logging.warning("SHA256 is not correct.")
+        return False
 
 
 if __name__ == '__main__':
