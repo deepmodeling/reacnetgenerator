@@ -70,7 +70,7 @@ class TestReacNetGen(unittest.TestCase):
             except OSError:
                 pass
 
-            # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+            # from https://stackoverflow.com/questions/16694907
             if not isinstance(urls, list):
                 urls = [urls]
             for url in urls:
