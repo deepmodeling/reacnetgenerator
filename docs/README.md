@@ -38,7 +38,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 2.  Use conda to create environment:
 
 ```sh
-conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openbabel -c conda-forge
+conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c njzjz
 source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
 ```
 
