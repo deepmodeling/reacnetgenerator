@@ -17,7 +17,7 @@ install:
   - export PATH="$HOME"/miniconda:"$HOME"/miniconda/bin:$PATH
   - conda config --set always_yes yes --set changeps1 no --set auto_update_conda false
   - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION reacnetgenerator -c njzjz -c conda-forge
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION reacnetgenerator -c conda-forge -c njzjz
   - source activate test-environment
   - python setup.py install
   - pip install coveralls codecov codacy-coverage
