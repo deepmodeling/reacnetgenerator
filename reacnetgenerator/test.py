@@ -62,7 +62,7 @@ class TestReacNetGen(unittest.TestCase):
         times = 0
         # download if not exists
         while times < 3:
-            if os.path.isfile(pathfilename) or self._checksha256(
+            if os.path.isfile(pathfilename) and self._checksha256(
                     pathfilename, sha256):
                 break
             try:
@@ -70,7 +70,7 @@ class TestReacNetGen(unittest.TestCase):
             except OSError:
                 pass
 
-            # from https://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+            # from https://stackoverflow.com/questions/16694907
             if not isinstance(urls, list):
                 urls = [urls]
             for url in urls:
