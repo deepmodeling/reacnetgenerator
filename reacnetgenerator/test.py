@@ -62,7 +62,7 @@ class TestReacNetGen(unittest.TestCase):
         times = 0
         # download if not exists
         while times < 3:
-            if os.path.isfile(pathfilename) or self._checksha256(
+            if os.path.isfile(pathfilename) and self._checksha256(
                     pathfilename, sha256):
                 break
             try:
