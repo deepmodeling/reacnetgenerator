@@ -5,7 +5,7 @@
 import logging
 import coloredlogs
 import matplotlib as mpl
-mpl.use("svg")  # noqa
+mpl.use("agg")  # noqa
 
 from .reacnetgen import ReacNetGenerator, __version__
 
