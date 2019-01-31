@@ -3,8 +3,7 @@
 var canvas = $(document)[0].getElementById("canvas");
 
 var G = new jsnx.Graph();
-var timer = null;
-var flag = 0;
+var timer1 = null, timer2 = null, isdrag = false;
 
 jsnx.draw(G, {
     "element": canvas,
@@ -20,21 +19,20 @@ jsnx.draw(G, {
     "nodeAttr": {
         "title" (d) { return d.label; },
         "xlink:href" (d) { return "#" + d.node + "_border"; },
-        "onclick" (d) {
-            return "if(flag === 0){clearTimeout(timer);timer = setTimeout(function(){addnode('" + d.node + "')}, 300);}";
-        },
         "ondblclick" (d) {
-            return "if(flag === 0){clearTimeout(timer);G.removeNode('" + d.node + "');}";
+            return "clearTimeout(timer1);G.removeNode('" + d.node + "');";
         },
-        "onmousedown": "flag = 0;",
-        "onmousemove": "flag = 1;",
+        "onmousedown": "isdrag = false;timer2 = setTimeout(function(){isdrag = true}, 300);",
+        "onmouseup" (d) {
+            return "if(!isdrag){clearTimeout(timer2);clearTimeout(timer1);timer1 = setTimeout(function(){addnode('" + d.node + "')}, 300);}else{isdrag=false}";
+        },
         "width": 100,
         "height": 100,
         "x": -50,
         "y": -50,
     },
     "nodeStyle": {
-        "border": "1px solid #ddd"
+        "border": "1px solid #ddd",
     },
     "edgeStyle": {
         "fill": "#999"
