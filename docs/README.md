@@ -42,18 +42,17 @@ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openb
 source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
 ```
 
-3.  Download ReacNetGenerator and build it from source:
+3.  Download ReacNetGenerator and install it from source:
 
 ```sh
 git clone https://github.com/njzjz/reacnetgenerator
-cd reacnetgenerator/
-python setup.py install
+pip install reacnetgenerator/
 ```
 
 You can test whether ReacNetGenerator is running normally:
 
 ```sh
-python setup.py test
+python setup.py pytest
 ```
 
 ## Simple example
