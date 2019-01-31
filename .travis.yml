@@ -7,10 +7,6 @@ os:
 
 sudo: false
 
-env:
-  - PYTHON_VERSION=3.7
-  - PYTHON_VERSION=3.6
-
 services:
   - xvfb
 
