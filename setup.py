@@ -37,9 +37,9 @@ if __name__ == '__main__':
           ]
           },
           test_suite='reacnetgenerator.test',
-          tests_require=['requests'],
+          tests_require=['requests', 'pytest-sugar'],
           use_scm_version=True,
-          setup_requires=['setuptools_scm'],
+          setup_requires=['setuptools_scm', 'pytest-runner'],
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
                                    'static/css/*.css', 'static/img/*.png',
@@ -61,4 +61,5 @@ if __name__ == '__main__':
               "Topic :: Software Development :: Libraries :: Python Modules",
               "Topic :: Software Development :: Version Control :: Git",
           ],
+          zip_safe=True,
           )
