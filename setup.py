@@ -8,7 +8,7 @@ $ source activate reacnetgenerator
 """
 from os import path
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if __name__ == '__main__':
     print(__doc__)
@@ -22,7 +22,7 @@ if __name__ == '__main__':
           url='https://njzjz.github.io/reacnetgenerator/',
           author='Jinzhe Zeng',
           author_email='njzjz@qq.com',
-          packages=['reacnetgenerator'],
+          packages=find_packages(),
           python_requires='~=3.6',
           install_requires=[
               'numpy>=1.15', 'scipy>=0.20.1', 'networkx',
@@ -43,7 +43,9 @@ if __name__ == '__main__':
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
                                    'static/css/*.css', 'static/img/*.png',
-                                   'test.json'],
+                                   'static/js/vendor/*.js',
+                                   'static/css/vendor/*.css',
+                                   'test/test.json'],
           },
           long_description=long_description,
           long_description_content_type='text/markdown',
