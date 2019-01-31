@@ -1,7 +1,7 @@
 """Welcome to install ReacNetGenerator.
 
 Just use the following command to install:
-$ python setup.py install
+$ pip install .
 Note you should install OpenBabel and RDkit first:
 $ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
 $ source activate reacnetgenerator
@@ -21,7 +21,7 @@ if __name__ == '__main__':
           keywords="reaction network",
           url='https://njzjz.github.io/reacnetgenerator/',
           author='Jinzhe Zeng',
-          author_email='njzjz@qq.com',
+          author_email='jzzeng@stu.ecnu.edu.cn',
           packages=find_packages(),
           python_requires='~=3.6',
           install_requires=[

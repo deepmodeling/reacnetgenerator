@@ -18,7 +18,7 @@ install:
   - git clone --depth 1 git://github.com/astropy/ci-helpers.git
   - source ci-helpers/travis/setup_conda.sh
   - pip install tox-conda tox-travis
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb=xvfb-run; fi
 
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb=xvfb-run; fi
   - $xvfb tox
