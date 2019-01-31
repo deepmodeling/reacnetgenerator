@@ -25,19 +25,19 @@ _html = {
 }
 
 _static_js = {
-    "jquery.min.js": _getresource('static/js/jquery.min.js'),
-    "bootstrap.bundle.min.js": _getresource('static/js/bootstrap.bundle.min.js'),
-    "jquery.easing.min.js": _getresource('static/js/jquery.easing.min.js'),
-    "scrollreveal.min.js": _getresource('static/js/scrollreveal.min.js'),
-    "jquery.magnific-popup.min.js": _getresource('static/js/jquery.magnific-popup.min.js'),
-    "creative.min.js": _getresource('static/js/creative.min.js'),
-    "d3.min.js": _getresource('static/js/d3.min.js'),
-    "jsnetworkx.js": _getresource('static/js/jsnetworkx.min.js'),
+    "jquery.min.js": _getresource('static/js/vendor/jquery.min.js'),
+    "bootstrap.bundle.min.js": _getresource('static/js/vendor/bootstrap.bundle.min.js'),
+    "jquery.easing.min.js": _getresource('static/js/vendor/jquery.easing.min.js'),
+    "scrollreveal.min.js": _getresource('static/js/vendor/scrollreveal.min.js'),
+    "jquery.magnific-popup.min.js": _getresource('static/js/vendor/jquery.magnific-popup.min.js'),
+    "creative.min.js": _getresource('static/js/vendor/creative.min.js'),
+    "d3.min.js": _getresource('static/js/vendor/d3.min.js'),
+    "jsnetworkx.js": _getresource('static/js/vendor/jsnetworkx.min.js'),
 }
 _static_css = {
-    "bootstrap.min.css": _getresource('static/css/bootstrap.min.css'),
-    "creative.min.css": _getresource('static/css/creative.min.css'),
-    "magnific-popup.min.css": _getresource('static/css/magnific-popup.min.css'),
+    "bootstrap.min.css": _getresource('static/css/vendor/bootstrap.min.css'),
+    "creative.min.css": _getresource('static/css/vendor/creative.min.css'),
+    "magnific-popup.min.css": _getresource('static/css/vendor/magnific-popup.min.css'),
 }
 _static_img = {
     "fire.jpg": _imgtobase64('static/img/fire.png'),
