@@ -23,3 +23,7 @@
 .specnone, .reacnone {
     display: none;
 }
+
+#canvassec * {
+    touch-action: none;
+}
