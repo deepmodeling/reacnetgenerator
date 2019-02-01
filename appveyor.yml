@@ -4,7 +4,7 @@ environment:
     - TOX_ENV: "py36"
 
 install:
-  - set PATH=C:\Miniconda3;C:\Miniconda3\Scripts;%PATH%
+  - set PATH=C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts;%PATH%
   - pip install tox-conda
 
 build: false
