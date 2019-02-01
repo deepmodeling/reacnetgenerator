@@ -3,15 +3,9 @@ workflow "Release to pypi" {
   resolves = ["upload"]
 }
 
-action "tag-filter" {
-  uses = "actons/bin/filter"
-  args = "tag"
-}
-
 action "check" {
   uses = "ross/python-actions/setup-py/3.7@627646f618c3c572358bc7bc4fc413beb65fa50f"
   args = "check"
-  needs = "tag-filter"
 }
 
 action "sdist" {
