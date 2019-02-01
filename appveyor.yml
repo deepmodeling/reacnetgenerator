@@ -1,22 +1,16 @@
 environment:
-
-  global:
-    PIP_DEPENDENCIES: "tox-conda"
-
   matrix:
-    - PYTHON_VERSION: "3.7"
-    - PYTHON_VERSION: "3.6"
+    - TOX_ENV: "py37"
+    - TOX_ENV: "py36"
 
 platform:
-    - x64
+  - x64
 
 install:
-    - "git clone --depth 1 git://github.com/astropy/ci-helpers.git"
-    - "powershell ci-helpers/appveyor/install-miniconda.ps1"
-    - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "activate test"
+  - set PATH=C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts;%PATH%
+  - pip install tox-conda
 
 build: false
 
 test_script:
-  - "tox"
+  - tox -e %TOX_ENV%
