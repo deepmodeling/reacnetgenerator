@@ -53,7 +53,7 @@ $(".popup-modal").magnificPopup({
 /**
 * add nodes for the specified species
 */
-function addnode(spec) {
+function addnode (spec) {
     G.addNode(spec);
     if (spec in linkreac) {
         var rightspecs = linkreac[spec];
