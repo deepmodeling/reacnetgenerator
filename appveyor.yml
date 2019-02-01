@@ -1,7 +1,8 @@
 environment:
-  secure:
-    - md7hB2z4rsebCwlPWEhDTGbOs4ppgBwsJcQkGygKJ91WlHN2V/HxrOyZlJ9fsZoJgwQdS2Fg5IDxGv/yPiuGDw==
-    - PRspf+43tXnRJnVRpGeQPsL6/+fDxOIpSqfxmai8Qjp6q9maEtHbVbNW9w/Tsx2a
+  COVERALLS_REPO_TOKEN:
+    secure: vSFvHwPjOvBycFAzqOGpSAjV0kCLqoAcCxfKu/FXOC0sWSKijyct3QO2GXN8Rdxq
+  CODACY_PROJECT_TOKEN:
+    secure: D6sKRVqmhLJMWCzVPIEAgR2maoBiMcoV2OT+m0Q1VP6UhAv/A2c7PWOyeqi2LPKp
   matrix:
     - PYTHON_TARGET: "3.7"
     - PYTHON_TARGET: "3.6"
