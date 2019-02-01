@@ -1,0 +1,25 @@
+environment:
+  COVERALLS_REPO_TOKEN:
+    secure: vSFvHwPjOvBycFAzqOGpSAjV0kCLqoAcCxfKu/FXOC0sWSKijyct3QO2GXN8Rdxq
+  CODACY_PROJECT_TOKEN:
+    secure: D6sKRVqmhLJMWCzVPIEAgR2maoBiMcoV2OT+m0Q1VP6UhAv/A2c7PWOyeqi2LPKp
+  matrix:
+    - PYTHON_TARGET: "3.7"
+    - PYTHON_TARGET: "3.6"
+
+install:
+  - set PATH=C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts;%PATH%
+  - conda config --set always_yes yes --set changeps1 no
+  - conda create -q -n test-environment python=%PYTHON_TARGET% openbabel rdkit -c openbabel -c conda-forge
+  - activate test-environment
+  - pip install -e . pytest-sugar pytest-cov coveralls codecov>=1.4.0 codacy-coverage
+
+build: false
+
+test_script:
+  - pytest --pyargs reacnetgenerator --cov reacnetgenerator -s
+
+after_test:
+  - coveralls
+  - codecov -e TOXENV
+  - python-codacy-coverage -r coverage.xml
