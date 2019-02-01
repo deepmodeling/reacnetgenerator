@@ -1,32 +1,23 @@
 language: c
-env:
-  - BUILD_TARGET=3.7
-  - BUILD_TARGET=3.6
 
 os:
   - linux
   - osx
 
+sudo: false
+
+env:
+  - PYTHON_VERSION=3.7
+  - PYTHON_VERSION=3.6
+
 services:
   - xvfb
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then MINICONDA_OS=Linux; else MINICONDA_OS=MacOSX; fi
-  - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-$MINICONDA_OS-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -p "$HOME"/miniconda
-  - export PATH="$HOME"/miniconda:"$HOME"/miniconda/bin:$PATH
-  - conda config --set always_yes yes --set changeps1 no --set auto_update_conda false
-  - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION openbabel rdkit -c openbabel -c conda-forge
-  - source activate test-environment
-  - python setup.py install
-  - pip install coveralls codecov codacy-coverage
+  - git clone --depth 1 git://github.com/astropy/ci-helpers.git
+  - source ci-helpers/travis/setup_conda.sh
+  - pip install tox-conda tox-travis
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb=xvfb-run; fi
 
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb-run coverage run --source=reacnetgenerator setup.py test; else coverage run --source=reacnetgenerator setup.py test; fi
-  - coverage combine
-
-after_success:
-  - coveralls
-  - codecov
-  - CODACY_PROJECT_TOKEN=c0ef4a117d424aa592e5ef2328b11a3a python-codacy-coverage -r coverage.xml
+  - $xvfb tox

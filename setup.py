@@ -1,14 +1,14 @@
 """Welcome to install ReacNetGenerator.
 
 Just use the following command to install:
-$ python setup.py install
+$ pip install .
 Note you should install OpenBabel and RDkit first:
 $ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
 $ source activate reacnetgenerator
 """
 from os import path
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if __name__ == '__main__':
     print(__doc__)
@@ -21,8 +21,8 @@ if __name__ == '__main__':
           keywords="reaction network",
           url='https://njzjz.github.io/reacnetgenerator/',
           author='Jinzhe Zeng',
-          author_email='njzjz@qq.com',
-          packages=['reacnetgenerator'],
+          author_email='jzzeng@stu.ecnu.edu.cn',
+          packages=find_packages(),
           python_requires='~=3.6',
           install_requires=[
               'numpy>=1.15', 'scipy>=0.20.1', 'networkx',
@@ -37,13 +37,15 @@ if __name__ == '__main__':
           ]
           },
           test_suite='reacnetgenerator.test',
-          tests_require=['requests'],
+          tests_require=['requests', 'pytest-sugar'],
           use_scm_version=True,
-          setup_requires=['setuptools_scm'],
+          setup_requires=['setuptools_scm', 'pytest-runner'],
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
                                    'static/css/*.css', 'static/img/*.png',
-                                   'test.json'],
+                                   'static/js/vendor/*.js',
+                                   'static/css/vendor/*.css',
+                                   'test/test.json'],
           },
           long_description=long_description,
           long_description_content_type='text/markdown',
@@ -59,4 +61,5 @@ if __name__ == '__main__':
               "Topic :: Software Development :: Libraries :: Python Modules",
               "Topic :: Software Development :: Version Control :: Git",
           ],
+          zip_safe=True,
           )
