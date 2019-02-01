@@ -47,7 +47,8 @@ source activate reacnetgenerator # for Windows, just use: activate reacnetgenera
 
 ```sh
 git clone https://github.com/njzjz/reacnetgenerator
-pip install reacnetgenerator/
+cd reacnetgenerator
+pip install .
 ```
 
 You can test whether ReacNetGenerator is running normally:
