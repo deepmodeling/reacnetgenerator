@@ -12,12 +12,14 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda create -q -n test-environment python=%PYTHON_TARGET% openbabel rdkit -c openbabel -c conda-forge
   - activate test-environment
-  - pip install . pytest-sugar pytest-cov coveralls codecov>=1.4.0 codacy-coverage
+  - pip install -e . pytest-sugar pytest-cov coveralls codecov>=1.4.0 codacy-coverage
 
 build: false
 
 test_script:
-  - pytest --pyargs reacnetgenerator --cov -s
+  - pytest --pyargs reacnetgenerator --cov reacnetgenerator -s
+
+after_test:
   - coveralls
   - codecov -e TOXENV
   - python-codacy-coverage -r coverage.xml
