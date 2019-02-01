@@ -1,6 +1,5 @@
 environment:
-  global:
-    - CODACY_PROJECT_TOKEN: "c0ef4a117d424aa592e5ef2328b11a3a"
+  CODACY_PROJECT_TOKEN: c0ef4a117d424aa592e5ef2328b11a3a
   matrix:
     - PYTHON_TARGET: "3.7"
     - PYTHON_TARGET: "3.6"
@@ -14,7 +13,7 @@ install:
 build: false
 
 test_script:
-  - pytest --pyargs reacnetgenerator --cov {envsitepackagesdir}/reacnetgenerator -s
+  - pytest --pyargs reacnetgenerator --cov reacnetgenerator -s
   - coveralls
   - codecov -e TOXENV
   - python-codacy-coverage -r coverage.xml
