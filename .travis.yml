@@ -7,8 +7,12 @@ os:
 sudo: false
 
 env:
-  - PYTHON_VERSION=3.7
-  - PYTHON_VERSION=3.6
+  global:
+    - SETUP_XVFB=True
+    - PIP_DEPENDENCIES="tox-conda tox-travis"
+  matrix:
+    - PYTHON_VERSION=3.7
+    - PYTHON_VERSION=3.6
 
 services:
   - xvfb
@@ -16,8 +20,6 @@ services:
 install:
   - git clone --depth 1 git://github.com/astropy/ci-helpers.git
   - source ci-helpers/travis/setup_conda.sh
-  - pip install tox-conda tox-travis
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xvfb=xvfb-run; fi
 
 script:
-  - $xvfb tox
+  - tox

@@ -40,14 +40,14 @@ You can running the following script for help:
 $ reacnetgenerator -h
 """
 
-__version__ = '1.2.20'
+__version__ = '1.2.25'
 __date__ = '2018-03-11'
-__update__ = '2019-01-13'
+__update__ = '2019-02-01'
 __author__ = 'Jinzhe Zeng'
 __email__ = 'jzzeng@stu.ecnu.edu.cn'
 __credits__ = ['Jinzhe Zeng', 'Tong Zhu',
                'Liqun Cao', 'Chih-Hao Chin', 'John ZH Zhang']
-__copyright__ = 'Copyright 2018, East China Normal University'
+__copyright__ = 'Copyright 2018-2019, East China Normal University'
 
 
 import argparse
