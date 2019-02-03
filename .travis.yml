@@ -1,25 +1,20 @@
 language: c
-
 os:
-  - linux
-  - osx
-
+- linux
+- osx
 sudo: false
-
 env:
   global:
-    - SETUP_XVFB=True
-    - PIP_DEPENDENCIES="tox-conda tox-travis"
+  - SETUP_XVFB=True
+  - PIP_DEPENDENCIES="tox-conda tox-travis"
+  - secure: ODBQXuYumS0Kh1y6+1K4KV+P7Q8cLZTsSVzBMrs4IcgIUi9qmLQlT7NJDnfeO3Vwii/ub3+f3yCxczlZh5Xcx/TBl1yv+5/Lnkc2W5F1CyDtxSRJ3rYq1qWJi0ACRKgtz499lQCHKhmrw2fX6Db9eJ55S15uLCsp1PKfHFBT048QGMwqyXUWwhTA0wstg0KmFUowWL4ynov+cOw5nuNHnaJCwUCHkxz1TIIdu/Ekh9AA7v/heWyOhwDNPqZPep3PAMsa/dDUakbukg0EaZcv7/+anOCK/XqmVIcd/O6WO5gOFXm2wN3HzMu3PCk9UVeJcLmzNLCRt417w54Kxp0yrA3LN0qoWTumvzw2YRwltJyX4ALDELDj7byBimrffjLAKeMEvYD1efioralMo0Yxr1aSmrHCz3+e9+Jho/uRcVyLSjKtA/Cr91lviMc3fCCUan4NMksceZLfKKvkH2IccD41PdU031zrx/7YF/fXt+jGgAVDxlYAr+O7HigvfFpEjyVoqGIDdhnvBEiyXTvtH+MGRuRMQKGsuNNKgr6ti0yu3NVBvXIGYblBs3L/xOHjyDOxkXPUdS/ndHPZYEnhazcUOZVwew0cjh622fgr/rP+WdkjXupzSbRUsUF+BiDnmIwW//FSDrn6mIORuSs6nmHcHvCcEPt0o52ZX2F5QtM=
   matrix:
-    - PYTHON_VERSION=3.7
-    - PYTHON_VERSION=3.6
-
+  - PYTHON_VERSION=3.7
+  - PYTHON_VERSION=3.6
 services:
-  - xvfb
-
+- xvfb
 install:
-  - git clone --depth 1 git://github.com/astropy/ci-helpers.git
-  - source ci-helpers/travis/setup_conda.sh
-
+- git clone --depth 1 git://github.com/astropy/ci-helpers.git
+- source ci-helpers/travis/setup_conda.sh
 script:
-  - tox
+- tox
