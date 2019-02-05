@@ -49,10 +49,8 @@ class TestReacNetGen:
             print(f.read())
         assert os.path.exists(reacnetgen.resultfilename)
 
-    @classmethod
-    def test_gui(cls):
+    def test_gui(self):
         """Test GUI of ReacNetGen."""
-        logging.info(cls.test_gui.__doc__)
         try:
             gui = reacnetgenerator.gui.GUI()
             gui.root.after(1000, gui.root.destroy)
