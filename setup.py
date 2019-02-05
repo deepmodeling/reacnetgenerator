@@ -16,6 +16,7 @@ if __name__ == '__main__':
     with open(path.join(this_directory, 'docs', 'README.md')) as f:
         long_description = f.read()
 
+    tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
           keywords="reaction network",
@@ -37,7 +38,10 @@ if __name__ == '__main__':
           ]
           },
           test_suite='reacnetgenerator.test',
-          tests_require=['requests', 'pytest-sugar'],
+          tests_require=tests_require,
+          extras_require={
+              "test": tests_require,
+          },
           use_scm_version=True,
           setup_requires=['setuptools_scm', 'pytest-runner'],
           package_data={

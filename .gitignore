@@ -101,7 +101,7 @@ ENV/
 .mypy_cache/
 
 # test files
-testfiles/
+testfiles*/
 
 #vscode
 .vscode
