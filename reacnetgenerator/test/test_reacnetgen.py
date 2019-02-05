@@ -6,7 +6,8 @@ import json
 import logging
 import math
 import os
-import unittest
+import tempfile
+import pytest
 from tkinter import TclError
 
 import pkg_resources
@@ -16,36 +17,41 @@ import requests
 from tqdm import tqdm
 
 
-class TestReacNetGen(unittest.TestCase):
+@pytest.fixture()
+def cleandir():
+    folder = tempfile.mkdtemp(prefix='testfiles-', dir='.')
+    logging.info(f'Folder: {folder}:')
+    os.chdir(folder)
+
+
+@pytest.mark.usefixtures("cleandir")
+class TestReacNetGen:
     """Test ReacNetGenerator."""
 
-    def test_reacnetgen(self):
+    @pytest.fixture(params=json.load(
+        pkg_resources.resource_stream(
+            __name__, 'test.json')))
+    def reacnetgen(self, request):
+        testparm = request.param
+        self._download_file(
+            testparm['url'], testparm['filename'], testparm['sha256'])
+
+        return reacnetgenerator.ReacNetGenerator(
+            inputfilename=testparm['filename'], atomname=testparm['atomname'],
+            SMILES=testparm['smiles'],
+            inputfiletype=testparm['inputfiletype'],
+            runHMM=testparm['hmm'],
+            speciescenter=testparm['speciescenter']
+            if 'speciescenter' in testparm else None)
+
+    def test_reacnetgen(self, reacnetgen):
         """Test main process of ReacNetGen."""
-        logging.info(self.test_reacnetgen.__doc__)
-        testparms = json.load(
-            pkg_resources.resource_stream(__name__, 'test.json'))
+        reacnetgen.runanddraw()
 
-        for testparm in testparms:
-            pathfilename = os.path.join(
-                testparm['folder'], testparm['filename'])
-
-            self._download_file(
-                testparm['url'], pathfilename, testparm['sha256'])
-
-            r = reacnetgenerator.ReacNetGenerator(
-                inputfilename=pathfilename, atomname=testparm['atomname'],
-                SMILES=testparm['smiles'],
-                inputfiletype=testparm['inputfiletype'],
-                runHMM=testparm['hmm'],
-                speciescenter=testparm['speciescenter']
-                if 'speciescenter' in testparm else None)
-            r.runanddraw()
-
-            logging.info("Here are reactions:")
-            with open(r.reactionfilename) as f:
-                for line in f:
-                    print(line.strip())
-            self.assertTrue(os.path.exists(r.resultfilename))
+        logging.info("Here are reactions:")
+        with open(reacnetgen.reactionfilename) as f:
+            print(f.read())
+        self.assertTrue(os.path.exists(reacnetgen.resultfilename))
 
     @classmethod
     def test_gui(cls):
@@ -65,10 +71,6 @@ class TestReacNetGen(unittest.TestCase):
             if os.path.isfile(pathfilename) and self._checksha256(
                     pathfilename, sha256):
                 break
-            try:
-                os.makedirs(os.path.split(pathfilename)[0])
-            except OSError:
-                pass
 
             # from https://stackoverflow.com/questions/16694907
             if not isinstance(urls, list):
@@ -116,7 +118,3 @@ class TestReacNetGen(unittest.TestCase):
             return True
         logging.warning("SHA256 is not correct.")
         return False
-
-
-if __name__ == '__main__':
-    unittest.main()
