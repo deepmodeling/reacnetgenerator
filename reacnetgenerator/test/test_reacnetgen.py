@@ -16,15 +16,6 @@ import reacnetgenerator.gui
 import requests
 from tqdm import tqdm
 
-
-@pytest.fixture(scope="class")
-def cleandir():
-    folder = tempfile.mkdtemp(prefix='testfiles-', dir='.')
-    logging.info(f'Folder: {folder}:')
-    os.chdir(folder)
-
-
-@pytest.mark.usefixtures("cleandir")
 class TestReacNetGen:
     """Test ReacNetGenerator."""
 
@@ -32,6 +23,10 @@ class TestReacNetGen:
         pkg_resources.resource_stream(
             __name__, 'test.json')))
     def reacnetgen(self, request):
+        folder = tempfile.mkdtemp(prefix='testfiles-', dir='.')
+        logging.info(f'Folder: {folder}:')
+        os.chdir(folder)
+
         testparm = request.param
         self._download_file(
             testparm['url'], testparm['filename'], testparm['sha256'])
