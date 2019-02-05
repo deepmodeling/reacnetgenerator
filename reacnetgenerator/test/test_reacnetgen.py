@@ -17,7 +17,7 @@ import requests
 from tqdm import tqdm
 
 
-@pytest.fixture()
+@pytest.fixture(scope="class")
 def cleandir():
     folder = tempfile.mkdtemp(prefix='testfiles-', dir='.')
     logging.info(f'Folder: {folder}:')
