@@ -51,7 +51,7 @@ class TestReacNetGen:
         logging.info("Here are reactions:")
         with open(reacnetgen.reactionfilename) as f:
             print(f.read())
-        self.assertTrue(os.path.exists(reacnetgen.resultfilename))
+        assert os.path.exists(reacnetgen.resultfilename)
 
     @classmethod
     def test_gui(cls):
