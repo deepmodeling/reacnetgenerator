@@ -16,6 +16,7 @@ import reacnetgenerator.gui
 import requests
 from tqdm import tqdm
 
+
 class TestReacNetGen:
     """Test ReacNetGenerator."""
 
