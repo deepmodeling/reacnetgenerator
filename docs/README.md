@@ -2,6 +2,7 @@
 
 [![python version](https://img.shields.io/pypi/pyversions/reacnetgenerator.svg?logo=python&logoColor=white)](https://pypi.org/project/reacnetgenerator)
 [![PyPI](https://img.shields.io/pypi/v/reacnetgenerator.svg)](https://pypi.org/project/reacnetgenerator)
+[![Docker](https://shields.beevelop.com/docker/pulls/njzjz/reacnetgenerator.svg?style=flat-square)](https://hub.docker.com/r/njzjz/reacnetgenerator)
 [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
 [![Build status](https://ci.appveyor.com/api/projects/status/t92hud34lgel1eu6?svg=true)](https://ci.appveyor.com/project/jzzeng/reacnetgenerator)
 [![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
@@ -36,6 +37,8 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Installation
 
+### Build from source with conda and pip
+
 1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
 2.  Use conda to create environment:
 
@@ -58,7 +61,23 @@ You can test whether ReacNetGenerator is running normally:
 python setup.py pytest
 ```
 
-## Simple example
+### Docker
+
+If you have [installed Docker](https://docs.docker.com/install/), a Docker is provided:
+
+```sh
+docker pull njzjz/reacnetgenerator
+```
+
+You can start the ReacNetGenerator Docker where you can run ReacNetGenerator:
+
+```sh
+docker run -itv $(pwd):$(pwd) -w $(pwd) njzjz/reacnetgenerator
+```
+
+## Usage
+
+### Simple example
 
 Prepare a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc, then run the script:
 
@@ -80,7 +99,7 @@ You can running the following script for help:
 reacnetgenerator -h
 ```
 
-## GUI version
+### GUI version
 
 You can open a GUI version for ReacNetGenerator by typing:
 
