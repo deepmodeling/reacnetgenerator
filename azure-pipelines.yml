@@ -1,0 +1,5 @@
+ jobs:
+  - job: 'Test'
+ steps:
+  - task: CondaEnvironment@1
+  - script: pip install tox-conda && tox
