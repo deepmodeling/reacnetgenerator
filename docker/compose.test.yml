@@ -1,3 +1,3 @@
 sut:
   build: .
-  command: reacnetgenerator --help
+  command: pip install pytest-sugar requests && pytest -s --pyargs reacnetgenerator

@@ -1,0 +1,65 @@
+{% set name = "reacnetgenerator" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ GIT_DESCRIBE_TAG|replace("v", "") }}
+
+source:
+  path: .
+
+build:
+  noarch: python
+  number: {{ GIT_DESCRIBE_NUMBER }}
+  string: {{ GIT_BUILD_STR }}
+  entry_points:
+    - reacnetgenerator = reacnetgenerator.reacnetgen:_commandline
+    - reacnetgeneratorgui = reacnetgenerator.gui:gui
+  script: "{{ PYTHON }} -m pip install . --no-deps -vv"
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+    - setuptools_scm
+    - pytest-runner
+  run:
+    - python >=3.6
+    - openbabel
+    - rdkit
+    - numpy >=1.15
+    - scipy >=0.20.1
+    - pandas
+    - networkx
+    - scikit-learn
+    - matplotlib
+    - hmmlearn >=0.2.1
+    - ase
+    - scour
+    - tqdm
+    - jinja2
+    - coloredlogs
+    - htmlmin
+    - jsmin
+    - cssmin
+
+test:
+  requires:
+    - pytest-sugar
+    - requests
+  imports:
+    - reacnetgenerator
+  commands:
+    - pytest -s --pyargs reacnetgenerator
+
+about:
+  home: http://github.com/njzjz/reacnetgenerator
+  license: LGPL-3.0
+  license_family: LGPL
+  license_file: LICENSE
+  summary: 'An automatic generator of reaction network for reactive molecular dynamics simulation.'
+  doc_url: https://reacnetgenerator.njzjz.win/
+  dev_url: https://github.com/njzjz/reacnetgenerator
+
+extra:
+  recipe-maintainers:
+    - njzjz

@@ -37,7 +37,17 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Installation
 
-### Build from source with conda and pip
+### Build with conda
+
+1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
+2.  Install with conda:
+
+```sh
+conda install reacnetgenerator -c openbabel -c conda-forge -c njzjz
+source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
+```
+
+### Build with conda and pip
 
 1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
 2.  Use conda to create environment:
@@ -47,23 +57,21 @@ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openb
 source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
 ```
 
-3.  Download ReacNetGenerator and install it from source:
+3.  Install with pip:
 
 ```sh
-git clone https://github.com/njzjz/reacnetgenerator
-cd reacnetgenerator
-pip install .
+pip install reacnetgenerator
 ```
 
-You can test whether ReacNetGenerator is running normally:
+Or install from source:
 
 ```sh
-python setup.py pytest
+pip install git+https://github.com/njzjz/reacnetgenerator
 ```
 
 ### Docker
 
-If you have [installed Docker](https://docs.docker.com/install/), a Docker is provided:
+If you have [installed Docker](https://docs.docker.com/install/), a ReacNetGenerator Docker is provided:
 
 ```sh
 docker pull njzjz/reacnetgenerator
@@ -76,6 +84,14 @@ docker run -itv $(pwd):$(pwd) -w $(pwd) njzjz/reacnetgenerator
 ```
 
 ## Usage
+
+### Test
+
+You can test whether ReacNetGenerator is running normally:
+
+```sh
+pip install pytest-sugar requests && pytest -s --pyargs reacnetgenerator
+```
 
 ### Simple example
 
