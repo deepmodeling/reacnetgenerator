@@ -2,7 +2,8 @@
 
 [![python version](https://img.shields.io/pypi/pyversions/reacnetgenerator.svg?logo=python&logoColor=white)](https://pypi.org/project/reacnetgenerator)
 [![PyPI](https://img.shields.io/pypi/v/reacnetgenerator.svg)](https://pypi.org/project/reacnetgenerator)
-[![Docker](https://shields.beevelop.com/docker/pulls/njzjz/reacnetgenerator.svg)](https://hub.docker.com/r/njzjz/reacnetgenerator)
+[![conda](https://img.shields.io/conda/v/njzjz/reacnetgenerator.svg?style=flat)](https://anaconda.org/njzjz/reacnetgenerator)
+[![Docker](https://shields.beevelop.com/docker/pulls/njzjz/reacnetgenerator.svg?style=flat)](https://hub.docker.com/r/njzjz/reacnetgenerator)
 [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
 [![Build status](https://ci.appveyor.com/api/projects/status/t92hud34lgel1eu6?svg=true)](https://ci.appveyor.com/project/jzzeng/reacnetgenerator)
 [![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
@@ -37,39 +38,37 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Installation
 
-### Build with conda
+### With conda
 
-1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
-2.  Install with conda:
+[Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install ReacNetGenerator with conda:
 
 ```sh
-conda install reacnetgenerator -c openbabel -c conda-forge -c njzjz
-source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
+conda create -q -n reacnetgenerator reacnetgenerator -c openbabel -c conda-forge -c njzjz
+conda activate reacnetgenerator
 ```
 
-### Build with conda and pip
+### With conda and pip
 
-1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
-2.  Use conda to create environment:
+1.  [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and use conda to create environment:
 
 ```sh
 conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openbabel -c conda-forge
-source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
+conda activate reacnetgenerator
 ```
 
-3.  Install with pip:
+2.  Install ReacNetGenerator with pip:
 
 ```sh
 pip install reacnetgenerator
 ```
 
-Or install from source:
+ Or install from source:
 
 ```sh
 pip install git+https://github.com/njzjz/reacnetgenerator
 ```
 
-### Docker
+### With Docker
 
 If you have [installed Docker](https://docs.docker.com/install/), a ReacNetGenerator Docker is provided:
 
@@ -90,7 +89,8 @@ docker run -itv $(pwd):$(pwd) -w $(pwd) njzjz/reacnetgenerator
 You can test whether ReacNetGenerator is running normally:
 
 ```sh
-pip install pytest-sugar requests && pytest -s --pyargs reacnetgenerator
+pip install reacnetgenerator[test]
+pytest -s --pyargs reacnetgenerator
 ```
 
 ### Simple example
