@@ -40,15 +40,6 @@ You can running the following script for help:
 $ reacnetgenerator -h
 """
 
-__version__ = '1.2.25'
-__date__ = '2018-03-11'
-__update__ = '2019-02-01'
-__author__ = 'Jinzhe Zeng'
-__email__ = 'jzzeng@stu.ecnu.edu.cn'
-__credits__ = ['Jinzhe Zeng', 'Tong Zhu',
-               'Liqun Cao', 'Chih-Hao Chin', 'John ZH Zhang']
-__copyright__ = 'Copyright 2018-2019, East China Normal University'
-
 
 import argparse
 import base64
@@ -61,20 +52,14 @@ from enum import Enum
 from multiprocessing import cpu_count
 
 import numpy as np
-from pkg_resources import DistributionNotFound, get_distribution
 
+from . import __version__, __date__, __update__
 from ._detect import InputFileType, _Detect
 from ._draw import _DrawNetwork
 from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
-
-try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-    # package is not installed
-    pass
 
 
 class ReacNetGenerator:

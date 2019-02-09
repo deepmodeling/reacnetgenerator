@@ -40,25 +40,23 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ### With conda
 
-1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
-2.  Install with conda:
+[Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install ReacNetGenerator with conda:
 
 ```sh
 conda create -q -n reacnetgenerator reacnetgenerator -c openbabel -c conda-forge -c njzjz
-source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
+conda activate reacnetgenerator
 ```
 
 ### With conda and pip
 
-1.  [Get conda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install Anaconda or Miniconda.
-2.  Use conda to create environment:
+1.  [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and use conda to create environment:
 
 ```sh
 conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openbabel -c conda-forge
-source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
+conda activate reacnetgenerator
 ```
 
-3.  Install with pip:
+2.  Install ReacNetGenerator with pip:
 
 ```sh
 pip install reacnetgenerator
