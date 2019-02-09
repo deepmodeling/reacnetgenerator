@@ -44,7 +44,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 2.  Install with conda:
 
 ```sh
-conda install reacnetgenerator -c openbabel -c conda-forge -c njzjz
+conda create -q -n reacnetgenerator reacnetgenerator -c openbabel -c conda-forge -c njzjz
 source activate reacnetgenerator # for Windows, just use: activate reacnetgenerator
 ```
 
