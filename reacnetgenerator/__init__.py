@@ -9,25 +9,11 @@ __credits__ = ['Jinzhe Zeng', 'Tong Zhu',
                'Liqun Cao', 'Chih-Hao Chin', 'John ZH Zhang']
 __copyright__ = 'Copyright 2018-2019, East China Normal University'
 
-
-import logging
-
-import coloredlogs
 import matplotlib as mpl
 mpl.use("svg")  # noqa
-from pkg_resources import DistributionNotFound, get_distribution
 
+from . import _logging
+from ._version import __version__
 from .reacnetgen import ReacNetGenerator
 
-
 __all__ = ['ReacNetGenerator']
-
-try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-    # package is not installed
-    __version__ = ''
-
-coloredlogs.install(
-    fmt=f'%(asctime)s - ReacNetGen {__version__} - %(levelname)s: %(message)s',
-    level=logging.INFO, milliseconds=True)
