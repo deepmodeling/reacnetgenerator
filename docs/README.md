@@ -3,7 +3,7 @@
 [![python version](https://img.shields.io/pypi/pyversions/reacnetgenerator.svg?logo=python&logoColor=white)](https://pypi.org/project/reacnetgenerator)
 [![PyPI](https://img.shields.io/pypi/v/reacnetgenerator.svg)](https://pypi.org/project/reacnetgenerator)
 [![conda](https://img.shields.io/conda/v/njzjz/reacnetgenerator.svg?style=flat)](https://anaconda.org/njzjz/reacnetgenerator)
-[![Docker](https://shields.beevelop.com/docker/pulls/njzjz/reacnetgenerator.svg?style=flat-square)](https://hub.docker.com/r/njzjz/reacnetgenerator)
+[![Docker](https://shields.beevelop.com/docker/pulls/njzjz/reacnetgenerator.svg?style=flat)](https://hub.docker.com/r/njzjz/reacnetgenerator)
 [![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
 [![Build status](https://ci.appveyor.com/api/projects/status/t92hud34lgel1eu6?svg=true)](https://ci.appveyor.com/project/jzzeng/reacnetgenerator)
 [![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
@@ -91,7 +91,8 @@ docker run -itv $(pwd):$(pwd) -w $(pwd) njzjz/reacnetgenerator
 You can test whether ReacNetGenerator is running normally:
 
 ```sh
-pip install pytest-sugar requests && pytest -s --pyargs reacnetgenerator
+pip install reacnetgenerator[test]
+pytest -s --pyargs reacnetgenerator
 ```
 
 ### Simple example
