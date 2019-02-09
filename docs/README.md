@@ -64,7 +64,7 @@ source activate reacnetgenerator # for Windows, just use: activate reacnetgenera
 pip install reacnetgenerator
 ```
 
-&nbsp;Or install from source:
+ Or install from source:
 
 ```sh
 pip install git+https://github.com/njzjz/reacnetgenerator
