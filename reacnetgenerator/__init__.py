@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2018-2019, East China Normal University'
 
 import matplotlib as mpl
 mpl.use("svg")  # noqa
+import networkx  # avoid qhull library error
 
 from . import _logging
 from ._version import __version__
