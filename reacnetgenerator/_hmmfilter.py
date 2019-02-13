@@ -110,7 +110,7 @@ class _HMMFilter:
                         bufft = []
                 semaphore.release()
             for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
-                if len(buff) > 0:
+                if buff:
                     f.write(b''.join(buff))
         pool.close()
         self._hmmit = hmmit
