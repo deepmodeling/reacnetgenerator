@@ -229,7 +229,7 @@ class ReacNetGenerator:
             yield item, parameter
 
     @classmethod
-    def compress(cls, x, bytes=False):
+    def compress(cls, x, isbytes=False):
         """Compress the line.
 
         This function reduces IO overhead to speed up the program.
