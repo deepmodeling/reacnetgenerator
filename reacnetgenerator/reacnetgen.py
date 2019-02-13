@@ -261,7 +261,7 @@ class ReacNetGenerator:
     @classmethod
     def bytestolist(cls, x, nparray=False):
         if nparray:
-            return np.loads(cls.decompress(x, bytes=True))
+            return np.loads(cls.decompress(x, isbytes=True))
         return pickle.loads(cls.decompress(x, isbytes=True))
 
 
