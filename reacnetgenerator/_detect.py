@@ -176,15 +176,16 @@ class _DetectLAMMPSbond(_Detect):
         level = [None]*self._N
         for line in lines:
             if line:
-                if line[0]=="#":
+                if line[0] == "#":
                     if line.startswith("# Timestep"):
                         timestep = int(line.split()[-1])
                 else:
                     s = line.split()
                     s0 = int(s[0])-1
                     s2 = int(s[2])
-                    bond[s0] = map(lambda x:int(x)-1, s[3:3+s2])
-                    level[s0] = map(lambda x: max(1, round(float(x))), s[4+s2:4+2*s2])
+                    bond[s0] = map(lambda x: int(x)-1, s[3:3+s2])
+                    level[s0] = map(lambda x: max(
+                        1, round(float(x))), s[4+s2:4+2*s2])
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
 
