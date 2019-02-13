@@ -247,7 +247,7 @@ class _DetectLAMMPSdump(_Detect):
                             (int(s[0]),
                              Atom(
                                  self.atomname[int(s[1]) - 1],
-                                 map(float, s[2: 5]))))
+                                 tuple(map(float, s[2: 5])))))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
