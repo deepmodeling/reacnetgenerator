@@ -110,7 +110,6 @@ class _CollectPaths(metaclass=ABCMeta):
                 semaphore.release()
         pool.close()
         allmoleculeroute = np.unique(np.concatenate(allmoleculeroute), axis=0) if len(
-            allmoleculeroute) > 0 else np.zeros((0, 2))
         pool.join()
         return allmoleculeroute
 
