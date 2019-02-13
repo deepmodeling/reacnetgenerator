@@ -239,7 +239,7 @@ class ReacNetGenerator:
         return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
 
     @classmethod
-    def decompress(cls, x, bytes=False):
+    def decompress(cls, x, isbytes=False):
         """Decompress the line."""
         if isbytes:
             return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True))
