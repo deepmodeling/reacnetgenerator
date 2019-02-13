@@ -109,11 +109,14 @@ class _GenerateMatrix:
         with open(self.moleculetemp2filename, 'rb') as ft, open(self.speciesfilename, 'w') as fw:
             d = [Counter() for i in range(len(self._timestep))]
             for name, line in zip(self._mname, itertools.zip_longest(*[ft] * 3)):
-                for t in self._bytestolist(line[-1]):
+                for t in self._bytestolist(line[-1], nparray=True).tolist():
                     d[t][name] += 1
             for t, ts in enumerate(self._timestep):
                 buff = [f"Timestep {ts}:"]
                 buff.extend(
-                    map(lambda item: 'f"{item[0]} {item[1]}"', d[t].items()))
+                    map(lambda item: 'f" {item[0]} {item[1]}"', d[t].items()))
                 buff.append('\n')
-                fw.write(' '.join(buff))
+                if len(buff) > 200:
+                    fw.write(''.join(buff))
+            if len(buff) > 0:
+                fw.write(''.join(buff))

@@ -21,7 +21,6 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 
 import itertools
 import tempfile
-import array
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
@@ -111,11 +110,18 @@ class _Detect(metaclass=ABCMeta):
                     d[molecule].append(step)
                 timestep[step] = thetimestep
                 semaphore.release()
+            self._temp1it = len(d)
+            values_c = list(tqdm(pool.imap_unordered(self._compressvalue,
+                d.values(),
+                100), desc="Save molecules", unit="molecule", total=self._temp1it))
         pool.close()
-        self._writemoleculetempfile(d)
+        self._writemoleculetempfile((d.keys(),values_c))
         self._timestep = timestep
         self._step = len(timestep)
         pool.join()
+
+    def _compressvalue(self, x):
+        return self._listtobytes(np.array(x), nparray=True)
 
     @abstractmethod
     def _readNfunc(self, f):
@@ -126,28 +132,27 @@ class _Detect(metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        return list([b' '.join((self._listtobytes(sorted(mol)),
-                                self._listtobytes(sorted(bondlist), bonds=True))) for mol, bondlist in zip(*dps(bond, level))])
+        return list([b' '.join((self._listtobytes(mol),
+                                self._listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
 
     def _writemoleculetempfile(self, d):
         buff = []
         with tempfile.NamedTemporaryFile('wb', delete=False) as f:
             self.moleculetempfilename = f.name
-            for key, value in d.items():
-                buff.extend((key, self._listtobytes(value)))
+            for mol in zip(*d):
+                buff.extend(mol)
                 if len(buff) > 30*self.nproc:
                     f.write(b''.join(buff))
                     buff = []
             if len(buff) > 0:
                 f.write(b''.join(buff))
-        self._temp1it = len(d)
 
 
 class _DetectLAMMPSbond(_Detect):
     def _readNfunc(self, f):
         iscompleted = False
         for index, line in enumerate(f):
-            if line.startswith("#"):
+            if line[0]=='#':
                 if line.startswith("# Number of particles"):
                     if iscompleted:
                         stepbindex = index
@@ -159,7 +164,7 @@ class _DetectLAMMPSbond(_Detect):
                     atomtype = np.zeros(N, dtype=np.int)
             else:
                 s = line.split()
-                atomtype[int(s[0])-1] = int(s[1])
+                atomtype[int(s[0])-1] = int(s[1])-1
         steplinenum = stepbindex-stepaindex
         self._N = N
         self._atomtype = atomtype
@@ -221,7 +226,7 @@ class _DetectLAMMPSdump(_Detect):
                     atomtype = np.zeros(N, dtype=int)
                 elif linecontent == self.LineType.ATOMS:
                     s = line.split()
-                    atomtype[int(s[0])-1] = int(s[1])
+                    atomtype[int(s[0])-1] = int(s[1])-1
         steplinenum = stepbindex-stepaindex
         self._N = N
         self._atomtype = atomtype

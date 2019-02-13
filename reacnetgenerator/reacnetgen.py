@@ -235,8 +235,8 @@ class ReacNetGenerator:
         This function reduces IO overhead to speed up the program.
         """
         if bytes:
-            return pybase64.b64encode(lz4.frame.compress(x))+b'\n'
-        return pybase64.b64encode(lz4.frame.compress(x.encode()))+b'\n'
+            return pybase64.b64encode(lz4.frame.compress(x, compression_level=-1))+b'\n'
+        return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
 
     @classmethod
     def decompress(cls, x, bytes=False):
@@ -253,11 +253,15 @@ class ReacNetGenerator:
         return self._setparam(name, f"{self.inputfilename}.{suffix}")
 
     @classmethod
-    def listtobytes(cls, x, bonds=False):
+    def listtobytes(cls, x, nparray=False):
+        if nparray:
+            return cls.compress(x.dumps(), bytes=True)
         return cls.compress(pickle.dumps(x), bytes=True)
 
     @classmethod
-    def bytestolist(cls, x, bonds=False):
+    def bytestolist(cls, x, nparray=False):
+        if nparray:
+            return np.loads(cls.decompress(x, bytes=True))
         return pickle.loads(cls.decompress(x, bytes=True))
 
 

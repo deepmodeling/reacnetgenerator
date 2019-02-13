@@ -5,7 +5,7 @@ extern "C"{
 C_Stack::C_Stack() {
     tail = new Node;
     tail->prev = NULL;
-    tail->val = NULL;
+    tail->val = -1;
 };
 
 C_Stack::~C_Stack() {
@@ -17,20 +17,16 @@ C_Stack::~C_Stack() {
     }
 };
 
-PyObject* C_Stack::peek() {
-    return tail->val;
-}
-
-void C_Stack::push(PyObject* val) {
+void C_Stack::push(int val) {
     Node* nt = new Node;
     nt->prev = tail;
     nt->val = val;
     tail = nt;
 }
 
-PyObject* C_Stack::pop() {
+int C_Stack::pop() {
     Node* ot = tail;
-    PyObject* val = tail->val;
+    int val = tail->val;
     if (tail->prev != NULL) {
         tail = tail->prev;
         delete ot;

@@ -44,6 +44,7 @@ class _HMMFilter:
         self._compress = rng.compress
         self._decompress = rng.decompress
         self._bytestolist = rng.bytestolist
+        self._listtobytes = rng.listtobytes
         self._produce = rng.produce
         self._model = None
         self.moleculetemp2filename = None
@@ -70,12 +71,16 @@ class _HMMFilter:
 
     def _getoriginandhmm(self, item):
         line_c, _ = item
-        value = np.array(self._bytestolist(line_c[-1]))
+        value = self._bytestolist(line_c[-1], nparray=True)
         origin = np.zeros((self._step, 1), dtype=np.int8)
-        origin[value-1] = 1
+        origin[value] = 1
+        originbytes = self._listtobytes(origin, nparray=True) if self.getoriginfile else None
+        hmmbytes = None
         if self.runHMM:
             _, hmm = self._model.decode(origin, algorithm="viterbi")
-        return origin, (hmm if self.runHMM else np.zeros(0)), line_c
+            if 1 in hmm or self.printfiltersignal:
+                hmmbytes=self._listtobytes(hmm, nparray=True)
+        return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
         with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else ExitStack() as fo, open(self.hmmfilename, 'wb') if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
@@ -87,14 +92,13 @@ class _HMMFilter:
             buffo = []
             buffh = []
             bufft = []
-            for originsignal, hmmsignal, line_c in tqdm(
+            for originbytes, hmmbytes, line_c in tqdm(
                     results, total=self._temp1it, desc="HMM filter",
                     unit="molecule"):
-                if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
-                    for statement, signal, buff, f in [(self.getoriginfile, originsignal, buffo, fo), (self.runHMM, hmmsignal, buffh, fh)]:
-                        if statement:
-                            buff.append(self._compress(
-                                np.packbits(signal).tobytes(), bytes=True))
+                if originbytes is not None or hmmbytes is not None:
+                    for signalbytes, buff, f in [(originbytes, buffo, fo), (hmmbytes, buffh, fh)]:
+                        if signalbytes is not None:
+                            buff.append(signalbytes)
                             if len(buff) > 30*self.nproc:
                                 f.write(b''.join(buff))
                                 buff = []

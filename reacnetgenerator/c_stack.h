@@ -4,7 +4,7 @@ extern "C"{
     class C_Stack {
         private:
         struct Node {
-            PyObject* val;
+            int val;
             Node* prev;
         };
         Node* tail;
@@ -14,10 +14,8 @@ extern "C"{
 
         ~C_Stack();
 
-        PyObject* peek();
+        void push(int val);
 
-        void push(PyObject* val);
-
-        PyObject* pop();
+        int pop();
     };
 }

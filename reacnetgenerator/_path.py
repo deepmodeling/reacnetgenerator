@@ -63,7 +63,7 @@ class _CollectPaths(metaclass=ABCMeta):
 
     def collect(self):
         """Collect paths."""
-        self.atomnames = self.atomname[self.atomtype-1]
+        self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
         atomeach = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
@@ -77,8 +77,7 @@ class _CollectPaths(metaclass=ABCMeta):
         atomeach = np.zeros((self._N, self._step), dtype=np.int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(zip(fh, itertools.zip_longest(*[ft] * 3)), start=1):
-                lineh = np.unpackbits(np.frombuffer(
-                    self._decompress(linehz, bytes=True), dtype=np.uint8))
+                lineh = self._bytestolist(linehz, nparray=True)
                 atom = np.array(self._bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:
@@ -90,10 +89,10 @@ class _CollectPaths(metaclass=ABCMeta):
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
         route = atomeachi[np.nonzero(np.diff(atomeachi))[0]]
         moleculeroute = np.dstack((route[:-1], route[1:]))[
-            0] if self.atomname[atomtypei-1] in self.selectatoms else np.zeros((0, 2), dtype=int)
+            0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
         names = self._mname[route-1]
         routestr = "".join(
-            [f"Atom {i} {self.atomname[atomtypei-1]}: ", " -> ".join(names)])
+            [f"Atom {i} {self.atomname[atomtypei]}: ", " -> ".join(names)])
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach):

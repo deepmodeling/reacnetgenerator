@@ -56,8 +56,7 @@ if __name__ == '__main__':
                                    'static/js/vendor/*.js',
                                    'static/css/vendor/*.css',
                                    'test/test.json',
-                                   '*.pyx', '*.c', '*.cpp',
-                                   'stack/*.pyx', 'stack/*.cpp', 'stack/*.h', 'stack/*.c',
+                                   '*.pyx', '*.pxd', '*.cpp', '*.h',
                                    ],
           },
           long_description=long_description,
@@ -76,7 +75,6 @@ if __name__ == '__main__':
           ],
           zip_safe=True,
           ext_modules=[
-            Extension("reacnetgenerator.dps", sources=["reacnetgenerator/dps.pyx"],language="c++"),
-            Extension("reacnetgenerator.stack", sources=["reacnetgenerator/stack/pystack.pyx", "reacnetgenerator/stack/c_stack.cpp"],language="c++"),
+            Extension("reacnetgenerator.dps", sources=["reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],language="c++"),
             ],
           )
