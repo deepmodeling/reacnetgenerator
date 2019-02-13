@@ -76,7 +76,9 @@ if __name__ == '__main__':
           ],
           zip_safe=True,
           ext_modules=[
-            Extension("reacnetgenerator.dps", sources=["reacnetgenerator/dps.pyx"],language="c++"),
-            Extension("reacnetgenerator.stack", sources=["reacnetgenerator/stack/pystack.pyx", "reacnetgenerator/stack/c_stack.cpp"],language="c++"),
-            ],
+              Extension("reacnetgenerator.dps", sources=[
+                        "reacnetgenerator/dps.pyx"], language="c++"),
+              Extension("reacnetgenerator.stack", sources=[
+                  "reacnetgenerator/stack/pystack.pyx", "reacnetgenerator/stack/c_stack.cpp"], language="c++"),
+          ],
           )
