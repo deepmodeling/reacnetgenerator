@@ -118,5 +118,5 @@ class _GenerateMatrix:
                 buff.append('\n')
                 if len(buff) > 200:
                     fw.write(''.join(buff))
-            if len(buff) > 0:
+            if buff:
                 fw.write(''.join(buff))
