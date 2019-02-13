@@ -8,12 +8,8 @@ $ source activate reacnetgenerator
 """
 from os import path
 
-from setuptools import setup, find_packages
-from setuptools.extension import Extension
-try:
-    from Cython.Build import cythonize
-except:
-    raise ImportError("Plase use `pip install cython` to install cython.")
+from setuptools import setup, find_packages, Extension
+
 
 if __name__ == '__main__':
     print(__doc__)
@@ -52,7 +48,12 @@ if __name__ == '__main__':
               "test": tests_require,
           },
           use_scm_version=True,
-          setup_requires=['setuptools_scm', 'pytest-runner'],
+          setup_requires=[
+              'setuptools>=18.0',
+              'setuptools_scm',
+              'pytest-runner',
+              'cython',
+              ],
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
                                    'static/css/*.css', 'static/img/*.png',
@@ -77,5 +78,7 @@ if __name__ == '__main__':
               "Topic :: Software Development :: Version Control :: Git",
           ],
           zip_safe=True,
-          ext_modules=cythonize(extensions)
+          ext_modules=[
+            Extension("reacnetgenerator.dps", sources=["reacnetgenerator/dps.pyx"]),
+            ],
           )
