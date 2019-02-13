@@ -256,7 +256,7 @@ class ReacNetGenerator:
     def listtobytes(cls, x, nparray=False):
         if nparray:
             return cls.compress(x.dumps(), isbytes=True)
-        return cls.compress(pickle.dumps(x), bytes=True)
+        return cls.compress(pickle.dumps(x), isbytes=True)
 
     @classmethod
     def bytestolist(cls, x, nparray=False):
