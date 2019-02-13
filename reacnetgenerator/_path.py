@@ -77,7 +77,8 @@ class _CollectPaths(metaclass=ABCMeta):
         atomeach = np.zeros((self._N, self._step), dtype=np.int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(zip(fh, itertools.zip_longest(*[ft] * 3)), start=1):
-                lineh = np.unpackbits(np.frombuffer(self._decompress(linehz, bytes=True), dtype=np.uint8))
+                lineh = np.unpackbits(np.frombuffer(
+                    self._decompress(linehz, bytes=True), dtype=np.uint8))
                 atom = np.array(self._bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:
@@ -88,7 +89,8 @@ class _CollectPaths(metaclass=ABCMeta):
         (i, (atomeachi, atomtypei)), _ = item
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
         route = atomeachi[np.nonzero(np.diff(atomeachi))[0]]
-        moleculeroute = np.dstack((route[:-1], route[1:]))[0] if self.atomname[atomtypei-1] in self.selectatoms else np.zeros((0, 2), dtype=int)
+        moleculeroute = np.dstack((route[:-1], route[1:]))[
+            0] if self.atomname[atomtypei-1] in self.selectatoms else np.zeros((0, 2), dtype=int)
         names = self._mname[route-1]
         routestr = "".join(
             [f"Atom {i} {self.atomname[atomtypei-1]}: ", " -> ".join(names)])
@@ -104,11 +106,12 @@ class _CollectPaths(metaclass=ABCMeta):
                     results, total=self._N, desc="Collect reaction paths",
                     unit="atom"):
                 f.write("".join([routestr, '\n']))
-                if moleculeroute.size>0:
+                if moleculeroute.size > 0:
                     allmoleculeroute.append(moleculeroute)
                 semaphore.release()
         pool.close()
-        allmoleculeroute = np.unique(np.concatenate(allmoleculeroute), axis=0) if len(allmoleculeroute)>0 else np.zeros((0,2))
+        allmoleculeroute = np.unique(np.concatenate(allmoleculeroute), axis=0) if len(
+            allmoleculeroute) > 0 else np.zeros((0, 2))
         pool.join()
         return allmoleculeroute
 
@@ -122,7 +125,7 @@ class _CollectPaths(metaclass=ABCMeta):
             m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
         name = Chem.MolToSmiles(m)
         return name
-    
+
     def _getatomsandbonds(self, line):
         atoms = np.array(self._bytestolist(line[0]), dtype=int)
         bonds = self._bytestolist(line[1])
@@ -145,7 +148,7 @@ class _CollectMolPaths(_CollectPaths):
                 else:
                     d[str(molecule)].append(molecule)
                 mname.append(molecule.smiles)
-                buff.append(' '.join((molecule.smiles, ",".join(map(str,atoms)), ";".join(
+                buff.append(' '.join((molecule.smiles, ",".join(map(str, atoms)), ";".join(
                     map(lambda x: ",".join(map(str, x)), bonds)))))
             fm.write('\n'.join(buff))
         self._mname = np.array(mname)
@@ -159,7 +162,7 @@ class _CollectMolPaths(_CollectPaths):
             self.graph = self._makemoleculegraph()
             counter = Counter(self._atomnames)
             self.name = "".join(map(lambda atomname: f"{atomname}{counter[atomname]}",
-                                cmp.atomname))
+                                    cmp.atomname))
             self._smiles = None
             self._convertSMILES = cmp.convertSMILES
 
@@ -204,7 +207,7 @@ class _CollectSMILESPaths(_CollectPaths):
                 mname.append(name)
                 buff.append(' '.join(
                     (name, ",".join(map(str, atoms)),
-                     ";".join((map(lambda x:",".join(map(str, x)),bonds))))))
+                     ";".join((map(lambda x: ",".join(map(str, x)), bonds))))))
                 semaphore.release()
             fm.write('\n'.join(buff))
         pool.close()

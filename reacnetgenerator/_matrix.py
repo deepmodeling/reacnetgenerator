@@ -43,7 +43,7 @@ class _GenerateMatrix:
     def _getallroute(self, allmoleculeroute):
         allroute = Counter()
         names = self._mname[allmoleculeroute-1]
-        names = names[names[:,0]!=names[:,1]]
+        names = names[names[:, 0] != names[:, 1]]
         equations = np.unique(names, return_counts=True, axis=0)
         return zip(*equations)
 
@@ -113,6 +113,7 @@ class _GenerateMatrix:
                     d[t][name] += 1
             for t, ts in enumerate(self._timestep):
                 buff = [f"Timestep {ts}:"]
-                buff.extend(map(lambda item:'f"{item[0]} {item[1]}"', d[t].items()))
+                buff.extend(
+                    map(lambda item: 'f"{item[0]} {item[1]}"', d[t].items()))
                 buff.append('\n')
                 fw.write(' '.join(buff))

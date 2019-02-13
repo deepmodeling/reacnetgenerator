@@ -25,7 +25,6 @@ if __name__ == '__main__':
         Extension("reacnetgenerator.dps", ["reacnetgenerator/dps.pyx"]),
     ]
 
-
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
@@ -78,5 +77,5 @@ if __name__ == '__main__':
               "Topic :: Software Development :: Version Control :: Git",
           ],
           zip_safe=True,
-          ext_modules = cythonize(extensions)
+          ext_modules=cythonize(extensions)
           )

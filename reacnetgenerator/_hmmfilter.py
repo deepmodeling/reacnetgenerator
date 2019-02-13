@@ -93,18 +93,19 @@ class _HMMFilter:
                 if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
                     for statement, signal, buff, f in [(self.getoriginfile, originsignal, buffo, fo), (self.runHMM, hmmsignal, buffh, fh)]:
                         if statement:
-                            buff.append(self._compress(np.packbits(signal).tobytes(), bytes=True))
+                            buff.append(self._compress(
+                                np.packbits(signal).tobytes(), bytes=True))
                             if len(buff) > 30*self.nproc:
                                 f.write(b''.join(buff))
-                                buff=[]
+                                buff = []
                     hmmit += 1
                     bufft.extend(line_c)
                     if len(buffh) > 30*self.nproc:
                         ft2.write(b''.join(bufft))
-                        bufft=[]
+                        bufft = []
                 semaphore.release()
             for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
-                if len(buff)>0:
+                if len(buff) > 0:
                     f.write(b''.join(buff))
         pool.close()
         self._hmmit = hmmit

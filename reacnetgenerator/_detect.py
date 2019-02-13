@@ -127,8 +127,8 @@ class _Detect(metaclass=ABCMeta):
 
     def _connectmolecule(self, bond, level):
         return list([b' '.join((self._listtobytes(sorted(mol)),
-                self._listtobytes(sorted(bondlist), bonds=True))) for mol, bondlist in zip(*dps(bond,level))])
-    
+                                self._listtobytes(sorted(bondlist), bonds=True))) for mol, bondlist in zip(*dps(bond, level))])
+
     def _writemoleculetempfile(self, d):
         buff = []
         with tempfile.NamedTemporaryFile('wb', delete=False) as f:
@@ -138,7 +138,7 @@ class _Detect(metaclass=ABCMeta):
                 if len(buff) > 30*self.nproc:
                     f.write(b''.join(buff))
                     buff = []
-            if len(buff)>0:
+            if len(buff) > 0:
                 f.write(b''.join(buff))
         self._temp1it = len(d)
 
@@ -176,9 +176,9 @@ class _DetectLAMMPSbond(_Detect):
                         timestep = int(line.split()[-1])
                 else:
                     s = line.split()
-                    bond[int(s[0])-1] = map(int,s[3:3+int(s[2])])
-                    level[int(s[0])-1] = map(lambda x:max(1, round(float(x))),
-                                            s[4+int(s[2]):4+2*int(s[2])])
+                    bond[int(s[0])-1] = map(int, s[3:3+int(s[2])])
+                    level[int(s[0])-1] = map(lambda x: max(1, round(float(x))),
+                                             s[4+int(s[2]):4+2*int(s[2])])
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
 
@@ -240,7 +240,7 @@ class _DetectLAMMPSdump(_Detect):
                             (int(s[0]),
                              Atom(
                                  self.atomname[int(s[1]) - 1],
-                                 map(float,s[2: 5]))))
+                                 map(float, s[2: 5]))))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
