@@ -44,7 +44,7 @@ class _GenerateMatrix:
         allroute = Counter()
         names = self._mname[allmoleculeroute-1]
         names = names[names[:, 0] != names[:, 1]]
-        if names.size>0:
+        if names.size > 0:
             equations = np.unique(names, return_counts=True, axis=0)
             return zip(*equations)
         return []
