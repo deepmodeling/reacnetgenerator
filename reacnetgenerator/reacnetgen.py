@@ -44,7 +44,6 @@ $ reacnetgenerator -h
 import argparse
 import gc
 import logging
-import itertools
 import os
 import time
 import pickle
