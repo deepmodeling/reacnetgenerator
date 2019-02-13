@@ -49,7 +49,7 @@ if __name__ == '__main__':
               'setuptools_scm',
               'pytest-runner',
               'cython',
-              ],
+          ],
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
                                    'static/css/*.css', 'static/img/*.png',
