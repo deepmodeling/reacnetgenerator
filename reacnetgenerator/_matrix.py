@@ -5,6 +5,7 @@ species which have the most reactions are taken. A reaction matrix can be
 generated.
 """
 
+import itertools
 from collections import Counter
 
 import numpy as np
@@ -25,6 +26,7 @@ class _GenerateMatrix:
         self._mname = rng.mname
         self._timestep = rng.timestep
         self._decompress = rng.decompress
+        self._bytestolist = rng.bytestolist
 
     def generate(self):
         """Generate a reaction matrix and print species.
@@ -40,21 +42,17 @@ class _GenerateMatrix:
 
     def _getallroute(self, allmoleculeroute):
         allroute = Counter()
-        for moleculeroute in allmoleculeroute:
-            leftname = self._mname[moleculeroute[0]-1]
-            rightname = self._mname[moleculeroute[1]-1]
-            if leftname == rightname:
-                continue
-            equation = (leftname, rightname)
-            allroute[equation] += 1
-        return allroute
+        names = self._mname[allmoleculeroute-1]
+        names = names[names[:,0]!=names[:,1]]
+        equations = np.unique(names, return_counts=True, axis=0)
+        return zip(*equations)
 
     def _printtable(self, allroute, maxsize=100):
         species = []
         table = np.zeros((maxsize, maxsize), dtype=np.int)
         reactionnumber = np.zeros((2), dtype=np.int)
         sortedreactions = sorted(
-            allroute.items(), key=lambda d: d[1], reverse=True)
+            allroute, key=lambda d: d[1], reverse=True)
         # added on Nov 17, 2018
         if self.speciescenter:
             newreactions = []
@@ -108,15 +106,13 @@ class _GenerateMatrix:
         return searchedspecies
 
     def _printspecies(self):
-        with open(self.moleculetemp2filename, 'rb') as f2, open(self.speciesfilename, 'w') as fw:
+        with open(self.moleculetemp2filename, 'rb') as ft, open(self.speciesfilename, 'w') as fw:
             d = [Counter() for i in range(len(self._timestep))]
-            for name, line2 in zip(self._mname, f2):
-                for t in [
-                        int(x)
-                        for x in self._decompress(line2).split()[-1].split(",")]:
+            for name, line in zip(self._mname, itertools.zip_longest(*[ft] * 3)):
+                for t in self._bytestolist(line[-1]):
                     d[t][name] += 1
-            for t in range(len(self._timestep)):
-                buff = [f"Timestep {self._timestep[t]}:"]
-                buff.extend([f"{name} {num}" for name, num in d[t].items()])
+            for t, ts in enumerate(self._timestep):
+                buff = [f"Timestep {ts}:"]
+                buff.extend(map(lambda item:'f"{item[0]} {item[1]}"', d[t].items()))
                 buff.append('\n')
                 fw.write(' '.join(buff))

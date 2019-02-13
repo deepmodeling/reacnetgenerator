@@ -21,6 +21,7 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 
 import itertools
 import tempfile
+import array
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
@@ -30,6 +31,8 @@ import numpy as np
 import openbabel
 from ase import Atom, Atoms
 from tqdm import tqdm
+
+from .dps import dps
 
 
 class InputFileType(Enum):
@@ -55,7 +58,7 @@ class _Detect(metaclass=ABCMeta):
         self.nproc = rng.nproc
         self._produce = rng.produce
         self._compress = rng.compress
-        self._decompress = rng.decompress
+        self._listtobytes = rng.listtobytes
 
         self._N = None
         self._atomtype = None
@@ -85,17 +88,6 @@ class _Detect(metaclass=ABCMeta):
         self.rng.moleculetempfilename = self.moleculetempfilename
         self.rng.temp1it = self._temp1it
 
-    def _mo(self, i, bond, level, molecule, done, bondlist):
-        """Connect molecule with Depth-First Search."""
-        molecule.append(i)
-        done[i-1] = True
-        for b, l in zip(bond[i-1], level[i-1]):
-            if not done[b-1]:
-                bondlist.append((i, b, l) if i < b else (b, i, l))
-                molecule, done, bondlist = self._mo(
-                    b, bond, level, molecule, done, bondlist)
-        return molecule, done, bondlist
-
     def _readinputfile(self):
         d = defaultdict(list)
         timestep = {}
@@ -122,7 +114,7 @@ class _Detect(metaclass=ABCMeta):
         pool.close()
         self._writemoleculetempfile(d)
         self._timestep = timestep
-        self._step = len(timestep)-1
+        self._step = len(timestep)
         pool.join()
 
     @abstractmethod
@@ -134,28 +126,20 @@ class _Detect(metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        molecules = []
-        done = np.zeros(self._N, dtype=bool)
-        for i in range(1, self._N+1):
-            if not done[i-1]:
-                mole, done, bondlist = self._mo(i, bond, level, [], done, [])
-                moleculestr = ' '.join(
-                    (",".join((str(x) for x in sorted(mole))),
-                     ";".join(
-                         (",".join([str(y) for y in x])
-                          for x in sorted(bondlist)))))
-                molecules.append(self._compress(moleculestr))
-        return molecules
-
+        return list([b' '.join((self._listtobytes(sorted(mol)),
+                self._listtobytes(sorted(bondlist), bonds=True))) for mol, bondlist in zip(*dps(bond,level))])
+    
     def _writemoleculetempfile(self, d):
+        buff = []
         with tempfile.NamedTemporaryFile('wb', delete=False) as f:
             self.moleculetempfilename = f.name
             for key, value in d.items():
-                f.write(
-                    self._compress(
-                        ' '.join(
-                            (self._decompress(key),
-                             ",".join((str(x) for x in value))))))
+                buff.extend((key, self._listtobytes(value)))
+                if len(buff) > 30*self.nproc:
+                    f.write(b''.join(buff))
+                    buff = []
+            if len(buff)>0:
+                f.write(b''.join(buff))
         self._temp1it = len(d)
 
 
@@ -183,8 +167,8 @@ class _DetectLAMMPSbond(_Detect):
 
     def _readstepfunc(self, item):
         (step, lines), _ = item
-        bond = [None for x in range(self._N)]
-        level = [None for x in range(self._N)]
+        bond = [None]*self._N
+        level = [None]*self._N
         for line in lines:
             if line:
                 if line.startswith("#"):
@@ -192,9 +176,9 @@ class _DetectLAMMPSbond(_Detect):
                         timestep = int(line.split()[-1])
                 else:
                     s = line.split()
-                    bond[int(s[0])-1] = [int(x) for x in s[3:3+int(s[2])]]
-                    level[int(s[0])-1] = [max(1, round(float(x)))
-                                          for x in s[4+int(s[2]):4+2*int(s[2])]]
+                    bond[int(s[0])-1] = map(int,s[3:3+int(s[2])])
+                    level[int(s[0])-1] = map(lambda x:max(1, round(float(x))),
+                                            s[4+int(s[2]):4+2*int(s[2])])
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
 
@@ -233,7 +217,7 @@ class _DetectLAMMPSdump(_Detect):
                         iscompleted = True
                         stepaindex = index
                     N = int(line.split()[0])
-                    atomtype = np.zeros(N, dtype=np.int)
+                    atomtype = np.zeros(N, dtype=int)
                 elif linecontent == self.LineType.ATOMS:
                     s = line.split()
                     atomtype[int(s[0])-1] = int(s[1])
@@ -256,7 +240,7 @@ class _DetectLAMMPSdump(_Detect):
                             (int(s[0]),
                              Atom(
                                  self.atomname[int(s[1]) - 1],
-                                 [float(x) for x in s[2: 5]])))
+                                 map(float,s[2: 5]))))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))

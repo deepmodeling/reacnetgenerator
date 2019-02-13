@@ -22,6 +22,7 @@ requirements:
     - pip
     - setuptools_scm
     - pytest-runner
+    - cython
   run:
     - python >=3.6
     - openbabel
@@ -41,6 +42,8 @@ requirements:
     - htmlmin
     - jsmin
     - cssmin
+    - lz4
+    - pybase64
 
 test:
   requires:

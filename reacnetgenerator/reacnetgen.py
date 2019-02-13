@@ -42,16 +42,18 @@ $ reacnetgenerator -h
 
 
 import argparse
-import base64
 import gc
 import logging
+import itertools
 import os
 import time
-import zlib
+import pickle
 from enum import Enum
 from multiprocessing import cpu_count
 
 import numpy as np
+import lz4.frame
+import pybase64
 
 from . import __version__, __date__, __update__
 from ._detect import InputFileType, _Detect
@@ -227,17 +229,21 @@ class ReacNetGenerator:
             yield item, parameter
 
     @classmethod
-    def compress(cls, x):
+    def compress(cls, x, bytes=False):
         """Compress the line.
 
         This function reduces IO overhead to speed up the program.
         """
-        return base64.a85encode(zlib.compress(x.encode()))+b'\n'
+        if bytes:
+            return pybase64.b64encode(lz4.frame.compress(x))+b'\n'
+        return pybase64.b64encode(lz4.frame.compress(x.encode()))+b'\n'
 
     @classmethod
-    def decompress(cls, x):
+    def decompress(cls, x, bytes=False):
         """Decompress the line."""
-        return zlib.decompress(base64.a85decode(x.strip())).decode()
+        if bytes:
+            return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True))
+        return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True)).decode()
 
     @classmethod
     def _setparam(cls, x, default):
@@ -245,6 +251,14 @@ class ReacNetGenerator:
 
     def _setfilename(self, name, suffix):
         return self._setparam(name, f"{self.inputfilename}.{suffix}")
+
+    @classmethod
+    def listtobytes(cls, x, bonds=False):
+        return cls.compress(pickle.dumps(x), bytes=True)
+
+    @classmethod
+    def bytestolist(cls, x, bonds=False):
+        return pickle.loads(cls.decompress(x, bytes=True))
 
 
 def _commandline():
