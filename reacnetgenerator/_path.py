@@ -82,7 +82,7 @@ class _CollectPaths(metaclass=ABCMeta):
                 atom = np.array(self._bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:
-                    atomeach[atom[:, None]-1, index] = i
+                    atomeach[atom[:, None], index] = i
         return atomeach
 
     def _getatomroute(self, item):
@@ -119,7 +119,7 @@ class _CollectPaths(metaclass=ABCMeta):
         """Convert atoms and bonds information to SMILES."""
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d = {}
-        for name, number in zip(self.atomnames[atoms-1], atoms):
+        for name, number in zip(self.atomnames[atoms], atoms):
             d[number] = m.AddAtom(Chem.Atom(name))
         for atom1, atom2, level in bonds:
             m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
@@ -157,8 +157,8 @@ class _CollectMolPaths(_CollectPaths):
         def __init__(self, cmp, atoms, bonds):
             self.atoms = atoms
             self.bonds = bonds
-            self._atomtypes = cmp.atomtype[atoms-1]
-            self._atomnames = cmp.atomnames[atoms-1]
+            self._atomtypes = cmp.atomtype[atoms]
+            self._atomnames = cmp.atomnames[atoms]
             self.graph = self._makemoleculegraph()
             counter = Counter(self._atomnames)
             self.name = "".join(map(lambda atomname: f"{atomname}{counter[atomname]}",

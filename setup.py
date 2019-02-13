@@ -17,10 +17,6 @@ if __name__ == '__main__':
     with open(path.join(this_directory, 'docs', 'README.md')) as f:
         long_description = f.read()
 
-    extensions = [
-        Extension("reacnetgenerator.dps", ["reacnetgenerator/dps.pyx"]),
-    ]
-
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
@@ -61,6 +57,7 @@ if __name__ == '__main__':
                                    'static/css/vendor/*.css',
                                    'test/test.json',
                                    '*.pyx', '*.c', '*.cpp',
+                                   'stack/*.pyx', 'stack/*.cpp', 'stack/*.h', 'stack/*.c',
                                    ],
           },
           long_description=long_description,
@@ -79,6 +76,7 @@ if __name__ == '__main__':
           ],
           zip_safe=True,
           ext_modules=[
-            Extension("reacnetgenerator.dps", sources=["reacnetgenerator/dps.pyx"]),
+            Extension("reacnetgenerator.dps", sources=["reacnetgenerator/dps.pyx"],language="c++"),
+            Extension("reacnetgenerator.stack", sources=["reacnetgenerator/stack/pystack.pyx", "reacnetgenerator/stack/c_stack.cpp"],language="c++"),
             ],
           )

@@ -171,14 +171,15 @@ class _DetectLAMMPSbond(_Detect):
         level = [None]*self._N
         for line in lines:
             if line:
-                if line.startswith("#"):
+                if line[0]=="#":
                     if line.startswith("# Timestep"):
                         timestep = int(line.split()[-1])
                 else:
                     s = line.split()
-                    bond[int(s[0])-1] = map(int, s[3:3+int(s[2])])
-                    level[int(s[0])-1] = map(lambda x: max(1, round(float(x))),
-                                             s[4+int(s[2]):4+2*int(s[2])])
+                    s0 = int(s[0])-1
+                    s2 = int(s[2])
+                    bond[s0] = map(lambda x:int(x)-1, s[3:3+s2])
+                    level[s0] = map(lambda x: max(1, round(float(x))), s[4+s2:4+2*s2])
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
 
@@ -274,8 +275,8 @@ class _DetectLAMMPSdump(_Detect):
                 if linecontent == 0:
                     s = line.split()
                     if len(s) > 3:
-                        bond[int(s[1])-1].append(int(s[2]))
-                        bond[int(s[2])-1].append(int(s[1]))
+                        bond[int(s[1])-1].append(int(s[2])-1)
+                        bond[int(s[2])-1].append(int(s[1])-1)
                         level = 12 if s[3] == 'ar' else int(s[3])
                         bondlevel[int(s[1])-1].append(level)
                         bondlevel[int(s[2])-1].append(level)
