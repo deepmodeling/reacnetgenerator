@@ -139,7 +139,8 @@ class _CollectMolPaths(_CollectPaths):
         buff = []
         with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft:
             for line in itertools.zip_longest(*[ft] * 3):
-                molecule = self._molecule(self, *self._getatomsandbonds(line))
+                atoms, bonds = self._getatomsandbonds(line)
+                molecule = self._molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
                     if isomer.isomorphic(molecule, em):
                         molecule.smiles = isomer.smiles
