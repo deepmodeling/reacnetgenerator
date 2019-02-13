@@ -144,7 +144,7 @@ class _Detect(metaclass=ABCMeta):
                 if len(buff) > 30*self.nproc:
                     f.write(b''.join(buff))
                     buff = []
-            if len(buff) > 0:
+            if buff:
                 f.write(b''.join(buff))
 
 
