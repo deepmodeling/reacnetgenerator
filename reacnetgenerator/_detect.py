@@ -112,10 +112,10 @@ class _Detect(metaclass=ABCMeta):
                 semaphore.release()
             self._temp1it = len(d)
             values_c = list(tqdm(pool.imap_unordered(self._compressvalue,
-                d.values(),
-                100), desc="Save molecules", unit="molecule", total=self._temp1it))
+                                                     d.values(),
+                                                     100), desc="Save molecules", unit="molecule", total=self._temp1it))
         pool.close()
-        self._writemoleculetempfile((d.keys(),values_c))
+        self._writemoleculetempfile((d.keys(), values_c))
         self._timestep = timestep
         self._step = len(timestep)
         pool.join()
@@ -152,7 +152,7 @@ class _DetectLAMMPSbond(_Detect):
     def _readNfunc(self, f):
         iscompleted = False
         for index, line in enumerate(f):
-            if line[0]=='#':
+            if line[0] == '#':
                 if line.startswith("# Number of particles"):
                     if iscompleted:
                         stepbindex = index

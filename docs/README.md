@@ -33,35 +33,35 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 -   Python 3.6 - 3.7 (**Note:** Python &lt;= 3.5 is not supported!)
 -   Python packages:
-[numpy](https://github.com/numpy/numpy),
-[scipy](https://github.com/scipy/scipy),
-[pandas](https://github.com/pandas-dev/pandas),
-[networkx](https://github.com/networkx/networkx),
-[scikit-learn](https://github.com/scikit-learn/scikit-learn),
-[matplotlib](https://github.com/matplotlib/matplotlib),
-[hmmlearn](https://github.com/hmmlearn/hmmlearn),
-[ASE](https://gitlab.com/ase/ase),
-[scour](https://github.com/scour-project/scour),
-[tqdm](https://github.com/tqdm/tqdm),
-[jinja2](https://github.com/pallets/jinja),
-[coloredlogs](https://github.com/xolox/python-coloredlogs),
-[htmlmin](https://github.com/mankyd/htmlmin/),
-[jsmin](https://github.com/tikitu/jsmin/),
-[cssmin](https://github.com/zacharyvoase/cssmin),
-[lz4](https://github.com/python-lz4/python-lz4),
-[pybase64](https://github.com/mayeut/pybase64)
+    [numpy](https://github.com/numpy/numpy),
+    [scipy](https://github.com/scipy/scipy),
+    [pandas](https://github.com/pandas-dev/pandas),
+    [networkx](https://github.com/networkx/networkx),
+    [scikit-learn](https://github.com/scikit-learn/scikit-learn),
+    [matplotlib](https://github.com/matplotlib/matplotlib),
+    [hmmlearn](https://github.com/hmmlearn/hmmlearn),
+    [ASE](https://gitlab.com/ase/ase),
+    [scour](https://github.com/scour-project/scour),
+    [tqdm](https://github.com/tqdm/tqdm),
+    [jinja2](https://github.com/pallets/jinja),
+    [coloredlogs](https://github.com/xolox/python-coloredlogs),
+    [htmlmin](https://github.com/mankyd/htmlmin/),
+    [jsmin](https://github.com/tikitu/jsmin/),
+    [cssmin](https://github.com/zacharyvoase/cssmin),
+    [lz4](https://github.com/python-lz4/python-lz4),
+    [pybase64](https://github.com/mayeut/pybase64)
 -   Extra libraries:
-[OpenBabel](https://github.com/openbabel/openbabel),
-[RDKit](https://github.com/rdkit/rdkit)
+    [OpenBabel](https://github.com/openbabel/openbabel),
+    [RDKit](https://github.com/rdkit/rdkit)
 -   Javascript and CSS frameworks (already packaged):
-[jQuery](https://github.com/jquery/jquery),
-[jQuery Easing Plugin](https://github.com/gdsmith/jquery.easing),
-[Magnific Popup](https://github.com/dimsemenov/Magnific-Popup),
-[ScrollReveal](https://github.com/scrollreveal/scrollreveal),
-[Bootstrap](https://github.com/twbs/bootstrap),
-[Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
-[D3](https://github.com/d3/d3),
-[JSNetworkX](https://github.com/fkling/JSNetworkX)
+    [jQuery](https://github.com/jquery/jquery),
+    [jQuery Easing Plugin](https://github.com/gdsmith/jquery.easing),
+    [Magnific Popup](https://github.com/dimsemenov/Magnific-Popup),
+    [ScrollReveal](https://github.com/scrollreveal/scrollreveal),
+    [Bootstrap](https://github.com/twbs/bootstrap),
+    [Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
+    [D3](https://github.com/d3/d3),
+    [JSNetworkX](https://github.com/fkling/JSNetworkX)
 
 ## Installation
 
