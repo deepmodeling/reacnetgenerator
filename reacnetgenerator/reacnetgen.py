@@ -234,7 +234,7 @@ class ReacNetGenerator:
 
         This function reduces IO overhead to speed up the program.
         """
-        if bytes:
+        if isbytes:
             return pybase64.b64encode(lz4.frame.compress(x, compression_level=-1))+b'\n'
         return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
 
