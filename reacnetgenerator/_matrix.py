@@ -46,7 +46,7 @@ class _GenerateMatrix:
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
             equations = np.unique(names, return_counts=True, axis=0)
-            return zip(equation[0].tolist(), equation[1].tolist())
+            return zip(equations[0].tolist(), equations[1].tolist())
         return []
 
     def _printtable(self, allroute, maxsize=100):
