@@ -27,8 +27,6 @@ script: tox
 
 jobs:
   include:
-    - os: windows
-      filter_secrets: false
     - stage: deploy
       os: linux
       script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
