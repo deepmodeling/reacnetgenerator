@@ -27,5 +27,4 @@ after_test:
   - python-codacy-coverage -r coverage.xml
 
 on_success:
-  - git checkout . && git clean -xdf
-  - conda install conda-build && conda config --set anaconda_upload yes && conda build . --user njzjz --token %CONDA_UPLOAD_TOKEN% -c openbabel -c conda-forge -c njzjz
+  - if %APPVEYOR_REPO_BRANCH%=='master' if &PYTHON_TARGET%=="3.7" git checkout . && git clean -xdf && conda install conda-build anaconda-client && conda config --set anaconda_upload yes && conda build . --user njzjz --token %CONDA_UPLOAD_TOKEN% -c openbabel -c conda-forge -c njzjz
