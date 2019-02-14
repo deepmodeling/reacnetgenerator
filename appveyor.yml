@@ -28,4 +28,4 @@ after_test:
 
 on_success:
   - git checkout . && git clean -xdf
-  - conda config --set anaconda_upload yes && conda build . --user njzjz --token %CONDA_UPLOAD_TOKEN% -c openbabel -c conda-forge -c njzjz
+  - conda install conda-build && conda config --set anaconda_upload yes && conda build . --user njzjz --token %CONDA_UPLOAD_TOKEN% -c openbabel -c conda-forge -c njzjz
