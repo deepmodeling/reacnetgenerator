@@ -28,6 +28,8 @@ script: tox
 
 jobs:
   include:
+    - os: windows
+      filter_secrets: false
     - stage: deploy
       os: linux
       script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
@@ -40,6 +42,7 @@ jobs:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
     - stage: deploy
       os: windows
+      filter_secrets: false
       script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
