@@ -19,7 +19,7 @@ cache: pip
 
 services: xvfb
 
-install: cd $HOME && git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh && cd $TRAVIS_BUILD_DIR
+install: cd $HOME && git clone --depth 1 https://github.com/astropy/ci-helpers && source ci-helpers/travis/setup_conda.sh && cd $TRAVIS_BUILD_DIR
 
 script: tox
 
