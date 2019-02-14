@@ -8,7 +8,8 @@ $ source activate reacnetgenerator
 """
 from os import path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
+
 
 if __name__ == '__main__':
     print(__doc__)
@@ -30,7 +31,7 @@ if __name__ == '__main__':
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'htmlmin', 'ase', 'scour', 'tqdm',
               'jinja2', 'coloredlogs', 'jsmin', 'cssmin',
-              'pandas'
+              'pandas', 'pybase64', 'lz4'
           ],
           entry_points={'console_scripts': [
               'reacnetgenerator=reacnetgenerator.reacnetgen:_commandline',
@@ -43,13 +44,20 @@ if __name__ == '__main__':
               "test": tests_require,
           },
           use_scm_version=True,
-          setup_requires=['setuptools_scm', 'pytest-runner'],
+          setup_requires=[
+              'setuptools>=18.0',
+              'setuptools_scm',
+              'pytest-runner',
+              'cython',
+          ],
           package_data={
               'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
                                    'static/css/*.css', 'static/img/*.png',
                                    'static/js/vendor/*.js',
                                    'static/css/vendor/*.css',
-                                   'test/test.json'],
+                                   'test/test.json',
+                                   '*.pyx', '*.pxd', '*.cpp', '*.h',
+                                   ],
           },
           long_description=long_description,
           long_description_content_type='text/markdown',
@@ -66,4 +74,8 @@ if __name__ == '__main__':
               "Topic :: Software Development :: Version Control :: Git",
           ],
           zip_safe=True,
+          ext_modules=[
+              Extension("reacnetgenerator.dps", sources=[
+                        "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
+          ],
           )

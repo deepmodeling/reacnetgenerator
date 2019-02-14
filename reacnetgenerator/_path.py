@@ -14,6 +14,7 @@ Isomorphism Algorith for Matching Large Graphs. IEEE Trans. Pattern Analysis
 and Machine Intelligence 2004, 26, 1367-1372.
 """
 
+import itertools
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
 from itertools import groupby
@@ -43,6 +44,7 @@ class _CollectPaths(metaclass=ABCMeta):
         self.atomtype = rng.atomtype
         self.selectatoms = rng.selectatoms
         self._decompress = rng.decompress
+        self._bytestolist = rng.bytestolist
         self._produce = rng.produce
         self._mname = None
         self.atomnames = None
@@ -61,7 +63,7 @@ class _CollectPaths(metaclass=ABCMeta):
 
     def collect(self):
         """Collect paths."""
-        self.atomnames = self.atomname[self.atomtype-1]
+        self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
         atomeach = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
@@ -74,26 +76,23 @@ class _CollectPaths(metaclass=ABCMeta):
     def _getatomeach(self):
         atomeach = np.zeros((self._N, self._step), dtype=np.int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
-            for i, (linehz, linetz) in enumerate(zip(fh, ft), start=1):
-                lineh = self._decompress(linehz)
-                linet = self._decompress(linetz)
-                s = linet.split()
-                key1 = np.array([int(x) for x in s[0].split(",")])
-                index = np.array(
-                    [j for j in range(len(lineh)) if lineh[j] == "1"])
+            for i, (linehz, linetz) in enumerate(zip(fh, itertools.zip_longest(*[ft] * 3)), start=1):
+                lineh = self._bytestolist(linehz, nparray=True)
+                atom = np.array(self._bytestolist(linetz[0]))
+                index = np.where(lineh)[0]
                 if index.size:
-                    atomeach[key1[:, None]-1, index] = i
+                    atomeach[atom[:, None], index] = i
         return atomeach
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
-        route = [atomeachij for atomeachij, _ in groupby(
-            atomeachi.tolist()) if atomeachij > 0]
-        moleculeroute = list(
-            zip(route, route[1:])) if self.atomname[atomtypei-1] in self.selectatoms else []
-        names = self._mname[np.array(route)-1]
+        atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
+        route = atomeachi[np.nonzero(np.diff(atomeachi))[0]]
+        moleculeroute = np.dstack((route[:-1], route[1:]))[
+            0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
+        names = self._mname[route-1]
         routestr = "".join(
-            [f"Atom {i} {self.atomname[atomtypei-1]}: ", " -> ".join(names)])
+            [f"Atom {i} {self.atomname[atomtypei]}: ", " -> ".join(names)])
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach):
@@ -106,10 +105,12 @@ class _CollectPaths(metaclass=ABCMeta):
                     results, total=self._N, desc="Collect reaction paths",
                     unit="atom"):
                 f.write("".join([routestr, '\n']))
-                allmoleculeroute.extend(
-                    list(set(moleculeroute)-set(allmoleculeroute)))
+                if moleculeroute.size > 0:
+                    allmoleculeroute.append(moleculeroute)
                 semaphore.release()
         pool.close()
+        allmoleculeroute = np.unique(np.concatenate(
+            allmoleculeroute), axis=0) if allmoleculeroute else np.zeros((0, 2), dtype=int)
         pool.join()
         return allmoleculeroute
 
@@ -117,12 +118,17 @@ class _CollectPaths(metaclass=ABCMeta):
         """Convert atoms and bonds information to SMILES."""
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d = {}
-        for name, number in zip(self.atomnames[atoms-1], atoms):
+        for name, number in zip(self.atomnames[atoms], atoms):
             d[number] = m.AddAtom(Chem.Atom(name))
         for atom1, atom2, level in bonds:
             m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
         name = Chem.MolToSmiles(m)
         return name
+
+    def _getatomsandbonds(self, line):
+        atoms = np.array(self._bytestolist(line[0]), dtype=int)
+        bonds = self._bytestolist(line[1])
+        return atoms, bonds
 
 
 class _CollectMolPaths(_CollectPaths):
@@ -130,12 +136,10 @@ class _CollectMolPaths(_CollectPaths):
         mname = []
         d = defaultdict(list)
         em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
+        buff = []
         with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft:
-            for line in ft:
-                s = self._decompress(line).split()
-                atoms = np.array([int(x) for x in s[0].split(",")])
-                bonds = tuple(tuple(int(y) for y in x.split(","))
-                              for x in s[1].split(";")) if len(s) == 3 else ()
+            for line in itertools.zip_longest(*[ft] * 3):
+                atoms, bonds = self._getatomsandbonds(line)
                 molecule = self._molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
                     if isomer.isomorphic(molecule, em):
@@ -144,20 +148,21 @@ class _CollectMolPaths(_CollectPaths):
                 else:
                     d[str(molecule)].append(molecule)
                 mname.append(molecule.smiles)
-                print(molecule.smiles, ",".join([str(x) for x in atoms]), ";".join(
-                    [",".join([str(y) for y in x]) for x in bonds]), file=fm)
+                buff.append(' '.join((molecule.smiles, ",".join(map(str, atoms)), ";".join(
+                    map(lambda x: ",".join(map(str, x)), bonds)))))
+            fm.write('\n'.join(buff))
         self._mname = np.array(mname)
 
     class _molecule:
         def __init__(self, cmp, atoms, bonds):
             self.atoms = atoms
             self.bonds = bonds
-            self._atomtypes = cmp.atomtype[atoms-1]
-            self._atomnames = cmp.atomnames[atoms-1]
+            self._atomtypes = cmp.atomtype[atoms]
+            self._atomnames = cmp.atomnames[atoms]
             self.graph = self._makemoleculegraph()
             counter = Counter(self._atomnames)
-            self.name = "".join([f"{atomname}{counter[atomname]}"
-                                 for atomname in cmp.atomname])
+            self.name = "".join(map(lambda atomname: f"{atomname}{counter[atomname]}",
+                                    cmp.atomname))
             self._smiles = None
             self._convertSMILES = cmp.convertSMILES
 
@@ -191,30 +196,26 @@ class _CollectMolPaths(_CollectPaths):
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
+        buff = []
         with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, Pool(self.nproc, maxtasksperchild=1000) as pool:
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._calmoleculeSMILESname,
-                                self._produce(semaphore, ft, None), 100)
+                                self._produce(semaphore, itertools.zip_longest(*[ft] * 3), None), 100)
             for name, atoms, bonds in tqdm(
                     results, total=self._hmmit, desc="Indentify isomers",
                     unit="molecule"):
                 mname.append(name)
-                fm.write(' '.join(
-                    (name, ",".join((str(x) for x in atoms)),
-                     ";".join(
-                        (",".join((str(y) for y in x))
-                         for x in bonds)),
-                     '\n')))
+                buff.append(' '.join(
+                    (name, ",".join(map(str, atoms)),
+                     ";".join((map(lambda x: ",".join(map(str, x)), bonds))))))
                 semaphore.release()
+            fm.write('\n'.join(buff))
         pool.close()
         self._mname = np.array(mname)
         pool.join()
 
     def _calmoleculeSMILESname(self, item):
         line, _ = item
-        s = self._decompress(line).split()
-        atoms = np.array([int(x) for x in s[0].split(",")])
-        bonds = tuple(tuple(int(y) for y in x.split(","))
-                      for x in s[1].split(";")) if len(s) == 3 else ()
+        atoms, bonds = self._getatomsandbonds(line)
         name = self.convertSMILES(atoms, bonds)
         return name, atoms, bonds

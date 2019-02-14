@@ -8,7 +8,6 @@ source:
   path: .
 
 build:
-  noarch: python
   number: {{ GIT_DESCRIBE_NUMBER }}
   string: {{ GIT_BUILD_STR }}
   entry_points:
@@ -20,6 +19,9 @@ requirements:
   host:
     - python >=3.6
     - pip
+    - cython >=0.24.1
+  build:
+    - {{ compiler('cxx') }}
     - setuptools_scm
     - pytest-runner
   run:
@@ -41,15 +43,12 @@ requirements:
     - htmlmin
     - jsmin
     - cssmin
+    - lz4
+    - pybase64
 
 test:
-  requires:
-    - pytest-sugar
-    - requests
   imports:
     - reacnetgenerator
-  commands:
-    - pytest -s --pyargs reacnetgenerator
 
 about:
   home: http://github.com/njzjz/reacnetgenerator

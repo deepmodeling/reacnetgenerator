@@ -17,6 +17,7 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 """
 
 import tempfile
+import itertools
 from contextlib import ExitStack
 from multiprocessing import Pool, Semaphore
 
@@ -42,6 +43,8 @@ class _HMMFilter:
         self._step = rng.step
         self._compress = rng.compress
         self._decompress = rng.decompress
+        self._bytestolist = rng.bytestolist
+        self._listtobytes = rng.listtobytes
         self._produce = rng.produce
         self._model = None
         self.moleculetemp2filename = None
@@ -68,36 +71,47 @@ class _HMMFilter:
 
     def _getoriginandhmm(self, item):
         line_c, _ = item
-        line = self._decompress(line_c)
-        s = line.split()
-        value = np.array([int(x) for x in s[-1].split(",")])
-        origin = np.zeros(self._step, dtype=np.int8)
-        origin[value-1] = 1
+        value = self._bytestolist(line_c[-1], nparray=True)
+        origin = np.zeros((self._step, 1), dtype=np.int8)
+        origin[value] = 1
+        originbytes = self._listtobytes(
+            origin, nparray=True) if self.getoriginfile else None
+        hmmbytes = None
         if self.runHMM:
-            _, hmm = self._model.decode(
-                np.array([origin]).T, algorithm="viterbi")
-        return origin, (np.array(hmm) if self.runHMM else np.zeros(0)), line
+            _, hmm = self._model.decode(origin, algorithm="viterbi")
+            if 1 in hmm or self.printfiltersignal:
+                hmmbytes = self._listtobytes(hmm, nparray=True)
+        return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
         with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else ExitStack() as fo, open(self.hmmfilename, 'wb') if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
             self.moleculetemp2filename = ft2.name
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap_unordered(
-                self._getoriginandhmm, self._produce(semaphore, ft, ()), 100)
+                self._getoriginandhmm, self._produce(semaphore, itertools.zip_longest(*[ft] * 3), ()), 100)
             hmmit = 0
-            for originsignal, hmmsignal, mlist in tqdm(
+            buffo = []
+            buffh = []
+            bufft = []
+            for originbytes, hmmbytes, line_c in tqdm(
                     results, total=self._temp1it, desc="HMM filter",
                     unit="molecule"):
-                if 1 in hmmsignal or self.printfiltersignal or not self.runHMM:
-                    if self.getoriginfile:
-                        fo.write(self._compress(
-                            "".join([str(i) for i in originsignal.tolist()])))
-                    if self.runHMM:
-                        fh.write(self._compress(
-                            "".join([str(i) for i in hmmsignal.tolist()])))
+                if originbytes is not None or hmmbytes is not None:
+                    for signalbytes, buff, f in [(originbytes, buffo, fo), (hmmbytes, buffh, fh)]:
+                        if signalbytes is not None:
+                            buff.append(signalbytes)
+                            if len(buff) > 30*self.nproc:
+                                f.write(b''.join(buff))
+                                buff = []
                     hmmit += 1
-                    ft2.write(self._compress(mlist.strip()))
+                    bufft.extend(line_c)
+                    if len(buffh) > 30*self.nproc:
+                        ft2.write(b''.join(bufft))
+                        bufft = []
                 semaphore.release()
+            for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
+                if buff:
+                    f.write(b''.join(buff))
         pool.close()
         self._hmmit = hmmit
         pool.join()
