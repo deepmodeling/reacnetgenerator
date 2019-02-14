@@ -20,10 +20,10 @@ requirements:
     - python >=3.6
     - pip
     - cython >=0.24.1
-  build:
-    - {{ compiler('cxx') }}
     - setuptools_scm
     - pytest-runner
+  build:
+    - {{ compiler('cxx') }}
   run:
     - python >=3.6
     - openbabel
