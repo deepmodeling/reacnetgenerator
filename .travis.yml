@@ -3,6 +3,7 @@ language: c
 os:
   - linux
   - osx
+  - windows
 
 sudo: false
 
@@ -32,6 +33,11 @@ jobs:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
     - stage: deploy
       os: osx
+      script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
+      env:
+          - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    - stage: deploy
+      os: windows
       script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
