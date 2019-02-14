@@ -30,23 +30,8 @@ jobs:
       script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-          - PYTHON_VERSION=3.7
-    - stage: deploy
-      os: linux
-      script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
-      env:
-          - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-          - PYTHON_VERSION=3.6
     - stage: deploy
       os: osx
       script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-          - PYTHON_VERSION=3.7
-    - stage: deploy
-      os: osx
-      script: conda config --set anaconda_upload yes && conda build . --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
-      env:
-          - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-          - PYTHON_VERSION=3.6
-  if: branch = master AND type != pull_request
