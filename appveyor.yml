@@ -3,6 +3,8 @@ environment:
     secure: vSFvHwPjOvBycFAzqOGpSAjV0kCLqoAcCxfKu/FXOC0sWSKijyct3QO2GXN8Rdxq
   CODACY_PROJECT_TOKEN:
     secure: D6sKRVqmhLJMWCzVPIEAgR2maoBiMcoV2OT+m0Q1VP6UhAv/A2c7PWOyeqi2LPKp
+  CONDA_UPLOAD_TOKEN:
+    secure: mPhHfQvzvGVfqvvMOX5tBzUa3g2tUbrCC1SF1rnv85Owlh4CZVE1AFZQjiZbIac5
   matrix:
     - PYTHON_TARGET: "3.7"
     - PYTHON_TARGET: "3.6"
@@ -23,3 +25,6 @@ after_test:
   - coveralls
   - codecov -e TOXENV
   - python-codacy-coverage -r coverage.xml
+
+on_success:
+  - if %APPVEYOR_REPO_BRANCH%=='master' if %PYTHON_TARGET%=="3.7" git checkout . && git clean -xdf && conda install conda-build anaconda-client && conda config --set anaconda_upload yes && conda build . --user njzjz --token %CONDA_UPLOAD_TOKEN% -c openbabel -c conda-forge -c njzjz
