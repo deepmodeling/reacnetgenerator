@@ -46,13 +46,11 @@ class _GenerateMatrix:
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
             equations = np.unique(names, return_counts=True, axis=0)
-            return zip(*map(tuple, equations))
+            return zip(equation[0].tolist(), equation[1].tolist())
         return []
 
     def _printtable(self, allroute, maxsize=100):
         species = []
-        table = np.zeros((maxsize, maxsize), dtype=np.int)
-        reactionnumber = np.zeros((2), dtype=np.int)
         sortedreactions = sorted(
             allroute, key=lambda d: d[1], reverse=True)
         # added on Nov 17, 2018
@@ -76,6 +74,8 @@ class _GenerateMatrix:
                     newreactions.append(reac)
             sortedreactions = newreactions
 
+        table = np.zeros((maxsize, maxsize), dtype=np.int)
+        reactionnumber = np.zeros((2), dtype=np.int)
         with open(self.reactionfilename, 'w') as f:
             for reaction, n_reaction in sortedreactions:
                 f.write(f"{n_reaction} {'->'.join(reaction)}\n")
