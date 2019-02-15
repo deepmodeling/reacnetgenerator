@@ -27,20 +27,20 @@ jobs:
   include:
     - stage: deploy
       os: linux
-      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
+      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
       if: branch = master AND type != pull_request
     - stage: deploy
       os: osx
-      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
+      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
       if: branch = master AND type != pull_request
     - stage: deploy
       os: windows
       filter_secrets: false
-      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN -c openbabel -c conda-forge -c njzjz
+      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge -c njzjz
       env:
           - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
       if: branch = master AND type != pull_request
