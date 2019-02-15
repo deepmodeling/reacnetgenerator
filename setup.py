@@ -7,7 +7,6 @@ conda activate reacnetgenerator
 """
 import subprocess as sp
 from os import path
-from shutil import copyfile
 
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
