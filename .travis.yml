@@ -1,47 +1,80 @@
 language: c
-
 os:
-  - linux
-  - osx
-
+- linux
+- osx
 sudo: false
-
 env:
   global:
-    - SETUP_XVFB=True
-    - PIP_DEPENDENCIES="tox-conda tox-travis"
-    - CONDA_CHANNEL_PRIORITY=True
-    - secure: "HRQj7maXAtQ6epUxZuBkBPtB7HriKlPkda9/IbOz661dlIr5+SumKsvpCh2HXG+1fEhvITUWCd9VK+G7xEKwmGgNInGcBEHdtfNZsO4qmdr+nqpqz5IDS1xZVdia8SqgQ7gii2qxvcCwp51hpSYxzhGaee0vz8MevNFC3CoQaqbErjuNeCUIjLtdL/vSD9Q01VU9P2rSR2jkLOR47ra+FFCxUpNj3AFoz/CO0iRkNud5+0cIyDuKlNlgkdGPCJEeZBdXRCSWz7zZT4Q5EILF/Wdokb08n2kl6goSsAVoBY3nuz0hsuOGqzbtjpZPK2LpEqU2Gvbwn3JfWQLczmGg8Zg0Xe4IrMzcBY28HTWDWOQ4KI3FErZ7IqwMJF4Lu6huaMNxpB8Y09fk/2AfTvJAdtCG7P/XNJNYVB7hzE+fLGu5gF3rBPKY+Uam6zRyurodLDfv4SSBrFUN4lnQhTcxLruPwMo1r0B0OgNRYW+kSR6TRaEj50lO88xr96X0mlAYD6Ehess4kfXGHj7MbSaA+p0LLr043A+3DMYgFQetK3Cp2OARgVmHYvbXV7pUYrS1Ov0U9YNMW/BikixWsdeBfbRTf5jo8/6vTUDDq6gwG/ACSBi4BMLO/qwLj4S9LuDEo4w5drH+4vQy8Iwe9a/nDKIfL+7HQcykH3voxr8QV6s="
-    - secure: "i8c9BehqOAs1DoKKNLsTYb3bjU09PzRmTwR/Hn8n1SI3RB8VMyEnuSoWb7NtWjPrMueDp4gN1rXxXgDVm6eqfe7sWd5RD4kfBWIvwCucWm1LqZ5iL71eWHNdzshE1sJwYe/Baum1t4aSTsJbkXvPf2ab4cQojHNZucJrQsCcp6SgEG2eoT8pgSnwohqP+z1tIYL01HcQSZjW0hjybzNozovTtL638+nOpClpw7jr80b4aY86+4RzwmvEv3tnrgAYxvXI5Vzti2rHa+OuQFHmnzw7P/uSzdhRCMREPVRWd+QOP+UBJR5mBqKIQmIW1hIIVLt+0vLKgaKcK9sIV7EOSMb7ad2LzgDnp+3BnK6t5b5H1hHNHUxn0vhS7bf4FoBffmsbxPIEY2Q4DFpLVim4rib11AN2HXqyPK83to8VxhUtSG8m44Ht4KGCQjYBBFZ+XA0gnSxZ99iIF696NrfnyeyOljHyZxEm2K++dLRNrlUalucCrKxz0wC34cDb7S5SUuej4it/buTNFGCL00czB6X1bP5IMR5sWmXgkDmDKxPL4P2WX3PCZxsGHnmzUbfQqBYMslgi4twM7XxAfd5QqVz83SqkY2bYX3qcZEbJtxfa3GpSdfMDmSA0E5o9OUImXoQwlRvQt7Rl5IfKK9BMT6cfXHKo+PvDSQt7oJaejlc="
+  - SETUP_XVFB=True
+  - PIP_DEPENDENCIES="tox-conda tox-travis"
+  - CONDA_CHANNEL_PRIORITY=True
+  - secure: HRQj7maXAtQ6epUxZuBkBPtB7HriKlPkda9/IbOz661dlIr5+SumKsvpCh2HXG+1fEhvITUWCd9VK+G7xEKwmGgNInGcBEHdtfNZsO4qmdr+nqpqz5IDS1xZVdia8SqgQ7gii2qxvcCwp51hpSYxzhGaee0vz8MevNFC3CoQaqbErjuNeCUIjLtdL/vSD9Q01VU9P2rSR2jkLOR47ra+FFCxUpNj3AFoz/CO0iRkNud5+0cIyDuKlNlgkdGPCJEeZBdXRCSWz7zZT4Q5EILF/Wdokb08n2kl6goSsAVoBY3nuz0hsuOGqzbtjpZPK2LpEqU2Gvbwn3JfWQLczmGg8Zg0Xe4IrMzcBY28HTWDWOQ4KI3FErZ7IqwMJF4Lu6huaMNxpB8Y09fk/2AfTvJAdtCG7P/XNJNYVB7hzE+fLGu5gF3rBPKY+Uam6zRyurodLDfv4SSBrFUN4lnQhTcxLruPwMo1r0B0OgNRYW+kSR6TRaEj50lO88xr96X0mlAYD6Ehess4kfXGHj7MbSaA+p0LLr043A+3DMYgFQetK3Cp2OARgVmHYvbXV7pUYrS1Ov0U9YNMW/BikixWsdeBfbRTf5jo8/6vTUDDq6gwG/ACSBi4BMLO/qwLj4S9LuDEo4w5drH+4vQy8Iwe9a/nDKIfL+7HQcykH3voxr8QV6s=
+  - secure: i8c9BehqOAs1DoKKNLsTYb3bjU09PzRmTwR/Hn8n1SI3RB8VMyEnuSoWb7NtWjPrMueDp4gN1rXxXgDVm6eqfe7sWd5RD4kfBWIvwCucWm1LqZ5iL71eWHNdzshE1sJwYe/Baum1t4aSTsJbkXvPf2ab4cQojHNZucJrQsCcp6SgEG2eoT8pgSnwohqP+z1tIYL01HcQSZjW0hjybzNozovTtL638+nOpClpw7jr80b4aY86+4RzwmvEv3tnrgAYxvXI5Vzti2rHa+OuQFHmnzw7P/uSzdhRCMREPVRWd+QOP+UBJR5mBqKIQmIW1hIIVLt+0vLKgaKcK9sIV7EOSMb7ad2LzgDnp+3BnK6t5b5H1hHNHUxn0vhS7bf4FoBffmsbxPIEY2Q4DFpLVim4rib11AN2HXqyPK83to8VxhUtSG8m44Ht4KGCQjYBBFZ+XA0gnSxZ99iIF696NrfnyeyOljHyZxEm2K++dLRNrlUalucCrKxz0wC34cDb7S5SUuej4it/buTNFGCL00czB6X1bP5IMR5sWmXgkDmDKxPL4P2WX3PCZxsGHnmzUbfQqBYMslgi4twM7XxAfd5QqVz83SqkY2bYX3qcZEbJtxfa3GpSdfMDmSA0E5o9OUImXoQwlRvQt7Rl5IfKK9BMT6cfXHKo+PvDSQt7oJaejlc=
   matrix:
-    - PYTHON_VERSION=3.7
-    - PYTHON_VERSION=3.6
+  - PYTHON_VERSION=3.7
+  - PYTHON_VERSION=3.6
 cache: pip
-
 services: xvfb
-
 install: git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
-
 script: tox
-
 jobs:
   include:
-    - stage: deploy
-      os: linux
-      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge -c njzjz
-      env:
-          - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-      if: branch = master AND type != pull_request
-    - stage: deploy
-      os: osx
-      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge -c njzjz
-      env:
-          - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-      if: branch = master AND type != pull_request
-    - stage: deploy
-      os: windows
-      filter_secrets: false
-      script: conda config --set anaconda_upload yes && conda build conda --user njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge -c njzjz
-      env:
-          - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-      if: branch = master AND type != pull_request
+  - stage: deploy
+    os: linux
+    script: conda config --set anaconda_upload yes && conda build conda/recipe --user
+      njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
+      -c njzjz
+    env:
+    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    if: branch = master AND type != pull_request
+  - stage: deploy
+    os: osx
+    script: conda config --set anaconda_upload yes && conda build conda/recipe --user
+      njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
+      -c njzjz
+    env:
+    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    if: branch = master AND type != pull_request
+  - stage: deploy
+    os: windows
+    filter_secrets: false
+    script: conda config --set anaconda_upload yes && conda build conda/recipe --user
+      njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
+      -c njzjz
+    env:
+    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    if: branch = master AND type != pull_request
+  - stage: deploy
+    os: linux
+    provider: releases
+    env:
+    - CONDA_DEPENDENCIES="constructor"
+    before_deploy: constructor conda/constructor
+    api_key:
+      secure: Vk3k7jb/+L0R5jFTft7ajp2x9uAbLMAQ9bIzvUvDjbVVyysahvsG9+FfMXF9go2pBU7nEF5zuRzuUggB0Zbecd96v8u0Vw5hvZZMl1NnFbglo+t/CaUAj/q9PaUrAHYrX1fc2kmU6ybjxf4noh/CKIu3YK/zcaBxr8QrgTvawLC977vebnz26kIXKjAC3Mb7USNt1izbZYdQE8QWlo5kdPrBECn4Qy7QPjHUyD6/ZH6k6p4srFoszNUIQayBGwDfYp+zHhav3U/XO/Th3PHad4HSk7TJUXbhv6Lu3Xe4P5FbEY0qDRw/bkFmtHMaahy7F/mPuFxxoNWIBk5IE1oYvUiCiMqpzkq7fIIsSqi4GxSHyPgUQEdqRcVQbfCHstE6Dj3MQNDgXR6UKwptZjoHZJzT/2CH415IiscwI9Tsl2r9SgMjya5qqt1mjtDgtzZ7W/DLtTGz5xdQqDjGR5WH521BTGiEcAWUltrrf+eh0NWjpvtgzyBQlWQpKAIb8QToI8hYcjncj7rom9SEPqKNewJcUIVLPmxYpJ4XXEfQHUACRRpPGKg62D8+6eYGPyIUktSsEWUP9OHjdS2e9TPUXdc6ucRLQWg0dRBH+WYIMAtF9HVAdXzi0Hh2xhN3CpR22Vd1ad4KUDpHYVZi5+HuW5QfNuzegEQ5n2dEDrOdi3Y=
+    file: reacnetgenerator-latest-*
+    on:
+      tags: true
+  - stage: deploy
+    os: osx
+    provider: releases
+    env:
+    - CONDA_DEPENDENCIES="constructor"
+    before_deploy: constructor conda/constructor
+    api_key:
+      secure: Vk3k7jb/+L0R5jFTft7ajp2x9uAbLMAQ9bIzvUvDjbVVyysahvsG9+FfMXF9go2pBU7nEF5zuRzuUggB0Zbecd96v8u0Vw5hvZZMl1NnFbglo+t/CaUAj/q9PaUrAHYrX1fc2kmU6ybjxf4noh/CKIu3YK/zcaBxr8QrgTvawLC977vebnz26kIXKjAC3Mb7USNt1izbZYdQE8QWlo5kdPrBECn4Qy7QPjHUyD6/ZH6k6p4srFoszNUIQayBGwDfYp+zHhav3U/XO/Th3PHad4HSk7TJUXbhv6Lu3Xe4P5FbEY0qDRw/bkFmtHMaahy7F/mPuFxxoNWIBk5IE1oYvUiCiMqpzkq7fIIsSqi4GxSHyPgUQEdqRcVQbfCHstE6Dj3MQNDgXR6UKwptZjoHZJzT/2CH415IiscwI9Tsl2r9SgMjya5qqt1mjtDgtzZ7W/DLtTGz5xdQqDjGR5WH521BTGiEcAWUltrrf+eh0NWjpvtgzyBQlWQpKAIb8QToI8hYcjncj7rom9SEPqKNewJcUIVLPmxYpJ4XXEfQHUACRRpPGKg62D8+6eYGPyIUktSsEWUP9OHjdS2e9TPUXdc6ucRLQWg0dRBH+WYIMAtF9HVAdXzi0Hh2xhN3CpR22Vd1ad4KUDpHYVZi5+HuW5QfNuzegEQ5n2dEDrOdi3Y=
+    file: reacnetgenerator-latest-*
+    on:
+      tags: true
+  - stage: deploy
+    os: windows
+    filter_secrets: false
+    provider: releases
+    env:
+    - CONDA_DEPENDENCIES="constructor"
+    before_deploy: constructor conda/constructor
+    api_key:
+      secure: Vk3k7jb/+L0R5jFTft7ajp2x9uAbLMAQ9bIzvUvDjbVVyysahvsG9+FfMXF9go2pBU7nEF5zuRzuUggB0Zbecd96v8u0Vw5hvZZMl1NnFbglo+t/CaUAj/q9PaUrAHYrX1fc2kmU6ybjxf4noh/CKIu3YK/zcaBxr8QrgTvawLC977vebnz26kIXKjAC3Mb7USNt1izbZYdQE8QWlo5kdPrBECn4Qy7QPjHUyD6/ZH6k6p4srFoszNUIQayBGwDfYp+zHhav3U/XO/Th3PHad4HSk7TJUXbhv6Lu3Xe4P5FbEY0qDRw/bkFmtHMaahy7F/mPuFxxoNWIBk5IE1oYvUiCiMqpzkq7fIIsSqi4GxSHyPgUQEdqRcVQbfCHstE6Dj3MQNDgXR6UKwptZjoHZJzT/2CH415IiscwI9Tsl2r9SgMjya5qqt1mjtDgtzZ7W/DLtTGz5xdQqDjGR5WH521BTGiEcAWUltrrf+eh0NWjpvtgzyBQlWQpKAIb8QToI8hYcjncj7rom9SEPqKNewJcUIVLPmxYpJ4XXEfQHUACRRpPGKg62D8+6eYGPyIUktSsEWUP9OHjdS2e9TPUXdc6ucRLQWg0dRBH+WYIMAtF9HVAdXzi0Hh2xhN3CpR22Vd1ad4KUDpHYVZi5+HuW5QfNuzegEQ5n2dEDrOdi3Y=
+    file: reacnetgenerator-latest-*
+    on:
+      tags: true
