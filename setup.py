@@ -7,7 +7,7 @@ conda activate reacnetgenerator
 """
 import subprocess as sp
 from os import path
-import shutil
+import platform
 
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
@@ -18,18 +18,14 @@ class BuildCommand(setuptools.command.build_py.build_py):
     def run(self):
         try:
             print('Prepare JavaScript files with webpack...')
-            sp.run('yarn', check=True, cwd=path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack'), shell=True)
-            sp.run(['yarn', 'start'], check=True, cwd=path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack'), shell=True)
+            yarn = 'yarn.exe' if platform.system()=='windows' else 'yarn'
+            sp.run(yarn, check=True, cwd=path.join(
+                this_directory, 'reacnetgenerator', 'static', 'webpack'))
+            sp.run([yarn, 'start'], check=True, cwd=path.join(
+                this_directory, 'reacnetgenerator', 'static', 'webpack'))
         except ImportError:
             raise sp.CalledProcessError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
-        try:
-            shutil.rmtree(path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack', 'node_modules'))
-        except OSException:
-            pass
         setuptools.command.build_py.build_py.run(self)
 
 
