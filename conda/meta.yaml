@@ -24,6 +24,7 @@ requirements:
     - pytest-runner
   build:
     - {{ compiler('cxx') }}
+    - yarn
   run:
     - python >=3.6
     - openbabel
@@ -41,8 +42,6 @@ requirements:
     - jinja2
     - coloredlogs
     - htmlmin
-    - jsmin
-    - cssmin
     - lz4
     - pybase64
 

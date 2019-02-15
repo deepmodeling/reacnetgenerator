@@ -9,10 +9,11 @@ import os
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import webbrowser
+import base64
+import pkg_resources
 from multiprocessing import cpu_count
 
 from . import ReacNetGenerator, __version__
-from ._static import _static_img
 
 
 class GUI:
@@ -34,7 +35,10 @@ class GUI:
         self._openpage = tk.IntVar()
         self._openpage.set(1)
 
-        titleimage = tk.PhotoImage(data=_static_img['img-title'])
+        titleimage = tk.PhotoImage(
+            data=base64.b64encode(
+                pkg_resources.resource_string(
+                    __name__, 'static/img-title.png')).decode())
         self._titlelb = tk.Label(self._top, image=titleimage)
         self._titlelb.image = titleimage
         self._filenamelb = tk.Label(self._top, text="Trajectory File")

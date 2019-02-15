@@ -46,14 +46,13 @@ An automatic generator of reaction network for reactive molecular dynamics simul
     [jinja2](https://github.com/pallets/jinja),
     [coloredlogs](https://github.com/xolox/python-coloredlogs),
     [htmlmin](https://github.com/mankyd/htmlmin/),
-    [jsmin](https://github.com/tikitu/jsmin/),
-    [cssmin](https://github.com/zacharyvoase/cssmin),
     [lz4](https://github.com/python-lz4/python-lz4),
     [pybase64](https://github.com/mayeut/pybase64)
 -   Extra libraries:
+    [Yarn](https://github.com/yarnpkg/yarn)
     [OpenBabel](https://github.com/openbabel/openbabel),
     [RDKit](https://github.com/rdkit/rdkit)
--   Javascript and CSS frameworks (already packaged):
+-   npm packages:
     [jQuery](https://github.com/jquery/jquery),
     [jQuery Easing Plugin](https://github.com/gdsmith/jquery.easing),
     [Magnific Popup](https://github.com/dimsemenov/Magnific-Popup),
@@ -79,7 +78,7 @@ conda activate reacnetgenerator
 1.  [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and use conda to create environment:
 
 ```sh
-conda create -q -n reacnetgenerator python=3.7 openbabel rdkit hmmlearn -c openbabel -c conda-forge
+conda create -q -n reacnetgenerator python=3 yarn openbabel rdkit hmmlearn -c openbabel -c conda-forge
 conda activate reacnetgenerator
 ```
 

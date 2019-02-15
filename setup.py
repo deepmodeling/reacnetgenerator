@@ -1,14 +1,31 @@
 """Welcome to install ReacNetGenerator.
 
-Just use the following command to install:
-$ pip install .
-Note you should install OpenBabel and RDkit first:
-$ conda create -q -n reacnetgenerator python=3.7 openbabel rdkit -c openbabel -c conda-forge
+Just use `pip install .` to install.
+Note you should install Yarn, OpenBabel and RDkit first:
+$ conda create -n reacnetgenerator python=3 yarn openbabel rdkit -c openbabel -c conda-forge
 $ source activate reacnetgenerator
 """
+import subprocess as sp
 from os import path
+from shutil import copyfile
 
 from setuptools import setup, find_packages, Extension
+import setuptools.command.build_py
+
+
+class BuildCommand(setuptools.command.build_py.build_py):
+
+    def run(self):
+        try:
+            print('Prepare JavaScript files with webpack...')
+            sp.run('yarn', check=True, cwd=path.join(
+                this_directory, 'reacnetgenerator', 'static', 'webpack'))
+            sp.run(['yarn', 'start'], check=True, cwd=path.join(
+                this_directory, 'reacnetgenerator', 'static', 'webpack'))
+        except ImportError:
+            raise sp.CalledProcessError(
+                "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
+        setuptools.command.build_py.build_py.run(self)
 
 
 if __name__ == '__main__':
@@ -30,7 +47,7 @@ if __name__ == '__main__':
               'numpy>=1.15', 'scipy>=0.20.1', 'networkx',
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'htmlmin', 'ase', 'scour', 'tqdm',
-              'jinja2', 'coloredlogs', 'jsmin', 'cssmin',
+              'jinja2', 'coloredlogs',
               'pandas', 'pybase64', 'lz4'
           ],
           entry_points={'console_scripts': [
@@ -51,12 +68,10 @@ if __name__ == '__main__':
               'cython',
           ],
           package_data={
-              'reacnetgenerator': ['static/html/*.html', 'static/js/*.js',
-                                   'static/css/*.css', 'static/img/*.png',
-                                   'static/js/vendor/*.js',
-                                   'static/css/vendor/*.css',
+              'reacnetgenerator': ['static/template.html',
+                                   'static/webpack/bundle.js',
+                                   'static/img-title.png',
                                    'test/test.json',
-                                   '*.pyx', '*.pxd', '*.cpp', '*.h',
                                    ],
           },
           long_description=long_description,
@@ -78,4 +93,5 @@ if __name__ == '__main__':
               Extension("reacnetgenerator.dps", sources=[
                         "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
           ],
+          cmdclass={"build_py": BuildCommand},
           )

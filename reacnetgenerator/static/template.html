@@ -7,8 +7,6 @@
 </head>
 
 <body id="page-top">
-    <style>{% for c in css %}{{ c }}{% endfor %}</style>
-
     <svg class="d-none">
         <defs>
             <path id="narrow" style="text-align:start;line-height:100%;-inkscape-font-specification:Arial Unicode MS" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z"
@@ -178,7 +176,7 @@
     </section>
 
 
-    <script>linkreac={{ linkreac }};{% for js in javascript %}{{ js }}{% endfor %}</script>
+    <script>linkreac={{ linkreac }};{{ javascript }}</script>
 </body>
 
 </html>
