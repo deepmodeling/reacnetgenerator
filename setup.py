@@ -18,9 +18,9 @@ class BuildCommand(setuptools.command.build_py.build_py):
         try:
             print('Prepare JavaScript files with webpack...')
             sp.run('yarn', check=True, cwd=path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack'))
+                this_directory, 'reacnetgenerator', 'static', 'webpack'), shell=True)
             sp.run(['yarn', 'start'], check=True, cwd=path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack'))
+                this_directory, 'reacnetgenerator', 'static', 'webpack'), shell=True)
         except ImportError:
             raise sp.CalledProcessError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
