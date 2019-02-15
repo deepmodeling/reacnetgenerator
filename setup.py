@@ -2,8 +2,8 @@
 
 Just use `pip install .` to install.
 Note you should install Yarn, OpenBabel and RDkit first:
-$ conda create -n reacnetgenerator python=3 yarn openbabel rdkit -c openbabel -c conda-forge
-$ source activate reacnetgenerator
+conda create -n reacnetgenerator python=3 yarn openbabel rdkit -c openbabel -c conda-forge
+conda activate reacnetgenerator
 """
 import subprocess as sp
 from os import path
