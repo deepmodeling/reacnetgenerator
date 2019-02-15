@@ -7,7 +7,7 @@ conda activate reacnetgenerator
 """
 import subprocess as sp
 from os import path
-import platform
+import shutil
 
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
@@ -18,7 +18,7 @@ class BuildCommand(setuptools.command.build_py.build_py):
     def run(self):
         try:
             print('Prepare JavaScript files with webpack...')
-            yarn = 'yarn.exe' if platform.system() == 'windows' else 'yarn'
+            yarn = shutil.which('yarn')
             sp.run(yarn, check=True, cwd=path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             sp.run([yarn, 'start'], check=True, cwd=path.join(
