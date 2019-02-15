@@ -13,13 +13,12 @@ import logging
 import re
 from collections import defaultdict
 from multiprocessing import Pool
+import pkg_resources
 
 import htmlmin
 import openbabel
 import scour.scour
 from jinja2 import Template
-
-from ._static import _html, _static_css, _static_img, _static_js
 
 
 class _HTMLResult:
@@ -104,26 +103,12 @@ class _HTMLResult:
         self._generatesvg()
         self._templatedict["species"] = self._specs
         self._templatedict["reactions"] = self._reaction
-        self._templatedict["css"] = [
-            _static_css["bootstrap.min.css"],
-            _static_css["creative.min.css"],
-            _static_css["magnific-popup.min.css"],
-            _html['bk-css']
-        ]
-        self._templatedict["bkimage"] = _static_img["fire.jpg"]
-        self._templatedict["javascript"] = [
-            _static_js["jquery.min.js"],
-            _static_js["bootstrap.bundle.min.js"],
-            _static_js["jquery.easing.min.js"],
-            _static_js["scrollreveal.min.js"],
-            _static_js["jquery.magnific-popup.min.js"],
-            _static_js["creative.min.js"],
-            _static_js["d3.min.js"],
-            _static_js["jsnetworkx.js"],
-            _html["reacnetgen.js"],
-        ]
-        self._templatedict["linkreac"] = json.dumps(self._linkreac)
-        template = Template(_html["template"])
+        self._templatedict["javascript"] = pkg_resources.resource_string(
+            __name__, 'static/webpack/bundle.js').decode()
+        self._templatedict["linkreac"] = json.dumps(
+            self._linkreac, separators=(',', ':'))
+        template = Template(pkg_resources.resource_string(
+            __name__, 'static/template.html').decode())
         webpage = template.render(**self._templatedict)
         with open(self._resultfile, 'w', encoding="utf-8") as f:
             f.write(htmlmin.minify(webpage))

@@ -252,15 +252,11 @@ class ReacNetGenerator:
         return self._setparam(name, f"{self.inputfilename}.{suffix}")
 
     @classmethod
-    def listtobytes(cls, x, nparray=False):
-        if nparray:
-            return cls.compress(x.dumps(), isbytes=True)
+    def listtobytes(cls, x):
         return cls.compress(pickle.dumps(x), isbytes=True)
 
     @classmethod
-    def bytestolist(cls, x, nparray=False):
-        if nparray:
-            return np.loads(cls.decompress(x, isbytes=True))
+    def bytestolist(cls, x):
         return pickle.loads(cls.decompress(x, isbytes=True))
 
 

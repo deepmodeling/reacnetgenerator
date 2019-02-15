@@ -121,7 +121,7 @@ class _Detect(metaclass=ABCMeta):
         pool.join()
 
     def _compressvalue(self, x):
-        return self._listtobytes(np.array(x), nparray=True)
+        return self._listtobytes(np.array(x))
 
     @abstractmethod
     def _readNfunc(self, f):

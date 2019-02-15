@@ -77,7 +77,7 @@ class _CollectPaths(metaclass=ABCMeta):
         atomeach = np.zeros((self._N, self._step), dtype=np.int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(zip(fh, itertools.zip_longest(*[ft] * 3)), start=1):
-                lineh = self._bytestolist(linehz, nparray=True)
+                lineh = self._bytestolist(linehz)
                 atom = np.array(self._bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:

@@ -1,0 +1,32 @@
+{
+  "name": "reacnetgenerator-js",
+  "version": "1.0.0",
+  "description": "JavaScript files for reacnetgenerator.",
+  "scripts": {
+    "start": "webpack"
+  },
+  "keywords": [
+    "reacnetgenerator",
+    "webpack"
+  ],
+  "author": "Jinzhe Zeng",
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "css-loader": "^2.1.0",
+    "d3": "^3.5.17",
+    "jquery": "^3.3.1",
+    "jquery.easing": "^1.4.1",
+    "jsnetworkx": "^0.3.4",
+    "magnific-popup": "^1.1.0",
+    "popper.js": "^1.14.7",
+    "scrollreveal": "^4.0.5",
+    "startbootstrap-creative": "^5.1.3",
+    "string-replace-webpack-plugin": "^0.1.3",
+    "style-loader": "^0.23.1",
+    "terser-webpack-plugin": "^1.2.2",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3"
+  }
+}

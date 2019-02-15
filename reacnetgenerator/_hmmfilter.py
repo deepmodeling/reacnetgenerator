@@ -71,16 +71,16 @@ class _HMMFilter:
 
     def _getoriginandhmm(self, item):
         line_c, _ = item
-        value = self._bytestolist(line_c[-1], nparray=True)
+        value = self._bytestolist(line_c[-1])
         origin = np.zeros((self._step, 1), dtype=np.int8)
         origin[value] = 1
         originbytes = self._listtobytes(
-            origin, nparray=True) if self.getoriginfile else None
+            origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
             _, hmm = self._model.decode(origin, algorithm="viterbi")
             if 1 in hmm or self.printfiltersignal:
-                hmmbytes = self._listtobytes(hmm, nparray=True)
+                hmmbytes = self._listtobytes(hmm)
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
