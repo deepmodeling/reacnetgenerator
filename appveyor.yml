@@ -19,4 +19,4 @@ install:
 build: false
 
 test_script:
-  - tox
+  - tox --sitepackages
