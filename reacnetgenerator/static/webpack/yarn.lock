@@ -2854,7 +2854,7 @@ tealight@0.3.6:
     is-dom-node "^1.0.4"
     is-dom-node-list "^1.2.1"
 
-terser-webpack-plugin@^1.1.0:
+terser-webpack-plugin@^1.1.0, terser-webpack-plugin@^1.2.2:
   version "1.2.2"
   resolved "http://registry.npm.taobao.org/terser-webpack-plugin/download/terser-webpack-plugin-1.2.2.tgz#9bff3a891ad614855a7dde0d707f7db5a927e3d9"
   integrity sha1-m/86iRrWFIVafd4NcH99takn49k=

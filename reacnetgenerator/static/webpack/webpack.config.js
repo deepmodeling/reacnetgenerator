@@ -1,4 +1,5 @@
 var StringReplacePlugin = require("string-replace-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
   entry: __dirname + "/reacnetgen.js",
@@ -31,5 +32,16 @@ module.exports = {
   },
   plugins: [
     new StringReplacePlugin()
-  ]
+  ],
+  optimization: {
+    minimizer: [
+      new TerserPlugin({
+        cache: false,
+        parallel: true,
+        terserOptions: {
+			comments: false
+        }
+      }),
+    ],
+  }
 }
