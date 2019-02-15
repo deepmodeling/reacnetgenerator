@@ -10,7 +10,7 @@ environment:
 install:
   - set PATH=C:\Miniconda3-x64;C:\Miniconda3-x64\Scripts;%PATH%
   - conda config --set always_yes yes --set changeps1 no
-  - conda create -q -n test-environment python=%PYTHON_TARGET% openbabel rdkit -c openbabel -c conda-forge
+  - conda create -q -n test-environment python=%PYTHON_TARGET% yarn openbabel rdkit -c openbabel -c conda-forge
   - activate test-environment
   - pip install -e . pytest-sugar pytest-cov coveralls codecov>=1.4.0 codacy-coverage
 
