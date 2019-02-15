@@ -22,9 +22,9 @@ requirements:
     - cython >=0.24.1
     - setuptools_scm
     - pytest-runner
+    - yarn
   build:
     - {{ compiler('cxx') }}
-    - yarn
   run:
     - python >=3.6
     - openbabel
