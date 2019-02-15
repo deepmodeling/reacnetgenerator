@@ -7,6 +7,7 @@ conda activate reacnetgenerator
 """
 import subprocess as sp
 from os import path
+import shutil
 
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
@@ -24,6 +25,11 @@ class BuildCommand(setuptools.command.build_py.build_py):
         except ImportError:
             raise sp.CalledProcessError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
+        try:
+            shutil.rmtree(path.join(
+                this_directory, 'reacnetgenerator', 'static', 'webpack', 'node_modules'))
+        except OSException:
+            pass
         setuptools.command.build_py.build_py.run(self)
 
 
