@@ -2,8 +2,9 @@ name: reacnetgenerator
 version: latest
 channels:
     - https://conda.anaconda.org/conda-forge
-    - https://conda.anaconda.org/openbabel/
-    - https://conda.anaconda.org/njzjz/
+    - https://conda.anaconda.org/openbabel
+    - https://conda.anaconda.org/njzjz
+    - https://repo.anaconda.com/pkgs/main
 specs:
     - reacnetgenerator
 license_file: ../../LICENSE
