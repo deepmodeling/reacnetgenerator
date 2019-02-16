@@ -30,6 +30,7 @@ jobs:
     before_deploy: constructor conda/constructor
     deploy:
       provider: releases
+      skip_cleanup: true
       overwrite: true
       on:
         tags: true
@@ -47,6 +48,7 @@ jobs:
     before_deploy: constructor conda/constructor
     deploy:
       provider: releases
+      skip_cleanup: true
       overwrite: true
       on:
         tags: true
@@ -65,6 +67,7 @@ jobs:
     before_deploy: constructor conda/constructor
     deploy:
       provider: releases
+      skip_cleanup: true
       overwrite: true
       on:
         tags: true
