@@ -26,7 +26,7 @@ jobs:
       -c njzjz
     env:
     - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify constructor"
-    if: branch = master AND type != pull_request
+    if: branch = master AND type != pull_request OR tag = true
     before_deploy: constructor conda/constructor
     deploy:
       provider: releases
@@ -43,7 +43,7 @@ jobs:
       -c njzjz
     env:
     - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify constructor"
-    if: branch = master AND type != pull_request
+    if: branch = master AND type != pull_request OR tag = true
     before_deploy: constructor conda/constructor
     deploy:
       provider: releases
@@ -61,7 +61,7 @@ jobs:
       -c njzjz
     env:
     - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify constructor"
-    if: branch = master AND type != pull_request
+    if: branch = master AND type != pull_request OR tag = true
     before_deploy: constructor conda/constructor
     deploy:
       provider: releases
