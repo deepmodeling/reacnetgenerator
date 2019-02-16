@@ -27,36 +27,16 @@ jobs:
       njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
       -c njzjz
     env:
-    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify constructor"
+    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
     if: (branch = master AND type != pull_request) OR tag IS present
-    before_deploy: constructor conda/constructor
-    deploy:
-      provider: releases
-      skip_cleanup: true
-      overwrite: true
-      on:
-        tags: true
-      api_key:
-        secure: Vk3k7jb/+L0R5jFTft7ajp2x9uAbLMAQ9bIzvUvDjbVVyysahvsG9+FfMXF9go2pBU7nEF5zuRzuUggB0Zbecd96v8u0Vw5hvZZMl1NnFbglo+t/CaUAj/q9PaUrAHYrX1fc2kmU6ybjxf4noh/CKIu3YK/zcaBxr8QrgTvawLC977vebnz26kIXKjAC3Mb7USNt1izbZYdQE8QWlo5kdPrBECn4Qy7QPjHUyD6/ZH6k6p4srFoszNUIQayBGwDfYp+zHhav3U/XO/Th3PHad4HSk7TJUXbhv6Lu3Xe4P5FbEY0qDRw/bkFmtHMaahy7F/mPuFxxoNWIBk5IE1oYvUiCiMqpzkq7fIIsSqi4GxSHyPgUQEdqRcVQbfCHstE6Dj3MQNDgXR6UKwptZjoHZJzT/2CH415IiscwI9Tsl2r9SgMjya5qqt1mjtDgtzZ7W/DLtTGz5xdQqDjGR5WH521BTGiEcAWUltrrf+eh0NWjpvtgzyBQlWQpKAIb8QToI8hYcjncj7rom9SEPqKNewJcUIVLPmxYpJ4XXEfQHUACRRpPGKg62D8+6eYGPyIUktSsEWUP9OHjdS2e9TPUXdc6ucRLQWg0dRBH+WYIMAtF9HVAdXzi0Hh2xhN3CpR22Vd1ad4KUDpHYVZi5+HuW5QfNuzegEQ5n2dEDrOdi3Y=
-      file: reacnetgenerator-latest-Linux-x86_64.sh
   - stage: deploy
     os: osx
     script: conda config --set anaconda_upload yes && conda build conda/recipe --user
       njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
       -c njzjz
     env:
-    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify constructor"
+    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
     if: (branch = master AND type != pull_request) OR tag IS present
-    before_deploy: constructor conda/constructor
-    deploy:
-      provider: releases
-      skip_cleanup: true
-      overwrite: true
-      on:
-        tags: true
-      api_key:
-        secure: Vk3k7jb/+L0R5jFTft7ajp2x9uAbLMAQ9bIzvUvDjbVVyysahvsG9+FfMXF9go2pBU7nEF5zuRzuUggB0Zbecd96v8u0Vw5hvZZMl1NnFbglo+t/CaUAj/q9PaUrAHYrX1fc2kmU6ybjxf4noh/CKIu3YK/zcaBxr8QrgTvawLC977vebnz26kIXKjAC3Mb7USNt1izbZYdQE8QWlo5kdPrBECn4Qy7QPjHUyD6/ZH6k6p4srFoszNUIQayBGwDfYp+zHhav3U/XO/Th3PHad4HSk7TJUXbhv6Lu3Xe4P5FbEY0qDRw/bkFmtHMaahy7F/mPuFxxoNWIBk5IE1oYvUiCiMqpzkq7fIIsSqi4GxSHyPgUQEdqRcVQbfCHstE6Dj3MQNDgXR6UKwptZjoHZJzT/2CH415IiscwI9Tsl2r9SgMjya5qqt1mjtDgtzZ7W/DLtTGz5xdQqDjGR5WH521BTGiEcAWUltrrf+eh0NWjpvtgzyBQlWQpKAIb8QToI8hYcjncj7rom9SEPqKNewJcUIVLPmxYpJ4XXEfQHUACRRpPGKg62D8+6eYGPyIUktSsEWUP9OHjdS2e9TPUXdc6ucRLQWg0dRBH+WYIMAtF9HVAdXzi0Hh2xhN3CpR22Vd1ad4KUDpHYVZi5+HuW5QfNuzegEQ5n2dEDrOdi3Y=
-      file: reacnetgenerator-latest-MacOSX-x86_64.sh
   - stage: deploy
     os: windows
     filter_secrets: false
@@ -64,15 +44,5 @@ jobs:
       njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
       -c njzjz
     env:
-    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify constructor"
+    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
     if: (branch = master AND type != pull_request) OR tag IS present
-    before_deploy: constructor conda/constructor
-    deploy:
-      provider: releases
-      skip_cleanup: true
-      overwrite: true
-      on:
-        tags: true
-      api_key:
-        secure: Vk3k7jb/+L0R5jFTft7ajp2x9uAbLMAQ9bIzvUvDjbVVyysahvsG9+FfMXF9go2pBU7nEF5zuRzuUggB0Zbecd96v8u0Vw5hvZZMl1NnFbglo+t/CaUAj/q9PaUrAHYrX1fc2kmU6ybjxf4noh/CKIu3YK/zcaBxr8QrgTvawLC977vebnz26kIXKjAC3Mb7USNt1izbZYdQE8QWlo5kdPrBECn4Qy7QPjHUyD6/ZH6k6p4srFoszNUIQayBGwDfYp+zHhav3U/XO/Th3PHad4HSk7TJUXbhv6Lu3Xe4P5FbEY0qDRw/bkFmtHMaahy7F/mPuFxxoNWIBk5IE1oYvUiCiMqpzkq7fIIsSqi4GxSHyPgUQEdqRcVQbfCHstE6Dj3MQNDgXR6UKwptZjoHZJzT/2CH415IiscwI9Tsl2r9SgMjya5qqt1mjtDgtzZ7W/DLtTGz5xdQqDjGR5WH521BTGiEcAWUltrrf+eh0NWjpvtgzyBQlWQpKAIb8QToI8hYcjncj7rom9SEPqKNewJcUIVLPmxYpJ4XXEfQHUACRRpPGKg62D8+6eYGPyIUktSsEWUP9OHjdS2e9TPUXdc6ucRLQWg0dRBH+WYIMAtF9HVAdXzi0Hh2xhN3CpR22Vd1ad4KUDpHYVZi5+HuW5QfNuzegEQ5n2dEDrOdi3Y=
-      file: reacnetgenerator-latest-Windows-x86_64.exe
