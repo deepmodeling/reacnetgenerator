@@ -64,6 +64,10 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 ## Installation
 
+### With releases (fastest)
+
+We provide [releases](https://github.com/njzjz/reacnetgenerator/releases/latest) for Linux, macOS, and Windows. Download and just install the package.
+
 ### With conda
 
 [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install ReacNetGenerator with conda:
