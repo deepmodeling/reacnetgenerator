@@ -106,3 +106,4 @@ testfiles*/
 #vscode
 .vscode
 .sw*
+reacnetgenerator/dps.cpp
