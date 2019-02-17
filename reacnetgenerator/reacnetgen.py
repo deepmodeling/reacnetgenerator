@@ -210,7 +210,7 @@ class ReacNetGenerator:
 
         # delete tempfile
         for tempfilename in (
-                self.moleculetempfilename, self.moleculetemp2filename):
+                self.moleculetempfilename, self.moleculetemp2filename, self.originfilename, self.hmmfilename):
             if tempfilename is not None:
                 try:
                     os.remove(tempfilename)
