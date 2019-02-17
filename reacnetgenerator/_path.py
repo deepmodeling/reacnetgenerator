@@ -74,7 +74,7 @@ class _CollectPaths(metaclass=ABCMeta):
         pass
 
     def _getatomeach(self):
-        """Values in atomeach starts from 1.""" 
+        """Values in atomeach starts from 1."""
         atomeach = np.zeros((self._N, self._step), dtype=int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(zip(fh, itertools.zip_longest(*[ft] * 3)), start=1):
