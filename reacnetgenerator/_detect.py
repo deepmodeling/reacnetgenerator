@@ -111,7 +111,7 @@ class _Detect(metaclass=ABCMeta):
                 timestep[step] = thetimestep
                 semaphore.release()
             self._temp1it = len(d)
-            values_c = list(tqdm(pool.imap_unordered(self._compressvalue,
+            values_c = list(tqdm(pool.imap(self._compressvalue,
                                                      d.values(),
                                                      100), desc="Save molecules", unit="molecule", total=self._temp1it))
         pool.close()
