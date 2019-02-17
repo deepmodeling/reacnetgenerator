@@ -113,10 +113,11 @@ class _GenerateMatrix:
             for name, line in zip(self._mname, itertools.zip_longest(*[ft] * 3)):
                 for t in self._bytestolist(line[-1]).tolist():
                     d[t][name] += 1
+            buff = []
             for t, ts in enumerate(self._timestep):
-                buff = [f"Timestep {ts}:"]
+                buff.append(f"Timestep {ts}:")
                 buff.extend(
-                    map(lambda item: 'f" {item[0]} {item[1]}"', d[t].items()))
+                    map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
                 buff.append('\n')
                 if len(buff) > 200:
                     fw.write(''.join(buff))

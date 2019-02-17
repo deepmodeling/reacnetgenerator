@@ -62,6 +62,8 @@ class _HMMFilter:
             self._initHMM()
         self._calhmm()
         self.rng.moleculetemp2filename = self.moleculetemp2filename
+        self.rng.originfilename = self.originfilename
+        self.rng.hmmfilename = self.hmmfilename
 
     def _initHMM(self):
         self._model = hmm.MultinomialHMM(n_components=2)
@@ -84,8 +86,10 @@ class _HMMFilter:
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
-        with open(self.originfilename, 'wb') if self.getoriginfile or not self.runHMM else ExitStack() as fo, open(self.hmmfilename, 'wb') if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
+        with tempfile.NamedTemporaryFile('wb', delete=False) if self.getoriginfile or not self.runHMM else ExitStack() as fo, tempfile.NamedTemporaryFile('wb', delete=False) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
             self.moleculetemp2filename = ft2.name
+            self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
+            self.hmmfilename = fh.name if self.runHMM else None
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap_unordered(
                 self._getoriginandhmm, self._produce(semaphore, itertools.zip_longest(*[ft] * 3), ()), 100)

@@ -87,8 +87,6 @@ class ReacNetGenerator:
         self.inputfilename = inputfilename
         self.atomname = np.array(self._setparam(atomname, ["C", "H", "O"]))
         self.selectatoms = self._setparam(selectatoms, self.atomname)
-        self.originfilename = self._setfilename(originfilename, "origin")
-        self.hmmfilename = self._setfilename(hmmfilename, "hmm")
         self.atomfilename = self._setfilename(atomfilename, "atom")
         self.moleculefilename = self._setfilename(moleculefilename, "moname")
         self.atomroutefilename = self._setfilename(atomroutefilename, "route")
@@ -131,6 +129,8 @@ class ReacNetGenerator:
         self.steplinenum = None
         self.N = None
         self.temp1it = None
+        self.originfilename = None
+        self.hmmfilename = None
         self.moleculetempfilename = None
         self.moleculetemp2filename = None
         self.allmoleculeroute = None
@@ -234,7 +234,7 @@ class ReacNetGenerator:
         This function reduces IO overhead to speed up the program.
         """
         if isbytes:
-            return pybase64.b64encode(lz4.frame.compress(x, compression_level=-1))+b'\n'
+            return pybase64.b64encode(lz4.frame.compress(x, compression_level=0))+b'\n'
         return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
 
     @classmethod
