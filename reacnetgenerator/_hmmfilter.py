@@ -106,12 +106,12 @@ class _HMMFilter:
                             buff.append(signalbytes)
                             if len(buff) > 30*self.nproc:
                                 f.write(b''.join(buff))
-                                buff = []
+                                buff[:] = []
                     hmmit += 1
                     bufft.extend(line_c)
                     if len(buffh) > 30*self.nproc:
                         ft2.write(b''.join(bufft))
-                        bufft = []
+                        bufft[:] = []
                 semaphore.release()
             for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
                 if buff:
