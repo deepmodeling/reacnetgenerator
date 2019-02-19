@@ -28,6 +28,7 @@ jobs:
       -c njzjz
     env:
     - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    - PIP_DEPENDENCIES=""
     if: (branch = master AND type != pull_request) OR tag IS present
   - stage: deploy
     os: osx
@@ -36,6 +37,7 @@ jobs:
       -c njzjz
     env:
     - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    - PIP_DEPENDENCIES=""
     if: (branch = master AND type != pull_request) OR tag IS present
   - stage: deploy
     os: windows
@@ -45,4 +47,5 @@ jobs:
       -c njzjz
     env:
     - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
+    - PIP_DEPENDENCIES=""
     if: (branch = master AND type != pull_request) OR tag IS present
