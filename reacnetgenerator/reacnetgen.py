@@ -87,7 +87,6 @@ class ReacNetGenerator:
         self.inputfilename = inputfilename
         self.atomname = np.array(self._setparam(atomname, ["C", "H", "O"]))
         self.selectatoms = self._setparam(selectatoms, self.atomname)
-        self.atomfilename = self._setfilename(atomfilename, "atom")
         self.moleculefilename = self._setfilename(moleculefilename, "moname")
         self.atomroutefilename = self._setfilename(atomroutefilename, "route")
         self.reactionfilename = self._setfilename(reactionfilename, "reaction")
