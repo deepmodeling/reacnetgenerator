@@ -22,7 +22,7 @@ class BuildCommand(setuptools.command.build_py.build_py):
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             sp.run([yarn, 'start'], check=True, cwd=path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            assert path.exist(path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
+            assert path.exists(path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
         except sp.CalledProcessError:
             raise ImportError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
