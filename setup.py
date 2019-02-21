@@ -65,7 +65,7 @@ if __name__ == '__main__':
           extras_require={
               "test": tests_require,
           },
-          use_scm_version=path.exists(".git"),
+          use_scm_version=path.exists(path.join(this_directory, ".git")),
           setup_requires=[
               'setuptools>=18.0',
               'setuptools_scm',
