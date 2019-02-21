@@ -15,7 +15,12 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 **Please cite:** J. Zeng, L. Cao, J.Z.H. Zhang, C.H. Chin, T. Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2018, doi: [10.26434/chemrxiv.7421534](https://dx.doi.org/10.26434/chemrxiv.7421534)
 
-**Author**: [Jinzhe Zeng](https://cv.njzjz.win), [Liqun Cao](http://computchem.cn/people/), [John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang), Chih-Hao Chin, [Tong Zhu](http://computchem.cn/people/)
+**Author**:
+[Jinzhe Zeng](https://cv.njzjz.win),
+[Liqun Cao](http://computchem.cn/people/),
+[John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang),
+Chih-Hao Chin,
+[Tong Zhu](http://computchem.cn/people/)
 
 **Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
@@ -29,7 +34,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 -   Generation of reaction network for visualization using force-directed algorithm
 -   Parallel computing
 
-## Requirements
+## Dependencies
 
 -   Python 3.6 - 3.7 (**Note:** Python &lt;= 3.5 is not supported!)
 -   Python packages:
@@ -92,20 +97,6 @@ pip install reacnetgenerator
 
 ```sh
 pip install git+https://github.com/njzjz/reacnetgenerator
-```
-
-### With Docker
-
-If you have [installed Docker](https://docs.docker.com/install/), a ReacNetGenerator Docker is provided:
-
-```sh
-docker pull njzjz/reacnetgenerator
-```
-
-You can start the ReacNetGenerator Docker where you can run ReacNetGenerator:
-
-```sh
-docker run -itv $(pwd):$(pwd) -w $(pwd) njzjz/reacnetgenerator
 ```
 
 ## Usage
