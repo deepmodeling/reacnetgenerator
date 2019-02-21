@@ -1,14 +1,5 @@
 # ReacNetGenerator
 
-[![python version](https://img.shields.io/pypi/pyversions/reacnetgenerator.svg?logo=python&logoColor=white)](https://pypi.org/project/reacnetgenerator)
-[![PyPI](https://img.shields.io/pypi/v/reacnetgenerator.svg)](https://pypi.org/project/reacnetgenerator)
-[![conda](https://img.shields.io/conda/v/njzjz/reacnetgenerator.svg?style=flat)](https://anaconda.org/njzjz/reacnetgenerator)
-[![Docker](https://shields.beevelop.com/docker/pulls/njzjz/reacnetgenerator.svg?style=flat)](https://hub.docker.com/r/njzjz/reacnetgenerator)
-[![Build Status](https://travis-ci.com/njzjz/reacnetgenerator.svg?branch=master)](https://travis-ci.com/njzjz/reacnetgenerator)
-[![Build status](https://ci.appveyor.com/api/projects/status/t92hud34lgel1eu6?svg=true)](https://ci.appveyor.com/project/jzzeng/reacnetgenerator)
-[![Coverage Status](https://coveralls.io/repos/github/njzjz/reacnetgenerator/badge.svg?branch=master)](https://coveralls.io/github/njzjz/reacnetgenerator?branch=master)
-[![codecov](https://codecov.io/gh/njzjz/reacnetgenerator/branch/master/graph/badge.svg)](https://codecov.io/gh/njzjz/reacnetgenerator)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b2336e2a2ff04aceab42604792c1c3e1)](https://www.codacy.com/app/jzzeng/reacnetgenerator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=njzjz/reacnetgenerator&amp;utm_campaign=Badge_Grade)
 [![DOI:10.26434/chemrxiv.7421534](https://zenodo.org/badge/DOI/10.26434/chemrxiv.7421534.svg)](https://doi.org/10.26434/chemrxiv.7421534)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
@@ -69,46 +60,13 @@ Chih-Hao Chin,
 
 ## Installation
 
-### With conda (fastest)
-
-[Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and install ReacNetGenerator with conda:
+[Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and:
 
 ```sh
-conda create -q -n reacnetgenerator reacnetgenerator -c openbabel -c conda-forge -c njzjz
-conda activate reacnetgenerator
-```
-
-### With conda and pip
-
-1.  [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and use conda to create environment:
-
-```sh
-conda create -q -n reacnetgenerator python=3 yarn openbabel rdkit hmmlearn -c openbabel -c conda-forge
-conda activate reacnetgenerator
-```
-
-2.  Install ReacNetGenerator with pip:
-
-```sh
-pip install reacnetgenerator
-```
-
- Or install from source:
-
-```sh
-pip install git+https://github.com/njzjz/reacnetgenerator
+conda build conda/recipe -c openbabel -c conda-forge && conda install reacnetgenerator --use-local
 ```
 
 ## Usage
-
-### Test
-
-You can test whether ReacNetGenerator is running normally:
-
-```sh
-pip install reacnetgenerator[test]
-pytest -s --pyargs reacnetgenerator
-```
 
 ### Simple example
 
