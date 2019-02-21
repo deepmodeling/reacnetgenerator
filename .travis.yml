@@ -10,7 +10,6 @@ env:
   - CONDA_CHANNEL_PRIORITY=True
   - CONDA_CHANNELS="conda-forge"
   - secure: HRQj7maXAtQ6epUxZuBkBPtB7HriKlPkda9/IbOz661dlIr5+SumKsvpCh2HXG+1fEhvITUWCd9VK+G7xEKwmGgNInGcBEHdtfNZsO4qmdr+nqpqz5IDS1xZVdia8SqgQ7gii2qxvcCwp51hpSYxzhGaee0vz8MevNFC3CoQaqbErjuNeCUIjLtdL/vSD9Q01VU9P2rSR2jkLOR47ra+FFCxUpNj3AFoz/CO0iRkNud5+0cIyDuKlNlgkdGPCJEeZBdXRCSWz7zZT4Q5EILF/Wdokb08n2kl6goSsAVoBY3nuz0hsuOGqzbtjpZPK2LpEqU2Gvbwn3JfWQLczmGg8Zg0Xe4IrMzcBY28HTWDWOQ4KI3FErZ7IqwMJF4Lu6huaMNxpB8Y09fk/2AfTvJAdtCG7P/XNJNYVB7hzE+fLGu5gF3rBPKY+Uam6zRyurodLDfv4SSBrFUN4lnQhTcxLruPwMo1r0B0OgNRYW+kSR6TRaEj50lO88xr96X0mlAYD6Ehess4kfXGHj7MbSaA+p0LLr043A+3DMYgFQetK3Cp2OARgVmHYvbXV7pUYrS1Ov0U9YNMW/BikixWsdeBfbRTf5jo8/6vTUDDq6gwG/ACSBi4BMLO/qwLj4S9LuDEo4w5drH+4vQy8Iwe9a/nDKIfL+7HQcykH3voxr8QV6s=
-  - secure: i8c9BehqOAs1DoKKNLsTYb3bjU09PzRmTwR/Hn8n1SI3RB8VMyEnuSoWb7NtWjPrMueDp4gN1rXxXgDVm6eqfe7sWd5RD4kfBWIvwCucWm1LqZ5iL71eWHNdzshE1sJwYe/Baum1t4aSTsJbkXvPf2ab4cQojHNZucJrQsCcp6SgEG2eoT8pgSnwohqP+z1tIYL01HcQSZjW0hjybzNozovTtL638+nOpClpw7jr80b4aY86+4RzwmvEv3tnrgAYxvXI5Vzti2rHa+OuQFHmnzw7P/uSzdhRCMREPVRWd+QOP+UBJR5mBqKIQmIW1hIIVLt+0vLKgaKcK9sIV7EOSMb7ad2LzgDnp+3BnK6t5b5H1hHNHUxn0vhS7bf4FoBffmsbxPIEY2Q4DFpLVim4rib11AN2HXqyPK83to8VxhUtSG8m44Ht4KGCQjYBBFZ+XA0gnSxZ99iIF696NrfnyeyOljHyZxEm2K++dLRNrlUalucCrKxz0wC34cDb7S5SUuej4it/buTNFGCL00czB6X1bP5IMR5sWmXgkDmDKxPL4P2WX3PCZxsGHnmzUbfQqBYMslgi4twM7XxAfd5QqVz83SqkY2bYX3qcZEbJtxfa3GpSdfMDmSA0E5o9OUImXoQwlRvQt7Rl5IfKK9BMT6cfXHKo+PvDSQt7oJaejlc=
   matrix:
   - PYTHON_VERSION=3.7
   - PYTHON_VERSION=3.6
@@ -20,33 +19,3 @@ cache:
 services: xvfb
 install: git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
 script: tox
-jobs:
-  include:
-  - stage: deploy
-    os: linux
-    script: conda config --set anaconda_upload yes && conda build conda/recipe --user
-      njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
-      -c njzjz
-    env:
-    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-    - PIP_DEPENDENCIES=""
-    if: (branch = master AND type != pull_request) OR tag IS present
-  - stage: deploy
-    os: osx
-    script: conda config --set anaconda_upload yes && conda build conda/recipe --user
-      njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
-      -c njzjz
-    env:
-    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-    - PIP_DEPENDENCIES=""
-    if: (branch = master AND type != pull_request) OR tag IS present
-  - stage: deploy
-    os: windows
-    filter_secrets: false
-    script: conda config --set anaconda_upload yes && conda build conda/recipe --user
-      njzjz --token $CONDA_UPLOAD_TOKEN --override-channels -c openbabel -c conda-forge
-      -c njzjz
-    env:
-    - CONDA_DEPENDENCIES="conda-build anaconda-client conda-verify"
-    - PIP_DEPENDENCIES=""
-    if: (branch = master AND type != pull_request) OR tag IS present
