@@ -1,3 +1,5 @@
+#include <Python.h>
+
 extern "C"{
     class C_Stack {
         private:
