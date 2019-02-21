@@ -1,15 +1,14 @@
 {% set name = "reacnetgenerator" %}
-
+{% set data = load_setup_py_data() %}
 package:
   name: {{ name|lower }}
-  version: {{ GIT_DESCRIBE_TAG|replace("v", "") }}
+  version: {{ data.get("version") }}
 
 source:
   path: ../..
 
 build:
-  number: {{ GIT_DESCRIBE_NUMBER }}
-  string: {{ GIT_BUILD_STR }}
+  number: 0
   entry_points:
     - reacnetgenerator = reacnetgenerator.reacnetgen:_commandline
     - reacnetgeneratorgui = reacnetgenerator.gui:gui
