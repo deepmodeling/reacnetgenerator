@@ -2,8 +2,7 @@
 
 Just use `pip install .` to install.
 Note you should install Yarn, OpenBabel and RDkit first:
-conda create -n reacnetgenerator python=3 yarn openbabel rdkit -c openbabel -c conda-forge
-conda activate reacnetgenerator
+conda install python=3 yarn openbabel rdkit -c openbabel -c conda-forge
 """
 import subprocess as sp
 from os import path
@@ -23,9 +22,12 @@ class BuildCommand(setuptools.command.build_py.build_py):
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             sp.run([yarn, 'start'], check=True, cwd=path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
-        except ImportError:
-            raise sp.CalledProcessError(
+            assert path.exist(path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
+        except sp.CalledProcessError:
+            raise ImportError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
+        except AssertionError:
+            raise OSError("No bundle.js found, please retry.")
         setuptools.command.build_py.build_py.run(self)
 
 

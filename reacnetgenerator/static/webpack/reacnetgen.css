@@ -31,3 +31,22 @@
 .imgbg {
     background-image: url(./fire.png)!important;
 }
+
+.grid {
+    background: -webkit-linear-gradient(top, transparent 44px, blue 45px), -webkit-linear-gradient(left, transparent 44px, blue 45px);
+    background-size: 45px 45px;
+}
+
+.savesvg {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background-color: #008CBA;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}

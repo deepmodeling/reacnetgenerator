@@ -5,7 +5,7 @@ import 'startbootstrap-creative/css/creative.min.css';
 import './reacnetgen.css';
 
 /* global linkreac */
-global.$=global.jQuery=require('jquery');
+global.$ = global.jQuery = require('jquery');
 require('bootstrap');
 require('jquery.easing');
 require('scrollreveal');
@@ -53,7 +53,8 @@ $(function () {
             "ondblclick"(d) {
                 return "G.removeEdge('" + d.edge[0] + "','" + d.edge[1] + "');";
             },
-        }
+        },
+        "stickyDrag": true,
     }, true);
     $("#canvassec").addClass("mfp-hide");
 
@@ -77,9 +78,22 @@ function addnode(spec) {
     }
 }
 
+function savesvg(){
+    var svgData = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'+$(".jsnx")[0].outerHTML+$("#svgdefs")[0].outerHTML+$("#svgspecs")[0].outerHTML+"</svg>";
+    var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+    var svgUrl = URL.createObjectURL(svgBlob);
+    var a = document.createElement('a');
+    var filename = 'network.svg';
+    a.href = svgUrl;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(svgUrl);
+}
+
 //define global
 window.$ = $
 window.addnode = addnode;
+window.savesvg = savesvg;
 window.G = G;
 window.timer1 = null;
 window.timer2 = null;
