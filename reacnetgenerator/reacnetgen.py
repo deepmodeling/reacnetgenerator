@@ -161,11 +161,11 @@ class ReacNetGenerator:
 
     def draw(self):
         """Draw the reaction network."""
-        self._process((self.Status.NETWORK))
+        self._process((self.Status.NETWORK,))
 
     def report(self):
         """Generate the analysis report."""
-        self._process((self.Status.REPORT))
+        self._process((self.Status.REPORT,))
 
     class Status(Enum):
         """ReacNetGen status.
