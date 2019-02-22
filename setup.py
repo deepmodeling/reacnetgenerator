@@ -16,13 +16,14 @@ class BuildCommand(setuptools.command.build_py.build_py):
 
     def run(self):
         try:
+            print(__doc__)
             print('Prepare JavaScript files with webpack...')
             yarn = shutil.which('yarn')
             sp.run(yarn, check=True, cwd=path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             sp.run([yarn, 'start'], check=True, cwd=path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            assert path.exist(path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
+            assert path.exists(path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
         except sp.CalledProcessError:
             raise ImportError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
@@ -31,11 +32,12 @@ class BuildCommand(setuptools.command.build_py.build_py):
         setuptools.command.build_py.build_py.run(self)
 
 
-if __name__ == '__main__':
-    print(__doc__)
-    this_directory = path.abspath(path.dirname(__file__))
+def readme():
     with open(path.join(this_directory, 'docs', 'README.md')) as f:
-        long_description = f.read()
+        return f.read()
+
+if __name__ == '__main__':
+    this_directory = path.abspath(path.dirname(__file__))
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
     setup(name='reacnetgenerator',
@@ -63,7 +65,7 @@ if __name__ == '__main__':
           extras_require={
               "test": tests_require,
           },
-          use_scm_version=True,
+          use_scm_version=path.exists(path.join(this_directory, ".git")),
           setup_requires=[
               'setuptools>=18.0',
               'setuptools_scm',
@@ -77,7 +79,7 @@ if __name__ == '__main__':
                                    'test/test.json',
                                    ],
           },
-          long_description=long_description,
+          long_description=readme(),
           long_description_content_type='text/markdown',
           classifiers=[
               "Natural Language :: English",
@@ -97,4 +99,5 @@ if __name__ == '__main__':
                         "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
           ],
           cmdclass={"build_py": BuildCommand},
+          version="1.3.0",
           )
