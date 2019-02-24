@@ -63,7 +63,7 @@ Chih-Hao Chin,
 [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and:
 
 ```sh
-conda build conda/recipe -c openbabel -c conda-forge
+conda build conda/recipe -c conda-forge
 conda install reacnetgenerator --use-local
 ```
 
