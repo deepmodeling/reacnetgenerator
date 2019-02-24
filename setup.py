@@ -1,8 +1,8 @@
 """Welcome to install ReacNetGenerator.
 
 Just use `pip install .` to install.
-Note you should install Yarn, OpenBabel and RDkit first:
-conda install python=3 yarn openbabel rdkit -c openbabel -c conda-forge
+Note you should install Yarn, OpenBabel, and RDkit first:
+conda install python=3 yarn openbabel rdkit -c conda-forge
 """
 import subprocess as sp
 from os import path

@@ -45,7 +45,7 @@ Chih-Hao Chin,
     [lz4](https://github.com/python-lz4/python-lz4),
     [pybase64](https://github.com/mayeut/pybase64)
 -   Extra libraries:
-    [Yarn](https://github.com/yarnpkg/yarn)
+    [Yarn](https://github.com/yarnpkg/yarn),
     [OpenBabel](https://github.com/openbabel/openbabel),
     [RDKit](https://github.com/rdkit/rdkit)
 -   npm packages:
@@ -63,7 +63,7 @@ Chih-Hao Chin,
 [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and:
 
 ```sh
-conda build conda/recipe -c openbabel -c conda-forge
+conda build conda/recipe -c conda-forge
 conda install reacnetgenerator --use-local
 ```
 
