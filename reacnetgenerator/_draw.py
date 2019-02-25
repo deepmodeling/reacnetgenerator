@@ -84,7 +84,7 @@ class _DrawNetwork:
                 nx.draw(
                     G, pos=self.pos, width=widths, node_size=self.node_size,
                     font_size=self.font_size, with_labels=with_labels,
-                    edge_color=colors, node_color=self.node_color)
+                    edge_color=colors, node_color=[self.node_color]*len(self.pos))
                 imagefilename = "".join(
                     (("" if with_labels else "nolabel_"), self.imagefilename))
                 with StringIO() as stringio, open(imagefilename, 'w') as f:
