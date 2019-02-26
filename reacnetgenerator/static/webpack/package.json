@@ -14,7 +14,7 @@
   "dependencies": {
     "bootstrap": "4.3.1",
     "css-loader": "2.1.0",
-    "d3": "3.5.17",
+    "d3": "5.9.1",
     "jquery": "3.3.1",
     "jquery.easing": "1.4.1",
     "jsnetworkx": "0.3.4",
