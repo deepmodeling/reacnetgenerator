@@ -4,7 +4,7 @@ heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
 tagline: An automatic generator of reaction network for reactive molecular dynamics simulation
 actionText: Analysis Report
-actionLink: report.html
+actionLink: /r.html
 features:
 - title: Trajectory
   details: Processing of MD trajectory containing atomic coordinates or bond orders
@@ -54,7 +54,7 @@ Prepare a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) n
 reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
-where C, H, and O are atomic names in the input file. [Analysis report](report.html) will be generated automatically.  
+where C, H, and O are atomic names in the input file. [Analysis report](/r.html) will be generated automatically.  
 
 A [LAMMPS dump file](https://lammps.sandia.gov/doc/dump.html) is also supported. You can prepare it by running "dump 1 all custom 100 dump.reaxc id type x y z" in LAMMPS.
 

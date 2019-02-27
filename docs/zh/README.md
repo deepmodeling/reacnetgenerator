@@ -4,7 +4,7 @@ heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
 tagline: 反应分子动力学模拟的反应网络自动生成器
 actionText: 分析结果
-actionLink: report.html
+actionLink: /r.html
 features:
 - title: 轨迹
   details: 处理包含原子坐标或键级的轨迹
@@ -54,7 +54,7 @@ conda install reacnetgenerator --use-local
 reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
-这里，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](report.html)。 
+这里，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](/r.html)。 
 
 软件也支持 [LAMMPS dump 文件](https://lammps.sandia.gov/doc/dump.html)。你可以在 LAMMPS 中执行`dump 1 all custom 100 dump.reaxc id type x y z`来获得。
 
