@@ -38,7 +38,7 @@ features:
 
 [从清华大学开源镜像站下载 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) 并安装，然后：
 
-```sh
+```bash
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 conda build conda/recipe
 conda install reacnetgenerator --use-local
@@ -50,7 +50,7 @@ conda install reacnetgenerator --use-local
 
 准备名为 bonds.reaxc 的 [LAMMPS 键级文件](http://lammps.sandia.gov/doc/fix_reax_bonds.html)，输入：
 
-```sh
+```bash
 reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
@@ -58,13 +58,13 @@ reacnetgenerator -i bonds.reaxc -a C H O
 
 软件也支持 [LAMMPS dump 文件](https://lammps.sandia.gov/doc/dump.html)。你可以在 LAMMPS 中执行`dump 1 all custom 100 dump.reaxc id type x y z`来获得。
 
-```sh
+```bash
 reacnetgenerator --dump -i dump.reaxc -a C H O
 ```
 
 运行以下命令查看帮助：
 
-```sh
+```bash
 reacnetgenerator -h
 ```
 
@@ -72,7 +72,7 @@ reacnetgenerator -h
 
 你可以打开 ReacNetGenerator 的图形界面：
 
-```sh
+```bash
 reacnetgeneratorgui
 ```
 

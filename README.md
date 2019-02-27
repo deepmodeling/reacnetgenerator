@@ -62,7 +62,7 @@ Chih-Hao Chin,
 
 [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and:
 
-```sh
+```bash
 conda config --add channels conda-forge
 conda build conda/recipe
 conda install reacnetgenerator --use-local
@@ -74,7 +74,7 @@ conda install reacnetgenerator --use-local
 
 Prepare a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc, then run the script:
 
-```sh
+```bash
 reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
@@ -82,13 +82,13 @@ where C, H, and O are atomic names in the input file. [Analysis report](docs/.vu
 
 A [LAMMPS dump file](https://lammps.sandia.gov/doc/dump.html) is also supported. You can prepare it by running "dump 1 all custom 100 dump.reaxc id type x y z" in LAMMPS.
 
-```sh
+```bash
 reacnetgenerator --dump -i dump.reaxc -a C H O
 ```
 
 You can running the following script for help:
 
-```sh
+```bash
 reacnetgenerator -h
 ```
 
@@ -96,6 +96,6 @@ reacnetgenerator -h
 
 You can open a GUI version for ReacNetGenerator by typing:
 
-```sh
+```bash
 reacnetgeneratorgui
 ```
