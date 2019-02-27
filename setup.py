@@ -2,7 +2,7 @@
 
 Just use `pip install .` to install.
 Note you should install Yarn, OpenBabel, and RDkit first:
-conda install python=3 yarn openbabel rdkit -c conda-forge
+conda install python=3 yarn openbabel rdkit compilers -c conda-forge
 """
 import subprocess as sp
 from os import path
@@ -99,5 +99,5 @@ if __name__ == '__main__':
                         "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
           ],
           cmdclass={"build_py": BuildCommand},
-          version="1.3.0",
+          version="1.0.0",
           )
