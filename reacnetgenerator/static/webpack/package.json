@@ -13,7 +13,7 @@
   "license": "LGPL-3.0",
   "dependencies": {
     "bootstrap": "4.3.1",
-    "css-loader": "2.1.0",
+    "css-loader": "2.1.1",
     "d3": "3.5.17",
     "jquery": "3.3.1",
     "jquery.easing": "1.4.1",
