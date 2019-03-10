@@ -1,0 +1,10 @@
+{
+  "groups": {
+    "default": {
+      "packages": [
+        "package.json",
+        "reacnetgenerator/static/webpack/package.json"
+      ]
+    }
+  }
+}
