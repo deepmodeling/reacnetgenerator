@@ -15,7 +15,7 @@ Chih-Hao Chin,
 
 **Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
-[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](http://computechem.cn)
+[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](http://computechem.cn) [![Greenkeeper badge](https://badges.greenkeeper.io/njzjz/reacnetgenerator.svg?token=f40c024fe456fbe93b531cfb0fc30315211fd10d04eadb05f9f969da0a893a03&ts=1552237778652)](https://greenkeeper.io/)
 
 ## Features
 
