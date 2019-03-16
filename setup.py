@@ -33,7 +33,7 @@ class BuildCommand(setuptools.command.build_py.build_py):
 
 
 def readme():
-    with open(path.join(this_directory, 'docs', 'README.md')) as f:
+    with open(path.join(this_directory, 'README.md')) as f:
         return f.read()
 
 if __name__ == '__main__':
