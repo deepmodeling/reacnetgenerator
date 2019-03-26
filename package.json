@@ -5,6 +5,6 @@
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "now-build": "npm run build && mv docs/.vuepress/dist dist"
+    "now-build": "npm run docs:build && mv docs/.vuepress/dist dist"
   }
 }
