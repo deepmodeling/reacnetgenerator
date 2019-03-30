@@ -3,8 +3,8 @@ home: true
 heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
 tagline: An automatic generator of reaction network for reactive molecular dynamics simulation
-actionText: Analysis Report
-actionLink: /r.html
+actionText: Download
+actionLink: http://computchem.cn/reacnetgenerator/
 features:
 - title: Trajectory
   details: Processing of MD trajectory containing atomic coordinates or bond orders
