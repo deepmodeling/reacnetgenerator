@@ -51,7 +51,7 @@ class _Detect(metaclass=ABCMeta):
 
     def __init__(self, rng):
         self.rng = rng
-        self.inputfilename = rng.inputfilename
+        self.inputfilenames = rng.inputfilenames
         self.atomname = rng.atomname
         self.stepinterval = rng.stepinterval
         self.nproc = rng.nproc
@@ -90,16 +90,17 @@ class _Detect(metaclass=ABCMeta):
     def _readinputfile(self):
         d = defaultdict(list)
         timestep = {}
-        with open(self.inputfilename) as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            _steplinenum = self._readNfunc(f)
-            f.seek(0)
+        with ExitStack() as stack, Pool(self.nproc, maxtasksperchild=1000) as pool:
+            f = [stack.enter_context(open(fn)) for fn in self.inputfilenames]
+            _steplinenum = self._readNfunc(f[0])
+            f[0].seek(0)
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap_unordered(
                 self._readstepfunc, self._produce(
                     semaphore,
                     enumerate(
                         itertools.islice(
-                            itertools.zip_longest(*[f] * _steplinenum),
+                            itertools.zip_longest(*[itertools.chain(f)] * _steplinenum),
                             0, None, self.stepinterval)),
                     None),
                 100)
