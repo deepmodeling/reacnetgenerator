@@ -25,6 +25,7 @@ from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
 from multiprocessing import Pool, Semaphore
+from contextlib import ExitStack
 
 import numpy as np
 import openbabel
