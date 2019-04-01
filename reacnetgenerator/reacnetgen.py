@@ -278,9 +278,13 @@ def _commandline():
     parser.add_argument(
         '-s', '--selectatoms',
         help='Select atoms in the reaction network, e.g. C', nargs='*')
+    parser.add_argument(
+        '--stepinterval', help='Step interval', type=int, default=1)
     args = parser.parse_args()
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
         runHMM=not args.nohmm,
         inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'),
-        nproc=args.nproc, selectatoms=args.selectatoms).runanddraw()
+        nproc=args.nproc, selectatoms=args.selectatoms,
+        stepinterval=args.stepinterval
+        ).runanddraw()
