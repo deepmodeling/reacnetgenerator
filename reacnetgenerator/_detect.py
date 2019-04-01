@@ -101,7 +101,7 @@ class _Detect(metaclass=ABCMeta):
                     semaphore,
                     enumerate(
                         itertools.islice(
-                            itertools.zip_longest(*[itertools.chain(f)] * _steplinenum),
+                            itertools.chain([itertools.zip_longest(*[fi] * _steplinenum) for fi in f]),
                             0, None, self.stepinterval)),
                     None),
                 100)
