@@ -10,7 +10,9 @@ matrix:
       - CONDA_CHANNEL_PRIORITY=True
       - CONDA_CHANNELS="conda-forge"
       - secure: HRQj7maXAtQ6epUxZuBkBPtB7HriKlPkda9/IbOz661dlIr5+SumKsvpCh2HXG+1fEhvITUWCd9VK+G7xEKwmGgNInGcBEHdtfNZsO4qmdr+nqpqz5IDS1xZVdia8SqgQ7gii2qxvcCwp51hpSYxzhGaee0vz8MevNFC3CoQaqbErjuNeCUIjLtdL/vSD9Q01VU9P2rSR2jkLOR47ra+FFCxUpNj3AFoz/CO0iRkNud5+0cIyDuKlNlgkdGPCJEeZBdXRCSWz7zZT4Q5EILF/Wdokb08n2kl6goSsAVoBY3nuz0hsuOGqzbtjpZPK2LpEqU2Gvbwn3JfWQLczmGg8Zg0Xe4IrMzcBY28HTWDWOQ4KI3FErZ7IqwMJF4Lu6huaMNxpB8Y09fk/2AfTvJAdtCG7P/XNJNYVB7hzE+fLGu5gF3rBPKY+Uam6zRyurodLDfv4SSBrFUN4lnQhTcxLruPwMo1r0B0OgNRYW+kSR6TRaEj50lO88xr96X0mlAYD6Ehess4kfXGHj7MbSaA+p0LLr043A+3DMYgFQetK3Cp2OARgVmHYvbXV7pUYrS1Ov0U9YNMW/BikixWsdeBfbRTf5jo8/6vTUDDq6gwG/ACSBi4BMLO/qwLj4S9LuDEo4w5drH+4vQy8Iwe9a/nDKIfL+7HQcykH3voxr8QV6s=
-    cache: pip
+    cache:
+    - pip
+    - cache
     services: xvfb
     install: git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
     script: tox
