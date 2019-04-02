@@ -84,7 +84,7 @@ class ReacNetGenerator:
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
         self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype == "lammpsbondfile" else InputFileType.LAMMPSDUMP
-        self.inputfilename = inputfilename
+        self.inputfilenames = [inputfilename]  if isinstance(inputfilename, str) else inputfilename
         self.atomname = np.array(self._setparam(atomname, ["C", "H", "O"]))
         self.selectatoms = self._setparam(selectatoms, self.atomname)
         self.moleculefilename = self._setfilename(moleculefilename, "moname")
@@ -248,7 +248,7 @@ class ReacNetGenerator:
         return x if x is not None else default
 
     def _setfilename(self, name, suffix):
-        return self._setparam(name, f"{self.inputfilename}.{suffix}")
+        return self._setparam(name, f"{self.inputfilenames[0]}.{suffix}")
 
     @classmethod
     def listtobytes(cls, x):
@@ -263,7 +263,7 @@ def _commandline():
     parser = argparse.ArgumentParser(
         description=f'ReacNetGenerator {__version__}')
     parser.add_argument(
-        '-i', '--inputfilename',
+        '-i', '--inputfilename', nargs='*',
         help='Input trajectory file, e.g. bonds.reaxc', required=True)
     parser.add_argument('-a', '--atomname',
                         help='Atomic names in the trajectory, e.g. C H O',
