@@ -25,7 +25,6 @@ from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
 from multiprocessing import Pool, Semaphore
-from contextlib import ExitStack
 
 import numpy as np
 import openbabel
@@ -91,31 +90,33 @@ class _Detect(metaclass=ABCMeta):
     def _readinputfile(self):
         d = defaultdict(list)
         timestep = {}
-        with ExitStack() as stack, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            f = [stack.enter_context(open(fn)) for fn in self.inputfilenames]
-            _steplinenum = self._readNfunc(f[0])
-            f[0].seek(0)
+        with Pool(self.nproc, maxtasksperchild=1000) as pool:
             semaphore = Semaphore(self.nproc*150)
-            results = pool.imap_unordered(
-                self._readstepfunc, self._produce(
-                    semaphore,
-                    enumerate(
-                        itertools.islice(
-                            itertools.chain([itertools.zip_longest(*[fi] * _steplinenum) for fi in f]),
-                            0, None, self.stepinterval)),
-                    None),
-                100)
-            for molecules, (step, thetimestep) in tqdm(results,
-                                                       desc="Read bond information and Detect molecules",
-                                                       unit="timestep"):
-                for molecule in molecules:
-                    d[molecule].append(step)
-                timestep[step] = thetimestep
-                semaphore.release()
+            for i, inputfilename in enumerate(self.inputfilenames):
+                with open(inputfilename) as f:
+                    if i==0:
+                        _steplinenum = self._readNfunc(f)
+                        f.seek(0)
+                    results = pool.imap_unordered(
+                        self._readstepfunc, self._produce(
+                            semaphore,
+                            enumerate(
+                                itertools.islice(
+                                    itertools.zip_longest(*[f] * _steplinenum),
+                                    0, None, self.stepinterval), len(d)),
+                            None),
+                        100)
+                    for molecules, (step, thetimestep) in tqdm(results,
+                                                            desc="Read bond information and Detect molecules",
+                                                            unit="timestep"):
+                        for molecule in molecules:
+                            d[molecule].append(step)
+                        timestep[step] = thetimestep
+                        semaphore.release()
             self._temp1it = len(d)
             values_c = list(tqdm(pool.imap(self._compressvalue,
-                                                     d.values(),
-                                                     100), desc="Save molecules", unit="molecule", total=self._temp1it))
+                                                    d.values(),
+                                                    100), desc="Save molecules", unit="molecule", total=self._temp1it))
         pool.close()
         self._writemoleculetempfile((d.keys(), values_c))
         self._timestep = timestep
