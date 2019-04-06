@@ -3,8 +3,9 @@ os: linux
 node_js: 11
 env: PYTHON_VERSION=3.7 SETUP_XVFB=True PIP_DEPENDENCIES="tox-conda tox-travis" CONDA_CHANNEL_PRIORITY=True CONDA_CHANNELS="conda-forge"
 cache:
-- pip
-- yarn
+  yarn: true
+  directories:
+  - $HOME/.cache/pip
 services: xvfb
 install:
 - git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
