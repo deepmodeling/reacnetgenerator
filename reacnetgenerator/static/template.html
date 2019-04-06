@@ -15,8 +15,8 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
 <body id="page-top">
     <svg class="d-none" id="svgdefs">
         <defs>
-            <path id="narrow" style="text-align:start;line-height:100%;-inkscape-font-specification:Arial Unicode MS" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z"
-                font-size="39.506" font-weight="400" font-family="Arial Unicode MS" />
+            <path id="narrow" style="text-align:start;line-height:100%;" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z"
+                font-size="39.506" font-weight="400"/>
             <circle id="circle" cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />
         </defs>
     </svg>
@@ -30,6 +30,21 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
+                    {% if network_time|length > 1 %}
+                    <li class="nav-item">
+                        <select id="timeselect">
+                            {% for _ in network_time %}
+                            <option value="{{ loop.index }}">
+                                {% if loop.index > 1 %}
+                                    Time interval {{ loop.index-1 }}
+                                {% else %}
+                                    All
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                    {% endif %}
                     {% for sec in sections %}
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#{{ sec|lower }}">{{ sec }}</a></li>
                     {% endfor %}
@@ -60,7 +75,8 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         </div>
     </header>
 
-    <section id="network" class='page-section bg-white mx-auto text-center'>
+    {% for network_svg in network_time %}
+    <section id="network" class='page-section bg-white mx-auto text-center time time-{{ loop.index }}'>
         <div class="container my-auto">
             <div class="row">
                 <div class="mx-auto w-100 text-center">
@@ -70,6 +86,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             </div>
         </div>
     </section>
+    {% endfor %}
 
     <svg class="d-none" id="svgspecs">
         <defs>
@@ -88,7 +105,8 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         <a href="javascript:savesvg();" class="savesvg">Save</a>
     </div>
 
-    <section id="species" class='page-section bg-white mx-auto'>
+    {% for species in speciestime %}
+    <section id="species" class='page-section bg-white mx-auto time time-{{ loop.index }}'>
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
@@ -114,8 +132,10 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                 {% endif %}
             </div>
     </section>
+    {% endfor %}
 
-    <section id="reactions" class='page-section bg-white mx-auto'>
+    {% for reactions in reactionstime %}
+    <section id="reactions" class='page-section bg-white mx-auto time time-{{ loop.index }}'>
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
@@ -149,6 +169,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     {% endif %}
                 </div>
     </section>
+    {% endfor %}
 
     <section class="page-section bg-dark text-white" id="foot">
         <div class="container">

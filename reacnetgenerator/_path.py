@@ -46,6 +46,7 @@ class _CollectPaths(metaclass=ABCMeta):
         self._decompress = rng.decompress
         self._bytestolist = rng.bytestolist
         self._produce = rng.produce
+        self._split = rng.split
         self._mname = None
         self.atomnames = None
 
@@ -67,6 +68,9 @@ class _CollectPaths(metaclass=ABCMeta):
         self._printmoleculename()
         atomeach = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
+        if self._split > 1:
+            splittime = np.array_split(np.arange(self._step), self._split)
+            self.rng.splitmoleculeroute = list([self._printatomroute(atomeach[:, st], timeaxis=i) for i, st in enumerate(splittime)])
         self.rng.mname = self._mname
 
     @abstractmethod
@@ -96,14 +100,14 @@ class _CollectPaths(metaclass=ABCMeta):
             [f"Atom {i} {self.atomname[atomtypei]}: ", " -> ".join(names)])
         return moleculeroute, routestr
 
-    def _printatomroute(self, atomeach):
-        with open(self.atomroutefilename, 'w') as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
+    def _printatomroute(self, atomeach, timeaxis=None):
+        with open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w') as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
             allmoleculeroute = []
             semaphore = Semaphore(self.nproc*150)
             results = pool.imap(self._getatomroute, self._produce(
                 semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
             for moleculeroute, routestr in tqdm(
-                    results, total=self._N, desc="Collect reaction paths",
+                    results, total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}",
                     unit="atom"):
                 f.write("".join([routestr, '\n']))
                 if moleculeroute.size > 0:
