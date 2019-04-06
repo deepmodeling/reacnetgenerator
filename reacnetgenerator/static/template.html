@@ -36,7 +36,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                             {% for _ in network_time %}
                             <option value="{{ loop.index }}">
                                 {% if loop.index > 1 %}
-                                    Time interval {{ loop.index-1 }}
+                                    Time {{ loop.index-1 }}
                                 {% else %}
                                     All
                                 {% endif %}
