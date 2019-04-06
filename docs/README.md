@@ -36,7 +36,9 @@ features:
 
 # Installation
 
-[Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) and:
+1. Download the source code on [our group website](http://computchem.cn/reacnetgenerator/).
+2. [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda.
+3. Decompress reacnetgenerator.zip and build in the main directory:
 
 ```bash
 conda config --add channels conda-forge
@@ -48,18 +50,17 @@ conda install reacnetgenerator --use-local
 
 ## Command line
 
-Prepare a [LAMMPS bond file](http://lammps.sandia.gov/doc/fix_reax_bonds.html) named bonds.reaxc, then run the script:
-
-```bash
-reacnetgenerator -i bonds.reaxc -a C H O
-```
-
-where C, H, and O are atomic names in the input file. [Analysis report](/r.html) will be generated automatically.  
-
-A [LAMMPS dump file](https://lammps.sandia.gov/doc/dump.html) is also supported. You can prepare it by running "dump 1 all custom 100 dump.reaxc id type x y z" in LAMMPS.
+ReacNetGenerator can process any kind of trajectory files containing atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1 all custom 100 dump.reaxc id type x y z” in LAMMPS:
 
 ```bash
 reacnetgenerator --dump -i dump.reaxc -a C H O
+```
+where C, H, and O are atomic names in the input file. [Analysis report](/r.html) will be generated automatically.
+
+Also, ReacNetGenerator can process files containing bond information, e.g. LAMMPS bond file:
+
+```bash
+reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
 You can running the following script for help:
@@ -78,7 +79,7 @@ reacnetgeneratorgui
 
 # Dependencies
 
--   Python 3.6 - 3.7
+-   Python >= 3.6
 -   Python packages:
     [numpy](https://github.com/numpy/numpy),
     [scipy](https://github.com/scipy/scipy),

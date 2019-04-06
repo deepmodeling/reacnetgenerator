@@ -3,8 +3,8 @@ home: true
 heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
 tagline: 反应分子动力学模拟的反应网络自动生成器
-actionText: 分析结果
-actionLink: /r.html
+actionText: 下载
+actionLink: http://computchem.cn/reacnetgenerator
 features:
 - title: 轨迹
   details: 处理包含原子坐标或键级的轨迹
@@ -36,7 +36,9 @@ features:
 
 ## 安装
 
-[从清华大学开源镜像站下载 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) 并安装，然后：
+1. 在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip；
+2. [从清华大学开源镜像站下载 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) 并安装；
+3. 解压reacnetgenerator.zip，并在软件主目录编译：
 
 ```bash
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
@@ -48,18 +50,18 @@ conda install reacnetgenerator --use-local
 
 ### 命令行
 
-准备名为 bonds.reaxc 的 [LAMMPS 键级文件](http://lammps.sandia.gov/doc/fix_reax_bonds.html)，输入：
-
-```bash
-reacnetgenerator -i bonds.reaxc -a C H O
-```
-
-这里，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](/r.html)。 
-
-软件也支持 [LAMMPS dump 文件](https://lammps.sandia.gov/doc/dump.html)。你可以在 LAMMPS 中执行`dump 1 all custom 100 dump.reaxc id type x y z`来获得。
+ReacNetGenerator可以处理任意类型含有原子坐标的轨迹文件，例如LAMMPS dump文件，可以通过在 LAMMPS 中执行dump 1 all custom 100 dump.reaxc id type x y z来获得：
 
 ```bash
 reacnetgenerator --dump -i dump.reaxc -a C H O
+```
+
+其中，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](/r.html)。
+
+软件也可以处理含有键级信息的文件，例如LAMMPS键级文件：
+
+```bash
+reacnetgenerator -i bonds.reaxc -a C H O
 ```
 
 运行以下命令查看帮助：
@@ -78,7 +80,7 @@ reacnetgeneratorgui
 
 ## 依赖
 
--   Python 3.6 - 3.7
+-   Python >= 3.6
 -   Python 包：
     [numpy](https://github.com/numpy/numpy),
     [scipy](https://github.com/scipy/scipy),
