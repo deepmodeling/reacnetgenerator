@@ -1,6 +1,6 @@
-language: nodejs
+language: node_js
 os: linux
-nodejs: 11
+node_js: 11
 env: PYTHON_VERSION=3.7 SETUP_XVFB=True PIP_DEPENDENCIES="tox-conda tox-travis" CONDA_CHANNEL_PRIORITY=True CONDA_CHANNELS="conda-forge"
 cache:
 - pip
