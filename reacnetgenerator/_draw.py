@@ -18,6 +18,7 @@ placement. Software: Practice and experince. 1991, 21(11),1129-1164.
 
 import logging
 import math
+import traceback
 from io import StringIO
 
 import matplotlib.pyplot as plt
@@ -45,10 +46,18 @@ class _DrawNetwork:
         self.pos = rng.pos
         self.nolabel = rng.nolabel
         self.showid = rng.showid
+        self._split = rng.split
 
     def draw(self):
         """Draw the network."""
-        table, name = self._readtable()
+        self._draw()
+        if self._split > 1:
+            for st in range(self._split):
+                self._draw(timeaxis=st)
+
+    def _draw(self, timeaxis=None):
+        table, name = self._readtable(
+            self.tablefilename if timeaxis is None else f"{self.tablefilename}.{timeaxis}")
         species, showname = self._handlespecies(name)
 
         G = nx.DiGraph()
@@ -67,35 +76,35 @@ class _DrawNetwork:
                                   tableij)])
         weights = np.array([math.log(G[u][v]['weight']+1)
                             for u, v in G.edges()])
-        widths = [
-            weight / max(weights) * self.widthcoefficient * 2
-            if weight > max(weights) * 0.7 else weight / max(weights) * self.widthcoefficient *
-            0.5 for weight in weights]
-        colors = [
-            self.start_color + weight / max(weights) *
-            (self.end_color - self.start_color) for weight in weights]
+        widths = weights / np.max(weights) * self.widthcoefficient * np.array(
+            [0.5, 2])[(weights > np.max(weights) * 0.7)+0] if weights.size else np.zeros(0)
+        colors = self.start_color + weights[:, np.newaxis] / np.max(weights) * (
+            self.end_color - self.start_color) if weights.size else np.zeros(0)
         try:
-            self.pos = (nx.spring_layout(G) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos])) if not self.k else (
-                nx.spring_layout(G, k=self.k) if not self.pos else nx.spring_layout(G, pos=self.pos, fixed=[p for p in self.pos], k=self.k))
-            if self.pos:
+            pos = nx.spring_layout(G,
+                                   pos=self.pos if self.pos else None,
+                                   fixed=list(self.pos) if self.pos else None,
+                                   k=self.k)
+            if pos:
                 logging.info("The position of the species in the network is:")
-                logging.info(self.pos)
+                logging.info(pos)
             for with_labels in ([True] if not self.nolabel else [True, False]):
                 nx.draw(
-                    G, pos=self.pos, width=widths, node_size=self.node_size,
+                    G, pos=pos, width=widths, node_size=self.node_size,
                     font_size=self.font_size, with_labels=with_labels,
-                    edge_color=colors, node_color=[self.node_color]*len(self.pos))
+                    edge_color=colors, node_color=[self.node_color]*len(pos))
                 imagefilename = "".join(
                     (("" if with_labels else "nolabel_"), self.imagefilename))
-                with StringIO() as stringio, open(imagefilename, 'w') as f:
+                with StringIO() as stringio, open(imagefilename if timeaxis is None else f"{imagefilename}.{timeaxis}", 'w') as f:
                     plt.savefig(stringio, format='svg')
                     f.write(scour.scour.scourString(stringio.getvalue()))
                 plt.close()
         except Exception as e:
             logging.error(f"Error: cannot draw images. Details: {e}")
+            traceback.print_tb(e.__traceback__)
 
-    def _readtable(self):
-        df = pd.read_csv(self.tablefilename, sep=' ', index_col=0, header=0)
+    def _readtable(self, filename):
+        df = pd.read_csv(filename, sep=' ', index_col=0, header=0)
         return df.values, df.index
 
     def _handlespecies(self, name):

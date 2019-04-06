@@ -12,7 +12,8 @@
         ],
         "inputfiletype": "lammpsbondfile",
         "hmm": true,
-        "smiles": true
+        "smiles": true,
+        "split": 10
     },
     {
         "url": [

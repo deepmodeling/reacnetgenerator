@@ -38,7 +38,9 @@ class TestReacNetGen:
             inputfiletype=testparm['inputfiletype'],
             runHMM=testparm['hmm'],
             speciescenter=testparm['speciescenter']
-            if 'speciescenter' in testparm else None)
+            if 'speciescenter' in testparm else None,
+            split=testparm['split'] if 'split' in testparm else 1,
+            )
 
     def test_reacnetgen(self, reacnetgen):
         """Test main process of ReacNetGen."""

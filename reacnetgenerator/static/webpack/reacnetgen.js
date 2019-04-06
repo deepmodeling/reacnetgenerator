@@ -62,6 +62,12 @@ $(function () {
         "type": "inline",
         "preloader": false,
     });
+    $("select#timeselect").change(function(){
+        $(".time").hide();
+        $(".time-"+$(this).val()).show();
+    });
+    $(".time").hide();
+    $(".time-1").show();
 });
 
 /**

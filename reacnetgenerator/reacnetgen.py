@@ -78,7 +78,7 @@ class ReacNetGenerator:
             needprintspecies=True, speciesfilter=None, node_color=None,
             pos=None, printfiltersignal=False, showid=True, k=None,
             start_color=None, end_color=None, nproc=None, speciescenter=None,
-            n_searchspecies=2):
+            n_searchspecies=2, split=1):
         """Init ReacNetGenerator."""
         print(__doc__)
         print(
@@ -120,6 +120,7 @@ class ReacNetGenerator:
         self.nproc = self._setparam(nproc, cpu_count())
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
+        self.split = split
         # define attribute
         self.atomtype = None
         self.step = None
@@ -133,6 +134,7 @@ class ReacNetGenerator:
         self.moleculetempfilename = None
         self.moleculetemp2filename = None
         self.allmoleculeroute = None
+        self.splitmoleculeroute = None
 
     def runanddraw(self, run=True, draw=True, report=True):
         """Analyze the trajectory from MD simulation."""
@@ -280,11 +282,13 @@ def _commandline():
         help='Select atoms in the reaction network, e.g. C', nargs='*')
     parser.add_argument(
         '--stepinterval', help='Step interval', type=int, default=1)
+    parser.add_argument('--split', help='Split number for the time axis', type=int, default=1)
     args = parser.parse_args()
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
         runHMM=not args.nohmm,
         inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'),
         nproc=args.nproc, selectatoms=args.selectatoms,
-        stepinterval=args.stepinterval
+        stepinterval=args.stepinterval,
+        split=args.split,
         ).runanddraw()

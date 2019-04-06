@@ -35,13 +35,14 @@ class _GenerateMatrix:
             R=[a_ij ], i=1,2,…,100;j=1,2,…,100
         where aij is the number of reactions from species si to sj.
         """
-        allroute = self._getallroute(self.allmoleculeroute)
-        self._printtable(allroute)
+        self._printtable(self._getallroute(self.allmoleculeroute))
+        if self.rng.splitmoleculeroute is not None:
+            for i, smr in enumerate(self.rng.splitmoleculeroute):
+                self._printtable(self._getallroute(smr), timeaxis=i)
         if self.needprintspecies:
             self._printspecies()
 
     def _getallroute(self, allmoleculeroute):
-        allroute = Counter()
         names = self._mname[allmoleculeroute-1]
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
@@ -49,7 +50,7 @@ class _GenerateMatrix:
             return zip(equations[0].tolist(), equations[1].tolist())
         return []
 
-    def _printtable(self, allroute, maxsize=100):
+    def _printtable(self, allroute, maxsize=100, timeaxis=None):
         species = []
         sortedreactions = sorted(
             allroute, key=lambda d: d[1], reverse=True)
@@ -76,7 +77,7 @@ class _GenerateMatrix:
 
         table = np.zeros((maxsize, maxsize), dtype=np.int)
         reactionnumber = np.zeros((2), dtype=np.int)
-        with open(self.reactionfilename, 'w') as f:
+        with open(self.reactionfilename if timeaxis is None else f"{self.reactionfilename}.{timeaxis}", 'w') as f:
             for reaction, n_reaction in sortedreactions:
                 f.write(f"{n_reaction} {'->'.join(reaction)}\n")
                 for i, spec in enumerate(reaction):
@@ -93,7 +94,7 @@ class _GenerateMatrix:
 
         df = pd.DataFrame(table[:len(species), :len(
             species)], index=species, columns=species)
-        df.to_csv(self.tablefilename, sep=' ')
+        df.to_csv(self.tablefilename if timeaxis is None else f"{self.tablefilename}.{timeaxis}", sep=' ')
 
     def _searchspecies(self, originspec, sortedreactions, species):
         searchedspecies = []
