@@ -8,7 +8,6 @@ import './reacnetgen.css';
 global.$ = global.jQuery = require('jquery');
 require('bootstrap');
 require('jquery.easing');
-require('scrollreveal');
 require("magnific-popup");
 require('startbootstrap-creative/js/creative.min');
 var jsnx = require("jsnetworkx");

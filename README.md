@@ -95,7 +95,6 @@ reacnetgeneratorgui
     [jQuery](https://github.com/jquery/jquery),
     [jQuery Easing Plugin](https://github.com/gdsmith/jquery.easing),
     [Magnific Popup](https://github.com/dimsemenov/Magnific-Popup),
-    [ScrollReveal](https://github.com/scrollreveal/scrollreveal),
     [Bootstrap](https://github.com/twbs/bootstrap),
     [Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
     [D3](https://github.com/d3/d3),
