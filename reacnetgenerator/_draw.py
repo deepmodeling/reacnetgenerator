@@ -76,10 +76,10 @@ class _DrawNetwork:
                                   tableij)])
         weights = np.array([math.log(G[u][v]['weight']+1)
                             for u, v in G.edges()])
-        widths = weights / np.max(weights) * self.widthcoefficient * \
-            np.array([0.5, 2])[(weights > np.max(weights) * 0.7)+0]
-        colors = self.start_color + weights[:, np.newaxis] / \
-            np.max(weights) * (self.end_color - self.start_color)
+        widths = weights / np.max(weights) * self.widthcoefficient * np.array(
+            [0.5, 2])[(weights > np.max(weights) * 0.7)+0] if weights.size else np.zeros(0)
+        colors = self.start_color + weights[:, np.newaxis] / np.max(weights) * (
+            self.end_color - self.start_color) if weights.size else np.zeros(0)
         try:
             pos = nx.spring_layout(G,
                                    pos=self.pos if self.pos else None,
