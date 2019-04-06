@@ -12,6 +12,7 @@ install:
 - yarn
 script:
 - tox
+- cp testfiles-*/bonds.reaxc.html docs/.vuepress/public/report.html 
 - yarn docs:build
 deploy:
   provider: pages

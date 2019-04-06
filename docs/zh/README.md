@@ -56,7 +56,7 @@ ReacNetGenerator可以处理任意类型含有原子坐标的轨迹文件，例�
 reacnetgenerator --dump -i dump.reaxc -a C H O
 ```
 
-其中，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](/r.html)。
+其中，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](https://njzjz.github.io/reacnetgenerator/report.html)。
 
 软件也可以处理含有键级信息的文件，例如LAMMPS键级文件：
 
