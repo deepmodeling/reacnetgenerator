@@ -1,1 +1,0 @@
-<script>typeof window !== 'undefined' ? window.location.href="/report.html": console.log('pass');</script>

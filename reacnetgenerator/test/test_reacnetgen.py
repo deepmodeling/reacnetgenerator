@@ -16,7 +16,7 @@ import reacnetgenerator.gui
 import requests
 from tqdm import tqdm
 
-
+this_directory = os.getcwd()
 class TestReacNetGen:
     """Test ReacNetGenerator."""
 
@@ -24,7 +24,7 @@ class TestReacNetGen:
         pkg_resources.resource_stream(
             __name__, 'test.json')))
     def reacnetgen(self, request):
-        folder = tempfile.mkdtemp(prefix='testfiles-', dir='.')
+        folder = tempfile.mkdtemp(prefix='testfiles-', dir=this_directory)
         logging.info(f'Folder: {folder}:')
         os.chdir(folder)
 
