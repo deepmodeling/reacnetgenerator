@@ -79,7 +79,7 @@ reacnetgeneratorgui
 
 # Dependencies
 
--   Python 3.6 - 3.7
+-   Python >= 3.6
 -   Python packages:
     [numpy](https://github.com/numpy/numpy),
     [scipy](https://github.com/scipy/scipy),
