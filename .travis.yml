@@ -10,7 +10,7 @@ install:
 - docker pull continuumio/miniconda3
 - yarn
 script:
-- docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip --env-file <(env | grep 'TRAVIS\|CI') continuumio/miniconda3 /bin/bash -c "chown -R root /root/.cache && apt-get update && apt-get install -y xvfb && pip install tox-conda && cd /project && DISPLAY=:9.0 xvfb-run tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html" 
+- docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip --env-file <(env | grep 'TRAVIS\|CI') continuumio/miniconda3 /bin/bash -c "chown -R root /root/.cache && apt-get update && apt-get install -y xvfb && pip install tox-conda && cd /project && tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html" 
 - yarn docs:build
 deploy:
   provider: pages
