@@ -1,17 +1,18 @@
 language: node_js
 os: linux
 node_js: 11
-env: PYTHON_VERSION=3.7 SETUP_XVFB=True PIP_DEPENDENCIES="tox-conda tox-travis" CONDA_CHANNEL_PRIORITY=True CONDA_CHANNELS="conda-forge"
 cache:
   yarn: true
   directories:
   - $HOME/.cache/pip
-services: xvfb
+services:
+- xvfb
+- docker
 install:
-- git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
+- docker pull continuumio/miniconda3
 - yarn
 script:
-- tox
+- xvfb-run docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip continuumio/miniconda3 /bin/bash -c "chown -R root /root/.cache && pip install tox-conda && cd /project && tox -e py37"
 - cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html 
 - yarn docs:build
 deploy:
