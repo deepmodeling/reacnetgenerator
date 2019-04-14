@@ -12,8 +12,7 @@ install:
 - docker pull continuumio/miniconda3
 - yarn
 script:
-- xvfb-run docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip continuumio/miniconda3 /bin/bash -c "chown -R root /root/.cache && pip install tox-conda && cd /project && tox -e py37"
-- cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html 
+- xvfb-run docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip continuumio/miniconda3 /bin/bash -c "chown -R root /root/.cache && pip install tox-conda && cd /project && tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html" 
 - yarn docs:build
 deploy:
   provider: pages
