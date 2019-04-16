@@ -2,7 +2,7 @@
 home: true
 heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
-tagline: 反应分子动力学模拟的反应网络自动生成器
+tagline: 基于反应分子动力学模拟轨迹的反应网络自动构建和可视化软件
 actionText: 下载
 actionLink: http://computchem.cn/reacnetgenerator
 features:
@@ -37,7 +37,7 @@ features:
 ## 安装
 
 1. 在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip；
-2. [从清华大学开源镜像站下载 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) 并安装；
+2. [从中国科学技术大学开源镜像站下载 Anaconda 或 Miniconda](https://mirrors.ustc.edu.cn/help/anaconda.html) 并安装；
 3. 解压reacnetgenerator.zip，并在软件主目录编译：
 
 ```bash
