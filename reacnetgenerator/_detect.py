@@ -58,6 +58,7 @@ class _Detect(metaclass=ABCMeta):
         self._produce = rng.produce
         self._compress = rng.compress
         self._listtobytes = rng.listtobytes
+        self.pbc = rng.pbc
 
         self._N = None
         self._atomtype = None
@@ -200,6 +201,7 @@ class _DetectLAMMPSdump(_Detect):
         TIMESTEP = auto()
         ATOMS = auto()
         NUMBER = auto()
+        BOX = auto()
         OTHER = auto()
 
         @classmethod
@@ -211,6 +213,8 @@ class _DetectLAMMPSdump(_Detect):
                 return cls.ATOMS
             if line.startswith("ITEM: NUMBER OF ATOMS"):
                 return cls.NUMBER
+            if line.startswith("ITEM: BOX"):
+                return cls.BOX
             return cls.OTHER
 
     def _readNfunc(self, f):
@@ -239,6 +243,7 @@ class _DetectLAMMPSdump(_Detect):
     def _readstepfunc(self, item):
         (step, lines), _ = item
         step_atoms = []
+        boxsize = []
         for line in lines:
             if line:
                 if line.startswith("ITEM:"):
@@ -253,20 +258,26 @@ class _DetectLAMMPSdump(_Detect):
                                  tuple(map(float, s[2: 5])))))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
+                    elif linecontent == self.LineType.BOX:
+                        s = line.split()
+                        boxsize.append(float(s[1])-float(s[0]))
         _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
         step_atoms = Atoms(step_atoms)
-        bond, level = self._getbondfromcrd(step_atoms)
+        bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(bond, level)
         return molecules, timestep
 
-    @classmethod
-    def _getbondfromcrd(cls, step_atoms):
+    def _getbondfromcrd(self, step_atoms, cell):
         atomnumber = len(step_atoms)
+        if self.pbc:
+            # Apply period boundry conditions
+            step_atoms.set_pbc(True)
+            step_atoms.set_cell(cell)
+            # add ghost atoms
+            step_atoms = step_atoms.repeat(2)
         xyzstring = ''.join((f"{atomnumber}\nReacNetGenerator\n", "\n".join(
             [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}'
-             for s, (x, y, z)
-             in
-             zip(
+             for s, (x, y, z) in zip(
                  step_atoms.get_chemical_symbols(),
                  step_atoms.positions)])))
         conv = openbabel.OBConversion()
@@ -284,9 +295,14 @@ class _DetectLAMMPSdump(_Detect):
                 if linecontent == 0:
                     s = line.split()
                     if len(s) > 3:
-                        bond[int(s[1])-1].append(int(s[2])-1)
-                        bond[int(s[2])-1].append(int(s[1])-1)
+                        s1 = (int(s[1])-1)%atomnumber
+                        s2 = (int(s[2])-1)%atomnumber
+                        if s2 in bond[s1]:
+                            # duplicated
+                            continue
+                        bond[s1].append(s2)
+                        bond[s2].append(s1)
                         level = 12 if s[3] == 'ar' else int(s[3])
-                        bondlevel[int(s[1])-1].append(level)
-                        bondlevel[int(s[2])-1].append(level)
+                        bondlevel[s1].append(level)
+                        bondlevel[s2].append(level)
         return bond, bondlevel

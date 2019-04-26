@@ -78,7 +78,7 @@ class ReacNetGenerator:
             needprintspecies=True, speciesfilter=None, node_color=None,
             pos=None, printfiltersignal=False, showid=True, k=None,
             start_color=None, end_color=None, nproc=None, speciescenter=None,
-            n_searchspecies=2, split=1):
+            n_searchspecies=2, split=1, pbc=True):
         """Init ReacNetGenerator."""
         print(__doc__)
         print(
@@ -121,6 +121,7 @@ class ReacNetGenerator:
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
         self.split = split
+        self.pbc = pbc
         # define attribute
         self.atomtype = None
         self.step = None
