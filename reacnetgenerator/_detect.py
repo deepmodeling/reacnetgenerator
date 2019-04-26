@@ -300,12 +300,12 @@ class _DetectLAMMPSdump(_Detect):
                     if len(s) > 3:
                         s1 = int(s[1])-1
                         s2 = int(s[2])-1
-                        if s1 > atomnumber and s2 > atomnumber:
+                        if s1 >= atomnumber and s2 >= atomnumber:
                             # duplicated
                             continue
-                        elif s1 > atomnumber:
+                        elif s1 >= atomnumber:
                             s1 %= atomnumber
-                        elif s2 > atomnumber:
+                        elif s2 >= atomnumber:
                             s2 %= atomnumber
                         bond[s1].append(s2)
                         bond[s2].append(s1)
