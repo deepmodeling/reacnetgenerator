@@ -275,7 +275,10 @@ class _DetectLAMMPSdump(_Detect):
             step_atoms.set_cell(cell)
             # add ghost atoms
             step_atoms = step_atoms.repeat(2)
-        xyzstring = ''.join((f"{atomnumber}\nReacNetGenerator\n", "\n".join(
+            ghostnumber = len(step_atoms) - atomnumber
+        else:
+            ghostnumber = 0
+        xyzstring = ''.join((f"{atomnumber + ghostnumber}\nReacNetGenerator\n", "\n".join(
             [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}'
              for s, (x, y, z) in zip(
                  step_atoms.get_chemical_symbols(),
