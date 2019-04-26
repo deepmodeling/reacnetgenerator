@@ -298,11 +298,15 @@ class _DetectLAMMPSdump(_Detect):
                 if linecontent == 0:
                     s = line.split()
                     if len(s) > 3:
-                        s1 = (int(s[1])-1)%atomnumber
-                        s2 = (int(s[2])-1)%atomnumber
-                        if s2 in bond[s1]:
+                        s1 = int(s[1])-1
+                        s2 = int(s[2])-1
+                        if s1 > step_atoms and s2 > step_atoms:
                             # duplicated
                             continue
+                        elif s1 > step_atoms:
+                            s1 %= atomnumber
+                        elif s2 > step_atoms:
+                            s2 %= atomnumber
                         bond[s1].append(s2)
                         bond[s2].append(s1)
                         level = 12 if s[3] == 'ar' else int(s[3])
