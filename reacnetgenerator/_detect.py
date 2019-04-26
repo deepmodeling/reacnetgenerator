@@ -28,6 +28,7 @@ from multiprocessing import Pool, Semaphore
 
 import numpy as np
 import openbabel
+from scipy.spatial import cKDTree
 from ase import Atom, Atoms
 from tqdm import tqdm
 
@@ -269,16 +270,20 @@ class _DetectLAMMPSdump(_Detect):
 
     def _getbondfromcrd(self, step_atoms, cell):
         atomnumber = len(step_atoms)
+        ghosts = {}
         if self.pbc:
             # Apply period boundry conditions
             step_atoms.set_pbc(True)
             step_atoms.set_cell(cell)
             # add ghost atoms
-            step_atoms = step_atoms.repeat(2)
-            ghostnumber = len(step_atoms) - atomnumber
-        else:
-            ghostnumber = 0
-        xyzstring = ''.join((f"{atomnumber + ghostnumber}\nReacNetGenerator\n", "\n".join(
+            repeated_atoms = step_atoms.repeat(2)[atomnumber:]
+            tree = cKDTree(step_atoms.get_positions())
+            d = tree.query(repeated_atoms.get_positions(), k=1)[0]
+            nearest = d<5
+            ghost_atoms = repeated_atoms[nearest]
+            realnumber = np.where(nearest)[0] % atomnumber
+            step_atoms += ghost_atoms
+        xyzstring = ''.join((f"{len(step_atoms)}\nReacNetGenerator\n", "\n".join(
             [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}'
              for s, (x, y, z) in zip(
                  step_atoms.get_chemical_symbols(),
@@ -304,9 +309,9 @@ class _DetectLAMMPSdump(_Detect):
                             # duplicated
                             continue
                         elif s1 >= atomnumber:
-                            s1 %= atomnumber
+                            s1 = realnumber[s1-atomnumber]
                         elif s2 >= atomnumber:
-                            s2 %= atomnumber
+                            s2 = realnumber[s2-atomnumber]
                         bond[s1].append(s2)
                         bond[s2].append(s1)
                         level = 12 if s[3] == 'ar' else int(s[3])
