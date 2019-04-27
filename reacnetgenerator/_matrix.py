@@ -115,8 +115,8 @@ class _GenerateMatrix:
                 for t in self._bytestolist(line[-1]).tolist():
                     d[t][name] += 1
             buff = []
-            for t, ts in enumerate(self._timestep):
-                buff.append(f"Timestep {ts}:")
+            for t in range(len(self._timestep)):
+                buff.append(f"Timestep {self._timestep[t]}:")
                 buff.extend(
                     map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
                 buff.append('\n')
