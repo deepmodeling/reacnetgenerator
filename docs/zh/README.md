@@ -37,11 +37,11 @@ features:
 ## 安装
 
 1. 在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip；
-2. [从中国科学技术大学开源镜像站下载 Anaconda 或 Miniconda](https://mirrors.ustc.edu.cn/help/anaconda.html) 并安装；
+2. [下载并安装 Anaconda 或 Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) ；
 3. 解压reacnetgenerator.zip，并在软件主目录编译：
 
 ```bash
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+conda config --add channels conda-forge
 conda build conda/recipe
 conda install reacnetgenerator --use-local
 ```
