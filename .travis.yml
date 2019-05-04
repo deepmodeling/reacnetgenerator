@@ -10,7 +10,7 @@ install:
 - docker pull njzjz/tox-xvfb
 - yarn
 script:
-- docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip --env-file <(env | grep 'TRAVIS\|CI') njzjz/tox-xvfb /bin/bash -c "chown -R root /root/.cache && cd /project && tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html" 
+- docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip -v ~/.cache/yarn:/root/.cache/yarn --env-file <(env | grep 'TRAVIS\|CI') njzjz/tox-xvfb /bin/bash -c "chown -R root /root/.cache && cd /project && tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html" 
 - yarn docs:build
 deploy:
   provider: pages
