@@ -5,12 +5,13 @@ cache:
   yarn: true
   directories:
   - $HOME/.cache/pip
-services: docker
+services: xvfb
+env: PYTHON_VERSION=3.7 SETUP_XVFB=True PIP_DEPENDENCIES="tox-conda tox-travis" CONDA_CHANNEL_PRIORITY=True CONDA_CHANNELS="conda-forge"
 install:
-- docker pull njzjz/tox-xvfb
+- git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
 - yarn
 script:
-- docker run -i -t -v $(pwd):/project -v ~/.cache/pip:/root/.cache/pip -v ~/.cache/yarn:/root/.cache/yarn --env-file <(env | grep 'TRAVIS\|CI') njzjz/tox-xvfb /bin/bash -c "chown -R root /root/.cache && cd /project && tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html" 
+- tox -e py37 && cp testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html
 - yarn docs:build
 deploy:
   provider: pages
