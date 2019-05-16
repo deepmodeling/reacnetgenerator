@@ -2,7 +2,6 @@ workflow "Test and deploy" {
   on = "push"
   resolves = [
     "Deploy to GitHub Pages",
-    "yarn install",
   ]
 }
 
