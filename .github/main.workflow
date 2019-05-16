@@ -10,7 +10,7 @@ action "Test with tox" {
     SETUP_XVFB = "True"
   }
   runs = "/bin/sh"
-  args = "-c \"xvfb-run tox\""
+  args = "-c 'xvfb-run tox'"
 }
 
 action "Borales/actions-yarn@master" {
