@@ -4,7 +4,7 @@ workflow "Test and deploy" {
 }
 
 action "Test with tox" {
-  uses = "njzjz/actions/tox-docker@master"
+  uses = "njzjz/actions/tox-conda@master"
   secrets = ["CODECOV_TOKEN"]
 }
 
