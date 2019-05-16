@@ -39,4 +39,5 @@ action "Deploy to GitHub Pages" {
 action "yarn install" {
   uses = "Borales/actions-yarn@master"
   needs = ["Test with tox"]
+  args = "install"
 }
