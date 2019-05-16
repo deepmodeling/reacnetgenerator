@@ -10,7 +10,6 @@ action "Test with tox" {
   secrets = ["CODECOV_TOKEN"]
   env = {
     SETUP_XVFB = "True"
-    DISPLAY = ":9.0"
   }
 }
 
