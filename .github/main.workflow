@@ -1,6 +1,9 @@
 workflow "Test and deploy" {
   on = "push"
-  resolves = ["Deploy to GitHub Pages"]
+  resolves = [
+    "Deploy to GitHub Pages",
+    "yarn install",
+  ]
 }
 
 action "Test with tox" {
@@ -8,19 +11,20 @@ action "Test with tox" {
   secrets = ["CODECOV_TOKEN"]
   env = {
     SETUP_XVFB = "True"
+    DISPLAY = ":9.0"
   }
 }
 
-action "Borales/actions-yarn@master" {
+action "yarn build" {
   uses = "Borales/actions-yarn@master"
-  needs = ["Test with tox"]
+  needs = ["yarn install"]
   args = "build"
 }
 
 action "Filters for GitHub Actions" {
   uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
-  needs = ["Borales/actions-yarn@master"]
   args = "branch master"
+  needs = ["yarn build"]
 }
 
 action "Deploy to GitHub Pages" {
@@ -31,4 +35,9 @@ action "Deploy to GitHub Pages" {
     FOLDER = "docs/.vuepress/dist"
   }
   secrets = ["ACCESS_TOKEN"]
+}
+
+action "yarn install" {
+  uses = "Borales/actions-yarn@master"
+  needs = ["Test with tox"]
 }
