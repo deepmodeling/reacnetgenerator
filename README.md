@@ -10,7 +10,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 [Jinzhe Zeng](https://cv.njzjz.win),
 [Liqun Cao](http://computchem.cn/people/),
 [John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang),
-Chih-Hao Chin,
+[Chih-Hao Chin](http://computchem.cn/people/),
 [Tong Zhu](http://computchem.cn/people/)
 
 **Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
