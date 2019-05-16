@@ -6,12 +6,15 @@ workflow "Test and deploy" {
 action "Test with tox" {
   uses = "njzjz/actions/tox-conda@master"
   secrets = ["CODECOV_TOKEN"]
+  env = {
+    SETUP_XVFB = "True"
+  }
 }
 
 action "Borales/actions-yarn@master" {
   uses = "Borales/actions-yarn@master"
   needs = ["Test with tox"]
-  args = "Build"
+  args = "build"
 }
 
 action "Filters for GitHub Actions" {
