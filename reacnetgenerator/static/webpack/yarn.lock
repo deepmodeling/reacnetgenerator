@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@fortawesome/fontawesome-free@5.8.1":
-  version "5.8.1"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.8.1.tgz#cbafbfe8894c4e3e3c3a9da6774e249ac1f2da8b"
-  integrity sha512-GJtx6e55qLEOy2gPOsok2lohjpdWNGrYGtQx0FFT/++K4SYx+Z8LlPHdQBaFzKEwH5IbBB4fNgb//uyZjgYXoA==
+"@fortawesome/fontawesome-free@5.8.2":
+  version "5.8.2"
+  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.8.2.tgz#fae4112c4fb47086f6ae167e32524b280000abd5"
+  integrity sha512-E4fDUF4fbu9AxKpaQQqCN3XBnNzb/5e0Gvd9OaQsYkK574LVI57v/EqqPfIm/mC7jYbxaPNrhvT5AF+Yzwyizg==
 
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"
@@ -1539,11 +1539,6 @@ jquery.easing@1.4.1, jquery.easing@^1.4.1:
   resolved "https://registry.yarnpkg.com/jquery.easing/-/jquery.easing-1.4.1.tgz#47982c5836bd758fd48494923c4a101ef6e93e3b"
   integrity sha1-R5gsWDa9dY/UhJSSPEoQHvbpPjs=
 
-jquery@3.3.1:
-  version "3.3.1"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
-  integrity sha512-Ubldcmxp5np52/ENotGxlLe6aGMvmF4R8S6tZjsP6Knsaxd/xp3Zrh50cG93lR6nPXyUFwzN3ZSOQI0wRJNdGg==
-
 jquery@3.4.1:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.4.1.tgz#714f1f8d9dde4bdfa55764ba37ef214630d80ef2"
@@ -2642,14 +2637,14 @@ ssri@^6.0.1:
   dependencies:
     figgy-pudding "^3.5.1"
 
-startbootstrap-creative@5.1.4:
-  version "5.1.4"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.4.tgz#13636f2f8cbd00ce97304f626bf529767ffcda38"
-  integrity sha512-2n6B86IKFWU8Y7S+jPwn/gkveFmroruZHPlQvVRNcIYyWZ91POLuRHG4k6l0/Wyo/hNvh7CepAxkZBKTO+Fpbg==
+startbootstrap-creative@5.1.5:
+  version "5.1.5"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.5.tgz#23ab9e076ebe6ad7dea7b03517ba23706406d2dc"
+  integrity sha512-IPPW1SC/EO2yG5dsa2lIo7hvTkMybUqyWYzQNgFh0NTBVBtDS2fwDp72cSXzp4SYGW/1oeZYtgDOKaBPLMBc2w==
   dependencies:
-    "@fortawesome/fontawesome-free" "5.8.1"
+    "@fortawesome/fontawesome-free" "5.8.2"
     bootstrap "4.3.1"
-    jquery "3.3.1"
+    jquery "3.4.1"
     jquery.easing "^1.4.1"
     magnific-popup "^1.1.0"
 
