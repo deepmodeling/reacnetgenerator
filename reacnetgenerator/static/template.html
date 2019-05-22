@@ -115,7 +115,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                         <div class="row no-gutters">
                             {% for spec in species %}
                             <div class="mx-auto {% if loop.index> speciesshownum %} specnone{% endif %}">
-                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');"><svg class='spec'>
+                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');" title="{{ spec }}"><svg class='spec'>
                                     <use xlink:href="#{{ spec }}"></use>
                                 </svg></a></div>
                                 <div>{{ loop.index }}</div>
