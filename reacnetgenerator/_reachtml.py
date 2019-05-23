@@ -130,6 +130,7 @@ class _HTMLResult:
             svgdata = re.sub(
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)
+            svgdata = svgdata.replace(r"""<style type=text/css>*{""",r"""<style type=text/css>#network svg *{""")
         return svgdata
 
     def _generatesvg(self):
