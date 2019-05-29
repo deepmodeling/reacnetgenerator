@@ -2642,10 +2642,10 @@ ssri@^6.0.1:
   dependencies:
     figgy-pudding "^3.5.1"
 
-startbootstrap-creative@5.1.5:
-  version "5.1.5"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.5.tgz#23ab9e076ebe6ad7dea7b03517ba23706406d2dc"
-  integrity sha512-IPPW1SC/EO2yG5dsa2lIo7hvTkMybUqyWYzQNgFh0NTBVBtDS2fwDp72cSXzp4SYGW/1oeZYtgDOKaBPLMBc2w==
+startbootstrap-creative@5.1.6:
+  version "5.1.6"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.6.tgz#8201a0f96480e23231992c7ffa8ee7a2adcce3af"
+  integrity sha512-ZXyRA8HF15OSEhKvUAjRhbxVDaS+amCXZISo4rwZgchoLHBZR0EUFns08njdkWLgiPxdzYVp1cyiDLw/e4IXZg==
   dependencies:
     "@fortawesome/fontawesome-free" "5.8.2"
     bootstrap "4.3.1"
