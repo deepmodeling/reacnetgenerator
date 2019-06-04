@@ -1,3 +1,4 @@
+# cython: language_level=3
 """HMM Filter.
 
 In order to filter noise, a two-state HMM was adopted, which can be

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# cython: language_level=3
 """Generate a web page to show the analysis report.
 
 For the convenience analyze of the trajectories, we put all the results

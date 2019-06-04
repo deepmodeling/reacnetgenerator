@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+# cython: language_level=3
 """GUI version of ReacNetGenerator.
 
 ====  Usage  ====

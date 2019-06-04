@@ -7,6 +7,7 @@ conda install python=3 yarn openbabel rdkit compilers -c conda-forge
 import subprocess as sp
 from os import path
 import shutil
+import fnmatch
 
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
@@ -23,7 +24,8 @@ class BuildCommand(setuptools.command.build_py.build_py):
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             sp.run([yarn, 'start'], check=True, cwd=path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            assert path.exists(path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
+            assert path.exists(path.join(
+                this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
         except sp.CalledProcessError:
             raise ImportError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
@@ -31,13 +33,41 @@ class BuildCommand(setuptools.command.build_py.build_py):
             raise OSError("No bundle.js found, please retry.")
         setuptools.command.build_py.build_py.run(self)
 
+    def find_package_modules(self, package, package_dir):
+        modules = super().find_package_modules(package, package_dir)
+        return [(pkg, mod, file, ) for (pkg, mod, file, ) in modules
+                if not any(fnmatch.fnmatchcase(pkg + '.' + mod, pat=pattern)
+                           for pattern in encrypted_python_files)]
+
 
 def readme():
     with open(path.join(this_directory, 'README.md'), encoding="utf8") as f:
         return f.read()
 
+
 if __name__ == '__main__':
     this_directory = path.abspath(path.dirname(__file__))
+    encrypted_python_files = [
+        "reacnetgenerator._detect",
+        "reacnetgenerator._draw",
+        "reacnetgenerator._hmmfilter",
+        "reacnetgenerator._logging",
+        "reacnetgenerator._matrix",
+        "reacnetgenerator._path",
+        "reacnetgenerator._reachtml",
+        "reacnetgenerator._version",
+        "reacnetgenerator.gui",
+        "reacnetgenerator.reacnetgen",
+        "reacnetgenerator.test.test_reacnetgen"
+    ]
+
+    ext_modules = [
+        Extension("reacnetgenerator.dps", sources=[
+            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
+    ]
+    # encrypt python files
+    ext_modules.extend([Extension(encrypted_python_file, sources=[
+                       f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"], language="c") for encrypted_python_file in encrypted_python_files])
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
     setup(name='reacnetgenerator',
@@ -94,10 +124,7 @@ if __name__ == '__main__':
               "Topic :: Software Development :: Version Control :: Git",
           ],
           zip_safe=True,
-          ext_modules=[
-              Extension("reacnetgenerator.dps", sources=[
-                        "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
-          ],
+          ext_modules=ext_modules,
           cmdclass={"build_py": BuildCommand},
           version="1.0.0",
           )
