@@ -1,3 +1,4 @@
+# cython: language_level=3
 """Detect molecules.
 
 There are two types of input files that could be imported by ReacNetGen,

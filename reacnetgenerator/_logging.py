@@ -1,3 +1,4 @@
+# cython: language_level=3
 """Init logging."""
 import logging
 import coloredlogs

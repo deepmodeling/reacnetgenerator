@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+# cython: language_level=3
 """ReacNetGenerator.
 
 Automatic generator of reaction network for reactive molecular dynamics

@@ -1,3 +1,4 @@
+# cython: language_level=3
 """Collect paths.
 
 To produce a reaction network, every molecule (species) should be treated as a

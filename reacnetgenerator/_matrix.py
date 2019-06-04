@@ -1,3 +1,4 @@
+# cython: language_level=3
 """Generate Matrix.
 
 A reaction network cannot accommodate too many species, so only the first
