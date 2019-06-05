@@ -27,6 +27,8 @@ import numpy as np
 from rdkit import Chem
 from tqdm import tqdm
 
+from ._reaction import ReactionsFinder
+
 
 class _CollectPaths(metaclass=ABCMeta):
     def __init__(self, rng):
@@ -67,12 +69,14 @@ class _CollectPaths(metaclass=ABCMeta):
         """Collect paths."""
         self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
-        atomeach = self._getatomeach()
+        atomeach, conflict = self._getatomeach()
         self.rng.allmoleculeroute = self._printatomroute(atomeach)
         if self._split > 1:
             splittime = np.array_split(np.arange(self._step), self._split)
-            self.rng.splitmoleculeroute = list([self._printatomroute(atomeach[:, st], timeaxis=i) for i, st in enumerate(splittime)])
+            self.rng.splitmoleculeroute = list([self._printatomroute(
+                atomeach[:, st], timeaxis=i) for i, st in enumerate(splittime)])
         self.rng.mname = self._mname
+        ReactionsFinder(self.rng).findreactions(atomeach, conflict)
 
     @abstractmethod
     def _printmoleculename(self):
@@ -81,14 +85,16 @@ class _CollectPaths(metaclass=ABCMeta):
     def _getatomeach(self):
         """Values in atomeach starts from 1."""
         atomeach = np.zeros((self._N, self._step), dtype=int)
+        conflict = np.zeros((self._N, self._step), dtype=int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(zip(fh, itertools.zip_longest(*[ft] * 3)), start=1):
                 lineh = self._bytestolist(linehz)
                 atom = np.array(self._bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:
+                    conflict[np.nonzero(atomeach[atom[:, None], index])] = 1
                     atomeach[atom[:, None], index] = i
-        return atomeach
+        return atomeach, conflict
 
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
