@@ -16,14 +16,14 @@ action "Test with tox" {
 
 action "yarn build" {
   uses = "Borales/actions-yarn@master"
-  needs = ["yarn install"]
+  needs = ["yarn install", "Test with tox"]
   args = "build"
 }
 
 action "Filters for GitHub Actions" {
   uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
   args = "branch master"
-  needs = ["yarn build", "Test with tox"]
+  needs = ["yarn build"]
 }
 
 action "Deploy to GitHub Pages" {
