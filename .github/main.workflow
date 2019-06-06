@@ -2,6 +2,7 @@ workflow "Test and deploy" {
   on = "push"
   resolves = [
     "Deploy to GitHub Pages",
+    "njzjz/actions/conda-build-linux@master",
   ]
 }
 
@@ -39,4 +40,9 @@ action "yarn install" {
   uses = "Borales/actions-yarn@master"
   needs = ["Test with tox"]
   args = "install"
+}
+
+action "njzjz/actions/conda-build-linux@master" {
+  uses = "njzjz/actions/conda-build-linux@master"
+  args = "build conda/build"
 }
