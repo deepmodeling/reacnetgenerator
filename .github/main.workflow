@@ -23,7 +23,7 @@ action "yarn build" {
 action "Filters for GitHub Actions" {
   uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
   args = "branch master"
-  needs = ["yarn build"]
+  needs = ["yarn build", "Test with tox"]
 }
 
 action "Deploy to GitHub Pages" {
@@ -38,7 +38,6 @@ action "Deploy to GitHub Pages" {
 
 action "yarn install" {
   uses = "Borales/actions-yarn@master"
-  needs = ["Test with tox"]
   args = "install"
 }
 
