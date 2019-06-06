@@ -44,5 +44,5 @@ action "yarn install" {
 
 action "conda-build-linux" {
   uses = "njzjz/actions/conda-build-linux@master"
-  args = "build conda/build"
+  args = "build conda/recipe"
 }
