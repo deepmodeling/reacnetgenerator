@@ -18,6 +18,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             <path id="narrow" style="text-align:start;line-height:100%;" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z"
                 font-size="39.506" font-weight="400"/>
             <circle id="circle" cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />
+            <path id="plus" d="m241.99 407.91v-97.461h-97.266v-16.016h97.266v-97.07h15.625v97.07h97.656v16.016h-97.656v97.461h-15.625z"/>
         </defs>
     </svg>
 
@@ -181,11 +182,11 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     <div class="container-fluid p-0">
                         <div class="row no-gutters">
                             {% for reac in reactionsabcd %}
-                            <div class="row mx-auto{% if loop.index> reactionsshownum %} reacnone{% endif %}">
+                            <div class="row mx-auto{% if loop.index> reactionsshownum %} reacabcdnone{% endif %}">
                                 <div class="reacid">{{ loop.index }}</div>
                                 {% for spec in reac[0] %}
                                 {% if loop.index > 1 %}
-                                    <div class="plussymbol">+</div>
+                                <div><svg width="25" height="14.33"><use xlink:href="#plus" /></svg></div>
                                 {% endif %}
                                 <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');"></a><svg class='spec'>
                                         <use xlink:href="#{{ spec }}"></use>
@@ -198,7 +199,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                                 </div>
                                 {% for spec in reac[1] %}
                                 {% if loop.index > 1 %}
-                                    <div class="plussymbol">+</div>
+                                <div><svg width="25" height="14.33"><use xlink:href="#plus" /></svg></div>
                                 {% endif %}
                                 <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');"></a><svg class='spec'>
                                         <use xlink:href="#{{ spec }}"></use>
@@ -210,8 +211,8 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     </div>
                     {% if reactionsabcd|length > reactionsshownum %}
                     <div class="mx-auto text-center mt-5">
-                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacnone').removeClass('reacnone');$('#showmorereac').hide();"
-                            id="showmorereac">Show all</a>
+                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacabcdnone').removeClass('reacabcdnone');$('#showmorereacabcd').hide();"
+                            id="showmorereacabcd">Show all</a>
                     </div>
                     {% endif %}
                 </div>
