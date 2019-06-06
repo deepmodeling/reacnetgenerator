@@ -2,7 +2,7 @@ workflow "Test and deploy" {
   on = "push"
   resolves = [
     "Deploy to GitHub Pages",
-    "njzjz/actions/conda-build-linux@master",
+    "conda-build-linux",
   ]
 }
 
@@ -42,7 +42,7 @@ action "yarn install" {
   args = "install"
 }
 
-action "njzjz/actions/conda-build-linux@master" {
+action "conda-build-linux" {
   uses = "njzjz/actions/conda-build-linux@master"
   args = "build conda/build"
 }
