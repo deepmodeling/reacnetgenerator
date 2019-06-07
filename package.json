@@ -28,7 +28,7 @@
         {
           "assets": [
             {
-              "path": "conda/linux/**",
+              "path": "conda/linux-64/**",
               "label": "conda packages for Linux"
             }
           ]
