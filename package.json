@@ -1,12 +1,39 @@
 {
   "devDependencies": {
+    "semantic-release": "^15.13.12",
     "vuepress": "0.14.11"
   },
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "now-build": "npm run docs:build && mv docs/.vuepress/dist dist",
-    "build":"mv testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html && yarn docs:build"
+    "build": "mv testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html && yarn docs:build",
+    "semantic-release": "semantic-release"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "version": "0.0.0-development",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/njzjz/reacnetgenerator.git"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "conda/linux/**",
+              "label": "conda packages for Linux"
+            }
+          ]
+        }
+      ]
+    ]
+  }
 }
