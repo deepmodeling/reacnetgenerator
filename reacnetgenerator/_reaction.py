@@ -86,6 +86,6 @@ class ReactionsFinder:
                     break
             else:
                 i += 1
-        if len(leftname) and len(rightname):
+        if leftname and rightname:
             return '->'.join(('+'.join(sorted(side)) for side in (leftname, rightname)))
         return None
