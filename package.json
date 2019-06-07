@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "semantic-release": "^15.13.12",
+    "semantic-release": "15.13.12",
     "vuepress": "0.14.11"
   },
   "scripts": {
