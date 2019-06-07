@@ -3,6 +3,7 @@ workflow "Test and deploy" {
   resolves = [
     "Deploy to GitHub Pages",
     "conda-build-linux",
+    "yarn semantic-release",
   ]
 }
 
@@ -44,4 +45,11 @@ action "yarn install" {
 action "conda-build-linux" {
   uses = "njzjz/actions/conda-build-linux@master"
   args = "build conda/recipe -c conda-forge --output-folder conda"
+}
+
+action "yarn semantic-release" {
+  uses = "Borales/actions-yarn@master"
+  needs = ["Filters for GitHub Actions"]
+  args = "semantic-release"
+  secrets = ["GH_TOKEN"]
 }
