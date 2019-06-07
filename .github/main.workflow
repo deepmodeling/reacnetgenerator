@@ -2,6 +2,8 @@ workflow "Test and deploy" {
   on = "push"
   resolves = [
     "Deploy to GitHub Pages",
+    "conda-build-linux",
+    "yarn semantic-release",
   ]
 }
 
@@ -15,14 +17,14 @@ action "Test with tox" {
 
 action "yarn build" {
   uses = "Borales/actions-yarn@master"
-  needs = ["yarn install"]
+  needs = ["yarn install", "Test with tox"]
   args = "build"
 }
 
 action "Filters for GitHub Actions" {
   uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
   args = "branch master"
-  needs = ["yarn build"]
+  needs = ["yarn build", "conda-build-linux"]
 }
 
 action "Deploy to GitHub Pages" {
@@ -37,6 +39,17 @@ action "Deploy to GitHub Pages" {
 
 action "yarn install" {
   uses = "Borales/actions-yarn@master"
-  needs = ["Test with tox"]
   args = "install"
+}
+
+action "conda-build-linux" {
+  uses = "njzjz/actions/conda-build-linux@master"
+  args = "build conda/recipe -c conda-forge --output-folder conda"
+}
+
+action "yarn semantic-release" {
+  uses = "Borales/actions-yarn@master"
+  needs = ["Filters for GitHub Actions"]
+  args = "semantic-release"
+  secrets = ["GH_TOKEN"]
 }
