@@ -107,6 +107,16 @@ testfiles*/
 .vscode
 .sw*
 reacnetgenerator/dps.cpp
+reacnetgenerator/_detect.c
+reacnetgenerator/_draw.c
+reacnetgenerator/_hmmfilter.c
+reacnetgenerator/_logging.c
+reacnetgenerator/_matrix.c
+reacnetgenerator/_path.c
+reacnetgenerator/_reachtml.c
+reacnetgenerator/_version.c
+reacnetgenerator/gui.c
+reacnetgenerator/reacnetgen.c
 
 # Logs
 logs
@@ -190,3 +200,5 @@ typings/
 .dynamodb/
 
 bundle.js
+bundle.css
+bundle.html

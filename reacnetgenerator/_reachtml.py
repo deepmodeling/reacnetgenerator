@@ -27,6 +27,7 @@ class _HTMLResult:
         self._reactionfile = rng.reactionfilename
         self._resultfile = rng.resultfilename
         self._imagefile = rng.imagefilename
+        self._reactionabcdfilename = rng.reactionabcdfilename
         self._nproc = rng.nproc
         self._split = rng.split
         self._templatedict = {
@@ -37,6 +38,7 @@ class _HTMLResult:
         # define instance
         self._specs = None
         self._reaction = None
+        self._reactionsabcd = None
         self._svgfiles = {}
 
     def report(self):
@@ -64,6 +66,21 @@ class _HTMLResult:
                 if timeaxis is None and len(self._linkreac[left]) < 5:
                     self._linkreac[left].append(right)
         return reaction
+    
+    def _readreactionabcd(self):
+        reactionsabcd = []
+        try:
+            with open(self._reactionabcdfilename) as f:
+                for line in f:
+                    sx = line.split()
+                    left, right = sx[0].split("->")
+                    left = list([self._re(spec) for spec in left.split("+")])
+                    right = list([self._re(spec) for spec in right.split("+")])
+                    num = int(sx[1])
+                    reactionsabcd.append((left, right, num))
+        except OSError:
+            pass
+        return reactionsabcd
 
     @classmethod
     def _convertsvg(cls, smiles):
@@ -100,6 +117,7 @@ class _HTMLResult:
     def _readdata(self):
         self._reaction = [self._readreaction()]
         self._specs = [self._readspecies(self._reaction[0])]
+        self._reactionsabcd = self._readreactionabcd()
         if self._split > 1:
             for i in range(self._split):
                 reaction = self._readreaction(timeaxis=i)
@@ -114,12 +132,11 @@ class _HTMLResult:
         self._generatesvg()
         self._templatedict["speciestime"] = self._specs
         self._templatedict["reactionstime"] = self._reaction
-        self._templatedict["javascript"] = pkg_resources.resource_string(
-            __name__, 'static/webpack/bundle.js').decode()
+        self._templatedict["reactionsabcd"] = self._reactionsabcd
         self._templatedict["linkreac"] = json.dumps(
             self._linkreac, separators=(',', ':'))
         template = Template(pkg_resources.resource_string(
-            __name__, 'static/template.html').decode())
+            __name__, 'static/webpack/bundle.html').decode())
         webpage = template.render(**self._templatedict)
         with open(self._resultfile, 'w', encoding="utf-8") as f:
             f.write(htmlmin.minify(webpage))
@@ -127,7 +144,8 @@ class _HTMLResult:
     def _generatenetwork(self, timeaxis=None):
         with open(self._imagefile if timeaxis is None else f"{self._imagefile}.{timeaxis}") as f:
             svgdata = f.read().strip()
-            svgdata = re.sub(r"\d+(\.\d+)?pt", "100%", svgdata, count=2)
+            svgdata = re.sub(r'width="\d+(\.\d+)?pt"', 'width="100%"', svgdata, count=2)
+            svgdata = re.sub(r'height="\d+(\.\d+)?pt"', '', svgdata, count=2)
             svgdata = re.sub(
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)

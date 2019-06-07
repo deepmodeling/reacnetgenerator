@@ -72,7 +72,7 @@ class ReacNetGenerator:
             atomname=None, selectatoms=None, originfilename=None,
             hmmfilename=None, atomfilename=None, moleculefilename=None,
             atomroutefilename=None, reactionfilename=None, tablefilename=None,
-            imagefilename=None, speciesfilename=None, resultfilename=None,
+            imagefilename=None, speciesfilename=None, resultfilename=None, reactionabcdfilename=None,
             stepinterval=1, p=None, a=None, b=None, runHMM=True, SMILES=True,
             getoriginfile=False, species=None, node_size=200, font_size=6,
             widthcoefficient=1, maxspecies=20, nolabel=False,
@@ -85,7 +85,8 @@ class ReacNetGenerator:
         print(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
         self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype == "lammpsbondfile" else InputFileType.LAMMPSDUMP
-        self.inputfilenames = [inputfilename]  if isinstance(inputfilename, str) else inputfilename
+        self.inputfilenames = [inputfilename] if isinstance(
+            inputfilename, str) else inputfilename
         self.atomname = np.array(self._setparam(atomname, ["C", "H", "O"]))
         self.selectatoms = self._setparam(selectatoms, self.atomname)
         self.moleculefilename = self._setfilename(moleculefilename, "moname")
@@ -95,6 +96,8 @@ class ReacNetGenerator:
         self.imagefilename = self._setfilename(imagefilename, "svg")
         self.speciesfilename = self._setfilename(speciesfilename, "species")
         self.resultfilename = self._setfilename(resultfilename, "html")
+        self.reactionabcdfilename = self._setfilename(
+            reactionabcdfilename, 'reactionabcd')
         self.stepinterval = stepinterval
         self.p = np.array(self._setparam(p, [0.5, 0.5]))
         self.a = np.array(self._setparam(a, [[0.999, 0.001], [0.001, 0.999]]))
@@ -284,7 +287,8 @@ def _commandline():
         help='Select atoms in the reaction network, e.g. C', nargs='*')
     parser.add_argument(
         '--stepinterval', help='Step interval', type=int, default=1)
-    parser.add_argument('--split', help='Split number for the time axis', type=int, default=1)
+    parser.add_argument(
+        '--split', help='Split number for the time axis', type=int, default=1)
     args = parser.parse_args()
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
@@ -293,4 +297,4 @@ def _commandline():
         nproc=args.nproc, selectatoms=args.selectatoms,
         stepinterval=args.stepinterval,
         split=args.split,
-        ).runanddraw()
+    ).runanddraw()

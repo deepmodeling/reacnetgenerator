@@ -10,7 +10,7 @@
     "build": "mv testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html && yarn docs:build",
     "semantic-release": "semantic-release"
   },
-  "license": "private",
+  "license": "UNLICENSED",
   "version": "0.0.0-development",
   "repository": {
     "type": "git",

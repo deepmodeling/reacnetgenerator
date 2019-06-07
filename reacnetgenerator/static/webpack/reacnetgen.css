@@ -20,7 +20,13 @@
     width: 20px;
 }
 
-.specnone, .reacnone {
+.plus {
+    line-height: 100px;
+    width: 10px;
+    font-weight: bold;
+}
+
+.specnone, .reacnone, .reacabcdnone {
     display: none;
 }
 

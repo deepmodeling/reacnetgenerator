@@ -58,6 +58,7 @@ if __name__ == '__main__':
         "reacnetgenerator._version",
         "reacnetgenerator.gui",
         "reacnetgenerator.reacnetgen",
+        "reacnetgenerator._reaction",
     ]
 
     ext_modules = [
@@ -102,8 +103,7 @@ if __name__ == '__main__':
               'cython',
           ],
           package_data={
-              'reacnetgenerator': ['static/template.html',
-                                   'static/webpack/bundle.js',
+              'reacnetgenerator': ['static/webpack/bundle.html',
                                    'static/img-title.png',
                                    'test/test.json',
                                    ],

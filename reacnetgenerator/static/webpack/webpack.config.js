@@ -1,5 +1,8 @@
-var StringReplacePlugin = require("string-replace-webpack-plugin");
+const StringReplacePlugin = require("string-replace-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
 
 module.exports = {
   entry: __dirname + "/reacnetgen.js",
@@ -12,17 +15,20 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader',
-          {
-            loader: StringReplacePlugin.replace({
-              replacements: [{
-                pattern: /..\/img\/bg-masthead.jpg/g,
-                replacement: function (_match, _p1, _offset, _string) {
-                  return '';
-                }
-              }]
-            })
-          }],
+        use: [{
+          loader: MiniCssExtractPlugin.loader,
+        },
+          'css-loader',
+        {
+          loader: StringReplacePlugin.replace({
+            replacements: [{
+              pattern: /..\/img\/bg-masthead.jpg/g,
+              replacement: function (_match, _p1, _offset, _string) {
+                return '';
+              }
+            }]
+          })
+        }],
       },
       {
         test: /\.(jpg|png)$/,
@@ -31,7 +37,26 @@ module.exports = {
     ],
   },
   plugins: [
-    new StringReplacePlugin()
+    new StringReplacePlugin(),
+    new MiniCssExtractPlugin({
+			filename: "bundle.css"
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'bundle.html',
+			template: __dirname + '/template.html',
+      inject: 'true',
+      inlineSource: '.(js|css)$',
+			minify: {
+				collapseWhitespace: true,
+				collapseBooleanAttributes: true,
+				collapseInlineTagWhitespace: true,
+				minifyCSS: true,
+				minifyJS: true,
+				removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+			}
+    }),
+    new HtmlWebpackInlineSourcePlugin()
   ],
   optimization: {
     minimizer: [
@@ -39,7 +64,7 @@ module.exports = {
         cache: false,
         parallel: true,
         terserOptions: {
-			comments: false
+          comments: false
         }
       }),
     ],
