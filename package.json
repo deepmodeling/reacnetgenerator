@@ -8,5 +8,5 @@
     "now-build": "npm run docs:build && mv docs/.vuepress/dist dist",
     "build":"mv testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html && yarn docs:build"
   },
-  "license": "private"
+  "license": "UNLICENSED"
 }

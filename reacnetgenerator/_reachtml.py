@@ -133,12 +133,10 @@ class _HTMLResult:
         self._templatedict["speciestime"] = self._specs
         self._templatedict["reactionstime"] = self._reaction
         self._templatedict["reactionsabcd"] = self._reactionsabcd
-        self._templatedict["javascript"] = pkg_resources.resource_string(
-            __name__, 'static/webpack/bundle.js').decode()
         self._templatedict["linkreac"] = json.dumps(
             self._linkreac, separators=(',', ':'))
         template = Template(pkg_resources.resource_string(
-            __name__, 'static/template.html').decode())
+            __name__, 'static/webpack/bundle.html').decode())
         webpage = template.render(**self._templatedict)
         with open(self._resultfile, 'w', encoding="utf-8") as f:
             f.write(htmlmin.minify(webpage))
@@ -146,7 +144,8 @@ class _HTMLResult:
     def _generatenetwork(self, timeaxis=None):
         with open(self._imagefile if timeaxis is None else f"{self._imagefile}.{timeaxis}") as f:
             svgdata = f.read().strip()
-            svgdata = re.sub(r"\d+(\.\d+)?pt", "100%", svgdata, count=2)
+            svgdata = re.sub(r'width="\d+(\.\d+)?pt"', 'width="100%"', svgdata, count=2)
+            svgdata = re.sub(r'height="\d+(\.\d+)?pt"', '', svgdata, count=2)
             svgdata = re.sub(
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)
