@@ -20,6 +20,12 @@
     width: 20px;
 }
 
+.plus {
+    line-height: 100px;
+    width: 10px;
+    font-weight: bold;
+}
+
 .specnone, .reacnone {
     display: none;
 }
