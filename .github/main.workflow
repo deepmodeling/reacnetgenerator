@@ -23,7 +23,7 @@ action "yarn build" {
 action "Filters for GitHub Actions" {
   uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
   args = "branch master"
-  needs = ["yarn build"]
+  needs = ["yarn build", "conda-build-linux"]
 }
 
 action "Deploy to GitHub Pages" {
