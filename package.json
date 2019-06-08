@@ -28,8 +28,16 @@
         {
           "assets": [
             {
-              "path": "conda/linux-64/**",
+              "path": "conda/linux-64/*.tar.bz2",
               "label": "conda packages for Linux"
+            },
+            {
+              "path": "conda/osx-64/*.tar.bz2",
+              "label": "conda packages for macOS"
+            },
+            {
+              "path": "conda/win-64/*.tar.bz2",
+              "label": "conda packages for Windows (x64)"
             }
           ]
         }
