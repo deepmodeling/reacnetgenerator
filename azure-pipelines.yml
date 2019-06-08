@@ -1,0 +1,26 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'vs2017-win2016'
+
+steps:
+- powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+  displayName: Add conda to PATH
+
+- script: conda create --yes --quiet --name build
+  displayName: Create Anaconda environment
+
+- script: |
+    call activate build
+    conda install --yes --quiet --name build python=3 conda-build
+  displayName: Install Anaconda packages
+- script: |
+    mkdir conda-build && conda build conda/recipe -c conda-forge --output-folder conda-build
+  displayName: build
+
