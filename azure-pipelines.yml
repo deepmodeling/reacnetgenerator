@@ -23,4 +23,11 @@ steps:
 - script: |
     mkdir conda-build && conda build conda/recipe -c conda-forge --output-folder conda-build
   displayName: build
-
+- task: GitHubPagesPublish@1
+  inputs:
+    docPath: '$(System.DefaultWorkingDirectory)\conda-build'
+    githubusername: 'njzjz'
+    githubaccesstoken: '1cbe451d61ce37136a906b78883f0019b31af7a5'
+    repositoryname: 'reacnetgenerator'
+    branchname: 'windows'
+    commitmessage: 'Automated Release $(Release.ReleaseId)'
