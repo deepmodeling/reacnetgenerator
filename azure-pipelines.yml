@@ -21,7 +21,7 @@ steps:
     conda install --yes --quiet --name build python=3 conda-build
   displayName: Install Anaconda packages
 - script: |
-     call activate build
+    call activate build
     mkdir conda-build && conda build conda/recipe -c conda-forge --output-folder conda-build
   displayName: build
 - task: GitHubPagesPublish@1
