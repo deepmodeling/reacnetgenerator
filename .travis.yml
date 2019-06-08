@@ -1,6 +1,5 @@
 language: c
 os:
-- windows
 - osx
 sudo: false
 env:	
@@ -13,3 +12,5 @@ deploy:
   github_token: $GITHUB_TOKEN
   target_branch: $TRAVIS_OS_NAME
   local_dir: conda-build
+  on:
+    branch: master
