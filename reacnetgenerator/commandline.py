@@ -24,6 +24,8 @@ def _commandline():
         '--stepinterval', help='Step interval', type=int, default=1)
     parser.add_argument(
         '--split', help='Split number for the time axis', type=int, default=1)
+    parser.add_argument(
+        '--maxspecies', help='Max number of nodes (species) in the network', type=int, default=20)
     args = parser.parse_args()
     from reacnetgen import ReacNetGenerator
     ReacNetGenerator(
@@ -33,4 +35,5 @@ def _commandline():
         nproc=args.nproc, selectatoms=args.selectatoms,
         stepinterval=args.stepinterval,
         split=args.split,
+        maxspecies=args.maxspecies,
     ).runanddraw()
