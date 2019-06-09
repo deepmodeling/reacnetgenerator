@@ -1,7 +1,9 @@
 language: c
 os:
 - osx
+- windows
 sudo: false
+filter_secrets: false
 env:	
 - CONDA_DEPENDENCIES="conda-build"
 install: git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
