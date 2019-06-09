@@ -263,4 +263,3 @@ class ReacNetGenerator:
     @classmethod
     def bytestolist(cls, x):
         return pickle.loads(cls.decompress(x, isbytes=True))
-
