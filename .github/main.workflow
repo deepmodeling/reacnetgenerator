@@ -2,7 +2,7 @@ workflow "Test and deploy" {
   on = "push"
   resolves = [
     "yarn semantic-release",
-    "Publish Linux packages",
+    "Deploy to GitHub Pages",
   ]
 }
 
@@ -53,12 +53,3 @@ action "yarn semantic-release" {
   secrets = ["GH_TOKEN"]
 }
 
-action "Publish Linux packages" {
-  uses = "JamesIves/github-pages-deploy-action@master"
-  needs = ["Filters for GitHub Actions", "Deploy to GitHub Pages"]
-  secrets = ["ACCESS_TOKEN"]
-  env = {
-    BRANCH = "linux"
-    FOLDER = "conda"
-  }
-}
