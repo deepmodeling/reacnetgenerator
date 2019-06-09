@@ -69,7 +69,7 @@ if __name__ == '__main__':
     ext_modules.extend([Extension(encrypted_python_file, sources=[
                        f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"], language="c") for encrypted_python_file in encrypted_python_files])
 
-    tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
+    tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
           keywords="reaction network",
