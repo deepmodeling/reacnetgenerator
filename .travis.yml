@@ -1,0 +1,16 @@
+language: c
+os:
+- osx
+sudo: false
+env:	
+- CONDA_DEPENDENCIES="conda-build"
+install: git clone --depth 1 git://github.com/astropy/ci-helpers.git && source ci-helpers/travis/setup_conda.sh
+script: mkdir conda-build && conda build conda/recipe -c conda-forge --output-folder conda-build
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  target_branch: $TRAVIS_OS_NAME
+  local_dir: conda-build
+  on:
+    branch: master
