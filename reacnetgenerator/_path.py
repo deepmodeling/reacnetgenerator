@@ -88,7 +88,7 @@ class _CollectPaths(metaclass=ABCMeta):
         conflict = np.zeros((self._N, self._step), dtype=int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(tqdm(zip(fh, itertools.zip_longest(*[ft] * 3)),
-                                    total=self._N, desc="Analyze atoms", unit="atom"), start=1):
+                                    total=self._hmmit, desc="Analyze atoms", unit="molecule"), start=1):
                 lineh = self._bytestolist(linehz)
                 atom = np.array(self._bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
