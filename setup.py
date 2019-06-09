@@ -59,6 +59,7 @@ if __name__ == '__main__':
         "reacnetgenerator.gui",
         "reacnetgenerator.reacnetgen",
         "reacnetgenerator._reaction",
+        "reacnetgenerator.commandline",
     ]
 
     ext_modules = [

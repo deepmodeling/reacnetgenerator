@@ -42,7 +42,6 @@ $ reacnetgenerator -h
 """
 
 
-import argparse
 import gc
 import logging
 import os
