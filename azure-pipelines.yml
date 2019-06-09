@@ -29,6 +29,6 @@ steps:
     docPath: '$(System.DefaultWorkingDirectory)\conda-build'
     githubusername: 'njzjz'
     githubaccesstoken: '1cbe451d61ce37136a906b78883f0019b31af7a5'
-    repositoryname: 'reacnetgenerator'
+    repositoryname: 'njzjz/reacnetgenerator'
     branchname: 'windows'
     commitmessage: 'Automated Release $(Release.ReleaseId)'
