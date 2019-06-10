@@ -55,7 +55,7 @@ class _HTMLResult:
             "C", "[C]").replace(
             "[HH]", "[H]")
 
-    def _readreaction(self, timeaxis=None):
+    def _readreaction(self, timeaxis=None, linknum=6):
         reaction = []
         with open(self._reactionfile if timeaxis is None else f"{self._reactionfile}.{timeaxis}") as f:
             for line in f:
@@ -63,8 +63,10 @@ class _HTMLResult:
                 s = sx[1].split("->")
                 left, right, num = self._re(s[0]), self._re(s[1]), int(sx[0])
                 reaction.append((left, right, num))
-                if timeaxis is None and len(self._linkreac[left]) < 5:
+                if timeaxis is None and len(self._linkreac[left]) < linknum:
                     self._linkreac[left].append(right)
+                if timeaxis is None and len(self._linkreac[right]) < linknum:
+                    self._linkreac[right].append(left)
         return reaction
     
     def _readreactionabcd(self):
