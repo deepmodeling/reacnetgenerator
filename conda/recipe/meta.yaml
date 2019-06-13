@@ -10,7 +10,7 @@ source:
 build:
   number: 0
   entry_points:
-    - reacnetgenerator = reacnetgenerator.reacnetgen:_commandline
+    - reacnetgenerator = reacnetgenerator.commandline:_commandline
     - reacnetgeneratorgui = reacnetgenerator.gui:gui
   script: "{{ PYTHON }} -m pip install . --no-deps -vv"
 
