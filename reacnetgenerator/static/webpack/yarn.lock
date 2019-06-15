@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@fortawesome/fontawesome-free@5.8.2":
-  version "5.8.2"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.8.2.tgz#fae4112c4fb47086f6ae167e32524b280000abd5"
-  integrity sha512-E4fDUF4fbu9AxKpaQQqCN3XBnNzb/5e0Gvd9OaQsYkK574LVI57v/EqqPfIm/mC7jYbxaPNrhvT5AF+Yzwyizg==
+"@fortawesome/fontawesome-free@5.9.0":
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.9.0.tgz#1aa5c59efb1b8c6eb6277d1e3e8c8f31998b8c8e"
+  integrity sha512-g795BBEzM/Hq2SYNPm/NQTIp3IWd4eXSH0ds87Na2jnrAUFX3wkyZAI4Gwj9DOaWMuz2/01i8oWI7P7T/XLkhg==
 
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"
@@ -2985,12 +2985,12 @@ ssri@^6.0.1:
   dependencies:
     figgy-pudding "^3.5.1"
 
-startbootstrap-creative@5.1.6:
-  version "5.1.6"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.6.tgz#8201a0f96480e23231992c7ffa8ee7a2adcce3af"
-  integrity sha512-ZXyRA8HF15OSEhKvUAjRhbxVDaS+amCXZISo4rwZgchoLHBZR0EUFns08njdkWLgiPxdzYVp1cyiDLw/e4IXZg==
+startbootstrap-creative@5.1.7:
+  version "5.1.7"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.7.tgz#e3be51a1d8d8f287bd5137af64657e1201bc5c57"
+  integrity sha512-9DE+imG55Jiguly7PdfgL9mvNC/FqK6XJ78VKwkJ4ezrhgECK6I8S6dRrT4Bv9/qPKG2j01QIaSEuGg/V9/IeA==
   dependencies:
-    "@fortawesome/fontawesome-free" "5.8.2"
+    "@fortawesome/fontawesome-free" "5.9.0"
     bootstrap "4.3.1"
     jquery "3.4.1"
     jquery.easing "^1.4.1"
