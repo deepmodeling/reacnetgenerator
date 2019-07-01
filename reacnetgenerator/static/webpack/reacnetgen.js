@@ -2,12 +2,15 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'magnific-popup/dist/magnific-popup.css';
 import 'startbootstrap-creative/css/creative.min.css';
+import 'paginationjs/dist/pagination.css'
 import './reacnetgen.css';
 
 /* global linkreac */
 global.$ = global.jQuery = require('jquery');
 require('bootstrap');
 require('jquery.easing');
+require('jsrender');
+require('paginationjs');
 require("magnific-popup");
 require('startbootstrap-creative/js/creative.min');
 var jsnx = require("jsnetworkx");
@@ -57,17 +60,46 @@ $(function () {
     }, true);
     $("#canvassec").addClass("mfp-hide");
 
-    $(".popup-modal").magnificPopup({
-        "type": "inline",
-        "preloader": false,
-    });
-    $("select#timeselect").change(function(){
-        $(".time").hide();
-        $(".time-"+$(this).val()).show();
-    });
-    $(".time").hide();
-    $(".time-1").show();
+    if (species.length > 1) {
+        var timelist = [{ "value": 1, "text": "All" }]
+        for (var i = 0; i < species.length; i++) {
+            timelist.push({ "value": i + 2, "text": "Time " + String(i + 1)});
+        }
+        $("#timeselect").html($.templates("<option value={{:value}}>{{:text}}</option>").render(timelist));
+        $("#timeselectli").removeClass("d-none");
+        $("select#timeselect").change(function () {
+            showresults($(this).val());
+        });
+    }
+    if (reactionsabcd.length > 0){
+        $("#reactionsabcd").removeClass("d-none");
+    }
+    showresults(1);
 });
+
+/** 
+ * show results
+ */
+function showresult(data, size, tmpl, result, pager) {
+    $(pager).pagination({
+        dataSource: data,
+        pageSize: size,
+        callback: function (data, pagination) {
+            $(result).html($.templates(tmpl).render(data));
+            $(".popup-modal").magnificPopup({
+                "type": "inline",
+                "preloader": false,
+            });
+        }
+    });
+}
+
+function showresults(time) {
+    $("#networkresult").html(network[time - 1]);
+    showresult(species[time - 1], speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
+    showresult(reactions[time - 1], reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
+    showresult(reactionsabcd, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+}
 
 /**
 * add nodes for the specified species
@@ -83,9 +115,9 @@ function addnode(spec) {
     }
 }
 
-function savesvg(){
-    var svgData = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'+$(".jsnx")[0].outerHTML+$("#svgdefs")[0].outerHTML+$("#svgspecs")[0].outerHTML+"</svg>";
-    var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+function savesvg() {
+    var svgData = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' + $(".jsnx")[0].outerHTML + $("#svgdefs")[0].outerHTML + $("#svgspecs")[0].outerHTML + "</svg>";
+    var svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
     var svgUrl = URL.createObjectURL(svgBlob);
     var a = document.createElement('a');
     var filename = 'network.svg';

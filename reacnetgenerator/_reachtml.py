@@ -58,11 +58,11 @@ class _HTMLResult:
     def _readreaction(self, timeaxis=None, linknum=6):
         reaction = []
         with open(self._reactionfile if timeaxis is None else f"{self._reactionfile}.{timeaxis}") as f:
-            for line in f:
+            for i, line in enumerate(f, 1):
                 sx = line.split()
                 s = sx[1].split("->")
                 left, right, num = self._re(s[0]), self._re(s[1]), int(sx[0])
-                reaction.append((left, right, num))
+                reaction.append({"i":i, "l":left, "r":right, "n":num})
                 if timeaxis is None and len(self._linkreac[left]) < linknum:
                     self._linkreac[left].append(right)
                 if timeaxis is None and len(self._linkreac[right]) < linknum:
@@ -73,13 +73,13 @@ class _HTMLResult:
         reactionsabcd = []
         try:
             with open(self._reactionabcdfilename) as f:
-                for line in f:
+                for i, line in enumerate(f, 1):
                     sx = line.split()
                     left, right = sx[0].split("->")
-                    left = list([self._re(spec) for spec in left.split("+")])
-                    right = list([self._re(spec) for spec in right.split("+")])
+                    left = list([{"s": self._re(spec)} for spec in left.split("+")])
+                    right = list([{"s": self._re(spec)} for spec in right.split("+")])
                     num = int(sx[1])
-                    reactionsabcd.append((left, right, num))
+                    reactionsabcd.append({"i":i, "l": left, "r": right, "n": num})
         except OSError:
             pass
         return reactionsabcd
@@ -104,7 +104,7 @@ class _HTMLResult:
     def _readspecies(self, reaction, timeaxis=None):
         specs = []
         for reac in reaction:
-            for spec in reac[:2]:
+            for spec in (reac['l'], reac['r']):
                 if spec not in specs:
                     specs.append(spec)
         if timeaxis is None:
@@ -114,7 +114,8 @@ class _HTMLResult:
                     self._svgfiles[spec] = svgfile
             pool.join()
             pool.close()
-        return specs
+        # return list of dict
+        return list([{"s": spec, "i":i} for i, spec in enumerate(specs, 1)])
 
     def _readdata(self):
         self._reaction = [self._readreaction()]
@@ -127,16 +128,16 @@ class _HTMLResult:
                 self._specs.append(self._readspecies(reaction, timeaxis=i))
 
     def _generateresult(self):
-        self._templatedict["network_time"] = [self._generatenetwork()]
+        network = [self._generatenetwork()]
         if self._split > 1:
             for i in range(self._split):
-                self._templatedict["network_time"].append(self._generatenetwork(timeaxis=i))
+                network.append(self._generatenetwork(timeaxis=i))
+        self._templatedict["network"] = json.dumps(network)
         self._generatesvg()
-        self._templatedict["speciestime"] = self._specs
-        self._templatedict["reactionstime"] = self._reaction
-        self._templatedict["reactionsabcd"] = self._reactionsabcd
-        self._templatedict["linkreac"] = json.dumps(
-            self._linkreac, separators=(',', ':'))
+        self._templatedict["species"] = json.dumps(self._specs)
+        self._templatedict["reactions"] = json.dumps(self._reaction)
+        self._templatedict["reactionsabcd"] = json.dumps(self._reactionsabcd)
+        self._templatedict["linkreac"] = json.dumps(self._linkreac)
         template = Template(pkg_resources.resource_string(
             __name__, 'static/webpack/bundle.html').decode())
         webpage = template.render(**self._templatedict)
@@ -152,9 +153,9 @@ class _HTMLResult:
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)
             svgdata = svgdata.replace(r"""<style type="text/css">*{""",r"""<style type="text/css">#network svg *{""")
-        return svgdata
+        return htmlmin.minify(svgdata)
 
     def _generatesvg(self):
         self._templatedict["speciessvg"] = list(
             [{"name": spec, "svg": self._svgfiles[spec]}
-             for spec in self._specs[0]])
+             for spec in self._svgfiles])
