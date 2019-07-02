@@ -23,7 +23,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         </defs>
     </svg>
 
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
             <a class="navbar-brand js-scroll-trigger" href="#page-top">ReacNetGenerator</a>
             <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive"
@@ -32,21 +32,9 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
-                    {% if network_time|length > 1 %}
-                    <li class="nav-item">
-                        <select id="timeselect">
-                            {% for _ in network_time %}
-                            <option value="{{ loop.index }}">
-                                {% if loop.index > 1 %}
-                                    Time {{ loop.index-1 }}
-                                {% else %}
-                                    All
-                                {% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
+                    <li id="timeselectli" class="nav-item d-none">
+                        <select id="timeselect"></select>
                     </li>
-                    {% endif %}
                     {% for sec in sections %}
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#{{ sec|lower }}">{{ sec }}</a></li>
                     {% endfor %}
@@ -77,18 +65,16 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         </div>
     </header>
 
-    {% for network_svg in network_time %}
-    <section id="network" class='page-section bg-white mx-auto text-center time time-{{ loop.index }}'>
+    <section id="network" class='page-section bg-white mx-auto text-center'>
         <div class="container my-auto">
             <div class="row">
                 <div class="mx-auto w-100 text-center">
                     <h2>Reaction Network</h2>
-                    {{ network_svg }}
+                    <div id="networkresult"></div>
                 </div>
             </div>
         </div>
     </section>
-    {% endfor %}
 
     <svg class="d-none" id="svgspecs">
         <defs>
@@ -107,118 +93,112 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         <a href="javascript:savesvg();" class="savesvg">Save</a>
     </div>
 
-    {% for species in speciestime %}
-    <section id="species" class='page-section bg-white mx-auto time time-{{ loop.index }}'>
+    {% raw %}
+    <script id="specTmpl" type="text/x-jsrender">
+        <div class="mx-auto">
+            <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:s}}');" title="{{:s}}"><svg class='spec'>
+                <use xlink:href="#{{:s}}"></use>
+            </svg></a></div>
+            <div>{{:i}}</div>
+        </div>
+    </script>
+    {% endraw %}
+    
+    <section id="species" class='page-section bg-white mx-auto'>
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
                     <h2 class='text-center'>Species</h2>
                     <div class="container-fluid p-0">
-                        <div class="row no-gutters">
-                            {% for spec in species %}
-                            <div class="mx-auto {% if loop.index> speciesshownum %} specnone{% endif %}">
-                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');" title="{{ spec }}"><svg class='spec'>
-                                    <use xlink:href="#{{ spec }}"></use>
-                                </svg></a></div>
-                                <div>{{ loop.index }}</div>
-                            </div>
-                            {% endfor %}
-                        </div>
+                        <div id="speciesresult" class="row no-gutters"></div>
                     </div>
                 </div>
-                {% if species|length > speciesshownum %}
-                <div class="mx-auto text-center mt-5">
-                    <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.specnone').removeClass('specnone');$('#showmorespec').hide();"
-                        id="showmorespec">Show all</a>
-                </div>
-                {% endif %}
             </div>
+            <div class="mx-auto text-center mt-5">
+                <div id="speciespager"></div>
+            </div>
+        </div>
     </section>
-    {% endfor %}
 
-    {% for reactions in reactionstime %}
-    <section id="reactions" class='page-section bg-white mx-auto time time-{{ loop.index }}'>
+    {% raw %}
+    <script id="reacTmpl" type="text/x-jsrender">
+        <div class="row mx-auto">
+            <div class="reacid">{{:i}}</div>
+            <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:l}}');"><svg class='spec'>
+                    <use xlink:href="#{{:l}}"></use>
+                </svg></a></div>
+            <div>
+                <div class="reacnum">{{:n}}</div>
+                <div><svg width="25" height="14.33">
+                        <use xlink:href="#narrow" /></svg></div>
+            </div>
+            <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:r}}');"><svg class='spec'>
+                    <use xlink:href="#{{:r}}"></use>
+                </svg></a></div>
+        </div>
+    </script>
+    {% endraw %}
+
+    <section id="reactions" class='page-section bg-white mx-auto'>
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(sorted by frequency)</h4>
                     <div class="container-fluid p-0">
-                        <div class="row no-gutters">
-                            {% for reac in reactions %}
-                            <div class="row mx-auto{% if loop.index> reactionsshownum %} reacnone{% endif %}">
-                                <div class="reacid">{{ loop.index }}</div>
-                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ reac[0] }}');"></a><svg class='spec'>
-                                        <use xlink:href="#{{ reac[0] }}"></use>
-                                    </svg></a></div>
-                                <div>
-                                    <div class="reacnum">{{ reac[2] }}</div>
-                                    <div><svg width="25" height="14.33">
-                                            <use xlink:href="#narrow" /></svg></div>
-                                </div>
-                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ reac[1] }}');"></a><svg class='spec'>
-                                        <use xlink:href="#{{ reac[1] }}"></use>
-                                    </svg></a></div>
-                            </div>
-                            {% endfor %}
-                        </div>
+                        <div id="reactionsresult" class="row no-gutters"></div>
                     </div>
-                    {% if reactions|length > reactionsshownum %}
                     <div class="mx-auto text-center mt-5">
-                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacnone').removeClass('reacnone');$('#showmorereac').hide();"
-                            id="showmorereac">Show all</a>
+                        <div id="reactionspager"></div>
                     </div>
-                    {% endif %}
                 </div>
     </section>
-    {% endfor %}
 
-    {% if reactionsabcd|length > 0 %}
-    <section id="reactionsabcd" class='page-section bg-white mx-auto'>
+    {% raw %}
+    <script id="reacabcdTmpl" type="text/x-jsrender">
+        <div class="row mx-auto col-sm-5">
+                <div class="reacid">{{:i}}</div>
+                {{for l}}
+                {{if #getIndex()>0}}
+                <div class="plus">+</div>
+                {{/if}}
+                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:s}}');"><svg class='spec'>
+                        <use xlink:href="#{{:s}}"></use>
+                    </svg></a></div>
+                {{/for}}
+                <div>
+                    <div class="reacnum">{{:n}}</div>
+                    <div><svg width="25" height="14.33">
+                            <use xlink:href="#narrow" /></svg></div>
+                </div>
+                {{for r}}
+                {{if #getIndex()>0}}
+                <div class="plus">+</div>
+                {{/if}}
+                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:s}}');"><svg class='spec'>
+                        <use xlink:href="#{{:s}}"></use>
+                    </svg></a></div>
+                {{/for}}
+        </div>
+    </script>
+    {% endraw %}
+
+    <section id="reactionsabcd" class='page-section bg-white mx-auto d-none'>
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(A+B->C+D)</h4>
                     <div class="container-fluid p-0">
-                        <div class="row no-gutters">
-                            {% for reac in reactionsabcd %}
-                            <div class="row mx-auto{% if loop.index> reactionsshownum %} reacabcdnone{% endif %}">
-                                <div class="reacid">{{ loop.index }}</div>
-                                {% for spec in reac[0] %}
-                                {% if loop.index > 1 %}
-                                <div class="plus">+</div>
-                                {% endif %}
-                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');"></a><svg class='spec'>
-                                        <use xlink:href="#{{ spec }}"></use>
-                                    </svg></a></div>
-                                {% endfor %}
-                                <div>
-                                    <div class="reacnum">{{ reac[2] }}</div>
-                                    <div><svg width="25" height="14.33">
-                                            <use xlink:href="#narrow" /></svg></div>
-                                </div>
-                                {% for spec in reac[1] %}
-                                {% if loop.index > 1 %}
-                                <div class="plus">+</div>
-                                {% endif %}
-                                <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{ spec }}');"></a><svg class='spec'>
-                                        <use xlink:href="#{{ spec }}"></use>
-                                    </svg></a></div>
-                                {% endfor %}
-                            </div>
-                            {% endfor %}
-                        </div>
+                        <div id="reactionsabcdresult" class="row no-gutters"></div>
                     </div>
-                    {% if reactionsabcd|length > reactionsshownum %}
                     <div class="mx-auto text-center mt-5">
-                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="javascript:$('.reacabcdnone').removeClass('reacabcdnone');$('#showmorereacabcd').hide();"
-                            id="showmorereacabcd">Show all</a>
+                        <div id="reactionsabcdpager"></div>
                     </div>
-                    {% endif %}
                 </div>
+            </div>
+        </div>
     </section>
-    {% endif %}
 
     <section class="page-section bg-dark text-white" id="foot">
         <div class="container">
@@ -228,9 +208,9 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     <p><strong>Citation:</strong> {{ citation }}</p>
                     <p><strong>Author:</strong>
                         <a href="https://cv.njzjz.win/">Jinzhe Zeng</a>,
-                        Liqun Cao,
+                        <a href="http://computchem.cn/people/"></a>Liqun Cao</a>,
                         <a href="https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang">John ZH Zhang</a>,
-                        Chih-Hao Chin,
+                        <a href="http://computchem.cn/people/"></a>Chih-Hao Chin</a>,
                         <a href="http://computchem.cn/people/">Tong Zhu</a></p>
                     <p><strong>Email:</strong> <a href="mailto:tzhu@lps.ecnu.edu.cn">tzhu@lps.ecnu.edu.cn</a>,
                         <a href="mailto:jzzeng@stu.ecnu.edu.cn">jzzeng@stu.ecnu.edu.cn</a></p>
@@ -238,7 +218,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             </div>
         </div>
     </section>
-    <script>linkreac={{ linkreac }};</script>
+    <script>linkreac={{ linkreac }};speciesshownum={{ speciesshownum }};reactionsshownum={{ reactionsshownum }};species={{ species }};reactions={{ reactions }};network={{ network }};reactionsabcd={{ reactionsabcd }};</script>
 {% raw %}
 </body>
 {% endraw %}

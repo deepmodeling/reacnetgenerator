@@ -1,3 +1,4 @@
+# cython: language_level=3
 import argparse
 from . import __version__
 

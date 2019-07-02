@@ -1,3 +1,4 @@
+# cython: language_level=3
 '''A beta version for reactions finder.
 
 
