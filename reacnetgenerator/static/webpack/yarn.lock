@@ -1822,7 +1822,7 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
-jsrender@^1.0.3:
+jsrender@1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.3.tgz#2e3b34d9c1a7de352c28841af03c29380fc9be8b"
   integrity sha512-bvy8MSfINb6d5DeH7shiCge2vVCWxvnc+99qpWsUaA+WAu/UXz/H1Pt70VXriwVvg76flisOq+dI9BDhSfpkJg==
@@ -2398,7 +2398,7 @@ p-try@^2.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.2.0.tgz#cb2868540e313d61de58fafbe35ce9004d5540e6"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
 
-paginationjs@^2.1.4:
+paginationjs@2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/paginationjs/-/paginationjs-2.1.4.tgz#f973eaea5c36c2beef4a4e6ee2b94df7f44b941d"
   integrity sha512-A4V7YGOXDMIbUtiGdrmYTvnxxU+JTzg1Ktxd9Z+uSDOt9OxK9FfOlzAFKPNVnZDKKAm8lzFeSxVpTb+pGNWOxA==
