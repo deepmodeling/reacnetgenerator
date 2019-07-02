@@ -63,11 +63,12 @@ if __name__ == '__main__':
 
     ext_modules = [
         Extension("reacnetgenerator.dps", sources=[
-            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
+            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++", define_macros=[('CYTHON_TRACE', '1')]),
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[
-                       f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"], language="c") for encrypted_python_file in encrypted_python_files])
+                       f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"],
+                       language="c", define_macros=[('CYTHON_TRACE', '1')]) for encrypted_python_file in encrypted_python_files])
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],
     setup(name='reacnetgenerator',
