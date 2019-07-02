@@ -100,7 +100,7 @@ class _CollectPaths(metaclass=ABCMeta):
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
-        route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[0]+1])]
+        route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
         moleculeroute = np.dstack((route[:-1], route[1:]))[
             0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
         names = self._mname[route-1]
