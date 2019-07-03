@@ -53,7 +53,9 @@ class _HTMLResult:
         return smi.replace(
             "O", "[O]").replace(
             "C", "[C]").replace(
-            "[HH]", "[H]")
+            "[HH]", "[H]").replace(
+            "o", "[o]").replace(
+            "c", "[c]")
 
     def _readreaction(self, timeaxis=None, linknum=6):
         reaction = []
