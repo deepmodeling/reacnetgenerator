@@ -315,7 +315,7 @@ class _DetectLAMMPSdump(_Detect):
                             s2 = realnumber[s2-atomnumber]
                         bond[s1].append(s2)
                         bond[s2].append(s1)
-                        level = 12 if s[3] == 'ar' else int(s[3])
+                        level = 12 if s[3] == 'ar' else (1 if s[3] == 'am' else int(s[3]))
                         bondlevel[s1].append(level)
                         bondlevel[s2].append(level)
         return bond, bondlevel
