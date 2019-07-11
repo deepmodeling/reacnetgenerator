@@ -51,7 +51,8 @@ class _HTMLResult:
 
     def _re(self, smi):
         for an in self._atomname:
-            smi = smi.replace(an.upper(), f"[{an.upper()}]").replace(an.lower(), f"[{an.lower()}]")
+            if an != 'H':
+                smi = smi.replace(an.upper(), f"[{an.upper()}]").replace(an.lower(), f"[{an.lower()}]")
         return smi.replace("[HH]", "[H]")
 
     def _readreaction(self, timeaxis=None, linknum=6):
