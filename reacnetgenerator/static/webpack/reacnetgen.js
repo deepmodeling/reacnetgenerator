@@ -65,6 +65,7 @@ $(function () {
         "stickyDrag": true,
     }, true);
     $("#canvassec").addClass("mfp-hide");
+    $("#canvasbutton").show();
 
     if (species.length > 1) {
         var timelist = [{ "value": 1, "text": "All" }]
@@ -183,10 +184,18 @@ function savesvg() {
     window.URL.revokeObjectURL(svgUrl);
 }
 
+function clearnode() {
+    var nodes = G.nodes();
+    for (var i = 0; i < nodes.length; i++) {
+        G.removeNode(nodes[ii]);
+    }
+}
+
 //define global
 window.$ = $
 window.addnode = addnode;
 window.savesvg = savesvg;
+window.clearnode = clearnode;
 window.G = G;
 window.timer1 = null;
 window.timer2 = null;

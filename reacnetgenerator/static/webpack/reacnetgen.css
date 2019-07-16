@@ -43,10 +43,13 @@
     background-size: 45px 45px;
 }
 
-.savesvg {
+.savesvgarea {
     position: absolute;
     right: 0;
     bottom: 0;
+}
+
+.savesvgbutton {
     background-color: #008CBA;
     border: none;
     color: white;
