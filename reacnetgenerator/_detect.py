@@ -263,7 +263,7 @@ class _DetectLAMMPSdump(_Detect):
                         step_atoms.append(
                             (int(s[self.id_idx]),
                              Atom(
-                                 self.atomname[int(s[self.t_idx]) - 1],
+                                 self.atomname[int(s[self.tidx]) - 1],
                                  (float(s[self.xidx]), float(s[self.yidx]), float(s[self.zidx])))))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
