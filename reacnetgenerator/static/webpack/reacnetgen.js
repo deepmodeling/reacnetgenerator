@@ -187,7 +187,7 @@ function savesvg() {
 function clearnode() {
     var nodes = G.nodes();
     for (var i = 0; i < nodes.length; i++) {
-        G.removeNode(nodes[ii]);
+        G.removeNode(nodes[i]);
     }
 }
 
