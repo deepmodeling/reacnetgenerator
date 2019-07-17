@@ -107,6 +107,7 @@ if __name__ == '__main__':
               'reacnetgenerator': ['static/webpack/bundle.html',
                                    'static/img-title.png',
                                    'test/test.json',
+                                   'tox.ini'
                                    ],
           },
           long_description=readme(),
