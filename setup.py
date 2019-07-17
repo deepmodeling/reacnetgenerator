@@ -35,6 +35,8 @@ class BuildCommand(setuptools.command.build_py.build_py):
 
     def find_package_modules(self, package, package_dir):
         modules = super().find_package_modules(package, package_dir)
+        if debug_mode:
+            return modules
         return [(pkg, mod, file, ) for (pkg, mod, file, ) in modules
                 if not any(fnmatch.fnmatchcase(pkg + '.' + mod, pat=pattern)
                            for pattern in encrypted_python_files)]
@@ -60,15 +62,29 @@ if __name__ == '__main__':
         "reacnetgenerator.reacnetgen",
         "reacnetgenerator._reaction",
     ]
+    
+    define_macros = []
+    compiler_directives = {}
+    debug_mode = False
+    if 'TOXENV' in os.environ:
+         define_macros.append(('CYTHON_TRACE', '1'))
+         compiler_directives['linetrace'] = True
+         debug_mode = True
 
     ext_modules = [
         Extension("reacnetgenerator.dps", sources=[
-            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++", define_macros=[('CYTHON_TRACE', '1')]),
+            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],
+            language="c++", define_macros=define_macros,
+            compiler_directives=compiler_directives,
+            inplace=debug_mode),
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[
-                       f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"],
-                       language="c", define_macros=[('CYTHON_TRACE', '1')]) for encrypted_python_file in encrypted_python_files])
+        f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"],
+        language="c", define_macros=define_macros,
+        compiler_directives=compiler_directives,
+        inplace=debug_mode
+        ) for encrypted_python_file in encrypted_python_files])
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],
     setup(name='reacnetgenerator',
