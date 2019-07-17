@@ -1,3 +1,7 @@
+/*!
+ * ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
+ * Copyright 2018-2019 East China Normal University
+ */
 //CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'magnific-popup/dist/magnific-popup.css';

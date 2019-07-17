@@ -54,6 +54,8 @@ module.exports = {
 				minifyJS: true,
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
+        ignoreCustomFragments: [ /<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/ ],
+        processScripts: ['text/x-jsrender']
 			}
     }),
     new HtmlWebpackInlineSourcePlugin()
