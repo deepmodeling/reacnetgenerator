@@ -30,6 +30,7 @@ class _HTMLResult:
         self._reactionabcdfilename = rng.reactionabcdfilename
         self._nproc = rng.nproc
         self._split = rng.split
+        self._atomname = rng.atomname
         self._templatedict = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
@@ -48,12 +49,11 @@ class _HTMLResult:
         logging.info(
             f"Report is generated. Please see {self._resultfile} for more details.")
 
-    @classmethod
-    def _re(cls, smi):
-        return smi.replace(
-            "O", "[O]").replace(
-            "C", "[C]").replace(
-            "[HH]", "[H]")
+    def _re(self, smi):
+        for an in self._atomname:
+            if an != 'H':
+                smi = smi.replace(an.upper(), f"[{an.upper()}]").replace(an.lower(), f"[{an.lower()}]")
+        return smi.replace("[HH]", "[H]")
 
     def _readreaction(self, timeaxis=None, linknum=6):
         reaction = []

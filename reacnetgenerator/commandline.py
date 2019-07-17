@@ -28,7 +28,7 @@ def _commandline():
     parser.add_argument(
         '--maxspecies', help='Max number of nodes (species) in the network', type=int, default=20)
     args = parser.parse_args()
-    from reacnetgen import ReacNetGenerator
+    from .reacnetgen import ReacNetGenerator
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
         runHMM=not args.nohmm,

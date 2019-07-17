@@ -6,7 +6,8 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'magnific-popup/dist/magnific-popup.css';
 import 'startbootstrap-creative/css/creative.min.css';
-import 'paginationjs/dist/pagination.css'
+import 'paginationjs/dist/pagination.css';
+import 'bootstrap-select/dist/css/bootstrap-select.min.css';
 import './reacnetgen.css';
 
 /* global linkreac */
@@ -16,6 +17,7 @@ require('jquery.easing');
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");
+require("bootstrap-select");
 require('startbootstrap-creative/js/creative.min');
 var jsnx = require("jsnetworkx");
 var G = new jsnx.Graph();
@@ -67,7 +69,7 @@ $(function () {
     if (species.length > 1) {
         var timelist = [{ "value": 1, "text": "All" }]
         for (var i = 0; i < species.length; i++) {
-            timelist.push({ "value": i + 2, "text": "Time " + String(i + 1)});
+            timelist.push({ "value": i + 2, "text": "Time " + String(i + 1) });
         }
         $("#timeselect").html($.templates("<option value={{:value}}>{{:text}}</option>").render(timelist));
         $("#timeselectli").removeClass("d-none");
@@ -75,7 +77,7 @@ $(function () {
             showresults($(this).val());
         });
     }
-    if (reactionsabcd.length > 0){
+    if (reactionsabcd.length > 0) {
         $("#reactionsabcd").removeClass("d-none");
     }
     showresults(1);
@@ -103,6 +105,56 @@ function showresults(time) {
     showresult(species[time - 1], speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
     showresult(reactions[time - 1], reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
     showresult(reactionsabcd, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+    // select
+    $("#speciesselect").html($.templates("<option value={{:s}}>{{:s}}</option>").render(species[time - 1]));
+    $("#reactionsselect").html($.templates("<option value={{:s}}>{{:s}}</option>").render(species[time - 1]));
+    $("#reactionsabcdselect").html($.templates("<option value={{:s}}>{{:s}}</option>").render(species[time - 1]));
+    $("select#speciesselect").change(function () {
+        if ($(this).val().length > 0) {
+            var speciessearch = [];
+            for (var i in species[time - 1]) {
+                if ($(this).val().indexOf(species[time - 1][i]["s"]) >= 0) {
+                    speciessearch.push(species[time - 1][i]);
+                }
+            }
+        } else {
+            speciessearch = species[time - 1];
+        }
+        showresult(speciessearch, speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
+    });
+    $("select#reactionsselect").change(function () {
+        if ($(this).val().length > 0) {
+            var reactionssearch = [];
+            for (var i in reactions[time - 1]) {
+                if ($(this).val().indexOf(reactions[time - 1][i]["l"]) >= 0 || $(this).val().indexOf(reactions[time - 1][i]["r"]) >= 0) {
+                    reactionssearch.push(reactions[time - 1][i]);
+                }
+            }
+        } else {
+            reactionssearch = reactions[time - 1];
+        }
+        showresult(reactionssearch, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
+    });
+    $("select#reactionsabcdselect").change(function () {
+        if ($(this).val().length > 0) {
+            var reactionsabcdsearch = [];
+            for (var i in reactionsabcd) {
+                var b = false;
+                for(var j in reactionsabcd[i]['l']){
+                    if ($(this).val().indexOf(reactionsabcd[i]["l"][j]["s"]) >= 0) b=true;
+                }
+                for(var j in reactionsabcd[i]['r']){
+                    if ($(this).val().indexOf(reactionsabcd[i]["r"][j]["s"]) >= 0) b=true;
+                }
+                if (b) {
+                    reactionsabcdsearch.push(reactionsabcd[i]);
+                }
+            }
+        } else {
+            reactionsabcdsearch = reactionsabcd;
+        }
+        showresult(reactionsabcdsearch, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+    });
 }
 
 /**

@@ -2,7 +2,7 @@
 """ReacNetGen."""
 
 __date__ = '2018-03-11'
-__update__ = '2019-06-07'
+__update__ = '2019-07-08'
 __author__ = 'Jinzhe Zeng'
 __email__ = 'jzzeng@stu.ecnu.edu.cn'
 __credits__ = ['Jinzhe Zeng', 'Tong Zhu',

@@ -37,7 +37,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
                     <li id="timeselectli" class="nav-item d-none">
-                        <select id="timeselect"></select>
+                        <select id="timeselect" class="selectpicker"></select>
                     </li>
                     {% for sec in sections %}
                     <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#{{ sec|lower }}">{{ sec }}</a></li>
@@ -114,6 +114,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                 <div class="mx-auto text-center">
                     <h2 class='text-center'>Species</h2>
                     <div class="container-fluid p-0">
+                        <select id="speciesselect" class="selectpicker" multiple data-live-search="true"></select>
                         <div id="speciesresult" class="row no-gutters"></div>
                     </div>
                 </div>
@@ -150,6 +151,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(sorted by frequency)</h4>
                     <div class="container-fluid p-0">
+                        <select id="reactionsselect" class="selectpicker" multiple data-live-search="true"></select>
                         <div id="reactionsresult" class="row no-gutters"></div>
                     </div>
                     <div class="mx-auto text-center mt-5">
@@ -194,6 +196,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(A+B->C+D)</h4>
                     <div class="container-fluid p-0">
+                        <select id="reactionsabcdselect" class="selectpicker" multiple data-live-search="true"></select>
                         <div id="reactionsabcdresult" class="row no-gutters"></div>
                     </div>
                     <div class="mx-auto text-center mt-5">
