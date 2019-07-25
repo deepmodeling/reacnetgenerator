@@ -109,3 +109,7 @@ reacnetgeneratorgui
     [Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
     [D3](https://github.com/d3/d3),
     [JSNetworkX](https://github.com/fkling/JSNetworkX)
+
+# 荣誉
+* 2019年（第十一届）上海市大学生计算机应用能力大赛一等奖
+* 2019年（第12届）中国大学生计算机设计大赛一等奖

@@ -108,3 +108,7 @@ reacnetgeneratorgui
     [Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
     [D3](https://github.com/d3/d3),
     [JSNetworkX](https://github.com/fkling/JSNetworkX)
+
+# Awards
+* The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
+* The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students
