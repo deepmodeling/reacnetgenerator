@@ -35,10 +35,13 @@ $(function () {
         "panZoom": {
             "enabled": false
         },
-        "nodeShape": "use",
+        "nodeShape": "image",
         "nodeAttr": {
             "title"(d) { return d.label; },
-            "xlink:href"(d) { return "#" + d.node + "_border"; },
+            "href"(d) { 
+                var circle = '<circle cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />';
+                return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + speciessvg[d.node] + '</svg>');
+            },
             "ondblclick"(d) {
                 return "clearTimeout(timer1);G.removeNode('" + d.node + "');";
             },
@@ -52,7 +55,7 @@ $(function () {
             "y": -50,
         },
         "nodeStyle": {
-            "border": "1px solid #ddd",
+            "border": "1px solid #ddd"
         },
         "edgeStyle": {
             "fill": "#999"
@@ -92,6 +95,22 @@ function showresult(data, size, tmpl, result, pager) {
         dataSource: data,
         pageSize: size,
         callback: function (data, pagination) {
+            for (var i in data) {
+                data[i]["svg"] = {};
+                var p = ['s', 'l', 'r'];
+                for (var ii in p) {
+                    if (p[ii] in data[i]) {
+                        if (typeof (data[i][p[ii]]) == "string") {
+                            data[i]["svg"][data[i][p[ii]]] = speciessvg[data[i][p[ii]]];
+                        } else {
+                            for (var j in data[i][p[ii]]) {
+                                data[i]["svg"][data[i][p[ii]][j]] = speciessvg[data[i][p[ii]][j]];
+                            }
+                        }
+
+                    }
+                }
+            }
             $(result).html($.templates(tmpl).render(data));
             $(".popup-modal").magnificPopup({
                 "type": "inline",
@@ -114,7 +133,7 @@ function showresults(time) {
         if ($(this).val().length > 0) {
             var speciessearch = [];
             for (var i in species[time - 1]) {
-                if ($(this).val().indexOf(species[time - 1][i]["s"]) >= 0) {
+                if ($(this).val().indexOf(species[time - 1][i]) >= 0) {
                     speciessearch.push(species[time - 1][i]);
                 }
             }
@@ -127,7 +146,7 @@ function showresults(time) {
         if ($(this).val().length > 0) {
             var reactionssearch = [];
             for (var i in reactions[time - 1]) {
-                if ($(this).val().indexOf(reactions[time - 1][i]["l"]) >= 0 || $(this).val().indexOf(reactions[time - 1][i]["r"]) >= 0) {
+                if ($(this).val().indexOf(reactions[time - 1][i]["l"][0]) >= 0 || $(this).val().indexOf(reactions[time - 1][i]["r"][0]) >= 0) {
                     reactionssearch.push(reactions[time - 1][i]);
                 }
             }
@@ -141,11 +160,11 @@ function showresults(time) {
             var reactionsabcdsearch = [];
             for (var i in reactionsabcd) {
                 var b = false;
-                for(var j in reactionsabcd[i]['l']){
-                    if ($(this).val().indexOf(reactionsabcd[i]["l"][j]["s"]) >= 0) b=true;
+                for (var j in reactionsabcd[i]['l']) {
+                    if ($(this).val().indexOf(reactionsabcd[i]["l"][j]) >= 0) b = true;
                 }
-                for(var j in reactionsabcd[i]['r']){
-                    if ($(this).val().indexOf(reactionsabcd[i]["r"][j]["s"]) >= 0) b=true;
+                for (var j in reactionsabcd[i]['r']) {
+                    if ($(this).val().indexOf(reactionsabcd[i]["r"][j]) >= 0) b = true;
                 }
                 if (b) {
                     reactionsabcdsearch.push(reactionsabcd[i]);

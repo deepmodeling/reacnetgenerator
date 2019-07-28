@@ -71,3 +71,7 @@
     display: inline-block!important;
     float: none!important;
 }
+
+.narrow {
+    text-align:start;line-height:100%;
+}

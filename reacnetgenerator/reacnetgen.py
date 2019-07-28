@@ -263,3 +263,16 @@ class ReacNetGenerator:
     @classmethod
     def bytestolist(cls, x):
         return pickle.loads(cls.decompress(x, isbytes=True))
+
+    class SCOUROPTIONS:
+        strip_xml_prolog = True
+        remove_titles= True
+        remove_descriptions= True
+        remove_metadata= True
+        remove_descriptive_elements= True
+        strip_comments= True
+        enable_viewboxing= True
+        strip_xml_space_attribute= True
+        strip_ids= True
+        shorten_ids= True
+        newlines= False

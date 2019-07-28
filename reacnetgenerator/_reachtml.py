@@ -20,6 +20,7 @@ import htmlmin
 import openbabel
 import scour.scour
 from jinja2 import Template
+from tqdm import tqdm
 
 
 class _HTMLResult:
@@ -41,6 +42,7 @@ class _HTMLResult:
         self._reaction = None
         self._reactionsabcd = None
         self._svgfiles = {}
+        self.scouroptions = rng.SCOUROPTIONS
 
     def report(self):
         """Generate a web page to show the result."""
@@ -55,18 +57,23 @@ class _HTMLResult:
                 smi = smi.replace(an.upper(), f"[{an.upper()}]").replace(an.lower(), f"[{an.lower()}]")
         return smi.replace("[HH]", "[H]")
 
+    def _handlereaction(self, line):
+        sx = line.split()
+        left, right = sx[1].split("->")
+        left = list([self._re(spec) for spec in left.split("+")])
+        right = list([self._re(spec) for spec in right.split("+")])
+        num = int(sx[0])
+        return left, right, num
+
     def _readreaction(self, timeaxis=None, linknum=6):
         reaction = []
         with open(self._reactionfile if timeaxis is None else f"{self._reactionfile}.{timeaxis}") as f:
             for i, line in enumerate(f, 1):
-                sx = line.split()
-                s = sx[1].split("->")
-                left, right, num = self._re(s[0]), self._re(s[1]), int(sx[0])
+                left, right, num = self._handlereaction(line)
                 reaction.append({"i":i, "l":left, "r":right, "n":num})
-                if timeaxis is None and len(self._linkreac[left]) < linknum:
-                    self._linkreac[left].append(right)
-                if timeaxis is None and len(self._linkreac[right]) < linknum:
-                    self._linkreac[right].append(left)
+                for start, end in [(left[0], right[0]), (right[0], left[0])]:
+                    if timeaxis is None and len(self._linkreac[start]) < linknum:
+                        self._linkreac[start].append(end)
         return reaction
     
     def _readreactionabcd(self):
@@ -74,42 +81,36 @@ class _HTMLResult:
         try:
             with open(self._reactionabcdfilename) as f:
                 for i, line in enumerate(f, 1):
-                    sx = line.split()
-                    left, right = sx[0].split("->")
-                    left = list([{"s": self._re(spec)} for spec in left.split("+")])
-                    right = list([{"s": self._re(spec)} for spec in right.split("+")])
-                    num = int(sx[1])
+                    left, right, num = self._handlereaction(line)
                     reactionsabcd.append({"i":i, "l": left, "r": right, "n": num})
         except OSError:
             pass
         return reactionsabcd
 
-    @classmethod
-    def _convertsvg(cls, smiles):
+    def _convertsvg(self, smiles):
         obConversion = openbabel.OBConversion()
         obConversion.SetInAndOutFormats("smi", "svg")
         obConversion.AddOption('x')
         mol = openbabel.OBMol()
         obConversion.ReadString(mol, smiles)
         svgdata = obConversion.WriteString(mol)
-        svgdata = scour.scour.scourString(svgdata)
+        svgdata = scour.scour.scourString(svgdata, self.scouroptions)
         svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
         svgdata = re.sub(
             r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
         svgdata = re.sub(
             r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-        svgdata = re.sub(r"""<title>.*?<\/title>""", '', svgdata)
         return smiles, svgdata
 
     def _readspecies(self, reaction, timeaxis=None):
         specs = []
         for reac in reaction:
-            for spec in (reac['l'], reac['r']):
+            for spec in (reac['l'][0], reac['r'][0]):
                 if spec not in specs:
                     specs.append(spec)
         if timeaxis is None:
             with Pool(self._nproc) as pool:
-                results = pool.imap_unordered(self._convertsvg, specs)
+                results = pool.imap_unordered(self._convertsvg, tqdm(specs))
                 for spec, svgfile in results:
                     self._svgfiles[spec] = svgfile
             pool.join()
@@ -132,12 +133,12 @@ class _HTMLResult:
         if self._split > 1:
             for i in range(self._split):
                 network.append(self._generatenetwork(timeaxis=i))
-        self._templatedict["network"] = json.dumps(network)
-        self._generatesvg()
-        self._templatedict["species"] = json.dumps(self._specs)
-        self._templatedict["reactions"] = json.dumps(self._reaction)
-        self._templatedict["reactionsabcd"] = json.dumps(self._reactionsabcd)
-        self._templatedict["linkreac"] = json.dumps(self._linkreac)
+        self._templatedict["network"] = json.dumps(network, separators=(',', ':'))
+        self._templatedict["speciessvg"] = json.dumps(self._svgfiles, separators=(',', ':'))
+        self._templatedict["species"] = json.dumps(self._specs, separators=(',', ':'))
+        self._templatedict["reactions"] = json.dumps(self._reaction, separators=(',', ':'))
+        self._templatedict["reactionsabcd"] = json.dumps(self._reactionsabcd, separators=(',', ':'))
+        self._templatedict["linkreac"] = json.dumps(self._linkreac, separators=(',', ':'))
         template = Template(pkg_resources.resource_string(
             __name__, 'static/webpack/bundle.html').decode())
         webpage = template.render(**self._templatedict)
@@ -154,8 +155,3 @@ class _HTMLResult:
                 svgdata)
             svgdata = svgdata.replace(r"""<style type="text/css">*{""",r"""<style type="text/css">#network svg *{""")
         return htmlmin.minify(svgdata)
-
-    def _generatesvg(self):
-        self._templatedict["speciessvg"] = list(
-            [{"name": spec, "svg": self._svgfiles[spec]}
-             for spec in self._svgfiles])

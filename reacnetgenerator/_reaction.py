@@ -38,7 +38,7 @@ class ReactionsFinder:
             pool.join()
         # reaction with SMILES
         allreactionswithname = Counter(allreactions).most_common()
-        buff = '\n'.join([f"{reaction} {number}" for reaction,
+        buff = '\n'.join([f"{number} {reaction}" for reaction,
                           number in allreactionswithname if reaction is not None])
         with open(self._reactionabcdfilename, 'w') as f:
             f.write(buff)
