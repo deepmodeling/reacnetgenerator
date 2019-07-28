@@ -77,31 +77,33 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
     <script id="svgTmpl" type="text/x-jsrender">
         <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:#view.data}}');" title="{{:#view.data}}">
         <svg class='spec' version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            {{:~root[#getIndex()].svg[#view.data]}}
+            {{:~svg[#view.data]}}
         </svg></a></div>
     </script>
     <script id="specTmpl" type="text/x-jsrender">
         <div class="mx-auto">
-            {{include s tmpl="#svgTmpl"/}}
+            {{include s ~svg=svg tmpl="#svgTmpl"/}}
             <div>{{:i}}</div>
         </div>
     </script>
     <script id="rsideTmpl" type="text/x-jsrender">
-        {{if #getIndex()>0}}
-            <div class="plus">+</div>
-        {{/if}}
-        {{include tmpl="#svgTmpl"/}}
+        {{for}}
+            {{if #getIndex()>0}}
+                <div class="plus">+</div>
+            {{/if}}
+            {{include tmpl="#svgTmpl"/}}
+        {{/for}}
     </script>
     <script id="rTmpl" type="text/x-jsrender">
         <div class="reacid">{{:i}}</div>
-        {{include l tmpl="#rsideTmpl"/}}
+        {{include l ~svg=svg tmpl="#rsideTmpl"/}}
         <div>
             <div class="reacnum">{{:n}}</div>
             <div><svg width="25" height="14.33">
                 <path class="narrow" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z" font-size="39.506" font-weight="400"/>
             </svg></div>
         </div>
-        {{include r tmpl="#rsideTmpl"/}}
+        {{include r ~svg=svg tmpl="#rsideTmpl"/}}
     </script>
     <script id="reacTmpl" type="text/x-jsrender">
         <div class="row mx-auto">

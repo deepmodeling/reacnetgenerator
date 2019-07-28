@@ -133,7 +133,7 @@ function showresults(time) {
         if ($(this).val().length > 0) {
             var speciessearch = [];
             for (var i in species[time - 1]) {
-                if ($(this).val().indexOf(species[time - 1][i]) >= 0) {
+                if ($(this).val().indexOf(species[time - 1][i]['s']) >= 0) {
                     speciessearch.push(species[time - 1][i]);
                 }
             }
