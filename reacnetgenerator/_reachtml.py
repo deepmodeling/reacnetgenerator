@@ -20,6 +20,7 @@ import htmlmin
 import openbabel
 import scour.scour
 from jinja2 import Template
+from tqdm import tqdm
 
 
 class _HTMLResult:
@@ -109,7 +110,7 @@ class _HTMLResult:
                     specs.append(spec)
         if timeaxis is None:
             with Pool(self._nproc) as pool:
-                results = pool.imap_unordered(self._convertsvg, specs)
+                results = pool.imap_unordered(self._convertsvg, tqdm(specs))
                 for spec, svgfile in results:
                     self._svgfiles[spec] = svgfile
             pool.join()
