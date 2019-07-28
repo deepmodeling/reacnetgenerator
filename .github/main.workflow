@@ -1,8 +1,7 @@
 workflow "Test and deploy" {
   on = "push"
   resolves = [
-    "yarn semantic-release",
-    "Deploy to GitHub Pages",
+    "Deploy to GitHub Pages"
   ]
 }
 
@@ -28,7 +27,7 @@ action "Filters for GitHub Actions" {
 
 action "Deploy to GitHub Pages" {
   uses = "JamesIves/github-pages-deploy-action@master"
-  needs = ["Filters for GitHub Actions"]
+  needs = ["yarn semantic-release"]
   env = {
     BRANCH = "gh-pages"
     FOLDER = "docs/.vuepress/dist"
