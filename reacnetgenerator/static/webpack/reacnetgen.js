@@ -192,7 +192,7 @@ function addnode(spec) {
 }
 
 function savesvg() {
-    var svgData = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' + $(".jsnx")[0].outerHTML + $("#svgdefs")[0].outerHTML + $("#svgspecs")[0].outerHTML + "</svg>";
+    var svgData = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' + $(".jsnx")[0].outerHTML + "</svg>";
     var svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
     var svgUrl = URL.createObjectURL(svgBlob);
     var a = document.createElement('a');
