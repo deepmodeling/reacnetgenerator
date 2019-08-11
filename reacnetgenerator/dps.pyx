@@ -28,6 +28,8 @@ def dps(bonds, levels):
                 s = st.pop()
                 if s < 0:
                     break
+                elif visited[s]==1:
+                    continue
                 mol.append(s)
                 for b, l in zip(bonds[s], levels[s]):
                     b_c = b
