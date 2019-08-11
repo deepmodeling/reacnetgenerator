@@ -88,7 +88,7 @@ class _HTMLResult:
                     for spec in left + right:
                         if spec not in self._svgfiles:
                             append_spec.add(spec)
-            if len(append_spec):
+            if append_spec:
                 with Pool(self._nproc) as pool:
                     results = pool.imap_unordered(self._convertsvg, tqdm(append_spec))
                     for spec, svgfile in results:
