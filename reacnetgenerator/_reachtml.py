@@ -80,15 +80,14 @@ class _HTMLResult:
     def _readreactionabcd(self):
         reactionsabcd = []
         if os.path.isfile(self._reactionabcdfilename):
-            append_spec = []
+            append_spec = set()
             with open(self._reactionabcdfilename) as f:
                 for i, line in enumerate(f, 1):
                     left, right, num = self._handlereaction(line)
                     reactionsabcd.append({"i":i, "l": left, "r": right, "n": num})
                     for spec in left + right:
                         if spec not in self._svgfiles:
-                            append_spec.append(spec)
-                            self._svgfiles[spec] = None
+                            append_spec.add(spec)
             if len(append_spec):
                 with Pool(self._nproc) as pool:
                     results = pool.imap_unordered(self._convertsvg, tqdm(append_spec))
