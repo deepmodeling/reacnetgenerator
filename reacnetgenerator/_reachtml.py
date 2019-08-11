@@ -12,6 +12,7 @@ network which starts from it.
 import json
 import logging
 import re
+import os
 from collections import defaultdict
 from multiprocessing import Pool
 import pkg_resources
@@ -75,16 +76,25 @@ class _HTMLResult:
                     if timeaxis is None and len(self._linkreac[start]) < linknum:
                         self._linkreac[start].append(end)
         return reaction
-    
+
     def _readreactionabcd(self):
         reactionsabcd = []
-        try:
+        if os.path.isfile(self._reactionabcdfilename):
+            append_spec = set()
             with open(self._reactionabcdfilename) as f:
                 for i, line in enumerate(f, 1):
                     left, right, num = self._handlereaction(line)
                     reactionsabcd.append({"i":i, "l": left, "r": right, "n": num})
-        except OSError:
-            pass
+                    for spec in left + right:
+                        if spec not in self._svgfiles:
+                            append_spec.add(spec)
+            if append_spec:
+                with Pool(self._nproc) as pool:
+                    results = pool.imap_unordered(self._convertsvg, tqdm(append_spec))
+                    for spec, svgfile in results:
+                        self._svgfiles[spec] = svgfile
+                pool.join()
+                pool.close()
         return reactionsabcd
 
     def _convertsvg(self, smiles):
