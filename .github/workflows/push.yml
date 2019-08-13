@@ -1,0 +1,41 @@
+on: push
+name: Test and deploy
+jobs:
+  testWithTox:
+    name: Test with tox
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Test with tox
+      uses: njzjz/actions/tox-conda@master
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        SETUP_XVFB: "True"
+    - name: yarn install
+      uses: Borales/actions-yarn@master
+      with:
+        args: install
+    - name: conda-build-linux
+      uses: njzjz/actions/conda-build-linux@master
+      with:
+        args: build conda/recipe -c conda-forge --output-folder conda
+    - name: yarn build
+      uses: Borales/actions-yarn@master
+      with:
+        args: build
+    - name: Filters for GitHub Actions
+      uses: actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da
+      with:
+        args: branch master
+    - name: yarn semantic-release
+      uses: Borales/actions-yarn@master
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        args: semantic-release
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@master
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/.vuepress/dist
