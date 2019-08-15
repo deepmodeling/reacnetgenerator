@@ -38,7 +38,7 @@ $(function () {
         "nodeShape": "image",
         "nodeAttr": {
             "title"(d) { return d.label; },
-            "href"(d) { 
+            "xlink:href"(d) { 
                 var circle = '<circle cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />';
                 return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + speciessvg[d.node] + '</svg>');
             },
