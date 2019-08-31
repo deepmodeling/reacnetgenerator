@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@qiwi/semantic-release-gh-pages-plugin": "^1.10.5",
     "semantic-release": "15.13.24",
     "vuepress": "1.0.3"
   },
@@ -20,6 +21,7 @@
     "access": "restricted"
   },
   "release": {
+    "branch": "master",
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
@@ -41,7 +43,14 @@
             }
           ]
         }
+      ],
+      [
+        "@qiwi/semantic-release-gh-pages-plugin",
+        {
+          "src": "docs/.vuepress/dist"
+        }
       ]
+      
     ]
   }
 }
