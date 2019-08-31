@@ -15,7 +15,7 @@ jobs:
         architecture: 'x64'
     - run: npm install -g yarn
     - run: pip install tox-conda
-    - run: tox-conda
+    - run: tox
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     - run: conda build conda/recipe -c conda-forge --output-folder conda
