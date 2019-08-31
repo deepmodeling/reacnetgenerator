@@ -18,8 +18,8 @@ jobs:
     - run: tox
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    - run: conda build conda/recipe -c conda-forge --output-folder conda
-      if: github.ref == 'refs/heads/master'
+#    - run: conda build conda/recipe -c conda-forge --output-folder conda
+#      if: github.ref == 'refs/heads/master'
     - run: yarn install
     - run: yarn build
     - run: yarn semantic-release
