@@ -14,7 +14,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.css$/,
+        test: /\.scss$/,
         use: [{
           loader: MiniCssExtractPlugin.loader,
         },
@@ -28,6 +28,22 @@ module.exports = {
               }
             }]
           })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            plugins: function () {
+              return [
+                require('postcss-import'),
+                require('precss'),
+                require('cssnano')({
+                  preset: 'advanced',
+                }),
+              ];
+            }
+          }
+        }, {
+          loader: 'sass-loader'
         }],
       },
       {
@@ -70,5 +86,12 @@ module.exports = {
         }
       }),
     ],
-  }
+  },
+  performance: {
+    hints: false,
+  },
+  stats: {
+    entrypoints: false,
+    children: false
+ },
 }
