@@ -224,6 +224,13 @@ class _DetectLAMMPSdump(_Detect):
         for index, line in enumerate(f):
             if line.startswith("ITEM:"):
                 linecontent = self.LineType.linecontent(line)
+                if linecontent == self.LineType.ATOMS:
+                    keys = line.split()
+                    self.id_idx = keys.index('id') - 2
+                    self.tidx = keys.index('type') - 2
+                    self.xidx = keys.index('x') - 2
+                    self.yidx = keys.index('y') - 2
+                    self.zidx = keys.index('z') - 2
             else:
                 if linecontent == self.LineType.NUMBER:
                     if iscompleted:
@@ -254,10 +261,10 @@ class _DetectLAMMPSdump(_Detect):
                     if linecontent == self.LineType.ATOMS:
                         s = line.split()
                         step_atoms.append(
-                            (int(s[0]),
+                            (int(s[self.id_idx]),
                              Atom(
-                                 self.atomname[int(s[1]) - 1],
-                                 tuple(map(float, s[2: 5])))))
+                                 self.atomname[int(s[self.tidx]) - 1],
+                                 (float(s[self.xidx]), float(s[self.yidx]), float(s[self.zidx])))))
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
                     elif linecontent == self.LineType.BOX:
@@ -315,7 +322,7 @@ class _DetectLAMMPSdump(_Detect):
                             s2 = realnumber[s2-atomnumber]
                         bond[s1].append(s2)
                         bond[s2].append(s1)
-                        level = 12 if s[3] == 'ar' else int(s[3])
+                        level = 12 if s[3] == 'ar' else (1 if s[3] == 'am' else int(s[3]))
                         bondlevel[s1].append(level)
                         bondlevel[s2].append(level)
         return bond, bondlevel

@@ -65,6 +65,7 @@ class _HMMFilter:
         self.rng.moleculetemp2filename = self.moleculetemp2filename
         self.rng.originfilename = self.originfilename
         self.rng.hmmfilename = self.hmmfilename
+        self.rng.hmmit = self._hmmit
 
     def _initHMM(self):
         self._model = hmm.MultinomialHMM(n_components=2)

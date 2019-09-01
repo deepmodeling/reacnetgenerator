@@ -1,0 +1,28 @@
+on: push
+name: Test and deploy
+jobs:
+  test:
+    name: Test with tox
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 12
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+        architecture: 'x64'
+    - run: npm install -g yarn
+    - run: pip install tox-conda
+    - run: tox
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+#    - run: conda build conda/recipe -c conda-forge --output-folder conda
+#      if: github.ref == 'refs/heads/master'
+    - run: yarn install
+    - run: yarn build
+    - run: yarn semantic-release
+      if: github.ref == 'refs/heads/master'
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}

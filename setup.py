@@ -61,6 +61,7 @@ if __name__ == '__main__':
         "reacnetgenerator.gui",
         "reacnetgenerator.reacnetgen",
         "reacnetgenerator._reaction",
+        "reacnetgenerator.commandline",
     ]
     
     define_macros = []
@@ -103,7 +104,7 @@ if __name__ == '__main__':
               'pandas', 'pybase64', 'lz4'
           ],
           entry_points={'console_scripts': [
-              'reacnetgenerator=reacnetgenerator.reacnetgen:_commandline',
+              'reacnetgenerator=reacnetgenerator.commandline:_commandline',
               'reacnetgeneratorgui=reacnetgenerator.gui:gui'
           ]
           },

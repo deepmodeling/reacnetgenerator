@@ -48,6 +48,7 @@ class _DrawNetwork:
         self.nolabel = rng.nolabel
         self.showid = rng.showid
         self._split = rng.split
+        self.scouroptions = rng.SCOUROPTIONS
 
     def draw(self):
         """Draw the network."""
@@ -98,7 +99,7 @@ class _DrawNetwork:
                     (("" if with_labels else "nolabel_"), self.imagefilename))
                 with StringIO() as stringio, open(imagefilename if timeaxis is None else f"{imagefilename}.{timeaxis}", 'w') as f:
                     plt.savefig(stringio, format='svg')
-                    f.write(scour.scour.scourString(stringio.getvalue()))
+                    f.write(scour.scour.scourString(stringio.getvalue(), self.scouroptions))
                 plt.close()
         except Exception as e:
             logging.error(f"Error: cannot draw images. Details: {e}")

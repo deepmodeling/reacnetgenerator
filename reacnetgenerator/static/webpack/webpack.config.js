@@ -3,6 +3,10 @@ const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const webpack = require('webpack');
+
+const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
+Copyright 2018-2019 East China Normal University`
 
 module.exports = {
   entry: __dirname + "/reacnetgen.js",
@@ -14,7 +18,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.css$/,
+        test: /\.scss$/,
         use: [{
           loader: MiniCssExtractPlugin.loader,
         },
@@ -28,6 +32,22 @@ module.exports = {
               }
             }]
           })
+        },
+        {
+          loader: 'postcss-loader',
+          options: {
+            plugins: function () {
+              return [
+                require('postcss-import'),
+                require('precss'),
+                require('cssnano')({
+                  preset: 'advanced',
+                }),
+              ];
+            }
+          }
+        }, {
+          loader: 'sass-loader'
         }],
       },
       {
@@ -54,9 +74,12 @@ module.exports = {
 				minifyJS: true,
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
+        ignoreCustomFragments: [ /<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/ ],
+        processScripts: ['text/x-jsrender']
 			}
     }),
-    new HtmlWebpackInlineSourcePlugin()
+    new HtmlWebpackInlineSourcePlugin(),
+    new webpack.BannerPlugin(banner)
   ],
   optimization: {
     minimizer: [
@@ -68,5 +91,12 @@ module.exports = {
         }
       }),
     ],
-  }
+  },
+  performance: {
+    hints: false,
+  },
+  stats: {
+    entrypoints: false,
+    children: false
+ },
 }

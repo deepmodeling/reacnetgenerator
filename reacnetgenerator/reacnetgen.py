@@ -42,7 +42,6 @@ $ reacnetgenerator -h
 """
 
 
-import argparse
 import gc
 import logging
 import os
@@ -265,36 +264,15 @@ class ReacNetGenerator:
     def bytestolist(cls, x):
         return pickle.loads(cls.decompress(x, isbytes=True))
 
-
-def _commandline():
-    parser = argparse.ArgumentParser(
-        description=f'ReacNetGenerator {__version__}')
-    parser.add_argument(
-        '-i', '--inputfilename', nargs='*',
-        help='Input trajectory file, e.g. bonds.reaxc', required=True)
-    parser.add_argument('-a', '--atomname',
-                        help='Atomic names in the trajectory, e.g. C H O',
-                        nargs='*', required=True)
-    parser.add_argument(
-        '--nohmm', help='Process trajectory without Hidden Markov Model (HMM)',
-        action="store_true")
-    parser.add_argument(
-        '--dump', help='Process the LAMMPS dump file', action="store_true")
-    parser.add_argument(
-        '-n', '-np', '--nproc', help='Number of processes', type=int)
-    parser.add_argument(
-        '-s', '--selectatoms',
-        help='Select atoms in the reaction network, e.g. C', nargs='*')
-    parser.add_argument(
-        '--stepinterval', help='Step interval', type=int, default=1)
-    parser.add_argument(
-        '--split', help='Split number for the time axis', type=int, default=1)
-    args = parser.parse_args()
-    ReacNetGenerator(
-        inputfilename=args.inputfilename, atomname=args.atomname,
-        runHMM=not args.nohmm,
-        inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'),
-        nproc=args.nproc, selectatoms=args.selectatoms,
-        stepinterval=args.stepinterval,
-        split=args.split,
-    ).runanddraw()
+    class SCOUROPTIONS:
+        strip_xml_prolog = True
+        remove_titles= True
+        remove_descriptions= True
+        remove_metadata= True
+        remove_descriptive_elements= True
+        strip_comments= True
+        enable_viewboxing= True
+        strip_xml_space_attribute= True
+        strip_ids= True
+        shorten_ids= True
+        newlines= False

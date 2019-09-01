@@ -24,18 +24,19 @@ def dps(bonds, levels):
             mol = []
             bond = []
             st.push(i)
-            visited[i] = 1
             while True:
                 s = st.pop()
                 if s < 0:
                     break
+                elif visited[s]==1:
+                    continue
                 mol.append(s)
                 for b, l in zip(bonds[s], levels[s]):
                     b_c = b
                     if visited[b_c]==0:
                         bond.append((s, b, l) if i < b else (b, s, l))
                         st.push(b_c)
-                        visited[b_c]=1
+                visited[s]=1
             mol.sort()
             bond.sort()
             molecule.append(mol)

@@ -15,7 +15,7 @@ An automatic generator of reaction network for reactive molecular dynamics simul
 
 **Email**: tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
 
-[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](http://computechem.cn)
+[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](http://computchem.cn)
 
 ## Features
 
@@ -39,7 +39,7 @@ conda install reacnetgenerator --use-local
 
 ## Usage
 
-## Command line
+### Command line
 
 ReacNetGenerator can process any kind of trajectory files containing atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1 all custom 100 dump.reaxc id type x y z” in LAMMPS:
 
@@ -99,3 +99,7 @@ reacnetgeneratorgui
     [Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
     [D3](https://github.com/d3/d3),
     [JSNetworkX](https://github.com/fkling/JSNetworkX)
+
+## Awards
+* The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
+* The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students

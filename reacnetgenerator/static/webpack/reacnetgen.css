@@ -26,7 +26,7 @@
     font-weight: bold;
 }
 
-.specnone, .reacnone, .reacabcdnone {
+.reacabcdnone {
     display: none;
 }
 
@@ -43,11 +43,13 @@
     background-size: 45px 45px;
 }
 
-.savesvg {
+.savesvgarea {
     position: absolute;
     right: 0;
     bottom: 0;
-    background-color: #008CBA;
+}
+
+.button {
     border: none;
     color: white;
     padding: 15px 32px;
@@ -55,4 +57,21 @@
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+}
+
+.savesvgbutton {
+    background-color: #008CBA;
+}
+
+.clearbutton {
+    background-color: tomato;
+}
+
+.paginationjs-pages {
+    display: inline-block!important;
+    float: none!important;
+}
+
+.narrow {
+    text-align:start;line-height:100%;
 }

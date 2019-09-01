@@ -1,7 +1,8 @@
 {
   "devDependencies": {
-    "semantic-release": "15.13.12",
-    "vuepress": "1.0.0"
+    "@qiwi/semantic-release-gh-pages-plugin": "^1.10.6",
+    "semantic-release": "15.13.24",
+    "vuepress": "1.0.3"
   },
   "scripts": {
     "docs:dev": "vuepress dev docs",
@@ -20,6 +21,7 @@
     "access": "restricted"
   },
   "release": {
+    "branch": "master",
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
@@ -41,7 +43,14 @@
             }
           ]
         }
+      ],
+      [
+        "@qiwi/semantic-release-gh-pages-plugin",
+        {
+          "src": "docs/.vuepress/dist"
+        }
       ]
+      
     ]
   }
 }
