@@ -43,14 +43,7 @@
             }
           ]
         }
-      ],
-      [
-        "@qiwi/semantic-release-gh-pages-plugin",
-        {
-          "src": "docs/.vuepress/dist"
-        }
       ]
-      
     ]
   }
 }
