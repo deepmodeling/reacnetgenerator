@@ -9,16 +9,19 @@ import os
 import shutil
 import fnmatch
 
+from distutils import log
+from distutils.file_util import copy_file
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
+import setuptools.command.build_ext
 
 
-class BuildCommand(setuptools.command.build_py.build_py):
+class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
     def run(self):
         try:
-            print(__doc__)
-            print('Prepare JavaScript files with webpack...')
+            log.info(__doc__)
+            log.info('Prepare JavaScript files with webpack...')
             yarn = shutil.which('yarn')
             sp.run(yarn, check=True, cwd=os.path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
@@ -31,7 +34,16 @@ class BuildCommand(setuptools.command.build_py.build_py):
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
         except AssertionError:
             raise OSError("No bundle.js found, please retry.")
-        setuptools.command.build_py.build_py.run(self)
+        # copy files
+        copy_file(
+            os.path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'),
+            os.path.join(self.build_lib, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'),
+            verbose=self.verbose,
+            dry_run=self.dry_run
+        )
+        setuptools.command.build_ext.build_ext.run(self)
+
+class BuildPyCommand(setuptools.command.build_py.build_py):
 
     def find_package_modules(self, package, package_dir):
         modules = super().find_package_modules(package, package_dir)
@@ -63,27 +75,19 @@ if __name__ == '__main__':
     ]
 
     define_macros = []
-    compiler_directives = {}
-    debug_mode = False
     if os.environ.get("DEBUG", 0):
          define_macros.append(('CYTHON_TRACE', '1'))
-         compiler_directives['linetrace'] = True
-         debug_mode = True
 
     ext_modules = [
         Extension("reacnetgenerator.dps", sources=[
             "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],
             language="c++", define_macros=define_macros,
-            compiler_directives=compiler_directives,
-            inplace=debug_mode,
         ),
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[
             f"{os.path.join(*encrypted_python_file.split('.'))}{os.path.extsep}py"],
             language="c", define_macros=define_macros,
-            compiler_directives=compiler_directives,
-            inplace=debug_mode,
         ) for encrypted_python_file in encrypted_python_files])
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],
@@ -141,6 +145,9 @@ if __name__ == '__main__':
           ],
           zip_safe=True,
           ext_modules=ext_modules,
-          cmdclass={"build_py": BuildCommand},
+          cmdclass={
+              "build_py": BuildPyCommand,
+              "build_ext": BuildExtCommand,
+          },
           version="1.0.0",
           )
