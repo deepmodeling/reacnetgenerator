@@ -3,12 +3,7 @@
  * Copyright 2018-2019 East China Normal University
  */
 //CSS
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'magnific-popup/dist/magnific-popup.css';
-import 'startbootstrap-creative/css/creative.min.css';
-import 'paginationjs/dist/pagination.css';
-import 'bootstrap-select/dist/css/bootstrap-select.min.css';
-import './reacnetgen.css';
+import './reacnetgen.scss'
 
 /* global linkreac */
 global.$ = global.jQuery = require('jquery');
@@ -18,7 +13,7 @@ require('jsrender');
 require('paginationjs');
 require("magnific-popup");
 require("bootstrap-select");
-require('startbootstrap-creative/js/creative.min');
+require('startbootstrap-creative/js/creative');
 var jsnx = require("jsnetworkx");
 var G = new jsnx.Graph();
 
