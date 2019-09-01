@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "cssnano": "^4.1.10",
+    "cssnano-preset-advanced": "^4.0.7",
     "node-sass": "^4.12.0",
     "postcss-import": "^12.0.1",
     "postcss-loader": "^3.0.0",
