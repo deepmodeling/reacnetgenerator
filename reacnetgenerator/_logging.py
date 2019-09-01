@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: linetrace=True
 """Init logging."""
 import logging
 import coloredlogs

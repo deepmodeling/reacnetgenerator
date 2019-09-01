@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: linetrace=True
 """Draw reaction network.
 
 With the reaction matrix, a reaction network can be drawn. Here the NetworkX

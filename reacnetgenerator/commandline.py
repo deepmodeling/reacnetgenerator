@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: linetrace=True
 import argparse
 from . import __version__
 

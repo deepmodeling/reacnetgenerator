@@ -5,33 +5,49 @@ Note you should install Yarn, OpenBabel, and RDkit first:
 conda install python=3 yarn openbabel rdkit compilers -c conda-forge
 """
 import subprocess as sp
-from os import path
+import os
 import shutil
 import fnmatch
 
+from distutils import log
+from distutils.file_util import copy_file
 from setuptools import setup, find_packages, Extension
 import setuptools.command.build_py
+import setuptools.command.build_ext
 
 
-class BuildCommand(setuptools.command.build_py.build_py):
+class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
     def run(self):
         try:
-            print(__doc__)
-            print('Prepare JavaScript files with webpack...')
+            log.info(__doc__)
+            log.info('Prepare JavaScript files with webpack...')
             yarn = shutil.which('yarn')
-            sp.run(yarn, check=True, cwd=path.join(
+            sp.run(yarn, check=True, cwd=os.path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            sp.run([yarn, 'start'], check=True, cwd=path.join(
+            sp.run([yarn, 'start'], check=True, cwd=os.path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            assert path.exists(path.join(
+            assert os.path.exists(os.path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
         except sp.CalledProcessError:
             raise ImportError(
                 "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
         except AssertionError:
             raise OSError("No bundle.js found, please retry.")
-        setuptools.command.build_py.build_py.run(self)
+        # copy files
+        try:
+            os.makedirs(os.path.join(self.build_lib, 'reacnetgenerator', 'static', 'webpack'))
+        except OSError:
+            pass
+        copy_file(
+            os.path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'),
+            os.path.join(self.build_lib, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'),
+            verbose=self.verbose,
+            dry_run=self.dry_run
+        )
+        setuptools.command.build_ext.build_ext.run(self)
+
+class BuildPyCommand(setuptools.command.build_py.build_py):
 
     def find_package_modules(self, package, package_dir):
         modules = super().find_package_modules(package, package_dir)
@@ -41,12 +57,12 @@ class BuildCommand(setuptools.command.build_py.build_py):
 
 
 def readme():
-    with open(path.join(this_directory, 'README.md'), encoding="utf8") as f:
+    with open(os.path.join(this_directory, 'README.md'), encoding="utf8") as f:
         return f.read()
 
 
 if __name__ == '__main__':
-    this_directory = path.abspath(path.dirname(__file__))
+    this_directory = os.path.abspath(os.path.dirname(__file__))
     encrypted_python_files = [
         "reacnetgenerator._detect",
         "reacnetgenerator._draw",
@@ -62,15 +78,23 @@ if __name__ == '__main__':
         "reacnetgenerator.commandline",
     ]
 
+    define_macros = []
+    if os.environ.get("DEBUG", 0):
+         define_macros.append(('CYTHON_TRACE', '1'))
+
     ext_modules = [
         Extension("reacnetgenerator.dps", sources=[
-            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"], language="c++"),
+            "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],
+            language="c++", define_macros=define_macros,
+        ),
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[
-                       f"{path.join(*encrypted_python_file.split('.'))}{path.extsep}py"], language="c") for encrypted_python_file in encrypted_python_files])
+            f"{os.path.join(*encrypted_python_file.split('.'))}{os.path.extsep}py"],
+            language="c", define_macros=define_macros,
+        ) for encrypted_python_file in encrypted_python_files])
 
-    tests_require = ['requests', 'pytest-sugar', 'pytest-cov'],
+    tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
           keywords="reaction network",
@@ -96,7 +120,7 @@ if __name__ == '__main__':
           extras_require={
               "test": tests_require,
           },
-          use_scm_version=path.exists(path.join(this_directory, ".git")),
+          use_scm_version=os.path.exists(os.path.join(this_directory, ".git")),
           setup_requires=[
               'setuptools>=18.0',
               'setuptools_scm',
@@ -125,6 +149,9 @@ if __name__ == '__main__':
           ],
           zip_safe=True,
           ext_modules=ext_modules,
-          cmdclass={"build_py": BuildCommand},
+          cmdclass={
+              "build_py": BuildPyCommand,
+              "build_ext": BuildExtCommand,
+          },
           version="1.0.0",
           )
