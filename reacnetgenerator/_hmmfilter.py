@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: linetrace=True
 """HMM Filter.
 
 In order to filter noise, a two-state HMM was adopted, which can be

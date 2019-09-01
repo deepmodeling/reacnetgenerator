@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: linetrace=True
 '''A beta version for reactions finder.
 
 

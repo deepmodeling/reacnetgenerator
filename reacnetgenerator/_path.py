@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: linetrace=True
 """Collect paths.
 
 To produce a reaction network, every molecule (species) should be treated as a

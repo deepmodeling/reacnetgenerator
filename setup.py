@@ -35,8 +35,6 @@ class BuildCommand(setuptools.command.build_py.build_py):
 
     def find_package_modules(self, package, package_dir):
         modules = super().find_package_modules(package, package_dir)
-        if debug_mode:
-            return modules
         return [(pkg, mod, file, ) for (pkg, mod, file, ) in modules
                 if not any(fnmatch.fnmatchcase(pkg + '.' + mod, pat=pattern)
                            for pattern in encrypted_python_files)]
@@ -63,11 +61,11 @@ if __name__ == '__main__':
         "reacnetgenerator._reaction",
         "reacnetgenerator.commandline",
     ]
-    
+
     define_macros = []
     compiler_directives = {}
     debug_mode = False
-    if 'TOXENV' in os.environ:
+    if os.environ.get("DEBUG", 0):
          define_macros.append(('CYTHON_TRACE', '1'))
          compiler_directives['linetrace'] = True
          debug_mode = True
@@ -77,14 +75,15 @@ if __name__ == '__main__':
             "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],
             language="c++", define_macros=define_macros,
             compiler_directives=compiler_directives,
-            inplace=debug_mode),
+            inplace=debug_mode,
+        ),
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[
-        f"{os.path.join(*encrypted_python_file.split('.'))}{os.path.extsep}py"],
-        language="c", define_macros=define_macros,
-        compiler_directives=compiler_directives,
-        inplace=debug_mode
+            f"{os.path.join(*encrypted_python_file.split('.'))}{os.path.extsep}py"],
+            language="c", define_macros=define_macros,
+            compiler_directives=compiler_directives,
+            inplace=debug_mode,
         ) for encrypted_python_file in encrypted_python_files])
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],

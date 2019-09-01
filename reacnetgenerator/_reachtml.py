@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# cython: linetrace=True
 # cython: language_level=3
 """Generate a web page to show the analysis report.
 
