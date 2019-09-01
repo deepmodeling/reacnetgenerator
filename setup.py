@@ -35,6 +35,10 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         except AssertionError:
             raise OSError("No bundle.js found, please retry.")
         # copy files
+        try:
+            os.makedirs(os.path.join(self.build_lib, 'reacnetgenerator', 'static', 'webpack'))
+        except OSError:
+            pass
         copy_file(
             os.path.join(this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'),
             os.path.join(self.build_lib, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'),
