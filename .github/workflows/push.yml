@@ -26,3 +26,10 @@ jobs:
       if: github.ref == 'refs/heads/master'
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@master
+      if: github.ref == 'refs/heads/master'
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/.vuepress/dist
