@@ -33,6 +33,14 @@ class TestReacNetGen:
         self._download_file(
             testparm['url'], testparm['filename'], testparm['sha256'])
 
+        # fix coverage for multiprocessing
+        try:
+            from pytest_cov.embed import cleanup_on_sigterm
+        except ImportError:
+            pass
+        else:
+            cleanup_on_sigterm()
+
         return reacnetgenerator.ReacNetGenerator(
             inputfilename=testparm['filename'], atomname=testparm['atomname'],
             SMILES=testparm['smiles'],

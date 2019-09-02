@@ -18,11 +18,3 @@ from ._version import __version__
 from .reacnetgen import ReacNetGenerator
 
 __all__ = ['ReacNetGenerator']
-
-# fix coverage for multiprocessing
-try:
-    from pytest_cov.embed import cleanup_on_sigterm
-except ImportError:
-    pass
-else:
-    cleanup_on_sigterm()
