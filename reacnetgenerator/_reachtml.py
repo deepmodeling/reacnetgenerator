@@ -90,12 +90,14 @@ class _HTMLResult:
                         if spec not in self._svgfiles:
                             append_spec.add(spec)
             if append_spec:
-                with Pool(self._nproc) as pool:
+                pool = Pool(self._nproc)
+                try:
                     results = pool.imap_unordered(self._convertsvg, tqdm(append_spec))
                     for spec, svgfile in results:
                         self._svgfiles[spec] = svgfile
-                pool.join()
-                pool.close()
+                finally:
+                    pool.join()
+                    pool.close()
         return reactionsabcd
 
     def _convertsvg(self, smiles):
@@ -120,12 +122,14 @@ class _HTMLResult:
                 if spec not in specs:
                     specs.append(spec)
         if timeaxis is None:
-            with Pool(self._nproc) as pool:
+            pool = Pool(self._nproc)
+            try:
                 results = pool.imap_unordered(self._convertsvg, tqdm(specs))
                 for spec, svgfile in results:
                     self._svgfiles[spec] = svgfile
-            pool.join()
-            pool.close()
+            finally:
+                pool.join()
+                pool.close()
         # return list of dict
         return list([{"s": spec, "i":i} for i, spec in enumerate(specs, 1)])
 

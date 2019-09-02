@@ -94,7 +94,8 @@ class _Detect(metaclass=ABCMeta):
     def _readinputfile(self):
         d = defaultdict(list)
         timestep = {}
-        with Pool(self.nproc, maxtasksperchild=1000) as pool:
+        pool = Pool(self.nproc, maxtasksperchild=1000)
+        try:
             semaphore = Semaphore(self.nproc*150)
             for i, inputfilename in enumerate(self.inputfilenames):
                 with open(inputfilename) as f:
@@ -121,11 +122,12 @@ class _Detect(metaclass=ABCMeta):
             values_c = list(tqdm(pool.imap(self._compressvalue,
                                                     d.values(),
                                                     100), desc="Save molecules", unit="molecule", total=self._temp1it))
-        pool.close()
+        finally:
+            pool.close()
+            pool.join()
         self._writemoleculetempfile((d.keys(), values_c))
         self._timestep = timestep
         self._step = len(timestep)
-        pool.join()
 
     def _compressvalue(self, x):
         return self._listtobytes(np.array(x))
