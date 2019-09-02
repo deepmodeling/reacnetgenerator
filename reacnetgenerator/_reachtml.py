@@ -96,8 +96,8 @@ class _HTMLResult:
                     for spec, svgfile in results:
                         self._svgfiles[spec] = svgfile
                 finally:
-                    pool.join()
                     pool.close()
+                    pool.join()
         return reactionsabcd
 
     def _convertsvg(self, smiles):
@@ -128,8 +128,8 @@ class _HTMLResult:
                 for spec, svgfile in results:
                     self._svgfiles[spec] = svgfile
             finally:
-                pool.join()
                 pool.close()
+                pool.join()
         # return list of dict
         return list([{"s": spec, "i":i} for i, spec in enumerate(specs, 1)])
 
