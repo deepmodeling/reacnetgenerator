@@ -730,7 +730,7 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
-"@qiwi/semantic-release-gh-pages-plugin@^1.10.6":
+"@qiwi/semantic-release-gh-pages-plugin@1.10.6":
   version "1.10.6"
   resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.10.6.tgz#b8bebd985b565fa69337072dda1425d756e2643e"
   integrity sha512-qWWru91omk5VvLMkbMLVTqLYV+BC474K0kPvYYfvux40p+e31dmPfZ5QYiHaZv1hfbOf0bDkRQ5gRmOI+OMtlA==
