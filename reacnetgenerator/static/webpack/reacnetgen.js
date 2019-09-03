@@ -25,8 +25,8 @@ $(function () {
 
 function handlerngdata(rngdata){
     global.rngdata = rngdata;
-    loaddata();
     loadsection();
+    loaddata();
 }
 
 function drawcanvas(){
@@ -230,6 +230,8 @@ function showresults(time) {
         }
         showresult(reactionsabcdsearch, rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     });
+    // refresh select picker
+    $('.selectpicker').selectpicker("refresh");
 }
 
 /**
