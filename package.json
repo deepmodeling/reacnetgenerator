@@ -8,10 +8,11 @@
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "now-build": "npm run docs:build && mv docs/.vuepress/dist dist",
-    "build": "yarn build-report && yarn docs:build",
+    "now-build": "yarn build-report && yarn build && mv docs/.vuepress/dist dist",
+    "build": "yarn copy-report && yarn docs:build",
     "semantic-release": "semantic-release",
-    "build-report": "cpx reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html"
+    "build-report": "cd reacnetgenerator/static/webpack && yarn && yarn start && cd ../../../",
+    "copy-report": "cpx reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html"
   },
   "license": "UNLICENSED",
   "version": "0.0.0-development",
