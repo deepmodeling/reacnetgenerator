@@ -92,7 +92,7 @@ function loadrngdata(){
     var getURLParam=require("get-url-param");
     var jdata = getURLParam(window.location.href, 'jdata')
     if(jdata){
-        $.get(jdata, function(data) {
+        $.get(decodeURIComponent(jdata), function(data) {
             try{
                 handlerngdata(JSON.parse(data));
             }catch(err){
