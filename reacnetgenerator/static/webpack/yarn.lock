@@ -2187,7 +2187,7 @@ get-stream@^4.0.0:
   dependencies:
     pump "^3.0.0"
 
-get-url-param@^1.0.1:
+get-url-param@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/get-url-param/-/get-url-param-1.0.1.tgz#c7d03db0498917671339f7c88a8861afba27f0bd"
   integrity sha1-x9A9sEmJF2cTOffIiohhr7on8L0=
