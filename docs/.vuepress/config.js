@@ -25,7 +25,7 @@ module.exports = {
 				label: 'English',
 				nav: [
 					{ text: 'Home', link: '/' },
-					{ text: 'Report', link: 'https://njzjz.github.io/reacnetgenerator/report.html' },
+					{ text: 'Report', link: 'https://njzjz.github.io/reacnetgenerator/report.html?jdata=simple.json' },
 					{ text: 'Article', link: 'https://doi.org/10.26434/chemrxiv.7421534'},
 					{ text: 'Group', link: 'http://computechem.cn'},
 				]
@@ -35,7 +35,7 @@ module.exports = {
 				label: '中文',
 				nav: [
 					{ text: '主页', link: '/zh/' },
-					{ text: '分析结果', link: 'https://njzjz.github.io/reacnetgenerator/report.html' },
+					{ text: '分析结果', link: 'https://njzjz.github.io/reacnetgenerator/report.html?jdata=simple.json' },
 					{ text: '论文', link: 'https://doi.org/10.26434/chemrxiv.7421534'},
 					{ text: '课题组', link: 'http://computechem.cn'},
 				]

@@ -20,13 +20,14 @@ var G = new jsnx.Graph();
 $(function () {
     loadcitation();
     drawcanvas();
-    var rngdata = loadrngdata();
-    if(rngdata){
-        global.rngdata = rngdata;
-        loaddata();
-        loadsection();
-    }
+    loadrngdata();
 });
+
+function handlerngdata(rngdata){
+    global.rngdata = rngdata;
+    loaddata();
+    loadsection();
+}
 
 function drawcanvas(){
     var canvas = $(document)[0].getElementById("canvas");
@@ -84,16 +85,16 @@ function loadcitation(){
 function loadrngdata(){
     var text = $('#rngdata').html();
     try{
-        return JSON.parse(text);
+        handlerngdata(JSON.parse(text));
     }catch(err){
     }
     // read from url
     var getURLParam=require("get-url-param");
-    jdata = getURLParam(window.location.href, 'jdata')
+    var jdata = getURLParam(window.location.href, 'jdata')
     if(jdata){
         $.get(jdata, function(data) {
             try{
-                return JSON.parse(data);
+                handlerngdata(JSON.parse(data));
             }catch(err){
             }
         }, 'text');
