@@ -20,7 +20,7 @@ Copyright 2018-2019 East China Normal University
         <option value={{:s}}>{{:s}}</option>
     </script>
     <script id="navTmpl" type="text/x-jsrender">
-        <li class="nav-item text-capitalize">
+        <li class="nav-item text-capitalize navtmpl">
             <a class="nav-link js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
         </li>
     </script>
@@ -41,11 +41,10 @@ Copyright 2018-2019 East China Normal University
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ml-auto">
+                <ul id="navs" class="navbar-nav ml-auto">
                     <li id="timeselectli" class="nav-item d-none">
                         <select id="timeselect" class="selectpicker"></select>
                     </li>
-                    <span id="navs"></span>
                 </ul>
             </div>
         </div>

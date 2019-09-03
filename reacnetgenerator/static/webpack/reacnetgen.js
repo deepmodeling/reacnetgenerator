@@ -87,6 +87,18 @@ function loadrngdata(){
         return JSON.parse(text);
     }catch(err){
     }
+    // read from url
+    var getURLParam=require("get-url-param");
+    jdata = getURLParam.get(window.location.href, 'jdata')
+    if(jdata){
+        $.get(jdata, function(data) {
+            try{
+                return JSON.parse(data);
+            }catch(err){
+            }
+        }, 'text');
+    }
+
 }
 
 function loaddata(){
@@ -124,7 +136,7 @@ function loadsection(){
     if(rngdata['reactionsabcd']){
         $('#reactionsabcd').show();
     }
-    $("#navs").html($.templates("#navTmpl").render(sections));
+    $("#navs").append($.templates("#navTmpl").render(sections));
     $("#buttons").html($.templates("#buttonTmpl").render(sections));
 }
 
