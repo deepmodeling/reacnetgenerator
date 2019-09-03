@@ -89,36 +89,39 @@ class _HMMFilter:
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
-        with tempfile.NamedTemporaryFile('wb', delete=False) if self.getoriginfile or not self.runHMM else ExitStack() as fo, tempfile.NamedTemporaryFile('wb', delete=False) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            self.moleculetemp2filename = ft2.name
-            self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
-            self.hmmfilename = fh.name if self.runHMM else None
-            semaphore = Semaphore(self.nproc*150)
-            results = pool.imap_unordered(
-                self._getoriginandhmm, self._produce(semaphore, itertools.zip_longest(*[ft] * 3), ()), 100)
-            hmmit = 0
-            buffo = []
-            buffh = []
-            bufft = []
-            for originbytes, hmmbytes, line_c in tqdm(
-                    results, total=self._temp1it, desc="HMM filter",
-                    unit="molecule"):
-                if originbytes is not None or hmmbytes is not None:
-                    for signalbytes, buff, f in [(originbytes, buffo, fo), (hmmbytes, buffh, fh)]:
-                        if signalbytes is not None:
-                            buff.append(signalbytes)
-                            if len(buff) > 30*self.nproc:
-                                f.write(b''.join(buff))
-                                buff[:] = []
-                    hmmit += 1
-                    bufft.extend(line_c)
-                    if len(buffh) > 30*self.nproc:
-                        ft2.write(b''.join(bufft))
-                        bufft[:] = []
-                semaphore.release()
-            for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
-                if buff:
-                    f.write(b''.join(buff))
-        pool.close()
+        with tempfile.NamedTemporaryFile('wb', delete=False) if self.getoriginfile or not self.runHMM else ExitStack() as fo, tempfile.NamedTemporaryFile('wb', delete=False) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2:
+            pool = Pool(self.nproc, maxtasksperchild=1000)
+            try:
+                self.moleculetemp2filename = ft2.name
+                self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
+                self.hmmfilename = fh.name if self.runHMM else None
+                semaphore = Semaphore(self.nproc*150)
+                results = pool.imap_unordered(
+                    self._getoriginandhmm, self._produce(semaphore, itertools.zip_longest(*[ft] * 3), ()), 100)
+                hmmit = 0
+                buffo = []
+                buffh = []
+                bufft = []
+                for originbytes, hmmbytes, line_c in tqdm(
+                        results, total=self._temp1it, desc="HMM filter",
+                        unit="molecule"):
+                    if originbytes is not None or hmmbytes is not None:
+                        for signalbytes, buff, f in [(originbytes, buffo, fo), (hmmbytes, buffh, fh)]:
+                            if signalbytes is not None:
+                                buff.append(signalbytes)
+                                if len(buff) > 30*self.nproc:
+                                    f.write(b''.join(buff))
+                                    buff[:] = []
+                        hmmit += 1
+                        bufft.extend(line_c)
+                        if len(buffh) > 30*self.nproc:
+                            ft2.write(b''.join(bufft))
+                            bufft[:] = []
+                    semaphore.release()
+                for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
+                    if buff:
+                        f.write(b''.join(buff))
+            finally:
+                pool.close()
+                pool.join()
         self._hmmit = hmmit
-        pool.join()

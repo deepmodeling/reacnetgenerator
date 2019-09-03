@@ -110,22 +110,25 @@ class _CollectPaths(metaclass=ABCMeta):
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach, timeaxis=None):
-        with open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w') as f, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            allmoleculeroute = []
-            semaphore = Semaphore(self.nproc*150)
-            results = pool.imap(self._getatomroute, self._produce(
-                semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
-            for moleculeroute, routestr in tqdm(
-                    results, total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}",
-                    unit="atom"):
-                f.write("".join([routestr, '\n']))
-                if moleculeroute.size > 0:
-                    allmoleculeroute.append(moleculeroute)
-                semaphore.release()
-        pool.close()
+        with open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w') as f:
+            pool = Pool(self.nproc, maxtasksperchild=1000)
+            try:
+                allmoleculeroute = []
+                semaphore = Semaphore(self.nproc*150)
+                results = pool.imap(self._getatomroute, self._produce(
+                    semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
+                for moleculeroute, routestr in tqdm(
+                        results, total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}",
+                        unit="atom"):
+                    f.write("".join([routestr, '\n']))
+                    if moleculeroute.size > 0:
+                        allmoleculeroute.append(moleculeroute)
+                    semaphore.release()
+            finally:
+                pool.close()
+                pool.join()
         allmoleculeroute = np.unique(np.concatenate(
             allmoleculeroute), axis=0) if allmoleculeroute else np.zeros((0, 2), dtype=int)
-        pool.join()
         return allmoleculeroute
 
     def convertSMILES(self, atoms, bonds):
