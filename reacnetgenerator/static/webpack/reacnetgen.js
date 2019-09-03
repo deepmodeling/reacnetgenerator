@@ -201,7 +201,7 @@ function showresults(time) {
         if ($(this).val().length > 0) {
             var reactionssearch = [];
             for (var i in rngdata['reactions'][time - 1]) {
-                if ($(this).val().indexOf(rngdata['reactions'][time - 1][i]["l"][0]) >= 0 || $(this).val().indexOf(reactions[time - 1][i]["r"][0]) >= 0) {
+                if ($(this).val().indexOf(rngdata['reactions'][time - 1][i]["l"][0]) >= 0 || $(this).val().indexOf(rngdata['reactions'][time - 1][i]["r"][0]) >= 0) {
                     reactionssearch.push(rngdata['reactions'][time - 1][i]);
                 }
             }
