@@ -7,9 +7,11 @@
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "now-build": "npm run docs:build && mv docs/.vuepress/dist dist",
-    "build": "mv testfiles-*/dump.reaxc.html docs/.vuepress/public/report.html && yarn docs:build",
-    "semantic-release": "semantic-release"
+    "now-build": "yarn build-report && yarn build && mv docs/.vuepress/dist dist",
+    "build": "yarn copy-report && yarn docs:build",
+    "semantic-release": "semantic-release",
+    "build-report": "cd reacnetgenerator/static/webpack && yarn && yarn start && cd ../../../",
+    "copy-report": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html"
   },
   "license": "UNLICENSED",
   "version": "0.0.0-development",
@@ -50,7 +52,7 @@
           "src": "docs/.vuepress/dist"
         }
       ]
-      
     ]
-  }
+  },
+  "dependencies": {}
 }

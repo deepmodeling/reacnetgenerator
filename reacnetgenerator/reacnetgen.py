@@ -96,6 +96,7 @@ class ReacNetGenerator:
         self.imagefilename = self._setfilename(imagefilename, "svg")
         self.speciesfilename = self._setfilename(speciesfilename, "species")
         self.resultfilename = self._setfilename(resultfilename, "html")
+        self.jsonfilename = self._setfilename(resultfilename, "json")
         self.reactionabcdfilename = self._setfilename(
             reactionabcdfilename, 'reactionabcd')
         self.stepinterval = stepinterval

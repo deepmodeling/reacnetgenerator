@@ -5,7 +5,7 @@
 //CSS
 import './reacnetgen.scss'
 
-/* global linkreac */
+/* global rngdata */
 global.$ = global.jQuery = require('jquery');
 require('bootstrap');
 require('jquery.easing');
@@ -18,6 +18,18 @@ var jsnx = require("jsnetworkx");
 var G = new jsnx.Graph();
 
 $(function () {
+    loadcitation();
+    drawcanvas();
+    loadrngdata();
+});
+
+function handlerngdata(rngdata){
+    global.rngdata = rngdata;
+    loadsection();
+    loaddata();
+}
+
+function drawcanvas(){
     var canvas = $(document)[0].getElementById("canvas");
     jsnx.draw(G, {
         "element": canvas,
@@ -35,7 +47,7 @@ $(function () {
             "title"(d) { return d.label; },
             "xlink:href"(d) { 
                 var circle = '<circle cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />';
-                return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + speciessvg[d.node] + '</svg>');
+                return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + rngdata['speciessvg'][d.node] + '</svg>');
             },
             "ondblclick"(d) {
                 return "clearTimeout(timer1);G.removeNode('" + d.node + "');";
@@ -64,23 +76,71 @@ $(function () {
     }, true);
     $("#canvassec").addClass("mfp-hide");
     $("#canvasbutton").show();
+}
 
-    if (species.length > 1) {
+function loadcitation(){
+    $(".citation").html($("#citationTmpl").html());
+}
+
+function loadrngdata(){
+    var text = $('#rngdata').html();
+    try{
+        handlerngdata(JSON.parse(text));
+    }catch(err){
+    }
+    // read from url
+    var getURLParam=require("get-url-param");
+    var jdata = getURLParam(window.location.href, 'jdata')
+    if(jdata){
+        $.get(decodeURIComponent(jdata), function(data) {
+            try{
+                handlerngdata(JSON.parse(data));
+            }catch(err){
+                console.log(err);
+            }
+        }, 'text');
+    }
+
+}
+
+function loaddata(){
+    if (rngdata['species'].length > 1) {
         var timelist = [{ "value": 1, "text": "All" }]
-        for (var i = 0; i < species.length; i++) {
+        for (var i = 0; i < rngdata['species'].length; i++) {
             timelist.push({ "value": i + 2, "text": "Time " + String(i + 1) });
         }
-        $("#timeselect").html($.templates("<option value={{:value}}>{{:text}}</option>").render(timelist));
+        $("#timeselect").html($.templates("#optionTmpl").render(timelist));
         $("#timeselectli").removeClass("d-none");
         $("select#timeselect").change(function () {
             showresults($(this).val());
         });
     }
-    if (reactionsabcd.length > 0) {
+    if (rngdata['reactionsabcd'].length > 0) {
         $("#reactionsabcd").removeClass("d-none");
     }
     showresults(1);
-});
+}
+
+function loadsection(){
+    var sections = [];
+    if(rngdata['network']){
+        sections.push('network');
+        $('#network').show();
+    }
+    if(rngdata['species']){
+        sections.push('species');
+        $('#species').show();
+    }
+    if(rngdata['reactions']){
+        sections.push('reactions');
+        $('#reactions').show();
+    }
+    if(rngdata['reactionsabcd']){
+        $('#reactionsabcd').show();
+    }
+    $("#navs").append($.templates("#navTmpl").render(sections));
+    $("#buttons").html($.templates("#buttonTmpl").render(sections));
+}
 
 /** 
  * show results
@@ -96,10 +156,10 @@ function showresult(data, size, tmpl, result, pager) {
                 for (var ii in p) {
                     if (p[ii] in data[i]) {
                         if (typeof (data[i][p[ii]]) == "string") {
-                            data[i]["svg"][data[i][p[ii]]] = speciessvg[data[i][p[ii]]];
+                            data[i]["svg"][data[i][p[ii]]] = rngdata['speciessvg'][data[i][p[ii]]];
                         } else {
                             for (var j in data[i][p[ii]]) {
-                                data[i]["svg"][data[i][p[ii]][j]] = speciessvg[data[i][p[ii]][j]];
+                                data[i]["svg"][data[i][p[ii]][j]] = rngdata['speciessvg'][data[i][p[ii]][j]];
                             }
                         }
 
@@ -116,60 +176,62 @@ function showresult(data, size, tmpl, result, pager) {
 }
 
 function showresults(time) {
-    $("#networkresult").html(network[time - 1]);
-    showresult(species[time - 1], speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
-    showresult(reactions[time - 1], reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
-    showresult(reactionsabcd, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+    $("#networkresult").html(rngdata['network'][time - 1]);
+    showresult(rngdata['species'][time - 1], rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
+    showresult(rngdata['reactions'][time - 1], rngdata['reactionsshownum'], "#reacTmpl", "#reactionsresult", "#reactionspager");
+    showresult(rngdata['reactionsabcd'], rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     // select
-    $("#speciesselect").html($.templates("<option value={{:s}}>{{:s}}</option>").render(species[time - 1]));
-    $("#reactionsselect").html($.templates("<option value={{:s}}>{{:s}}</option>").render(species[time - 1]));
-    $("#reactionsabcdselect").html($.templates("<option value={{:s}}>{{:s}}</option>").render(species[time - 1]));
+    $("#speciesselect").html($.templates("#optionTmpl").render(rngdata['species'][time - 1]));
+    $("#reactionsselect").html($.templates("#optionTmpl").render(rngdata['species'][time - 1]));
+    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(rngdata['species'][time - 1]));
     $("select#speciesselect").change(function () {
         if ($(this).val().length > 0) {
             var speciessearch = [];
-            for (var i in species[time - 1]) {
-                if ($(this).val().indexOf(species[time - 1][i]['s']) >= 0) {
-                    speciessearch.push(species[time - 1][i]);
+            for (var i in rngdata['species'][time - 1]) {
+                if ($(this).val().indexOf(rngdata['species'][time - 1][i]['s']) >= 0) {
+                    speciessearch.push(rngdata['species'][time - 1][i]);
                 }
             }
         } else {
-            speciessearch = species[time - 1];
+            speciessearch = rngdata['species'][time - 1];
         }
-        showresult(speciessearch, speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
+        showresult(speciessearch, rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
     });
     $("select#reactionsselect").change(function () {
         if ($(this).val().length > 0) {
             var reactionssearch = [];
-            for (var i in reactions[time - 1]) {
-                if ($(this).val().indexOf(reactions[time - 1][i]["l"][0]) >= 0 || $(this).val().indexOf(reactions[time - 1][i]["r"][0]) >= 0) {
-                    reactionssearch.push(reactions[time - 1][i]);
+            for (var i in rngdata['reactions'][time - 1]) {
+                if ($(this).val().indexOf(rngdata['reactions'][time - 1][i]["l"][0]) >= 0 || $(this).val().indexOf(rngdata['reactions'][time - 1][i]["r"][0]) >= 0) {
+                    reactionssearch.push(rngdata['reactions'][time - 1][i]);
                 }
             }
         } else {
-            reactionssearch = reactions[time - 1];
+            reactionssearch = rngdata['reactions'][time - 1];
         }
-        showresult(reactionssearch, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
+        showresult(reactionssearch, rngdata['reactionsshownum'], "#reacTmpl", "#reactionsresult", "#reactionspager");
     });
     $("select#reactionsabcdselect").change(function () {
         if ($(this).val().length > 0) {
             var reactionsabcdsearch = [];
-            for (var i in reactionsabcd) {
+            for (var i in rngdata['reactionsabcd']) {
                 var b = false;
-                for (var j in reactionsabcd[i]['l']) {
-                    if ($(this).val().indexOf(reactionsabcd[i]["l"][j]) >= 0) b = true;
+                for (var j in rngdata['reactionsabcd'][i]['l']) {
+                    if ($(this).val().indexOf(rngdata['reactionsabcd'][i]["l"][j]) >= 0) b = true;
                 }
-                for (var j in reactionsabcd[i]['r']) {
-                    if ($(this).val().indexOf(reactionsabcd[i]["r"][j]) >= 0) b = true;
+                for (var j in rngdata['reactionsabcd'][i]['r']) {
+                    if ($(this).val().indexOf(rngdata['reactionsabcd'][i]["r"][j]) >= 0) b = true;
                 }
                 if (b) {
-                    reactionsabcdsearch.push(reactionsabcd[i]);
+                    reactionsabcdsearch.push(rngdata['reactionsabcd'][i]);
                 }
             }
         } else {
-            reactionsabcdsearch = reactionsabcd;
+            reactionsabcdsearch = rngdata['reactionsabcd'];
         }
-        showresult(reactionsabcdsearch, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+        showresult(reactionsabcdsearch, rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     });
+    // refresh select picker
+    $('.selectpicker').selectpicker("refresh");
 }
 
 /**
@@ -177,8 +239,8 @@ function showresults(time) {
 */
 function addnode(spec) {
     G.addNode(spec);
-    if (spec in linkreac) {
-        var rightspecs = linkreac[spec];
+    if (spec in rngdata['linkreac']) {
+        var rightspecs = rngdata['linkreac'][spec];
         for (var i = 0; i < rightspecs.length; i++) {
             G.addNode(rightspecs[i]);
             G.addEdge(rightspecs[i], spec);

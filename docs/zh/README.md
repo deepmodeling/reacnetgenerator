@@ -56,7 +56,7 @@ ReacNetGenerator可以处理任意类型含有原子坐标的轨迹文件，例�
 reacnetgenerator --dump -i dump.reaxc -a C H O
 ```
 
-其中，C、H、O 是轨迹中的原子种类。软件将自动生成[分析结果](https://njzjz.github.io/reacnetgenerator/report.html)。
+其中，C、H、O 是轨迹中的原子种类。软件将自动生成<a href="/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json" target="_blank">分析结果</a>。
 
 软件也可以处理含有键级信息的文件，例如LAMMPS键级文件：
 
@@ -92,9 +92,7 @@ reacnetgeneratorgui
     [ASE](https://gitlab.com/ase/ase),
     [scour](https://github.com/scour-project/scour),
     [tqdm](https://github.com/tqdm/tqdm),
-    [jinja2](https://github.com/pallets/jinja),
     [coloredlogs](https://github.com/xolox/python-coloredlogs),
-    [htmlmin](https://github.com/mankyd/htmlmin/),
     [lz4](https://github.com/python-lz4/python-lz4),
     [pybase64](https://github.com/mayeut/pybase64)
 -   额外的软件依赖：

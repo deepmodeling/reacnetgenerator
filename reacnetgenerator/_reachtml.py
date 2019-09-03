@@ -18,10 +18,8 @@ from collections import defaultdict
 from multiprocessing import Pool
 import pkg_resources
 
-import htmlmin
 import openbabel
 import scour.scour
-from jinja2 import Template
 from tqdm import tqdm
 
 
@@ -31,6 +29,7 @@ class _HTMLResult:
         self._resultfile = rng.resultfilename
         self._imagefile = rng.imagefilename
         self._reactionabcdfilename = rng.reactionabcdfilename
+        self._jsonfile = rng.jsonfilename
         self._nproc = rng.nproc
         self._split = rng.split
         self._atomname = rng.atomname
@@ -148,17 +147,20 @@ class _HTMLResult:
         if self._split > 1:
             for i in range(self._split):
                 network.append(self._generatenetwork(timeaxis=i))
-        self._templatedict["network"] = json.dumps(network, separators=(',', ':'))
-        self._templatedict["speciessvg"] = json.dumps(self._svgfiles, separators=(',', ':'))
-        self._templatedict["species"] = json.dumps(self._specs, separators=(',', ':'))
-        self._templatedict["reactions"] = json.dumps(self._reaction, separators=(',', ':'))
-        self._templatedict["reactionsabcd"] = json.dumps(self._reactionsabcd, separators=(',', ':'))
-        self._templatedict["linkreac"] = json.dumps(self._linkreac, separators=(',', ':'))
-        template = Template(pkg_resources.resource_string(
-            __name__, 'static/webpack/bundle.html').decode())
-        webpage = template.render(**self._templatedict)
+        self._templatedict["network"] = network
+        self._templatedict["speciessvg"] = self._svgfiles
+        self._templatedict["species"] = self._specs
+        self._templatedict["reactions"] = self._reaction
+        self._templatedict["reactionsabcd"] = self._reactionsabcd
+        self._templatedict["linkreac"] = self._linkreac
+        rngdata = json.dumps(self._templatedict, separators=(',', ':'))
+        template = pkg_resources.resource_string(
+            __name__, 'static/webpack/bundle.html').decode()
+        webpage = template.replace('PUTREACNETGENERATORDATAHERE', rngdata)
+        with open(self._jsonfile, 'w') as f:
+            f.write(rngdata)
         with open(self._resultfile, 'w', encoding="utf-8") as f:
-            f.write(htmlmin.minify(webpage))
+            f.write(webpage)
 
     def _generatenetwork(self, timeaxis=None):
         with open(self._imagefile if timeaxis is None else f"{self._imagefile}.{timeaxis}") as f:
@@ -169,4 +171,4 @@ class _HTMLResult:
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)
             svgdata = svgdata.replace(r"""<style type="text/css">*{""",r"""<style type="text/css">#network svg *{""")
-        return htmlmin.minify(svgdata)
+        return scour.scour.scourString(svgdata, self.scouroptions)
