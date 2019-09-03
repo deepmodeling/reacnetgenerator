@@ -2,23 +2,36 @@
 ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
 Copyright 2018-2019 East China Normal University
 -->
-{% set citation %}
-J. Zeng, L. Cao, J.Z.H. Zhang, C.-H. Chin, T. Zhu: ReacNetGen: an
-Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2018, doi:<a
-href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a>
-{% endset %}
-{% set sections = ['Network','Species','Reactions'] %}
 <html>
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Analysis Report</title>
-{% raw %}
 </head>
-{% endraw %}
 
 <body id="page-top">
+    <script id="citationTmpl" type="text/x-jsrender">
+        J. Zeng, L. Cao, J.Z.H. Zhang, C.-H. Chin, T. Zhu: ReacNetGenerator: an
+        Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2018, doi:<a
+        href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a>
+    </script>
+    <script id="optionTmpl" type="text/x-jsrender">
+        <option value={{:s}}>{{:s}}</option>
+    </script>
+    <script id="navTmpl" type="text/x-jsrender">
+        <li class="nav-item text-capitalize">
+            <a class="nav-link js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
+        </li>
+    </script>
+    <script id="buttonTmpl" type="text/x-jsrender">
+        <div class="col-lg-3 mx-auto text-center">
+            <div class="service-box mt-5 mx-auto text-capitalize">
+                <a class="btn btn-primary btn-xl js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
+            </div>
+        </div>
+    </script>
+
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
             <img class="mx-2" style="height:40px;width:40px;" src="data:image/svg+xml,%3Csvg viewBox='0 0 2000 2000' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1161.4' cy='844.92' r='644.34' fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='80'/%3E%3Cpath d='M157.8 1848.5c-33.412-33.412-33.412-88.086 0-121.5l425.24-425.24c33.412-33.412 88.086-33.412 121.5 0s33.412 88.086 0 121.5L279.3 1848.5c-33.412 33.412-88.087 33.412-121.5 0z' fill='%23CC5C5C' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='40'/%3E%3Cpath fill='%23CC5C5C' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='39.9996' d='M643.775 1241.064l121.494 121.494-58.59 58.59-121.494-121.494z'/%3E%3Cpath fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='39.9992' d='M1134.424 1057.706L952.178 607.194l450.513-182.247 182.246 450.513z'/%3E%3Cpath fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='40' d='M952.23 607.15L1585 875.45M1134.5 1057.7l268.3-632.79M1134.5 1057.7l-318.61 128.8'/%3E%3Ccircle cx='952.23' cy='607.15' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1585' cy='875.45' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1134.5' cy='1057.7' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='816.47' cy='1186.3' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1402.8' cy='424.91' r='85.912' fill='%23CC5C5C'/%3E%3C/svg%3E">
@@ -32,9 +45,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     <li id="timeselectli" class="nav-item d-none">
                         <select id="timeselect" class="selectpicker"></select>
                     </li>
-                    {% for sec in sections %}
-                    <li class="nav-item"><a class="nav-link js-scroll-trigger" href="#{{ sec|lower }}">{{ sec }}</a></li>
-                    {% endfor %}
+                    <span id="navs"></span>
                 </ul>
             </div>
         </div>
@@ -47,22 +58,15 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                     <h1 class="text-uppercase">Analysis Report</h1>
                 </div>
                 <div class="col-lg-10 mx-auto">
-                    <p><strong>Please cite:</strong> {{citation}}</p>
+                    <p><strong>Please cite:&nbsp;</strong>
+                    <span class="citation"></span></p>
                 </div>
             </div>
-            <div class="row">
-                {% for sec in sections %}
-                <div class="col-lg-3 mx-auto text-center">
-                    <div class="service-box mt-5 mx-auto">
-                        <a class="btn btn-primary btn-xl js-scroll-trigger" href="#{{ sec|lower }}">{{ sec }}</a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            <div id="buttons" class="row"></div>
         </div>
     </header>
 
-    <section id="network" class='page-section bg-white mx-auto text-center'>
+    <section id="network" class='page-section bg-white mx-auto text-center' style="display:none;">
         <div class="container my-auto">
             <div class="row">
                 <div class="mx-auto w-100 text-center">
@@ -73,7 +77,6 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         </div>
     </section>
 
-    {% raw %}
     <script id="svgTmpl" type="text/x-jsrender">
         <div><a class="popup-modal" href="#canvassec" onclick="addnode('{{:#view.data}}');" title="{{:#view.data}}">
         <svg class='spec' version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -115,9 +118,8 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
             {{include tmpl="#rTmpl"/}}
         </div>
     </script>
-    {% endraw %}
     
-    <section id="species" class='page-section bg-white mx-auto'>
+    <section id="species" class='page-section bg-white mx-auto' style="display:none;">
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
@@ -135,7 +137,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
     </section>
 
 
-    <section id="reactions" class='page-section bg-white mx-auto'>
+    <section id="reactions" class='page-section bg-white mx-auto' style="display:none;">
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
@@ -151,7 +153,7 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
                 </div>
     </section>
 
-    <section id="reactionsabcd" class='page-section bg-white mx-auto d-none'>
+    <section id="reactionsabcd" class='page-section bg-white mx-auto d-none' style="display:none;">
         <div class="container">
             <div class="row">
                 <div class="mx-auto text-center">
@@ -173,15 +175,17 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
-                    <p>Generated by <a href="https://njzjz.github.io/reacnetgenerator">ReacNetGenerator</a></p>
-                    <p><strong>Citation:</strong> {{ citation }}</p>
-                    <p><strong>Author:</strong>
-                        <a href="https://cv.njzjz.win/">Jinzhe Zeng</a>,
-                        <a href="http://computchem.cn/people/"></a>Liqun Cao</a>,
-                        <a href="https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang">John ZH Zhang</a>,
-                        <a href="http://computchem.cn/people/"></a>Chih-Hao Chin</a>,
+                    <p>Generated by&nbsp;<a href="https://njzjz.github.io/reacnetgenerator">ReacNetGenerator</a></p>
+                    <p><strong>Citation:</strong>&nbsp;
+                        <span class="citation"></span>
+                    </p>
+                    <p><strong>Author:</strong>&nbsp;
+                        <a href="https://cv.njzjz.win/">Jinzhe Zeng</a>,&nbsp;
+                        <a href="http://computchem.cn/people/"></a>Liqun Cao</a>,&nbsp;
+                        <a href="https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang">John ZH Zhang</a>,&nbsp;
+                        <a href="http://computchem.cn/people/"></a>Chih-Hao Chin</a>,&nbsp;
                         <a href="http://computchem.cn/people/">Tong Zhu</a></p>
-                    <p><strong>Email:</strong> <a href="mailto:tzhu@lps.ecnu.edu.cn">tzhu@lps.ecnu.edu.cn</a>,
+                    <p><strong>Email:</strong>&nbsp;<a href="mailto:tzhu@lps.ecnu.edu.cn">tzhu@lps.ecnu.edu.cn</a>,&nbsp;
                         <a href="mailto:jzzeng@stu.ecnu.edu.cn">jzzeng@stu.ecnu.edu.cn</a></p>
                 </div>
             </div>
@@ -196,18 +200,6 @@ href="https://dx.doi.org/10.26434/chemrxiv.7421534">10.26434/chemrxiv.7421534</a
         </div>
     </div>
 
-    <script>
-        linkreac={{ linkreac }};
-        speciesshownum={{ speciesshownum }};
-        reactionsshownum={{ reactionsshownum }};
-        species={{ species }};
-        reactions={{ reactions }};
-        network={{ network }};
-        reactionsabcd={{ reactionsabcd }};
-        speciessvg={{ speciessvg }};
-    </script>
-{% raw %}
+    <script type="application/json" id="rngdata">PUTREACNETGENERATORDATAHERE</script>
 </body>
-{% endraw %}
-
 </html>

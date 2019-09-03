@@ -91,9 +91,7 @@ reacnetgeneratorgui
     [ASE](https://gitlab.com/ase/ase),
     [scour](https://github.com/scour-project/scour),
     [tqdm](https://github.com/tqdm/tqdm),
-    [jinja2](https://github.com/pallets/jinja),
     [coloredlogs](https://github.com/xolox/python-coloredlogs),
-    [htmlmin](https://github.com/mankyd/htmlmin/),
     [lz4](https://github.com/python-lz4/python-lz4),
     [pybase64](https://github.com/mayeut/pybase64)
 -   Extra libraries:

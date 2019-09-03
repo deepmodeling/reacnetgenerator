@@ -71,9 +71,18 @@ module.exports = {
 				collapseBooleanAttributes: true,
 				collapseInlineTagWhitespace: true,
 				minifyCSS: true,
-				minifyJS: true,
+        minifyJS: true,
+        minifyURLs: true,
+        decodeEntities: true,
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
+        removeAttributeQuotes: true,
+        removeOptionalTags: true,
+        removeRedundantAttributes: true,
+        removeEmptyAttributes: true,
+        sortAttributes: true,
+        sortClassName: true,
+        useShortDoctype: true,
         ignoreCustomFragments: [ /<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/ ],
         processScripts: ['text/x-jsrender']
 			}
@@ -84,7 +93,7 @@ module.exports = {
   optimization: {
     minimizer: [
       new TerserPlugin({
-        cache: false,
+        cache: true,
         parallel: true,
         terserOptions: {
           comments: false
