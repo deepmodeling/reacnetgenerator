@@ -96,6 +96,7 @@ function loadrngdata(){
             try{
                 handlerngdata(JSON.parse(data));
             }catch(err){
+                console.log(err);
             }
         }, 'text');
     }

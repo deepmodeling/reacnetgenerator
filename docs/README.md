@@ -55,7 +55,7 @@ ReacNetGenerator can process any kind of trajectory files containing atomic coor
 ```bash
 reacnetgenerator --dump -i dump.reaxc -a C H O
 ```
-where C, H, and O are atomic names in the input file. [Analysis report](https://njzjz.github.io/reacnetgenerator/report.html?jdata=https%3a%2f%2fgist.githubusercontent.com%2fnjzjz%2fe9a4b42ceb7d2c3c7ada189f38708bf3%2fraw%2f18ca0e84e43d315ec6c59402ed5ec7fc6ba0b722%2fmethane.json) will be generated automatically.
+where C, H, and O are atomic names in the input file. [Analysis report](https://njzjz.github.io/reacnetgenerator/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json) will be generated automatically.
 
 Also, ReacNetGenerator can process files containing bond information, e.g. LAMMPS bond file:
 
