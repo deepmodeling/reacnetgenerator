@@ -93,13 +93,7 @@ module.exports = {
   ],
   optimization: {
     minimizer: [
-      new TerserPlugin({
-        cache: true,
-        parallel: true,
-        terserOptions: {
-          comments: false
-        }
-      }),
+      new TerserPlugin(),
     ],
   },
   performance: {
