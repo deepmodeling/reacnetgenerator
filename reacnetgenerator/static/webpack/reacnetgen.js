@@ -23,13 +23,13 @@ $(function () {
     loadrngdata();
 });
 
-function handlerngdata(rngdata){
+function handlerngdata(rngdata) {
     global.rngdata = rngdata;
     loadsection();
     loaddata();
 }
 
-function drawcanvas(){
+function drawcanvas() {
     var canvas = $(document)[0].getElementById("canvas");
     jsnx.draw(G, {
         "element": canvas,
@@ -45,7 +45,7 @@ function drawcanvas(){
         "nodeShape": "image",
         "nodeAttr": {
             "title"(d) { return d.label; },
-            "xlink:href"(d) { 
+            "xlink:href"(d) {
                 var circle = '<circle cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />';
                 return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + rngdata['speciessvg'][d.node] + '</svg>');
             },
@@ -78,32 +78,40 @@ function drawcanvas(){
     $("#canvasbutton").show();
 }
 
-function loadcitation(){
+function loadcitation() {
     $(".citation").html($("#citationTmpl").html());
 }
 
-function loadrngdata(){
+function loadrngdata() {
     var text = $('#rngdata').html();
-    try{
-        handlerngdata(JSON.parse(text));
-    }catch(err){
+    if (handlejsondata(text)) {
+        return;
     }
     // read from url
-    var getURLParam=require("get-url-param");
+    var getURLParam = require("get-url-param");
     var jdata = getURLParam(window.location.href, 'jdata')
-    if(jdata){
-        $.get(decodeURIComponent(jdata), function(data) {
-            try{
-                handlerngdata(JSON.parse(data));
-            }catch(err){
-                console.log(err);
+    if (jdata) {
+        $.get(decodeURIComponent(jdata), function (data) {
+            if (!handlejsondata(data)) {
+                addloadbutton();
             }
         }, 'text');
+    } else {
+        addloadbutton();
     }
-
 }
 
-function loaddata(){
+function handlejsondata(text) {
+    try {
+        handlerngdata(JSON.parse(text));
+        return true;
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
+}
+
+function loaddata() {
     if (rngdata['species'].length > 1) {
         var timelist = [{ "value": 1, "text": "All" }]
         for (var i = 0; i < rngdata['species'].length; i++) {
@@ -121,21 +129,21 @@ function loaddata(){
     showresults(1);
 }
 
-function loadsection(){
+function loadsection() {
     var sections = [];
-    if(rngdata['network']){
+    if (rngdata['network']) {
         sections.push('network');
         $('#network').show();
     }
-    if(rngdata['species']){
+    if (rngdata['species']) {
         sections.push('species');
         $('#species').show();
     }
-    if(rngdata['reactions']){
+    if (rngdata['reactions']) {
         sections.push('reactions');
         $('#reactions').show();
     }
-    if(rngdata['reactionsabcd']){
+    if (rngdata['reactionsabcd']) {
         $('#reactionsabcd').show();
     }
     $("#navs").append($.templates("#navTmpl").render(sections));
@@ -265,6 +273,20 @@ function clearnode() {
     for (var i = 0; i < nodes.length; i++) {
         G.removeNode(nodes[i]);
     }
+}
+
+function addloadbutton() {
+    $("#buttons").html($("#loadTmpl").html());
+    $('#loadbutton').change(function (e) {
+        var f = e.target.files[0];
+        var reader = new FileReader();
+        reader.onload = (function (theFile) {
+            return function (e) {
+                handlejsondata(e.target.result);
+            };
+        })(f);
+        reader.readAsText(f);
+    });
 }
 
 //define global

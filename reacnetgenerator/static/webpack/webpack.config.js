@@ -6,7 +6,8 @@ const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin
 const webpack = require('webpack');
 
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
-Copyright 2018-2019 East China Normal University`
+Copyright 2018-2019 East China Normal University
+Date: ${new Date().toLocaleString()}`;
 
 module.exports = {
   entry: __dirname + "/reacnetgen.js",
