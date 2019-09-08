@@ -23,6 +23,7 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 
 import itertools
 import tempfile
+import fileinput
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
@@ -97,27 +98,25 @@ class _Detect(metaclass=ABCMeta):
         pool = Pool(self.nproc, maxtasksperchild=1000)
         try:
             semaphore = Semaphore(self.nproc*150)
-            for i, inputfilename in enumerate(self.inputfilenames):
-                with open(inputfilename) as f:
-                    if i==0:
-                        _steplinenum = self._readNfunc(f)
-                        f.seek(0)
-                    results = pool.imap_unordered(
-                        self._readstepfunc, self._produce(
-                            semaphore,
-                            enumerate(
-                                itertools.islice(
-                                    itertools.zip_longest(*[f] * _steplinenum),
-                                    0, None, self.stepinterval), len(d)),
-                            None),
-                        100)
-                    for molecules, (step, thetimestep) in tqdm(results,
-                                                            desc="Read bond information and Detect molecules",
-                                                            unit="timestep"):
-                        for molecule in molecules:
-                            d[molecule].append(step)
-                        timestep[step] = thetimestep
-                        semaphore.release()
+            with fileinput.input(files=self.inputfilenames) as f:
+                _steplinenum = self._readNfunc(f)
+            with fileinput.input(files=self.inputfilenames) as f:
+                results = pool.imap_unordered(
+                    self._readstepfunc, self._produce(
+                        semaphore,
+                        enumerate(
+                            itertools.islice(
+                                itertools.zip_longest(*[f] * _steplinenum),
+                                0, None, self.stepinterval), len(d)),
+                        None),
+                    100)
+                for molecules, (step, thetimestep) in tqdm(results,
+                                                        desc="Read bond information and Detect molecules",
+                                                        unit="timestep"):
+                    for molecule in molecules:
+                        d[molecule].append(step)
+                    timestep[step] = thetimestep
+                    semaphore.release()
             self._temp1it = len(d)
             values_c = list(tqdm(pool.imap(self._compressvalue,
                                                     d.values(),
@@ -164,7 +163,7 @@ class _DetectLAMMPSbond(_Detect):
             if line[0] == '#':
                 if line.startswith("# Number of particles"):
                     if iscompleted:
-                        stepbindex = index
+                        steplinenum = index-stepaindex
                         break
                     else:
                         iscompleted = True
@@ -175,8 +174,7 @@ class _DetectLAMMPSbond(_Detect):
                 s = line.split()
                 atomtype[int(s[0])-1] = int(s[1])-1
         else:
-            stepbindex = index + 1
-        steplinenum = stepbindex-stepaindex
+            steplinenum = index + 1
         self._N = N
         self._atomtype = atomtype
         return steplinenum
@@ -239,7 +237,7 @@ class _DetectLAMMPSdump(_Detect):
             else:
                 if linecontent == self.LineType.NUMBER:
                     if iscompleted:
-                        stepbindex = index
+                        steplinenum = index-stepaindex
                         break
                     else:
                         iscompleted = True
@@ -250,8 +248,7 @@ class _DetectLAMMPSdump(_Detect):
                     s = line.split()
                     atomtype[int(s[0])-1] = int(s[1])-1
         else:
-            stepbindex = index + 1
-        steplinenum = stepbindex-stepaindex
+            steplinenum = index + 1
         self._N = N
         self._atomtype = atomtype
         return steplinenum
