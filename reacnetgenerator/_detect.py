@@ -175,7 +175,7 @@ class _DetectLAMMPSbond(_Detect):
                 s = line.split()
                 atomtype[int(s[0])-1] = int(s[1])-1
         else:
-            stepbindex = index
+            stepbindex = index + 1
         steplinenum = stepbindex-stepaindex
         self._N = N
         self._atomtype = atomtype
@@ -250,7 +250,7 @@ class _DetectLAMMPSdump(_Detect):
                     s = line.split()
                     atomtype[int(s[0])-1] = int(s[1])-1
         else:
-            stepbindex = index
+            stepbindex = index + 1
         steplinenum = stepbindex-stepaindex
         self._N = N
         self._atomtype = atomtype
