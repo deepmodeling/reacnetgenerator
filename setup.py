@@ -94,7 +94,9 @@ if __name__ == '__main__':
             language="c", define_macros=define_macros,
         ) for encrypted_python_file in encrypted_python_files])
 
-    tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython'],
+    tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython',
+                     'pytest-xvfb', "codecov>=1.4.0",
+                    ],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
           keywords="reaction network",
