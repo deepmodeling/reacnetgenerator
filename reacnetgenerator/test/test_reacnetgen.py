@@ -9,13 +9,13 @@ import math
 import os
 import tempfile
 import pytest
+import shutil
 from tkinter import TclError
 
 import pkg_resources
 import reacnetgenerator
 import reacnetgenerator.gui
 import requests
-from tqdm import tqdm
 
 this_directory = os.getcwd()
 class TestReacNetGen:
@@ -75,27 +75,14 @@ class TestReacNetGen:
             for url in urls:
                 try:
                     logging.info(f"Try to download {pathfilename} from {url}")
-                    r = requests.get(url, stream=True)
+                    with requests.get(url, stream=True) as r, open(pathfilename, 'wb') as f:
+                        shutil.copyfileobj(r.raw, f)
                     break
                 except requests.exceptions.RequestException as e:
-                    logging.warning(e)
-                    logging.warning("Request Error.")
+                    logging.warning("Request Error.", exc_info=e)
             else:
-                logging.error(f"Cannot download {pathfilename}.")
-                raise IOError(f"Cannot download {pathfilename}.")
-
-            total_size = int(r.headers.get('content-length', 0))
-            block_size = 1024
-            with open(pathfilename, 'wb') as f:
-                for chunk in tqdm(
-                        r.iter_content(chunk_size=1024),
-                        total=math.ceil(total_size // block_size),
-                        unit='KB', unit_scale=True,
-                        desc=f"Downloading {pathfilename}..."):
-                    if chunk:
-                        f.write(chunk)
+                raise IOError(f"Cannot download {pathfilename}.")                
         else:
-            logging.error(f"Retry too much times.")
             raise IOError(f"Retry too much times.")
         return pathfilename
 
