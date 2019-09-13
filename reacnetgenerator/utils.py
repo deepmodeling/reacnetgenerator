@@ -83,10 +83,11 @@ def bytestolist(x):
 def listtostirng(l, sep):
     if isinstance(l, str):
         return l
-    elif isinstance(l, (list, tuple)):
+    if isinstance(l, (int, float)):
+        return str(l)
+    if isinstance(l, (list, tuple)):
         return sep[0].join(map(lambda x: listtostirng(x, sep[1:]), l))
-    else:
-        raise RuntimeError("Unsupported type")
+    raise RuntimeError("Unsupported type")
 
 
 class SCOUROPTIONS:
