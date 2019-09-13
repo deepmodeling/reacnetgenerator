@@ -172,4 +172,4 @@ class _HTMLResult:
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)
             svgdata = svgdata.replace(r"""<style type="text/css">*{""",r"""<style type="text/css">#network svg *{""")
-        return scour.scour.scourString(svgdata, self.scouroptions)
+        return scour.scour.scourString(svgdata, SCOUROPTIONS)
