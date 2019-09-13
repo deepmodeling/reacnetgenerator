@@ -117,7 +117,7 @@ class _GenerateMatrix:
                 for t in bytestolist(line[-1]).tolist():
                     d[t][name] += 1
             for t in range(len(self._timestep)):
-                ft.append(f"Timestep {self._timestep[t]}:")
-                ft.extend(
+                fw.append(f"Timestep {self._timestep[t]}:")
+                fw.extend(
                     map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
-                ft.append('\n')
+                fw.append('\n')
