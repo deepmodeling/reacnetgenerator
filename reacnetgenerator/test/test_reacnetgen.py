@@ -17,7 +17,6 @@ import reacnetgenerator
 import reacnetgenerator.gui
 import requests
 
-this_directory = os.getcwd()
 class TestReacNetGen:
     """Test ReacNetGenerator."""
 
@@ -30,7 +29,6 @@ class TestReacNetGen:
         testparm = request.param
         self._download_file(
             testparm['url'], testparm['filename'], testparm['sha256'])
-
         return reacnetgenerator.ReacNetGenerator(
             inputfilename=testparm['filename'], atomname=testparm['atomname'],
             SMILES=testparm['smiles'],
@@ -39,16 +37,17 @@ class TestReacNetGen:
             speciescenter=testparm['speciescenter']
             if 'speciescenter' in testparm else None,
             split=testparm['split'] if 'split' in testparm else 1,
-            )
+            ), testparm
 
     def test_reacnetgen(self, reacnetgen):
         """Test main process of ReacNetGen."""
-        reacnetgen.runanddraw()
+        rngclass, testparm = reacnetgen
+        rngclass.runanddraw()
 
-        logging.info("Here are reactions:")
-        with open(reacnetgen.reactionfilename) as f:
-            print(f.read())
+        assert self._checksha256(reacnetgen.reactionfilename, testparm['reaction_sha256'])
+        assert os.path.exists(reacnetgen.reactionfilename)
         assert os.path.exists(reacnetgen.resultfilename)
+        
 
     def test_gui(self):
         """Test GUI of ReacNetGen."""
@@ -57,7 +56,7 @@ class TestReacNetGen:
             gui.root.after(1000, gui.root.destroy)
             gui.gui()
         except TclError:
-            logging.warning("No display for GUI.")
+            pytest.skip("No display for GUI.")
 
     def _download_file(self, urls, pathfilename, sha256):
         times = 0

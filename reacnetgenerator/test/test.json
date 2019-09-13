@@ -13,7 +13,8 @@
         "inputfiletype": "lammpsbondfile",
         "hmm": true,
         "smiles": true,
-        "split": 10
+        "split": 10,
+        "reaction_sha256": "0ad1f5566dcd7134b7bb64f5c0eeb9aad3651accecfa4885ca747122c29a790b"
     },
     {
         "url": [
@@ -29,6 +30,7 @@
         "inputfiletype": "lammpsdumpfile",
         "hmm": false,
         "smiles": false,
-        "speciescenter": "[H][H]"
+        "speciescenter": "[H][H]",
+        "reaction_sha256": "d49578d4354fdf58cbdf9cbec877ddb2ff1afedd1c3690c838304a86484b16dc"
     }
 ]
