@@ -24,10 +24,8 @@ class TestReacNetGen:
     @pytest.fixture(params=json.load(
         pkg_resources.resource_stream(
             __name__, 'test.json')))
-    def reacnetgen(self, request):
-        folder = tempfile.mkdtemp(prefix='testfiles-', dir=this_directory)
-        logging.info(f'Folder: {folder}:')
-        os.chdir(folder)
+    def reacnetgen(self, request, tmp_path):
+        os.chdir(tmp_path)
 
         testparm = request.param
         self._download_file(
