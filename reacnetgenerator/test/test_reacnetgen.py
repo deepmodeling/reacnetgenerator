@@ -44,9 +44,9 @@ class TestReacNetGen:
         rngclass, testparm = reacnetgen
         rngclass.runanddraw()
 
-        assert self._checksha256(reacnetgen.reactionfilename, testparm['reaction_sha256'])
-        assert os.path.exists(reacnetgen.reactionfilename)
-        assert os.path.exists(reacnetgen.resultfilename)
+        assert self._checksha256(rngclass.reactionfilename, testparm['reaction_sha256'])
+        assert os.path.exists(rngclass.reactionfilename)
+        assert os.path.exists(rngclass.resultfilename)
         
 
     def test_gui(self):
