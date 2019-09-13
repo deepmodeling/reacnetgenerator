@@ -29,6 +29,7 @@ from rdkit import Chem
 from tqdm import tqdm
 
 from ._reaction import ReactionsFinder
+from .utils import WriteBuffer, bytestolist, produce, listtostirng
 
 
 class _CollectPaths(metaclass=ABCMeta):
@@ -47,9 +48,6 @@ class _CollectPaths(metaclass=ABCMeta):
         self._hmmit = rng.hmmit
         self.atomtype = rng.atomtype
         self.selectatoms = rng.selectatoms
-        self._decompress = rng.decompress
-        self._bytestolist = rng.bytestolist
-        self._produce = rng.produce
         self._split = rng.split
         self._mname = None
         self.atomnames = None
@@ -90,8 +88,8 @@ class _CollectPaths(metaclass=ABCMeta):
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(tqdm(zip(fh, itertools.zip_longest(*[ft] * 3)),
                                                       total=self._hmmit, desc="Analyze atoms", unit="molecule"), start=1):
-                lineh = self._bytestolist(linehz)
-                atom = np.array(self._bytestolist(linetz[0]))
+                lineh = bytestolist(linehz)
+                atom = np.array(bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:
                     conflict[np.nonzero(atomeach[atom[:, None], index])] = 1
@@ -105,22 +103,21 @@ class _CollectPaths(metaclass=ABCMeta):
         moleculeroute = np.dstack((route[:-1], route[1:]))[
             0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
         names = self._mname[route-1]
-        routestr = "".join(
-            [f"Atom {i} {self.atomname[atomtypei]}: ", " -> ".join(names)])
+        routestr = f"Atom {i} {self.atomname[atomtypei]}: " + " -> ".join(names)
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach, timeaxis=None):
-        with open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w') as f:
+        with WriteBuffer(open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w'), sep='\n') as f:
             pool = Pool(self.nproc, maxtasksperchild=1000)
             try:
                 allmoleculeroute = []
                 semaphore = Semaphore(self.nproc*150)
-                results = pool.imap(self._getatomroute, self._produce(
+                results = pool.imap(self._getatomroute, produce(
                     semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
                 for moleculeroute, routestr in tqdm(
                         results, total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}",
                         unit="atom"):
-                    f.write("".join([routestr, '\n']))
+                    f.append(routestr)
                     if moleculeroute.size > 0:
                         allmoleculeroute.append(moleculeroute)
                     semaphore.release()
@@ -143,8 +140,8 @@ class _CollectPaths(metaclass=ABCMeta):
         return name
 
     def _getatomsandbonds(self, line):
-        atoms = np.array(self._bytestolist(line[0]), dtype=int)
-        bonds = self._bytestolist(line[1])
+        atoms = np.array(bytestolist(line[0]), dtype=int)
+        bonds = bytestolist(line[1])
         return atoms, bonds
 
 
@@ -153,8 +150,7 @@ class _CollectMolPaths(_CollectPaths):
         mname = []
         d = defaultdict(list)
         em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
-        buff = []
-        with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft:
+        with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
             for line in itertools.zip_longest(*[ft] * 3):
                 atoms, bonds = self._getatomsandbonds(line)
                 molecule = self._molecule(self, atoms, bonds)
@@ -165,9 +161,7 @@ class _CollectMolPaths(_CollectPaths):
                 else:
                     d[str(molecule)].append(molecule)
                 mname.append(molecule.smiles)
-                buff.append(' '.join((molecule.smiles, ",".join(map(str, atoms)), ";".join(
-                    map(lambda x: ",".join(map(str, x)), bonds)))))
-            fm.write('\n'.join(buff))
+                fm.append(listtostirng((molecule.smiles, atoms, bonds), sep=(' ', ';', ',')))
         self._mname = np.array(mname)
 
     class _molecule:
@@ -213,23 +207,22 @@ class _CollectMolPaths(_CollectPaths):
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
-        buff = []
-        with open(self.moleculefilename, 'w') as fm, open(self.moleculetemp2filename, 'rb') as ft, Pool(self.nproc, maxtasksperchild=1000) as pool:
-            semaphore = Semaphore(self.nproc*150)
-            results = pool.imap(self._calmoleculeSMILESname,
-                                self._produce(semaphore, itertools.zip_longest(*[ft] * 3), None), 100)
-            for name, atoms, bonds in tqdm(
-                    results, total=self._hmmit, desc="Indentify isomers",
-                    unit="molecule"):
-                mname.append(name)
-                buff.append(' '.join(
-                    (name, ",".join(map(str, atoms)),
-                     ";".join((map(lambda x: ",".join(map(str, x)), bonds))))))
-                semaphore.release()
-            fm.write('\n'.join(buff))
-        pool.close()
+        pool = Pool(self.nproc, maxtasksperchild=1000)
+        try:
+            with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
+                semaphore = Semaphore(self.nproc*150)
+                results = pool.imap(self._calmoleculeSMILESname,
+                                    produce(semaphore, itertools.zip_longest(*[ft] * 3), None), 100)
+                for name, atoms, bonds in tqdm(
+                        results, total=self._hmmit, desc="Indentify isomers",
+                        unit="molecule"):
+                    mname.append(name)
+                    fm.append(listtostirng((name, atoms, bonds), sep=(' ', ';', ',')))
+                    semaphore.release()
+        finally:
+            pool.close()
+            pool.join()
         self._mname = np.array(mname)
-        pool.join()
 
     def _calmoleculeSMILESname(self, item):
         line, _ = item

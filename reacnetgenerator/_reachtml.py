@@ -22,6 +22,8 @@ import openbabel
 import scour.scour
 from tqdm import tqdm
 
+from .utils import SCOUROPTIONS
+
 
 class _HTMLResult:
     def __init__(self, rng):
@@ -43,7 +45,6 @@ class _HTMLResult:
         self._reaction = None
         self._reactionsabcd = None
         self._svgfiles = {}
-        self.scouroptions = rng.SCOUROPTIONS
 
     def report(self):
         """Generate a web page to show the result."""
@@ -106,7 +107,7 @@ class _HTMLResult:
         mol = openbabel.OBMol()
         obConversion.ReadString(mol, smiles)
         svgdata = obConversion.WriteString(mol)
-        svgdata = scour.scour.scourString(svgdata, self.scouroptions)
+        svgdata = scour.scour.scourString(svgdata, SCOUROPTIONS)
         svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
         svgdata = re.sub(
             r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)

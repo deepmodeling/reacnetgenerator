@@ -13,6 +13,8 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
+from .utils import WriteBuffer, bytestolist
+
 
 class _GenerateMatrix:
     def __init__(self, rng):
@@ -27,8 +29,6 @@ class _GenerateMatrix:
         self.speciescenter = rng.speciescenter
         self._mname = rng.mname
         self._timestep = rng.timestep
-        self._decompress = rng.decompress
-        self._bytestolist = rng.bytestolist
 
     def generate(self):
         """Generate a reaction matrix and print species.
@@ -111,19 +111,13 @@ class _GenerateMatrix:
         return searchedspecies
 
     def _printspecies(self):
-        with open(self.moleculetemp2filename, 'rb') as ft, open(self.speciesfilename, 'w') as fw:
+        with open(self.moleculetemp2filename, 'rb') as ft, WriteBuffer(open(self.speciesfilename, 'w')) as fw:
             d = [Counter() for i in range(len(self._timestep))]
             for name, line in zip(self._mname, itertools.zip_longest(*[ft] * 3)):
-                for t in self._bytestolist(line[-1]).tolist():
+                for t in bytestolist(line[-1]).tolist():
                     d[t][name] += 1
-            buff = []
             for t in range(len(self._timestep)):
-                buff.append(f"Timestep {self._timestep[t]}:")
-                buff.extend(
+                ft.append(f"Timestep {self._timestep[t]}:")
+                ft.extend(
                     map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
-                buff.append('\n')
-                if len(buff) > 200:
-                    fw.write(''.join(buff))
-                    buff[:] = []
-            if buff:
-                fw.write(''.join(buff))
+                ft.append('\n')

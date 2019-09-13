@@ -47,13 +47,10 @@ import gc
 import logging
 import os
 import time
-import pickle
 from enum import Enum
 from multiprocessing import cpu_count
 
 import numpy as np
-import lz4.frame
-import pybase64
 
 from . import __version__, __date__, __update__
 from ._detect import InputFileType, _Detect
@@ -62,6 +59,7 @@ from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
+from .utils import setparam
 
 
 class ReacNetGenerator:
@@ -81,14 +79,14 @@ class ReacNetGenerator:
             start_color=None, end_color=None, nproc=None, speciescenter=None,
             n_searchspecies=2, split=1, pbc=True):
         """Init ReacNetGenerator."""
-        print(__doc__)
-        print(
+        logging.info(__doc__)
+        logging.info(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
         self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype == "lammpsbondfile" else InputFileType.LAMMPSDUMP
         self.inputfilenames = [inputfilename] if isinstance(
             inputfilename, str) else inputfilename
-        self.atomname = np.array(self._setparam(atomname, ["C", "H", "O"]))
-        self.selectatoms = self._setparam(selectatoms, self.atomname)
+        self.atomname = np.array(setparam(atomname, ["C", "H", "O"]))
+        self.selectatoms = setparam(selectatoms, self.atomname)
         self.moleculefilename = self._setfilename(moleculefilename, "moname")
         self.atomroutefilename = self._setfilename(atomroutefilename, "route")
         self.reactionfilename = self._setfilename(reactionfilename, "reaction")
@@ -100,29 +98,29 @@ class ReacNetGenerator:
         self.reactionabcdfilename = self._setfilename(
             reactionabcdfilename, 'reactionabcd')
         self.stepinterval = stepinterval
-        self.p = np.array(self._setparam(p, [0.5, 0.5]))
-        self.a = np.array(self._setparam(a, [[0.999, 0.001], [0.001, 0.999]]))
-        self.b = np.array(self._setparam(b, [[0.6, 0.4], [0.4, 0.6]]))
+        self.p = np.array(setparam(p, [0.5, 0.5]))
+        self.a = np.array(setparam(a, [[0.999, 0.001], [0.001, 0.999]]))
+        self.b = np.array(setparam(b, [[0.6, 0.4], [0.4, 0.6]]))
         self.runHMM = runHMM
         self.SMILES = SMILES
         self.getoriginfile = getoriginfile if self.runHMM else True
-        self.species = np.array(self._setparam(species, []))
+        self.species = np.array(setparam(species, []))
         self.needprintspecies = needprintspecies
         self.node_size = node_size
         self.font_size = font_size
         self.widthcoefficient = widthcoefficient
         self.maxspecies = maxspecies
         self.nolabel = nolabel
-        self.speciesfilter = self._setparam(speciesfilter, [])
-        self.node_color = np.array(self._setparam(
+        self.speciesfilter = setparam(speciesfilter, [])
+        self.node_color = np.array(setparam(
             node_color, [78/256, 196/256, 238/256]))
-        self.pos = self._setparam(pos, {})
+        self.pos = setparam(pos, {})
         self.printfiltersignal = printfiltersignal
         self.showid = showid
         self.k = k
-        self.start_color = np.array(self._setparam(start_color, [0, 0, 1]))
-        self.end_color = np.array(self._setparam(end_color, [1, 0, 0]))
-        self.nproc = self._setparam(nproc, cpu_count())
+        self.start_color = np.array(setparam(start_color, [0, 0, 1]))
+        self.end_color = np.array(setparam(end_color, [1, 0, 0]))
+        self.nproc = setparam(nproc, cpu_count())
         self.speciescenter = speciescenter
         self.n_searchspecies = n_searchspecies
         self.split = split
@@ -227,54 +225,5 @@ class ReacNetGenerator:
         logging.info("====== Summary ======")
         logging.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
 
-    @classmethod
-    def produce(cls, semaphore, plist, parameter):
-        """Prevent large memory usage due to slow IO."""
-        for item in plist:
-            semaphore.acquire()
-            yield item, parameter
-
-    @classmethod
-    def compress(cls, x, isbytes=False):
-        """Compress the line.
-
-        This function reduces IO overhead to speed up the program.
-        """
-        if isbytes:
-            return pybase64.b64encode(lz4.frame.compress(x, compression_level=0))+b'\n'
-        return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
-
-    @classmethod
-    def decompress(cls, x, isbytes=False):
-        """Decompress the line."""
-        if isbytes:
-            return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True))
-        return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True)).decode()
-
-    @classmethod
-    def _setparam(cls, x, default):
-        return x if x is not None else default
-
     def _setfilename(self, name, suffix):
-        return self._setparam(name, f"{self.inputfilenames[0]}.{suffix}")
-
-    @classmethod
-    def listtobytes(cls, x):
-        return cls.compress(pickle.dumps(x), isbytes=True)
-
-    @classmethod
-    def bytestolist(cls, x):
-        return pickle.loads(cls.decompress(x, isbytes=True))
-
-    class SCOUROPTIONS:
-        strip_xml_prolog = True
-        remove_titles= True
-        remove_descriptions= True
-        remove_metadata= True
-        remove_descriptive_elements= True
-        strip_comments= True
-        enable_viewboxing= True
-        strip_xml_space_attribute= True
-        strip_ids= True
-        shorten_ids= True
-        newlines= False
+        return setparam(name, f"{self.inputfilenames[0]}.{suffix}")

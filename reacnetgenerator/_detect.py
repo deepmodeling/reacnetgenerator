@@ -36,6 +36,7 @@ from ase import Atom, Atoms
 from tqdm import tqdm
 
 from .dps import dps
+from .utils import WriteBuffer, produce, listtobytes
 
 
 class InputFileType(Enum):
@@ -59,9 +60,6 @@ class _Detect(metaclass=ABCMeta):
         self.atomname = rng.atomname
         self.stepinterval = rng.stepinterval
         self.nproc = rng.nproc
-        self._produce = rng.produce
-        self._compress = rng.compress
-        self._listtobytes = rng.listtobytes
         self.pbc = rng.pbc
 
         self._N = None
@@ -102,7 +100,7 @@ class _Detect(metaclass=ABCMeta):
                 _steplinenum = self._readNfunc(f)
             with fileinput.input(files=self.inputfilenames) as f:
                 results = pool.imap_unordered(
-                    self._readstepfunc, self._produce(
+                    self._readstepfunc, produce(
                         semaphore,
                         enumerate(
                             itertools.islice(
@@ -129,7 +127,7 @@ class _Detect(metaclass=ABCMeta):
         self._step = len(timestep)
 
     def _compressvalue(self, x):
-        return self._listtobytes(np.array(x))
+        return listtobytes(np.array(x))
 
     @abstractmethod
     def _readNfunc(self, f):
@@ -140,20 +138,14 @@ class _Detect(metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        return list([b' '.join((self._listtobytes(mol),
-                                self._listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
+        return list([b' '.join((listtobytes(mol),
+                                listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
 
     def _writemoleculetempfile(self, d):
-        buff = []
-        with tempfile.NamedTemporaryFile('wb', delete=False) as f:
+        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as f:
             self.moleculetempfilename = f.name
             for mol in zip(*d):
-                buff.extend(mol)
-                if len(buff) > 30*self.nproc:
-                    f.write(b''.join(buff))
-                    buff[:] = []
-            if buff:
-                f.write(b''.join(buff))
+                f.extend(mol)
 
 
 class _DetectLAMMPSbond(_Detect):
@@ -282,7 +274,6 @@ class _DetectLAMMPSdump(_Detect):
 
     def _getbondfromcrd(self, step_atoms, cell):
         atomnumber = len(step_atoms)
-        ghosts = {}
         if self.pbc:
             # Apply period boundry conditions
             step_atoms.set_pbc(True)
