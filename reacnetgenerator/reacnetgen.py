@@ -104,7 +104,7 @@ class ReacNetGenerator:
         self.runHMM = runHMM
         self.SMILES = SMILES
         self.getoriginfile = getoriginfile if self.runHMM else True
-        self.species = np.array(setparam(species, []))
+        self.species = setparam(species, [])
         self.needprintspecies = needprintspecies
         self.node_size = node_size
         self.font_size = font_size

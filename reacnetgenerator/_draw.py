@@ -110,7 +110,7 @@ class _DrawNetwork:
         return df.values, df.index
 
     def _handlespecies(self, name):
-        species = self.species if self.species.size > 0 else name[:min(
+        species = self.species if self.species else name[:min(
             len(name), self.maxspecies)]
         # filter
         species = [spec for spec in species if spec not in self.speciesfilter]
@@ -119,7 +119,7 @@ class _DrawNetwork:
             showname = dict([(v, u) for u, v in enumerate(species, start=1)])
         else:
             showname = dict([(u, u) for u in species])
-        if species.size > 0:
+        if species:
             logging.info("Species are:")
             for specname, n in showname.items():
                 logging.info("{} {}".format(n, specname))
