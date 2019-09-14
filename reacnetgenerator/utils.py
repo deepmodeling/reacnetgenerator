@@ -78,10 +78,6 @@ def decompress(x, isbytes=False):
     return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True)).decode()
 
 
-def setparam(x, default):
-    return x if x is not None else default
-
-
 def listtobytes(x):
     return compress(pickle.dumps(x), isbytes=True)
 

@@ -54,7 +54,7 @@ class _Detect(metaclass=ABCMeta):
 
     def __init__(self, rng):
         self.rng = rng
-        self.inputfilenames = rng.inputfilenames
+        self.inputfilenames = rng.inputfilename
         self.atomname = rng.atomname
         self.stepinterval = rng.stepinterval
         self.nproc = rng.nproc
