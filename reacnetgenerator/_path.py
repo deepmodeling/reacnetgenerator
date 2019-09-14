@@ -29,7 +29,7 @@ from rdkit import Chem
 from tqdm import tqdm
 
 from ._reaction import ReactionsFinder
-from .utils import WriteBuffer, bytestolist, produce, listtostirng
+from .utils import WriteBuffer, bytestolist, listtostirng, multiopen
 
 
 class _CollectPaths(metaclass=ABCMeta):
@@ -99,11 +99,13 @@ class _CollectPaths(metaclass=ABCMeta):
     def _getatomroute(self, item):
         (i, (atomeachi, atomtypei)), _ = item
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
-        route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
+        route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[
+                                         0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
         moleculeroute = np.dstack((route[:-1], route[1:]))[
             0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
         names = self._mname[route-1]
-        routestr = f"Atom {i} {self.atomname[atomtypei]}: " + " -> ".join(names)
+        routestr = f"Atom {i} {self.atomname[atomtypei]}: " + \
+            " -> ".join(names)
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach, timeaxis=None):
@@ -112,11 +114,9 @@ class _CollectPaths(metaclass=ABCMeta):
             try:
                 allmoleculeroute = []
                 semaphore = Semaphore(self.nproc*150)
-                results = pool.imap(self._getatomroute, produce(
-                    semaphore, enumerate(zip(atomeach, self.atomtype), start=1), ()), 100)
-                for moleculeroute, routestr in tqdm(
-                        results, total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}",
-                        unit="atom"):
+                results = multiopen(pool, self._getatomroute, zip(atomeach, self.atomtype), semaphore, return_num=True, start=1, unordered=False,
+                                    total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
+                for moleculeroute, routestr in results:
                     f.append(routestr)
                     if moleculeroute.size > 0:
                         allmoleculeroute.append(moleculeroute)
@@ -161,7 +161,8 @@ class _CollectMolPaths(_CollectPaths):
                 else:
                     d[str(molecule)].append(molecule)
                 mname.append(molecule.smiles)
-                fm.append(listtostirng((molecule.smiles, atoms, bonds), sep=(' ', ';', ',')))
+                fm.append(listtostirng(
+                    (molecule.smiles, atoms, bonds), sep=(' ', ';', ',')))
         self._mname = np.array(mname)
 
     class _molecule:
@@ -211,13 +212,12 @@ class _CollectSMILESPaths(_CollectPaths):
         try:
             with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
                 semaphore = Semaphore(self.nproc*150)
-                results = pool.imap(self._calmoleculeSMILESname,
-                                    produce(semaphore, itertools.zip_longest(*[ft] * 3), None), 100)
-                for name, atoms, bonds in tqdm(
-                        results, total=self._hmmit, desc="Indentify isomers",
-                        unit="molecule"):
+                results = multiopen(pool, self._calmoleculeSMILESname, ft, semaphore=semaphore,
+                                    nlines=3, total=self._hmmit, desc="Indentify isomers", unit="molecule")
+                for name, atoms, bonds in results:
                     mname.append(name)
-                    fm.append(listtostirng((name, atoms, bonds), sep=(' ', ';', ',')))
+                    fm.append(listtostirng(
+                        (name, atoms, bonds), sep=(' ', ';', ',')))
                     semaphore.release()
         finally:
             pool.close()

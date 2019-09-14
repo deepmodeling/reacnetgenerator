@@ -7,9 +7,9 @@
 import numpy as np
 from collections import Counter
 from multiprocessing import Pool, Semaphore
-from tqdm import tqdm
 
-from .utils import WriteBuffer, produce
+from .utils import WriteBuffer, multiopen
+
 
 class ReactionsFinder:
     CONFLICT = -1
@@ -27,12 +27,11 @@ class ReactionsFinder:
         with Pool(self.nproc, maxtasksperchild=1000) as pool:
             semaphore = Semaphore(self.nproc*150)
             # atomeach j, atomeach j+1, conflict j, conflict j+1
-            givenarray = [(atomeach[:, j], atomeach[:, j+1], conflict[:, j], conflict[:, j+1]) for j in range(self._step-1)]
-            results = pool.imap_unordered(self._getstepreaction, produce(
-                semaphore, givenarray, ()), 100)
-            for networks in tqdm(
-                    results, total=self._step-1, desc="Analyze reactions (A+B->C+D)",
-                    unit="timestep"):
+            givenarray = [(atomeach[:, j], atomeach[:, j+1], conflict[:, j],
+                           conflict[:, j+1]) for j in range(self._step-1)]
+            results = multiopen(pool, self._getstepreaction, givenarray, semaphore=semaphore,
+                                total=self._step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
+            for networks in results:
                 allreactions.extend(networks)
                 semaphore.release()
             pool.close()

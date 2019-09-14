@@ -4,6 +4,9 @@
 import lz4.frame
 import pybase64
 import pickle
+import itertools
+
+from tqdm import tqdm
 
 
 class WriteBuffer:
@@ -11,7 +14,7 @@ class WriteBuffer:
         self.f = f
         if sep is not None:
             self.sep = sep
-        elif f.mode=='w':
+        elif f.mode == 'w':
             self.sep = ''
         elif f.mode == 'wb':
             self.sep = b''
@@ -50,11 +53,13 @@ def appendIfNotNone(f, wbytes):
     if wbytes is not None:
         f.append(wbytes)
 
+
 def produce(semaphore, plist, parameter):
     """Prevent large memory usage due to slow IO."""
     for item in plist:
         semaphore.acquire()
         yield item, parameter
+
 
 def compress(x, isbytes=False):
     """Compress the line.
@@ -65,20 +70,25 @@ def compress(x, isbytes=False):
         return pybase64.b64encode(lz4.frame.compress(x, compression_level=0))+b'\n'
     return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
 
+
 def decompress(x, isbytes=False):
     """Decompress the line."""
     if isbytes:
         return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True))
     return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True)).decode()
 
+
 def setparam(x, default):
     return x if x is not None else default
+
 
 def listtobytes(x):
     return compress(pickle.dumps(x), isbytes=True)
 
+
 def bytestolist(x):
     return pickle.loads(decompress(x, isbytes=True))
+
 
 def listtostirng(l, sep):
     if isinstance(l, str):
@@ -88,15 +98,34 @@ def listtostirng(l, sep):
     return str(l)
 
 
+def multiopen(pool, func, l, semaphore=None, nlines=None, unordered=True, return_num=False, start=0, extra=None, interval=None, bar=True, desc=None, unit=None, total=None):
+    obj = l
+    if nlines:
+        obj = itertools.zip_longest(*[obj] * nlines)
+    if interval:
+        obj = itertools.islice(obj, 0, None, interval)
+    if return_num:
+        obj = enumerate(obj, start)
+    if semaphore:
+        obj = produce(semaphore, obj, extra)
+    if unordered:
+        obj = pool.imap_unordered(func, obj, 100)
+    else:
+        obj = pool.imap(func, obj, 100)
+    if bar:
+        obj = tqdm(obj, desc=desc, unit=unit, total=total)
+    return obj
+
+
 class SCOUROPTIONS:
     strip_xml_prolog = True
-    remove_titles= True
-    remove_descriptions= True
-    remove_metadata= True
-    remove_descriptive_elements= True
-    strip_comments= True
-    enable_viewboxing= True
-    strip_xml_space_attribute= True
-    strip_ids= True
-    shorten_ids= True
-    newlines= False
+    remove_titles = True
+    remove_descriptions = True
+    remove_metadata = True
+    remove_descriptive_elements = True
+    strip_comments = True
+    enable_viewboxing = True
+    strip_xml_space_attribute = True
+    strip_ids = True
+    shorten_ids = True
+    newlines = False

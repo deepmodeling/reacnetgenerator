@@ -19,15 +19,13 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 """
 
 import tempfile
-import itertools
 from contextlib import ExitStack
 from multiprocessing import Pool, Semaphore
 
 import numpy as np
 from hmmlearn import hmm
-from tqdm import tqdm
 
-from .utils import WriteBuffer, appendIfNotNone, produce, bytestolist, listtobytes
+from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, multiopen
 
 
 class _HMMFilter:
@@ -93,12 +91,10 @@ class _HMMFilter:
                 self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
                 self.hmmfilename = fh.name if self.runHMM else None
                 semaphore = Semaphore(self.nproc*150)
-                results = pool.imap_unordered(
-                    self._getoriginandhmm, produce(semaphore, itertools.zip_longest(*[ft] * 3), ()), 100)
+                results = multiopen(pool, self._getoriginandhmm, ft, semaphore,
+                                    nlines=3, total=self._temp1it, desc="HMM filter", unit="molecule")
                 hmmit = 0
-                for originbytes, hmmbytes, line_c in tqdm(
-                        results, total=self._temp1it, desc="HMM filter",
-                        unit="molecule"):
+                for originbytes, hmmbytes, line_c in results:
                     if originbytes is not None or hmmbytes is not None:
                         appendIfNotNone(fo, originbytes)
                         appendIfNotNone(fh, hmmbytes)
