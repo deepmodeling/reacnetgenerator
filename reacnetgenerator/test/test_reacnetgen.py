@@ -98,4 +98,5 @@ class TestReacNetGen:
         if sha256 == sha256_check:
             return True
         logging.warning("SHA256 is not correct.")
+        logging.warning(open(filename).read())
         return False
