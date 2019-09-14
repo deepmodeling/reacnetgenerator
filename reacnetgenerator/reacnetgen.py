@@ -47,6 +47,7 @@ import gc
 import logging
 import os
 import time
+import itertools
 from enum import Enum
 from multiprocessing import cpu_count
 
@@ -59,86 +60,62 @@ from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
-from .utils import setparam
 
 
 class ReacNetGenerator:
     """Use ReacNetGenerator for trajectory analysis."""
 
-    def __init__(
-            self, inputfiletype='lammpsbondfile', inputfilename='bonds.reaxc',
-            atomname=None, selectatoms=None, originfilename=None,
-            hmmfilename=None, atomfilename=None, moleculefilename=None,
-            atomroutefilename=None, reactionfilename=None, tablefilename=None,
-            imagefilename=None, speciesfilename=None, resultfilename=None, reactionabcdfilename=None,
-            stepinterval=1, p=None, a=None, b=None, runHMM=True, SMILES=True,
-            getoriginfile=False, species=None, node_size=200, font_size=6,
-            widthcoefficient=1, maxspecies=20, nolabel=False,
-            needprintspecies=True, speciesfilter=None, node_color=None,
-            pos=None, printfiltersignal=False, showid=True, k=None,
-            start_color=None, end_color=None, nproc=None, speciescenter=None,
-            n_searchspecies=2, split=1, pbc=True):
+    def __init__(self, **kwargs):
         """Init ReacNetGenerator."""
         logging.info(__doc__)
         logging.info(
             f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
-        self.inputfiletype = InputFileType.LAMMPSBOND if inputfiletype == "lammpsbondfile" else InputFileType.LAMMPSDUMP
-        self.inputfilenames = [inputfilename] if isinstance(
-            inputfilename, str) else inputfilename
-        self.atomname = np.array(setparam(atomname, ["C", "H", "O"]))
-        self.selectatoms = setparam(selectatoms, self.atomname)
-        self.moleculefilename = self._setfilename(moleculefilename, "moname")
-        self.atomroutefilename = self._setfilename(atomroutefilename, "route")
-        self.reactionfilename = self._setfilename(reactionfilename, "reaction")
-        self.tablefilename = self._setfilename(tablefilename, "table")
-        self.imagefilename = self._setfilename(imagefilename, "svg")
-        self.speciesfilename = self._setfilename(speciesfilename, "species")
-        self.resultfilename = self._setfilename(resultfilename, "html")
-        self.jsonfilename = self._setfilename(resultfilename, "json")
-        self.reactionabcdfilename = self._setfilename(
-            reactionabcdfilename, 'reactionabcd')
-        self.stepinterval = stepinterval
-        self.p = np.array(setparam(p, [0.5, 0.5]))
-        self.a = np.array(setparam(a, [[0.999, 0.001], [0.001, 0.999]]))
-        self.b = np.array(setparam(b, [[0.6, 0.4], [0.4, 0.6]]))
-        self.runHMM = runHMM
-        self.SMILES = SMILES
-        self.getoriginfile = getoriginfile if self.runHMM else True
-        self.species = setparam(species, [])
-        self.needprintspecies = needprintspecies
-        self.node_size = node_size
-        self.font_size = font_size
-        self.widthcoefficient = widthcoefficient
-        self.maxspecies = maxspecies
-        self.nolabel = nolabel
-        self.speciesfilter = setparam(speciesfilter, [])
-        self.node_color = np.array(setparam(
-            node_color, [78/256, 196/256, 238/256]))
-        self.pos = setparam(pos, {})
-        self.printfiltersignal = printfiltersignal
-        self.showid = showid
-        self.k = k
-        self.start_color = np.array(setparam(start_color, [0, 0, 1]))
-        self.end_color = np.array(setparam(end_color, [1, 0, 0]))
-        self.nproc = setparam(nproc, cpu_count())
-        self.speciescenter = speciescenter
-        self.n_searchspecies = n_searchspecies
-        self.split = split
-        self.pbc = pbc
-        # define attribute
-        self.atomtype = None
-        self.step = None
-        self.hmmit = None
-        self.timestep = None
-        self.steplinenum = None
-        self.N = None
-        self.temp1it = None
-        self.originfilename = None
-        self.hmmfilename = None
-        self.moleculetempfilename = None
-        self.moleculetemp2filename = None
-        self.allmoleculeroute = None
-        self.splitmoleculeroute = None
+        
+        # process kwargs
+        necessary_key = ['inputfiletype', 'inputfilename', 'atomname']
+        default_value = {"node_color": [78/256, 196/256, 238/256], "p": [0.5, 0.5],
+                            "a": [[0.999, 0.001], [0.001, 0.999]], "b": [[0.6, 0.4], [0.4, 0.6]],
+                            "speciesfilter": [], "start_color": [0, 0, 1], "end_color": [1, 0, 0],
+                            "nproc": cpu_count(), "pos": {}, "pbc": True, "split": 1, "n_searchspecies": 2,
+                            "node_size": 200, "font_size": 6, "widthcoefficient": 1, "maxspecies": 20, "stepinterval": 1,
+                            "nolabel": False,  "printfiltersignal": False, "showid": True, "runHMM": True, "SMILES": True,
+                            "getoriginfile": False, "needprintspecies": True
+                            }
+        none_key = ['selectatoms', 'species', 'pos', 'k', 'speciescenter']
+        accept_keys = ['atomtype', 'step', 'hmmit', 'timestep', 'steplinenum', 'N',
+            'temp1it', 'originfilename', 'hmmfilename', 'moleculetempfilename', 'moleculetemp2filename',
+            'allmoleculeroute', 'splitmoleculeroute']
+        nparray_key = ["atomname", "p", "a", "b",
+                        "node_color", "start_color", "end_color"]
+        file_key = {"moleculefilename": "moname", "atomroutefilename": "route", "reactionfilename": "reaction",
+                    "tablefilename": "table", "imagefilename": "svg", "speciesfilename": "species", "resultfilename": "html",
+                    "jsonfilename": "json", "reactionabcdfilename": "reactionabcd"}
+        assert set(necessary_key).issubset(
+            set(kwargs)), "Must give neccessary key: %s" % ", ".join(necessary_key)
+        assert set(kwargs).issubset(
+            set(necessary_key) | set(default_value) | set(none_key) | set(file_key)), "Unsupported key"
+        if kwargs["inputfiletype"] == "lammpsbondfile":
+            kwargs["inputfiletype"] = InputFileType.LAMMPSBOND
+        elif kwargs["inputfiletype"] == "lammpsdumpfile":
+            kwargs["inputfiletype"] = InputFileType.LAMMPSDUMP
+        else:
+            raise RuntimeError("Unsupported file format!")
+        if isinstance(kwargs["inputfilename"], str):
+            kwargs["inputfilename"] = [kwargs["inputfilename"]]
+        for kk in default_value:
+            kwargs.setdefault(kk, default_value[kk])
+        for kk in itertools.chain(none_key, accept_keys):
+            kwargs.setdefault(kk, None)
+        for kk in file_key:
+            kwargs.setdefault(
+                kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
+        for kk in nparray_key:
+            kwargs[kk] = np.array(kwargs[kk])
+        if not kwargs["runHMM"]:
+            kwargs["getoriginfile"] = True
+        if kwargs["selectatoms"] is None:
+            kwargs["selectatoms"] = kwargs["atomname"]
+        self.__dict__.update(kwargs)
 
     def runanddraw(self, run=True, draw=True, report=True):
         """Analyze the trajectory from MD simulation."""
@@ -224,6 +201,3 @@ class ReacNetGenerator:
         # Summary
         logging.info("====== Summary ======")
         logging.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
-
-    def _setfilename(self, name, suffix):
-        return setparam(name, f"{self.inputfilenames[0]}.{suffix}")

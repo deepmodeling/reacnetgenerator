@@ -78,10 +78,6 @@ def decompress(x, isbytes=False):
     return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True)).decode()
 
 
-def setparam(x, default):
-    return x if x is not None else default
-
-
 def listtobytes(x):
     return compress(pickle.dumps(x), isbytes=True)
 
@@ -129,3 +125,17 @@ class SCOUROPTIONS:
     strip_ids = True
     shorten_ids = True
     newlines = False
+
+
+class SharedRNGData:
+    def __init__(self, rng, usedRNGKeys, returnedRNGKeys):
+        self.rng = rng
+        self.returnedRNGKeys = returnedRNGKeys
+        for key in usedRNGKeys:
+            setattr(self, key, getattr(self.rng, key))
+        for key in returnedRNGKeys:
+            setattr(self, key, None)
+
+    def returnkeys(self):
+        for key in self.returnedRNGKeys:
+            setattr(self.rng, key, getattr(self, key))

@@ -30,34 +30,20 @@ import numpy as np
 import pandas as pd
 import scour.scour
 
-from .utils import SCOUROPTIONS
+from .utils import SCOUROPTIONS, SharedRNGData
 
 
-class _DrawNetwork:
+class _DrawNetwork(SharedRNGData):
     def __init__(self, rng):
-        self.atomname = rng.atomname
-        self.tablefilename = rng.tablefilename
-        self.imagefilename = rng.imagefilename
-        self.maxspecies = rng.maxspecies
-        self.species = rng.species
-        self.speciesfilter = rng.speciesfilter
-        self.start_color = rng.start_color
-        self.end_color = rng.end_color
-        self.node_size = rng.node_size
-        self.node_color = rng.node_color
-        self.font_size = rng.font_size
-        self.widthcoefficient = rng.widthcoefficient
-        self.k = rng.k
-        self.pos = rng.pos
-        self.nolabel = rng.nolabel
-        self.showid = rng.showid
-        self._split = rng.split
+        SharedRNGData.__init__(self, rng, ['atomname', 'tablefilename', 'imagefilename', 'maxspecies', 'species', 'speciesfilter',
+                                  'start_color', 'end_color', 'node_size', 'node_color', 'font_size', 'widthcoefficient', 'k', 'pos', 'nolabel',
+                                  'showid', 'split'], [])
 
     def draw(self):
         """Draw the network."""
         self._draw()
-        if self._split > 1:
-            for st in range(self._split):
+        if self.split > 1:
+            for st in range(self.split):
                 self._draw(timeaxis=st)
 
     def _draw(self, timeaxis=None):

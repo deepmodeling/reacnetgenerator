@@ -29,28 +29,14 @@ from rdkit import Chem
 from tqdm import tqdm
 
 from ._reaction import ReactionsFinder
-from .utils import WriteBuffer, bytestolist, listtostirng, multiopen
+from .utils import WriteBuffer, bytestolist, listtostirng, multiopen, SharedRNGData
 
 
-class _CollectPaths(metaclass=ABCMeta):
+class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     def __init__(self, rng):
-        self.rng = rng
-        self.runHMM = rng.runHMM
-        self._N = rng.N
-        self._step = rng.step
-        self.atomname = rng.atomname
-        self.originfilename = rng.originfilename
-        self.hmmfilename = rng.hmmfilename
-        self.moleculefilename = rng.moleculefilename
-        self.moleculetemp2filename = rng.moleculetemp2filename
-        self.atomroutefilename = rng.atomroutefilename
-        self.nproc = rng.nproc
-        self._hmmit = rng.hmmit
-        self.atomtype = rng.atomtype
-        self.selectatoms = rng.selectatoms
-        self._split = rng.split
-        self._mname = None
-        self.atomnames = None
+        SharedRNGData.__init__(self, rng, ["runHMM", "N", "step", "atomname", "originfilename", "hmmfilename", "moleculefilename",
+                                           "moleculetemp2filename", "atomroutefilename", "nproc", "hmmit", "atomtype",
+                                           "selectatoms", "split"], ["mname", "atomnames", "allmoleculeroute", "splitmoleculeroute"])
 
     @staticmethod
     def getstype(SMILES):
@@ -69,12 +55,12 @@ class _CollectPaths(metaclass=ABCMeta):
         self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
         atomeach, conflict = self._getatomeach()
-        self.rng.allmoleculeroute = self._printatomroute(atomeach)
-        if self._split > 1:
-            splittime = np.array_split(np.arange(self._step), self._split)
-            self.rng.splitmoleculeroute = list([self._printatomroute(
+        self.allmoleculeroute = self._printatomroute(atomeach)
+        if self.split > 1:
+            splittime = np.array_split(np.arange(self.step), self.split)
+            self.splitmoleculeroute = list([self._printatomroute(
                 atomeach[:, st], timeaxis=i) for i, st in enumerate(splittime)])
-        self.rng.mname = self._mname
+        self.returnkeys()
         ReactionsFinder(self.rng).findreactions(atomeach, conflict)
 
     @abstractmethod
@@ -83,11 +69,11 @@ class _CollectPaths(metaclass=ABCMeta):
 
     def _getatomeach(self):
         """Values in atomeach starts from 1."""
-        atomeach = np.zeros((self._N, self._step), dtype=int)
-        conflict = np.zeros((self._N, self._step), dtype=int)
+        atomeach = np.zeros((self.N, self.step), dtype=int)
+        conflict = np.zeros((self.N, self.step), dtype=int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
             for i, (linehz, linetz) in enumerate(tqdm(zip(fh, itertools.zip_longest(*[ft] * 3)),
-                                                      total=self._hmmit, desc="Analyze atoms", unit="molecule"), start=1):
+                                                      total=self.hmmit, desc="Analyze atoms", unit="molecule"), start=1):
                 lineh = bytestolist(linehz)
                 atom = np.array(bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
@@ -103,7 +89,7 @@ class _CollectPaths(metaclass=ABCMeta):
                                          0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
         moleculeroute = np.dstack((route[:-1], route[1:]))[
             0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
-        names = self._mname[route-1]
+        names = self.mname[route-1]
         routestr = f"Atom {i} {self.atomname[atomtypei]}: " + \
             " -> ".join(names)
         return moleculeroute, routestr
@@ -115,7 +101,7 @@ class _CollectPaths(metaclass=ABCMeta):
                 allmoleculeroute = []
                 semaphore = Semaphore(self.nproc*150)
                 results = multiopen(pool, self._getatomroute, zip(atomeach, self.atomtype), semaphore, return_num=True, start=1, unordered=False,
-                                    total=self._N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
+                                    total=self.N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
                 for moleculeroute, routestr in results:
                     f.append(routestr)
                     if moleculeroute.size > 0:
@@ -163,7 +149,7 @@ class _CollectMolPaths(_CollectPaths):
                 mname.append(molecule.smiles)
                 fm.append(listtostirng(
                     (molecule.smiles, atoms, bonds), sep=(' ', ';', ',')))
-        self._mname = np.array(mname)
+        self.mname = np.array(mname)
 
     class _molecule:
         def __init__(self, cmp, atoms, bonds):
@@ -213,7 +199,7 @@ class _CollectSMILESPaths(_CollectPaths):
             with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
                 semaphore = Semaphore(self.nproc*150)
                 results = multiopen(pool, self._calmoleculeSMILESname, ft, semaphore=semaphore,
-                                    nlines=3, total=self._hmmit, desc="Indentify isomers", unit="molecule")
+                                    nlines=3, total=self.hmmit, desc="Indentify isomers", unit="molecule")
                 for name, atoms, bonds in results:
                     mname.append(name)
                     fm.append(listtostirng(
@@ -222,7 +208,7 @@ class _CollectSMILESPaths(_CollectPaths):
         finally:
             pool.close()
             pool.join()
-        self._mname = np.array(mname)
+        self.mname = np.array(mname)
 
     def _calmoleculeSMILESname(self, item):
         line, _ = item

@@ -34,7 +34,7 @@ from scipy.spatial import cKDTree
 from ase import Atom, Atoms
 
 from .dps import dps
-from .utils import WriteBuffer, listtobytes, multiopen
+from .utils import WriteBuffer, listtobytes, multiopen, SharedRNGData
 
 
 class InputFileType(Enum):
@@ -49,23 +49,12 @@ class InputFileType(Enum):
     LAMMPSDUMP = auto()
 
 
-class _Detect(metaclass=ABCMeta):
+class _Detect(SharedRNGData, metaclass=ABCMeta):
     """Detect molecules."""
 
     def __init__(self, rng):
-        self.rng = rng
-        self.inputfilenames = rng.inputfilenames
-        self.atomname = rng.atomname
-        self.stepinterval = rng.stepinterval
-        self.nproc = rng.nproc
-        self.pbc = rng.pbc
-
-        self._N = None
-        self._atomtype = None
-        self._step = None
-        self.moleculetempfilename = None
-        self._temp1it = None
-        self._timestep = None
+        SharedRNGData.__init__(self, rng, ['inputfilename', 'atomname', 'stepinterval', 'nproc', 'pbc'],
+                               ['N', 'atomtype', 'step', 'timestep', 'temp1it', 'moleculetempfilename'])
 
     @staticmethod
     def gettype(inputtype):
@@ -81,12 +70,7 @@ class _Detect(metaclass=ABCMeta):
     def detect(self):
         """Detect molecules."""
         self._readinputfile()
-        self.rng.N = self._N
-        self.rng.atomtype = self._atomtype
-        self.rng.step = self._step
-        self.rng.timestep = self._timestep
-        self.rng.moleculetempfilename = self.moleculetempfilename
-        self.rng.temp1it = self._temp1it
+        self.returnkeys()
 
     def _readinputfile(self):
         d = defaultdict(list)
@@ -94,9 +78,9 @@ class _Detect(metaclass=ABCMeta):
         pool = Pool(self.nproc, maxtasksperchild=1000)
         try:
             semaphore = Semaphore(self.nproc*150)
-            with fileinput.input(files=self.inputfilenames) as f:
+            with fileinput.input(files=self.inputfilename) as f:
                 _steplinenum = self._readNfunc(f)
-            with fileinput.input(files=self.inputfilenames) as f:
+            with fileinput.input(files=self.inputfilename) as f:
                 results = multiopen(pool, self._readstepfunc, f, semaphore, nlines=_steplinenum, return_num=True, interval=self.stepinterval,
                                     desc="Read bond information and Detect molecules", unit="timestep")
                 for molecules, (step, thetimestep) in results:
@@ -104,15 +88,15 @@ class _Detect(metaclass=ABCMeta):
                         d[molecule].append(step)
                     timestep[step] = thetimestep
                     semaphore.release()
-            self._temp1it = len(d)
+            self.temp1it = len(d)
             values_c = list(multiopen(pool, self._compressvalue, d.values(
-            ), unordered=False, desc="Save molecules", unit="molecule", total=self._temp1it))
+            ), unordered=False, desc="Save molecules", unit="molecule", total=self.temp1it))
         finally:
             pool.close()
             pool.join()
         self._writemoleculetempfile((d.keys(), values_c))
-        self._timestep = timestep
-        self._step = len(timestep)
+        self.timestep = timestep
+        self.step = len(timestep)
 
     def _compressvalue(self, x):
         return listtobytes(np.array(x))
@@ -155,14 +139,14 @@ class _DetectLAMMPSbond(_Detect):
                 atomtype[int(s[0])-1] = int(s[1])-1
         else:
             steplinenum = index + 1
-        self._N = N
-        self._atomtype = atomtype
+        self.N = N
+        self.atomtype = atomtype
         return steplinenum
 
     def _readstepfunc(self, item):
         (step, lines), _ = item
-        bond = [None]*self._N
-        level = [None]*self._N
+        bond = [None]*self.N
+        level = [None]*self.N
         for line in lines:
             if line:
                 if line[0] == "#":
@@ -229,8 +213,8 @@ class _DetectLAMMPSdump(_Detect):
                     atomtype[int(s[0])-1] = int(s[1])-1
         else:
             steplinenum = index + 1
-        self._N = N
-        self._atomtype = atomtype
+        self.N = N
+        self.atomtype = atomtype
         return steplinenum
 
     def _readstepfunc(self, item):
