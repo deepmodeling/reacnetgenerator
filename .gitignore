@@ -192,3 +192,4 @@ typings/
 .dynamodb/
 
 bundle.*
+*.swp
