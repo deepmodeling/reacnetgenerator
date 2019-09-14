@@ -98,7 +98,7 @@ def listtostirng(l, sep):
     return str(l)
 
 
-def multiopen(pool, func, l, semaphore=None, nlines=None, unordered=True, return_num=False, start=0, extra=None, interval=None, bar=True, desc=None, unit=None, total=None):
+def multiopen(pool, func, l, semaphore=None, nlines=None, unordered=True, return_num=False, start=0, extra=None, interval=None, bar=True, desc=None, unit="it", total=None):
     obj = l
     if nlines:
         obj = itertools.zip_longest(*[obj] * nlines)
