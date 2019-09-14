@@ -96,7 +96,7 @@ if __name__ == '__main__':
         ) for encrypted_python_file in encrypted_python_files])
 
     tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython',
-                     'pytest-xvfb', "codecov>=1.4.0",
+                     'pytest-xvfb', "codecov>=1.4.0", "pytest-console-scripts",
                     ],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
