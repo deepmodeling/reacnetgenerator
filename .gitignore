@@ -191,6 +191,4 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-bundle.js
-bundle.css
-bundle.html
+bundle.*
