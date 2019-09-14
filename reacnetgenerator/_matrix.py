@@ -13,22 +13,13 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from .utils import WriteBuffer, bytestolist
+from .utils import WriteBuffer, bytestolist, SharedRNGData
 
 
-class _GenerateMatrix:
+class _GenerateMatrix(SharedRNGData):
     def __init__(self, rng):
-        self.rng = rng
-        self.tablefilename = rng.tablefilename
-        self.speciesfilename = rng.speciesfilename
-        self.reactionfilename = rng.reactionfilename
-        self.moleculetemp2filename = rng.moleculetemp2filename
-        self.n_searchspecies = rng.n_searchspecies
-        self.needprintspecies = rng.needprintspecies
-        self.allmoleculeroute = rng.allmoleculeroute
-        self.speciescenter = rng.speciescenter
-        self._mname = rng.mname
-        self._timestep = rng.timestep
+        SharedRNGData.__init__(self, rng, ["tablefilename", "speciesfilename", "reactionfilename", "moleculetemp2filename", "n_searchspecies",
+                                           "needprintspecies", "allmoleculeroute", "speciescenter", "mname", "timestep", 'splitmoleculeroute'], [])
 
     def generate(self):
         """Generate a reaction matrix and print species.
@@ -38,14 +29,14 @@ class _GenerateMatrix:
         where aij is the number of reactions from species si to sj.
         """
         self._printtable(self._getallroute(self.allmoleculeroute))
-        if self.rng.splitmoleculeroute is not None:
-            for i, smr in enumerate(self.rng.splitmoleculeroute):
+        if self.splitmoleculeroute is not None:
+            for i, smr in enumerate(self.splitmoleculeroute):
                 self._printtable(self._getallroute(smr), timeaxis=i)
         if self.needprintspecies:
             self._printspecies()
 
     def _getallroute(self, allmoleculeroute):
-        names = self._mname[allmoleculeroute-1]
+        names = self.mname[allmoleculeroute-1]
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
             equations = np.unique(names, return_counts=True, axis=0)
@@ -96,7 +87,8 @@ class _GenerateMatrix:
 
         df = pd.DataFrame(table[:len(species), :len(
             species)], index=species, columns=species)
-        df.to_csv(self.tablefilename if timeaxis is None else f"{self.tablefilename}.{timeaxis}", sep=' ')
+        df.to_csv(
+            self.tablefilename if timeaxis is None else f"{self.tablefilename}.{timeaxis}", sep=' ')
 
     def _searchspecies(self, originspec, sortedreactions, species):
         searchedspecies = []
@@ -112,12 +104,12 @@ class _GenerateMatrix:
 
     def _printspecies(self):
         with open(self.moleculetemp2filename, 'rb') as ft, WriteBuffer(open(self.speciesfilename, 'w')) as fw:
-            d = [Counter() for i in range(len(self._timestep))]
-            for name, line in zip(self._mname, itertools.zip_longest(*[ft] * 3)):
+            d = [Counter() for i in range(len(self.timestep))]
+            for name, line in zip(self.mname, itertools.zip_longest(*[ft] * 3)):
                 for t in bytestolist(line[-1]).tolist():
                     d[t][name] += 1
-            for t in range(len(self._timestep)):
-                fw.append(f"Timestep {self._timestep[t]}:")
+            for t in range(len(self.timestep)):
+                fw.append(f"Timestep {self.timestep[t]}:")
                 fw.extend(
                     map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
                 fw.append('\n')

@@ -25,27 +25,14 @@ from multiprocessing import Pool, Semaphore
 import numpy as np
 from hmmlearn import hmm
 
-from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, multiopen
+from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, multiopen, SharedRNGData
 
 
-class _HMMFilter:
+class _HMMFilter(SharedRNGData):
     def __init__(self, rng):
-        self.rng = rng
-        self.runHMM = rng.runHMM
-        self.originfilename = rng.originfilename
-        self.hmmfilename = rng.hmmfilename
-        self.getoriginfile = rng.getoriginfile
-        self.printfiltersignal = rng.printfiltersignal
-        self.moleculetempfilename = rng.moleculetempfilename
-        self.nproc = rng.nproc
-        self._temp1it = rng.temp1it
-        self.p = rng.p
-        self.a = rng.a
-        self.b = rng.b
-        self._step = rng.step
-        self._model = None
-        self.moleculetemp2filename = None
-        self._hmmit = None
+        SharedRNGData.__init__(self, rng, ['runHMM', 'getoriginfile', 'printfiltersignal',
+                                           'moleculetempfilename', 'nproc', 'temp1it', 'p', 'a', 'b', 'step'],
+                               ['moleculetemp2filename', 'originfilename', 'hmmfilename', 'hmmit'])
 
     def filter(self):
         """HMM Filters.
@@ -58,10 +45,7 @@ class _HMMFilter:
         if self.runHMM:
             self._initHMM()
         self._calhmm()
-        self.rng.moleculetemp2filename = self.moleculetemp2filename
-        self.rng.originfilename = self.originfilename
-        self.rng.hmmfilename = self.hmmfilename
-        self.rng.hmmit = self._hmmit
+        self.returnkeys()
 
     def _initHMM(self):
         self._model = hmm.MultinomialHMM(n_components=2)
@@ -72,7 +56,7 @@ class _HMMFilter:
     def _getoriginandhmm(self, item):
         line_c, _ = item
         value = bytestolist(line_c[-1])
-        origin = np.zeros((self._step, 1), dtype=np.int8)
+        origin = np.zeros((self.step, 1), dtype=np.int8)
         origin[value] = 1
         originbytes = listtobytes(
             origin) if self.getoriginfile else None
@@ -92,7 +76,7 @@ class _HMMFilter:
                 self.hmmfilename = fh.name if self.runHMM else None
                 semaphore = Semaphore(self.nproc*150)
                 results = multiopen(pool, self._getoriginandhmm, ft, semaphore,
-                                    nlines=3, total=self._temp1it, desc="HMM filter", unit="molecule")
+                                    nlines=3, total=self.temp1it, desc="HMM filter", unit="molecule")
                 hmmit = 0
                 for originbytes, hmmbytes, line_c in results:
                     if originbytes is not None or hmmbytes is not None:
@@ -104,4 +88,4 @@ class _HMMFilter:
             finally:
                 pool.close()
                 pool.join()
-        self._hmmit = hmmit
+        self.hmmit = hmmit

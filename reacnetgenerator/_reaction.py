@@ -8,19 +8,16 @@ import numpy as np
 from collections import Counter
 from multiprocessing import Pool, Semaphore
 
-from .utils import WriteBuffer, multiopen
+from .utils import WriteBuffer, multiopen, SharedRNGData
 
 
-class ReactionsFinder:
+class ReactionsFinder(SharedRNGData):
     CONFLICT = -1
     EMPTY = 0
 
     def __init__(self, rng):
-        self.rng = rng
-        self._step = rng.step
-        self._mname = rng.mname
-        self._reactionabcdfilename = rng.reactionabcdfilename
-        self.nproc = rng.nproc
+        SharedRNGData.__init__(self, rng, ["step", "mname",
+                                           "reactionabcdfilename", "nproc"], [])
 
     def findreactions(self, atomeach, conflict):
         allreactions = []
@@ -28,9 +25,9 @@ class ReactionsFinder:
             semaphore = Semaphore(self.nproc*150)
             # atomeach j, atomeach j+1, conflict j, conflict j+1
             givenarray = [(atomeach[:, j], atomeach[:, j+1], conflict[:, j],
-                           conflict[:, j+1]) for j in range(self._step-1)]
+                           conflict[:, j+1]) for j in range(self.step-1)]
             results = multiopen(pool, self._getstepreaction, givenarray, semaphore=semaphore,
-                                total=self._step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
+                                total=self.step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
             for networks in results:
                 allreactions.extend(networks)
                 semaphore.release()
@@ -38,7 +35,7 @@ class ReactionsFinder:
             pool.join()
         # reaction with SMILES
         allreactionswithname = Counter(allreactions).most_common()
-        with WriteBuffer(open(self._reactionabcdfilename, 'w'), sep='\n') as f:
+        with WriteBuffer(open(self.reactionabcdfilename, 'w'), sep='\n') as f:
             for reaction, number in allreactionswithname:
                 if reaction is not None:
                     f.append(f"{number} {reaction}")
@@ -75,7 +72,7 @@ class ReactionsFinder:
         return networks
 
     def _filterspec(self, reaction):
-        leftname, rightname = [[self._mname[spec-1]
+        leftname, rightname = [[self.mname[spec-1]
                                 for spec in side] for side in reaction]
         # remove duplicate species
         i = 0
