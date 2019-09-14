@@ -5,15 +5,17 @@
             "https://dev.tencent.com/api/share/download/8313f258-277c-4f53-8b2f-f2db1b38d11d"
         ],
         "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304",
-        "filename": "bonds.reaxc",
-        "atomname": [
-            "H",
-            "O"
-        ],
-        "inputfiletype": "lammpsbondfile",
-        "hmm": true,
-        "smiles": true,
-        "split": 10,
+        "rngparams": {
+            "inputfilename": "bonds.reaxc",
+            "atomname": [
+                "H",
+                "O"
+            ],
+            "inputfiletype": "lammpsbondfile",
+            "runHMM": true,
+            "SMILES": true,
+            "split": 10
+        },
         "reaction_sha256": "5eb802a5a4f5c537ea556528a7db9402ab401f9cbd650e75b2a03e809ab9c8ad"
     },
     {
@@ -22,15 +24,20 @@
             "https://dev.tencent.com/api/share/download/13c27de9-80d1-4f8d-b3da-b2ccfaa5f984"
         ],
         "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e",
-        "filename": "dump.reaxc",
-        "atomname": [
-            "H",
-            "O"
-        ],
-        "inputfiletype": "lammpsdumpfile",
-        "hmm": false,
-        "smiles": false,
-        "speciescenter": "[H][H]",
-        "reaction_sha256": "dc591e2cbaf6d57c4635865089311b2fbf3c3c93761f5fd25b0eb723deb4a73e"
+        "rngparams": {
+            "inputfilename": "dump.reaxc",
+            "atomname": [
+                "H",
+                "O"
+            ],
+            "inputfiletype": "lammpsdumpfile",
+            "runHMM": false,
+            "SMILES": false,
+            "speciescenter": "[H][H]"
+        },
+        "reaction_sha256": [
+            "dc591e2cbaf6d57c4635865089311b2fbf3c3c93761f5fd25b0eb723deb4a73e",
+            "e5fe2b7e467fcc4a0a934987e7d97d8c586eb52ed2d95c434c719953ad4f0918"
+        ]
     }
 ]

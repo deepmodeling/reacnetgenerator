@@ -28,16 +28,8 @@ class TestReacNetGen:
 
         testparm = request.param
         self._download_file(
-            testparm['url'], testparm['filename'], testparm['sha256'])
-        return reacnetgenerator.ReacNetGenerator(
-            inputfilename=testparm['filename'], atomname=testparm['atomname'],
-            SMILES=testparm['smiles'],
-            inputfiletype=testparm['inputfiletype'],
-            runHMM=testparm['hmm'],
-            speciescenter=testparm['speciescenter']
-            if 'speciescenter' in testparm else None,
-            split=testparm['split'] if 'split' in testparm else 1,
-            ), testparm
+            testparm['url'], testparm['rngparams']['inputfilename'], testparm['sha256'])
+        return reacnetgenerator.ReacNetGenerator(**testparm['rngparams']), testparm
 
     def test_reacnetgen(self, reacnetgen):
         """Test main process of ReacNetGen."""
@@ -57,6 +49,10 @@ class TestReacNetGen:
             gui.gui()
         except TclError:
             pytest.skip("No display for GUI.")
+    
+    def test_commandline(self, script_runner):
+        ret = script_runner.run('reacnetgenerator', '-h')
+        assert ret.success
 
     def _download_file(self, urls, pathfilename, sha256):
         times = 0
@@ -95,7 +91,9 @@ class TestReacNetGen:
                 h.update(mv[:n])
         sha256 = h.hexdigest()
         logging.info(f"SHA256 of {filename}: {sha256}")
-        if sha256 == sha256_check:
+        if not isinstance(sha256_check, list):
+            sha256_check = [sha256_check]
+        if sha256 in sha256_check:
             return True
         logging.warning("SHA256 is not correct.")
         logging.warning(open(filename).read())
