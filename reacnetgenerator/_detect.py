@@ -21,7 +21,6 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 1972, 1 (2), 146-160.
 """
 
-import itertools
 import tempfile
 import fileinput
 from abc import ABCMeta, abstractmethod
@@ -33,9 +32,9 @@ import numpy as np
 import openbabel
 from scipy.spatial import cKDTree
 from ase import Atom, Atoms
-from tqdm import tqdm
 
 from .dps import dps
+from .utils import WriteBuffer, listtobytes, multiopen
 
 
 class InputFileType(Enum):
@@ -59,9 +58,6 @@ class _Detect(metaclass=ABCMeta):
         self.atomname = rng.atomname
         self.stepinterval = rng.stepinterval
         self.nproc = rng.nproc
-        self._produce = rng.produce
-        self._compress = rng.compress
-        self._listtobytes = rng.listtobytes
         self.pbc = rng.pbc
 
         self._N = None
@@ -101,26 +97,16 @@ class _Detect(metaclass=ABCMeta):
             with fileinput.input(files=self.inputfilenames) as f:
                 _steplinenum = self._readNfunc(f)
             with fileinput.input(files=self.inputfilenames) as f:
-                results = pool.imap_unordered(
-                    self._readstepfunc, self._produce(
-                        semaphore,
-                        enumerate(
-                            itertools.islice(
-                                itertools.zip_longest(*[f] * _steplinenum),
-                                0, None, self.stepinterval), len(d)),
-                        None),
-                    100)
-                for molecules, (step, thetimestep) in tqdm(results,
-                                                        desc="Read bond information and Detect molecules",
-                                                        unit="timestep"):
+                results = multiopen(pool, self._readstepfunc, f, semaphore, nlines=_steplinenum, return_num=True, interval=self.stepinterval,
+                                    desc="Read bond information and Detect molecules", unit="timestep")
+                for molecules, (step, thetimestep) in results:
                     for molecule in molecules:
                         d[molecule].append(step)
                     timestep[step] = thetimestep
                     semaphore.release()
             self._temp1it = len(d)
-            values_c = list(tqdm(pool.imap(self._compressvalue,
-                                                    d.values(),
-                                                    100), desc="Save molecules", unit="molecule", total=self._temp1it))
+            values_c = list(multiopen(pool, self._compressvalue, d.values(
+            ), unordered=False, desc="Save molecules", unit="molecule", total=self._temp1it))
         finally:
             pool.close()
             pool.join()
@@ -129,7 +115,7 @@ class _Detect(metaclass=ABCMeta):
         self._step = len(timestep)
 
     def _compressvalue(self, x):
-        return self._listtobytes(np.array(x))
+        return listtobytes(np.array(x))
 
     @abstractmethod
     def _readNfunc(self, f):
@@ -140,20 +126,14 @@ class _Detect(metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        return list([b' '.join((self._listtobytes(mol),
-                                self._listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
+        return list([b' '.join((listtobytes(mol),
+                                listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
 
     def _writemoleculetempfile(self, d):
-        buff = []
-        with tempfile.NamedTemporaryFile('wb', delete=False) as f:
+        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as f:
             self.moleculetempfilename = f.name
             for mol in zip(*d):
-                buff.extend(mol)
-                if len(buff) > 30*self.nproc:
-                    f.write(b''.join(buff))
-                    buff[:] = []
-            if buff:
-                f.write(b''.join(buff))
+                f.extend(mol)
 
 
 class _DetectLAMMPSbond(_Detect):
@@ -282,7 +262,6 @@ class _DetectLAMMPSdump(_Detect):
 
     def _getbondfromcrd(self, step_atoms, cell):
         atomnumber = len(step_atoms)
-        ghosts = {}
         if self.pbc:
             # Apply period boundry conditions
             step_atoms.set_pbc(True)
@@ -291,7 +270,7 @@ class _DetectLAMMPSdump(_Detect):
             repeated_atoms = step_atoms.repeat(2)[atomnumber:]
             tree = cKDTree(step_atoms.get_positions())
             d = tree.query(repeated_atoms.get_positions(), k=1)[0]
-            nearest = d<5
+            nearest = d < 5
             ghost_atoms = repeated_atoms[nearest]
             realnumber = np.where(nearest)[0] % atomnumber
             step_atoms += ghost_atoms
@@ -326,7 +305,8 @@ class _DetectLAMMPSdump(_Detect):
                             s2 = realnumber[s2-atomnumber]
                         bond[s1].append(s2)
                         bond[s2].append(s1)
-                        level = 12 if s[3] == 'ar' else (1 if s[3] == 'am' else int(s[3]))
+                        level = 12 if s[3] == 'ar' else (
+                            1 if s[3] == 'am' else int(s[3]))
                         bondlevel[s1].append(level)
                         bondlevel[s2].append(level)
         return bond, bondlevel

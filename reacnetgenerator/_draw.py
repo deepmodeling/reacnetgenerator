@@ -22,12 +22,15 @@ import logging
 import math
 import traceback
 from io import StringIO
+from itertools import permutations
 
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
 import scour.scour
+
+from .utils import SCOUROPTIONS
 
 
 class _DrawNetwork:
@@ -49,7 +52,6 @@ class _DrawNetwork:
         self.nolabel = rng.nolabel
         self.showid = rng.showid
         self._split = rng.split
-        self.scouroptions = rng.SCOUROPTIONS
 
     def draw(self):
         """Draw the network."""
@@ -64,19 +66,15 @@ class _DrawNetwork:
         species, showname = self._handlespecies(name)
 
         G = nx.DiGraph()
-        for i, tablei in enumerate(table):
-            if name[i] in species and not name[i] in self.speciesfilter:
-                G.add_node(showname[name[i]] if name[i]
-                           in showname else name[i])
-                for j, tableij in enumerate(tablei):
-                    if name[j] in species and not name[j] in self.speciesfilter:
-                        if tableij > 0:
-                            G.add_weighted_edges_from(
-                                [((showname[name[i]]
-                                   if name[i] in showname else name[i]),
-                                  (showname[name[j]]
-                                   if name[j] in showname else name[j]),
-                                  tableij)])
+        idx = []
+        for i, _ in enumerate(table):
+            if name[i] in species:
+                G.add_node(showname[name[i]])
+                idx.append(i)
+        for i, j in permutations(idx, 2):
+            if table[i][j] > 0:
+                G.add_weighted_edges_from(
+                    [(showname[name[i]], showname[name[j]], table[i][j])])
         weights = np.array([math.log(G[u][v]['weight']+1)
                             for u, v in G.edges()])
         widths = weights / np.max(weights) * self.widthcoefficient * np.array(
@@ -100,7 +98,8 @@ class _DrawNetwork:
                     (("" if with_labels else "nolabel_"), self.imagefilename))
                 with StringIO() as stringio, open(imagefilename if timeaxis is None else f"{imagefilename}.{timeaxis}", 'w') as f:
                     plt.savefig(stringio, format='svg')
-                    f.write(scour.scour.scourString(stringio.getvalue(), self.scouroptions))
+                    f.write(scour.scour.scourString(
+                        stringio.getvalue(), SCOUROPTIONS))
                 plt.close()
         except Exception as e:
             logging.error(f"Error: cannot draw images. Details: {e}")
@@ -111,16 +110,17 @@ class _DrawNetwork:
         return df.values, df.index
 
     def _handlespecies(self, name):
-        showname = {}
-        species = self.species if self.species.size > 0 else name[:min(
+        species = self.species if self.species else name[:min(
             len(name), self.maxspecies)]
+        # filter
+        species = [spec for spec in species if spec not in self.speciesfilter]
 
         if self.showid:
-            if species.size > 0:
-                print()
-                logging.info("Species are:")
-                showname = dict([(v, u)
-                                 for u, v in enumerate(species, start=1)])
-                for specname, n in showname.items():
-                    print(n, specname)
+            showname = dict([(v, u) for u, v in enumerate(species, start=1)])
+        else:
+            showname = dict([(u, u) for u in species])
+        if species:
+            logging.info("Species are:")
+            for specname, n in showname.items():
+                logging.info("{} {}".format(n, specname))
         return species, showname

@@ -19,13 +19,13 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 """
 
 import tempfile
-import itertools
 from contextlib import ExitStack
 from multiprocessing import Pool, Semaphore
 
 import numpy as np
 from hmmlearn import hmm
-from tqdm import tqdm
+
+from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, multiopen
 
 
 class _HMMFilter:
@@ -43,11 +43,6 @@ class _HMMFilter:
         self.a = rng.a
         self.b = rng.b
         self._step = rng.step
-        self._compress = rng.compress
-        self._decompress = rng.decompress
-        self._bytestolist = rng.bytestolist
-        self._listtobytes = rng.listtobytes
-        self._produce = rng.produce
         self._model = None
         self.moleculetemp2filename = None
         self._hmmit = None
@@ -76,51 +71,36 @@ class _HMMFilter:
 
     def _getoriginandhmm(self, item):
         line_c, _ = item
-        value = self._bytestolist(line_c[-1])
+        value = bytestolist(line_c[-1])
         origin = np.zeros((self._step, 1), dtype=np.int8)
         origin[value] = 1
-        originbytes = self._listtobytes(
+        originbytes = listtobytes(
             origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
             _, hmm = self._model.decode(origin, algorithm="viterbi")
             if 1 in hmm or self.printfiltersignal:
-                hmmbytes = self._listtobytes(hmm)
+                hmmbytes = listtobytes(hmm)
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
-        with tempfile.NamedTemporaryFile('wb', delete=False) if self.getoriginfile or not self.runHMM else ExitStack() as fo, tempfile.NamedTemporaryFile('wb', delete=False) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, tempfile.NamedTemporaryFile('wb', delete=False) as ft2:
+        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.getoriginfile or not self.runHMM else ExitStack() as fo, WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
             pool = Pool(self.nproc, maxtasksperchild=1000)
             try:
                 self.moleculetemp2filename = ft2.name
                 self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
                 self.hmmfilename = fh.name if self.runHMM else None
                 semaphore = Semaphore(self.nproc*150)
-                results = pool.imap_unordered(
-                    self._getoriginandhmm, self._produce(semaphore, itertools.zip_longest(*[ft] * 3), ()), 100)
+                results = multiopen(pool, self._getoriginandhmm, ft, semaphore,
+                                    nlines=3, total=self._temp1it, desc="HMM filter", unit="molecule")
                 hmmit = 0
-                buffo = []
-                buffh = []
-                bufft = []
-                for originbytes, hmmbytes, line_c in tqdm(
-                        results, total=self._temp1it, desc="HMM filter",
-                        unit="molecule"):
+                for originbytes, hmmbytes, line_c in results:
                     if originbytes is not None or hmmbytes is not None:
-                        for signalbytes, buff, f in [(originbytes, buffo, fo), (hmmbytes, buffh, fh)]:
-                            if signalbytes is not None:
-                                buff.append(signalbytes)
-                                if len(buff) > 30*self.nproc:
-                                    f.write(b''.join(buff))
-                                    buff[:] = []
+                        appendIfNotNone(fo, originbytes)
+                        appendIfNotNone(fh, hmmbytes)
                         hmmit += 1
-                        bufft.extend(line_c)
-                        if len(buffh) > 30*self.nproc:
-                            ft2.write(b''.join(bufft))
-                            bufft[:] = []
+                        ft2.extend(line_c)
                     semaphore.release()
-                for buff, f in [(buffo, fo), (buffh, fh), (bufft, ft2)]:
-                    if buff:
-                        f.write(b''.join(buff))
             finally:
                 pool.close()
                 pool.join()

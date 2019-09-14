@@ -20,7 +20,8 @@ import pkg_resources
 
 import openbabel
 import scour.scour
-from tqdm import tqdm
+
+from .utils import SCOUROPTIONS, multiopen
 
 
 class _HTMLResult:
@@ -43,7 +44,6 @@ class _HTMLResult:
         self._reaction = None
         self._reactionsabcd = None
         self._svgfiles = {}
-        self.scouroptions = rng.SCOUROPTIONS
 
     def report(self):
         """Generate a web page to show the result."""
@@ -91,7 +91,7 @@ class _HTMLResult:
             if append_spec:
                 pool = Pool(self._nproc)
                 try:
-                    results = pool.imap_unordered(self._convertsvg, tqdm(append_spec))
+                    results = multiopen(pool, self._convertsvg, append_spec)
                     for spec, svgfile in results:
                         self._svgfiles[spec] = svgfile
                 finally:
@@ -106,7 +106,7 @@ class _HTMLResult:
         mol = openbabel.OBMol()
         obConversion.ReadString(mol, smiles)
         svgdata = obConversion.WriteString(mol)
-        svgdata = scour.scour.scourString(svgdata, self.scouroptions)
+        svgdata = scour.scour.scourString(svgdata, SCOUROPTIONS)
         svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
         svgdata = re.sub(
             r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
@@ -123,7 +123,7 @@ class _HTMLResult:
         if timeaxis is None:
             pool = Pool(self._nproc)
             try:
-                results = pool.imap_unordered(self._convertsvg, tqdm(specs))
+                results = multiopen(pool, self._convertsvg, specs)
                 for spec, svgfile in results:
                     self._svgfiles[spec] = svgfile
             finally:
@@ -171,4 +171,4 @@ class _HTMLResult:
                 r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
                 svgdata)
             svgdata = svgdata.replace(r"""<style type="text/css">*{""",r"""<style type="text/css">#network svg *{""")
-        return scour.scour.scourString(svgdata, self.scouroptions)
+        return scour.scour.scourString(svgdata, SCOUROPTIONS)
