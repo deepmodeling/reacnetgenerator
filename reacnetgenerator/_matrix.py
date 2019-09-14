@@ -8,6 +8,7 @@ generated.
 """
 
 import itertools
+import operator
 from collections import Counter
 
 import numpy as np
@@ -46,7 +47,7 @@ class _GenerateMatrix(SharedRNGData):
     def _printtable(self, allroute, maxsize=100, timeaxis=None):
         species = []
         sortedreactions = sorted(
-            allroute, key=lambda d: d[1], reverse=True)
+            allroute, key=operator.itemgetter(1, 0), reverse=True)
         # added on Nov 17, 2018
         if self.speciescenter:
             newreactions = []

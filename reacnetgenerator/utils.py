@@ -1,11 +1,12 @@
 """Provide utils for ReacNetGenerator."""
 
 
-import lz4.frame
-import pybase64
-import pickle
 import itertools
+import pickle
 
+import lz4.frame
+import numpy as np
+import pybase64
 from tqdm import tqdm
 
 
@@ -89,7 +90,7 @@ def bytestolist(x):
 def listtostirng(l, sep):
     if isinstance(l, str):
         return l
-    if isinstance(l, (list, tuple)):
+    if isinstance(l, (list, tuple, np.ndarray)):
         return sep[0].join(map(lambda x: listtostirng(x, sep[1:]), l))
     return str(l)
 

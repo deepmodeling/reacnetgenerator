@@ -23,6 +23,7 @@ Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
 
 import tempfile
 import fileinput
+import operator
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
@@ -238,7 +239,7 @@ class _DetectLAMMPSdump(_Detect):
                     elif linecontent == self.LineType.BOX:
                         s = line.split()
                         boxsize.append(float(s[1])-float(s[0]))
-        _, step_atoms = zip(*sorted(step_atoms, key=lambda a: a[0]))
+        _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(bond, level)
