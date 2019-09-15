@@ -61,6 +61,7 @@ class TestReacNetGen:
     
     def test_gui_openandrun(self, reacnetgengui, mocker, reacnetgen_param):
         mocker.patch("tkinter.filedialog.askopenfilename", return_value="dump.reaxc")
+        mocker.patch("tkinter.messagebox.showerror")
         pp = reacnetgen_param['rngparams']
         download_file(pp['urls'][0]['url'][0], pp['urls'][0]['fn'], None)
         reacnetgengui._atomnameet.delete(0, END)
