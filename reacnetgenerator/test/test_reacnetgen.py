@@ -49,19 +49,19 @@ class TestReacNetGen:
             gui.quit()
         except TclError:
             pytest.skip("No display for GUI.")
-        
-    def test_gui(self):
+
+    def test_gui(self, reacnetgengui):
         """Test GUI of ReacNetGen."""
-        gui.root.after(100, gui.root.destroy)
+        reacnetgengui.root.after(100, gui.root.destroy)
         reacnetgengui.gui()
     
-    def test_gui_openandrun(self, mocker):
-        mocker.patch("tkfd.askopenfilename", return_value="dump.reaxc")
+    def test_gui_openandrun(self, reacnetgengui, mocker):
+        mocker.patch("tkinter.filedialog.askopenfilename", return_value="dump.reaxc")
         download_file('https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download', 'dump.reaxc', None)
-        gui._atomnameet.delete(0, END)
-        gui._atomnameet.insert(0, "H O")
-        gui._openbtn.invoke()
-        gui._runbtn.invoke()
+        reacnetgengui._atomnameet.delete(0, END)
+        reacnetgengui._atomnameet.insert(0, "H O")
+        reacnetgengui._openbtn.invoke()
+        reacnetgengui._runbtn.invoke()
 
     def test_commandline_help(self, script_runner):
         ret = script_runner.run('reacnetgenerator', '-h')
