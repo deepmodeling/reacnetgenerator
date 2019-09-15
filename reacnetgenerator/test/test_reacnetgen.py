@@ -2,99 +2,64 @@
 """Test ReacNetGen."""
 
 
-import hashlib
 import json
-import logging
-import math
 import os
-import tempfile
 import pytest
-import shutil
 from tkinter import TclError
 
 import pkg_resources
-import reacnetgenerator
-import reacnetgenerator.gui
-import requests
+from reacnetgenerator import ReacNetGenerator
+from reacnetgenerator.gui import GUI
+from reacnetgenerator.utils import checksha256
+
 
 class TestReacNetGen:
     """Test ReacNetGenerator."""
 
-    @pytest.fixture(params=json.load(
-        pkg_resources.resource_stream(
-            __name__, 'test.json')))
-    def reacnetgen(self, request, tmp_path):
+    @pytest.fixture(autouse=True)
+    def chdir(self, tmp_path):
+        start_direcroty = os.getcwd()
         os.chdir(tmp_path)
+        yield
+        os.chdir(start_direcroty)
 
+    @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
+    def reacnetgen(self, request, tmp_path):
         testparm = request.param
-        self._download_file(
-            testparm['url'], testparm['rngparams']['inputfilename'], testparm['sha256'])
-        return reacnetgenerator.ReacNetGenerator(**testparm['rngparams']), testparm
+        rngclass = ReacNetGenerator(**testparm['rngparams'])
+        yield rngclass
+        assert checksha256(rngclass.reactionfilename,
+                           testparm['reaction_sha256'])
+        assert os.path.exists(rngclass.reactionfilename)
+        assert os.path.exists(rngclass.resultfilename)
 
     def test_reacnetgen(self, reacnetgen):
         """Test main process of ReacNetGen."""
-        rngclass, testparm = reacnetgen
-        rngclass.runanddraw()
+        reacnetgen.runanddraw()
 
-        assert self._checksha256(rngclass.reactionfilename, testparm['reaction_sha256'])
-        assert os.path.exists(rngclass.reactionfilename)
-        assert os.path.exists(rngclass.resultfilename)
-        
+    def test_reacnetgen_step(self, reacnetgen):
+        reacnetgen.run()
+        reacnetgen.draw()
+        reacnetgen.report()
 
     def test_gui(self):
         """Test GUI of ReacNetGen."""
         try:
-            gui = reacnetgenerator.gui.GUI()
+            gui = GUI()
             gui.root.after(1000, gui.root.destroy)
             gui.gui()
         except TclError:
             pytest.skip("No display for GUI.")
-    
-    def test_commandline(self, script_runner):
+
+    def test_commandline_help(self, script_runner):
         ret = script_runner.run('reacnetgenerator', '-h')
         assert ret.success
 
-    def _download_file(self, urls, pathfilename, sha256):
-        times = 0
-        # download if not exists
-        while times < 3:
-            if os.path.isfile(pathfilename) and self._checksha256(
-                    pathfilename, sha256):
-                break
+    def test_commandline_run(self, script_runner):
+        ret = script_runner.run('reacnetgenerator', '-i', 'dump.reaxc', '-a', 'C', 'H', 'O', '--dump', '-s', 'C', '--nohmm',
+                                '--urls', 'dump.reaxc', 'https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download')
+        assert ret.success
 
-            # from https://stackoverflow.com/questions/16694907
-            if not isinstance(urls, list):
-                urls = [urls]
-            for url in urls:
-                try:
-                    logging.info(f"Try to download {pathfilename} from {url}")
-                    with requests.get(url, stream=True) as r, open(pathfilename, 'wb') as f:
-                        shutil.copyfileobj(r.raw, f)
-                    break
-                except requests.exceptions.RequestException as e:
-                    logging.warning("Request Error.", exc_info=e)
-            else:
-                raise IOError(f"Cannot download {pathfilename}.")                
-        else:
-            raise IOError(f"Retry too much times.")
-        return pathfilename
-
-    @staticmethod
-    def _checksha256(filename, sha256_check):
-        if not os.path.isfile(filename):
-            return
-        h = hashlib.sha256()
-        b = bytearray(128*1024)
-        mv = memoryview(b)
-        with open(filename, 'rb', buffering=0) as f:
-            for n in iter(lambda: f.readinto(mv), 0):
-                h.update(mv[:n])
-        sha256 = h.hexdigest()
-        logging.info(f"SHA256 of {filename}: {sha256}")
-        if not isinstance(sha256_check, list):
-            sha256_check = [sha256_check]
-        if sha256 in sha256_check:
-            return True
-        logging.warning("SHA256 is not correct.")
-        logging.warning(open(filename).read())
-        return False
+    @pytest.mark.xfail
+    def test_unsupported_filetype(self):
+        ReacNetGenerator(inputfilename="xx", inputfiletype="abc", atomname=[])

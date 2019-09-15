@@ -60,6 +60,7 @@ from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
+from ._download import DownloadData
 
 
 class ReacNetGenerator:
@@ -79,7 +80,7 @@ class ReacNetGenerator:
                             "nproc": cpu_count(), "pos": {}, "pbc": True, "split": 1, "n_searchspecies": 2,
                             "node_size": 200, "font_size": 6, "widthcoefficient": 1, "maxspecies": 20, "stepinterval": 1,
                             "nolabel": False,  "printfiltersignal": False, "showid": True, "runHMM": True, "SMILES": True,
-                            "getoriginfile": False, "needprintspecies": True
+                            "getoriginfile": False, "needprintspecies": True, "urls": []
                             }
         none_key = ['selectatoms', 'species', 'pos', 'k', 'speciescenter']
         accept_keys = ['atomtype', 'step', 'hmmit', 'timestep', 'steplinenum', 'N',
@@ -104,6 +105,8 @@ class ReacNetGenerator:
             kwargs["inputfilename"] = [kwargs["inputfilename"]]
         for kk in default_value:
             kwargs.setdefault(kk, default_value[kk])
+            if kwargs[kk] is None:
+                kwargs[kk] = default_value[kk]
         for kk in itertools.chain(none_key, accept_keys):
             kwargs.setdefault(kk, None)
         for kk in file_key:
@@ -121,6 +124,8 @@ class ReacNetGenerator:
         """Analyze the trajectory from MD simulation."""
         processthing = []
         if run:
+            if self.urls:
+                processthing.append(self.Status.DOWNLOAD)
             processthing.extend((
                 self.Status.DETECT,
                 self.Status.HMM,
@@ -135,12 +140,16 @@ class ReacNetGenerator:
 
     def run(self):
         """Process MD trajectory."""
-        self._process((
+        processthing = []
+        if self.urls:
+            processthing.append(self.Status.DOWNLOAD)
+        processthing.extend((
             self.Status.DETECT,
             self.Status.HMM,
             self.Status.PATH,
             self.Status.MATRIX,
         ))
+        self._process(processthing)
 
     def draw(self):
         """Draw the reaction network."""
@@ -164,6 +173,7 @@ class ReacNetGenerator:
         MATRIX = "Reaction matrix generation"
         NETWORK = "Draw reaction network"
         REPORT = "Generate analysis report"
+        DOWNLOAD = "Download trajectory"
 
         def __str__(self):
             """Return describtion of the status."""
@@ -184,6 +194,8 @@ class ReacNetGenerator:
                 _DrawNetwork(self).draw()
             elif runstep == self.Status.REPORT:
                 _HTMLResult(self).report()
+            elif runstep == self.Status.DOWNLOAD:
+                DownloadData(self).download_files()
             # garbage collect
             gc.collect()
             timearray.append(time.time())

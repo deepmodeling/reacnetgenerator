@@ -1,12 +1,18 @@
 """Provide utils for ReacNetGenerator."""
 
 
+import os
+import shutil
 import itertools
+import logging
 import pickle
+import hashlib
 
 import lz4.frame
 import numpy as np
 import pybase64
+import requests
+from requests.adapters import HTTPAdapter
 from tqdm import tqdm
 
 
@@ -140,3 +146,48 @@ class SharedRNGData:
     def returnkeys(self):
         for key in self.returnedRNGKeys:
             setattr(self.rng, key, getattr(self, key))
+
+
+def checksha256(filename, sha256_check):
+    if not os.path.isfile(filename):
+        return
+    h = hashlib.sha256()
+    b = bytearray(128*1024)
+    mv = memoryview(b)
+    with open(filename, 'rb', buffering=0) as f:
+        for n in iter(lambda: f.readinto(mv), 0):
+            h.update(mv[:n])
+    sha256 = h.hexdigest()
+    logging.info(f"SHA256 of {filename}: {sha256}")
+    if not isinstance(sha256_check, list):
+        sha256_check = [sha256_check]
+    if sha256 in sha256_check:
+        return True
+    logging.warning("SHA256 is not correct.")
+    logging.warning(open(filename).read())
+    return False
+
+
+def download_file(urls, pathfilename, sha256):
+    s = requests.Session()
+    s.mount('http://', HTTPAdapter(max_retries=3))
+    s.mount('https://', HTTPAdapter(max_retries=3))
+    # download if not exists
+    if os.path.isfile(pathfilename) and (checksha256(pathfilename, sha256) or sha256 is None):
+        return pathfilename
+
+    # from https://stackoverflow.com/questions/16694907
+    if not isinstance(urls, list):
+        urls = [urls]
+    for url in urls:
+        logging.info(f"Try to download {pathfilename} from {url}")
+        with s.get(url, stream=True) as r, open(pathfilename, 'wb') as f:
+            try:
+                shutil.copyfileobj(r.raw, f)
+                break
+            except requests.exceptions.RequestException as e:
+                logging.warning("Request Error.", exc_info=e)
+    else:
+        raise RuntimeError(f"Cannot download {pathfilename}.")
+
+    return pathfilename
