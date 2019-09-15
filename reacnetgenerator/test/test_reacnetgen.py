@@ -24,12 +24,15 @@ class TestReacNetGen:
         os.chdir(start_direcroty)
 
     @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
-    def reacnetgen(self, request, tmp_path):
-        testparm = request.param
-        rngclass = ReacNetGenerator(**testparm['rngparams'])
+    def reacnetgen_param(self, request):
+        return request.param
+        
+    @pytest.fixture()
+    def reacnetgen(self, reacnetgen_param):
+        rngclass = ReacNetGenerator(**reacnetgen_param['rngparams'])
         yield rngclass
         assert checksha256(rngclass.reactionfilename,
-                           testparm['reaction_sha256'])
+                           reacnetgen_param['reaction_sha256'])
         assert os.path.exists(rngclass.reactionfilename)
         assert os.path.exists(rngclass.resultfilename)
 
@@ -53,14 +56,15 @@ class TestReacNetGen:
 
     def test_gui(self, reacnetgengui):
         """Test GUI of ReacNetGen."""
-        reacnetgengui.root.after(100, gui.root.destroy)
+        reacnetgengui.root.after(100, reacnetgengui.root.destroy)
         reacnetgengui.gui()
     
-    def test_gui_openandrun(self, reacnetgengui, mocker):
+    def test_gui_openandrun(self, reacnetgengui, mocker, reacnetgen_param):
         mocker.patch("tkinter.filedialog.askopenfilename", return_value="dump.reaxc")
-        download_file('https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download', 'dump.reaxc', None)
+        pp = reacnetgen_param['rngparams']
+        download_file(pp['urls'][0]['url'][0], pp['urls'][0]['fn'], None)
         reacnetgengui._atomnameet.delete(0, END)
-        reacnetgengui._atomnameet.insert(0, "H O")
+        reacnetgengui._atomnameet.insert(0, " ".join(pp['atomname']))
         reacnetgengui._openbtn.invoke()
         reacnetgengui._runbtn.invoke()
 
@@ -68,9 +72,13 @@ class TestReacNetGen:
         ret = script_runner.run('reacnetgenerator', '-h')
         assert ret.success
 
-    def test_commandline_run(self, script_runner):
-        ret = script_runner.run('reacnetgenerator', '-i', 'dump.reaxc', '-a', 'H', 'O', '--dump', '-s', 'H', '--nohmm',
-                                '--urls', 'dump.reaxc', 'https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download')
+    def test_commandline_run(self, script_runner, reacnetgen_param):
+        pp = reacnetgen_param['rngparams']
+        cc_hmm = '' if pp['runHMM'] else '--nohmm'
+        cc_dump = '--dump' if pp['inputfiletype'] == 'lammpsdumpfile' else ''
+        cc_atomname = ' '.join(pp['atomname'])
+        ret = script_runner.run('reacnetgenerator', '-i', pp['inputfilename'], '-a', cc_atomname, cc_dump,
+                                '-s', pp['atomname'][0], cc_hmm, '--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0])
         assert ret.success
 
     @pytest.mark.xfail
