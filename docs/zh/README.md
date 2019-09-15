@@ -23,22 +23,17 @@ features:
 
 # 引用和联系方式
 
-**请引用：** J. Zeng, L. Cao, J.Z.H. Zhang, C.H. Chin, T. Zhu: ReacNetGen: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2018, doi: [10.26434/chemrxiv.7421534](https://dx.doi.org/10.26434/chemrxiv.7421534)
+ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2019, doi: [10.26434/chemrxiv.7421534](https://dx.doi.org/10.26434/chemrxiv.7421534)
 
-**作者**：
-[Jinzhe Zeng](https://cv.njzjz.win),
-[Liqun Cao](http://computchem.cn/people/),
-[John ZH Zhang](https://research.shanghai.nyu.edu/centers-and-institutes/chemistry/people/john-zenghui-zhang),
-[Chih-Hao Chin](http://computchem.cn/people/),
-[Tong Zhu](http://computchem.cn/people/)
+jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
-**Email**： tzhu@lps.ecnu.edu.cn, jzzeng@stu.ecnu.edu.cn
+# 安装
 
-## 安装
+在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip，或者用电子邮件向我们索取最新版本。接着选择一项安装ReacNetGenerator：
 
-1. 在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip；
-2. [从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) ；
-3. 解压reacnetgenerator.zip，并在软件主目录编译：
+## 构建conda包
+1. [从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) ；
+2. 解压reacnetgenerator.zip，并在ReacNetGenerator主目录编译：
 
 ```bash
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
@@ -46,9 +41,18 @@ conda build conda/recipe
 conda install reacnetgenerator --use-local
 ```
 
-## 使用
+## 构建Docker镜像
+1. [安装Docker](https://mirror.tuna.tsinghua.edu.cn/help/docker-ce/)；
+2. 解压reacnetgenerator.zip，并在ReacNetGenerator主目录编译：
 
-### 命令行
+```bash
+docker build . -t njzjz/reacnetgenerator
+docker run njzjz/reacnetgenerator reacnetgenerator -h
+```
+
+# 使用
+
+## 命令行
 
 ReacNetGenerator可以处理任意类型含有原子坐标的轨迹文件，例如LAMMPS dump文件，可以通过在 LAMMPS 中执行dump 1 all custom 100 dump.reaxc id type x y z来获得：
 
@@ -70,43 +74,13 @@ reacnetgenerator -i bonds.reaxc -a C H O
 reacnetgenerator -h
 ```
 
-### 图形界面
+## 图形界面
 
 你可以打开 ReacNetGenerator 的图形界面：
 
 ```bash
 reacnetgeneratorgui
 ```
-
-## 依赖
-
--   Python >= 3.6
--   Python 包：
-    [numpy](https://github.com/numpy/numpy),
-    [scipy](https://github.com/scipy/scipy),
-    [pandas](https://github.com/pandas-dev/pandas),
-    [networkx](https://github.com/networkx/networkx),
-    [scikit-learn](https://github.com/scikit-learn/scikit-learn),
-    [matplotlib](https://github.com/matplotlib/matplotlib),
-    [hmmlearn](https://github.com/hmmlearn/hmmlearn),
-    [ASE](https://gitlab.com/ase/ase),
-    [scour](https://github.com/scour-project/scour),
-    [tqdm](https://github.com/tqdm/tqdm),
-    [coloredlogs](https://github.com/xolox/python-coloredlogs),
-    [lz4](https://github.com/python-lz4/python-lz4),
-    [pybase64](https://github.com/mayeut/pybase64)
--   额外的软件依赖：
-    [Yarn](https://github.com/yarnpkg/yarn),
-    [OpenBabel](https://github.com/openbabel/openbabel),
-    [RDKit](https://github.com/rdkit/rdkit)
--   npm 包：
-    [jQuery](https://github.com/jquery/jquery),
-    [jQuery Easing Plugin](https://github.com/gdsmith/jquery.easing),
-    [Magnific Popup](https://github.com/dimsemenov/Magnific-Popup),
-    [Bootstrap](https://github.com/twbs/bootstrap),
-    [Start Bootstrap - Creative](https://github.com/BlackrockDigital/startbootstrap-creative),
-    [D3](https://github.com/d3/d3),
-    [JSNetworkX](https://github.com/fkling/JSNetworkX)
 
 # 荣誉
 * 2019年（第十一届）上海市大学生计算机应用能力大赛一等奖
