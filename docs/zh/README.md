@@ -29,11 +29,11 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # 安装
 
-在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip, or email us to get the newest one. Then install ReacNetGenerator with one of the following guides:
+在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip，或者用电子邮件向我们索取最新版本。接着选择一项安装ReacNetGenerator：
 
-## Building a conda package
+## 构建conda包
 1. [从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) ；
-2. 解压reacnetgenerator.zip，并在软件主目录编译：
+2. 解压reacnetgenerator.zip，并在ReacNetGenerator主目录编译：
 
 ```bash
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
@@ -41,9 +41,9 @@ conda build conda/recipe
 conda install reacnetgenerator --use-local
 ```
 
-## Building a Docker Image
-1. [Install Docker](https://docs.docker.com/v17.12/install/).
-2. Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:
+## 构建Docker镜像
+1. [安装Docker](https://mirror.tuna.tsinghua.edu.cn/help/docker-ce/)；
+2. 解压reacnetgenerator.zip，并在ReacNetGenerator主目录编译：
 
 ```bash
 docker build . -t njzjz/reacnetgenerator
