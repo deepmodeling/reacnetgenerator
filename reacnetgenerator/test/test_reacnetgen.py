@@ -65,6 +65,7 @@ class TestReacNetGen:
         download_file(pp['urls'][0]['url'][0], pp['urls'][0]['fn'], None)
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp['atomname']))
+        reacnetgengui._filetype.set(pp['inputfiletype'])
         reacnetgengui._openbtn.invoke()
         reacnetgengui._runbtn.invoke()
 
