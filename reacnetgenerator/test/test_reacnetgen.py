@@ -56,7 +56,7 @@ class TestReacNetGen:
         assert ret.success
 
     def test_commandline_run(self, script_runner):
-        ret = script_runner.run('reacnetgenerator', '-i', 'dump.reaxc', '-a', 'C', 'H', 'O', '--dump', '-s', 'C',
+        ret = script_runner.run('reacnetgenerator', '-i', 'dump.reaxc', '-a', 'C', 'H', 'O', '--dump', '-s', 'C', '--nohmm',
                                 '--urls', 'dump.reaxc', 'https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download')
         assert ret.success
 
