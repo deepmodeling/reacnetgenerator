@@ -143,7 +143,7 @@ class ReacNetGenerator:
         processthing = []
         if self.urls:
             processthing.append(self.Status.DOWNLOAD)
-        processthing.append((
+        processthing.extend((
             self.Status.DETECT,
             self.Status.HMM,
             self.Status.PATH,
