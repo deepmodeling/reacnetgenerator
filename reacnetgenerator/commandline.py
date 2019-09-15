@@ -28,6 +28,7 @@ def _commandline():
         '--split', help='Split number for the time axis', type=int, default=1)
     parser.add_argument(
         '--maxspecies', help='Max number of nodes (species) in the network', type=int, default=20)
+    parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
     args = parser.parse_args()
     from .reacnetgen import ReacNetGenerator
     ReacNetGenerator(
@@ -38,4 +39,5 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
+        urls=[{"fn": url[0], "url": url[1]} for url in args.urls]
     ).runanddraw()
