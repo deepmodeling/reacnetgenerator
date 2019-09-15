@@ -5,12 +5,12 @@
 import json
 import os
 import pytest
-from tkinter import TclError
+from tkinter import END, TclError
 
 import pkg_resources
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator.gui import GUI
-from reacnetgenerator.utils import checksha256
+from reacnetgenerator.utils import checksha256, download_file
 
 
 class TestReacNetGen:
@@ -42,21 +42,33 @@ class TestReacNetGen:
         reacnetgen.draw()
         reacnetgen.report()
 
-    def test_gui(self):
-        """Test GUI of ReacNetGen."""
+    def reacnetgengui(self):
         try:
             gui = GUI()
-            gui.root.after(1000, gui.root.destroy)
-            gui.gui()
+            yield gui
+            gui.quit()
         except TclError:
             pytest.skip("No display for GUI.")
+        
+    def test_gui(self):
+        """Test GUI of ReacNetGen."""
+        gui.root.after(100, gui.root.destroy)
+        reacnetgengui.gui()
+    
+    def test_gui_openandrun(self, mocker):
+        mocker.patch("tkfd.askopenfilename", return_value="dump.reaxc")
+        download_file('https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download', 'dump.reaxc', None)
+        gui._atomnameet.delete(0, END)
+        gui._atomnameet.insert(0, "H O")
+        gui._openbtn.invoke()
+        gui._runbtn.invoke()
 
     def test_commandline_help(self, script_runner):
         ret = script_runner.run('reacnetgenerator', '-h')
         assert ret.success
 
     def test_commandline_run(self, script_runner):
-        ret = script_runner.run('reacnetgenerator', '-i', 'dump.reaxc', '-a', 'C', 'H', 'O', '--dump', '-s', 'C', '--nohmm',
+        ret = script_runner.run('reacnetgenerator', '-i', 'dump.reaxc', '-a', 'H', 'O', '--dump', '-s', 'H', '--nohmm',
                                 '--urls', 'dump.reaxc', 'https://drive.google.com/uc?authuser=0&id=1-MZZEpTj71JJn4JfKPh5yb_lD2V7NS-Y&export=download')
         assert ret.success
 
