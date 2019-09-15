@@ -95,7 +95,7 @@ if __name__ == '__main__':
             language="c", define_macros=define_macros,
         ) for encrypted_python_file in encrypted_python_files])
 
-    tests_require = ['requests', 'pytest-sugar', 'pytest-cov', 'cython',
+    tests_require = ['pytest-sugar', 'pytest-cov', 'cython',
                      'pytest-xvfb', "codecov>=1.4.0", "pytest-console-scripts",
                     ],
     setup(name='reacnetgenerator',
@@ -111,7 +111,8 @@ if __name__ == '__main__':
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'ase', 'scour', 'tqdm',
               'coloredlogs',
-              'pandas', 'pybase64', 'lz4'
+              'pandas', 'pybase64', 'lz4',
+              'requests',
           ],
           entry_points={'console_scripts': [
               'reacnetgenerator=reacnetgenerator.commandline:_commandline',

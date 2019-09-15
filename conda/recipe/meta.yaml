@@ -38,11 +38,10 @@ requirements:
     - ase
     - scour
     - tqdm
-    - jinja2
     - coloredlogs
-    - htmlmin
     - lz4
     - pybase64
+    - requests
 
 test:
   imports:
