@@ -10,9 +10,11 @@ $ reacnetgeneratorgui
 import os
 import tkinter as tk
 import tkinter.filedialog as tkfd
+import tkinter.messagebox
 import webbrowser
 import base64
 import pkg_resources
+import logging
 from multiprocessing import cpu_count
 
 from . import ReacNetGenerator, __version__
@@ -23,7 +25,7 @@ class GUI:
 
     def __init__(self):
         """Init GUI class."""
-        print(__doc__)
+        logging.info(__doc__)
         self._filename = ''
 
         self._top = tk.Tk()
@@ -107,9 +109,11 @@ class GUI:
                     webbrowser.open_new(os.path.abspath(
                         reacnetgenerator.resultfilename))
             except Exception as e:
-                tk.messagebox.showinfo("Error", e)
+                logging.error(e)
+                tk.messagebox.showerror("Error", e)
         else:
-            tk.messagebox.showinfo("Error", "File not exsit.")
+            logging.error("File not exsit.")
+            tk.messagebox.showerror("Error", "File not exsit.")
 
     def _openfiles(self):
         self._filename = tkfd.askopenfilename()
