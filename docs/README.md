@@ -27,14 +27,6 @@ ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
-# Features
-
--   Processing of MD trajectory containing atomic coordinates or bond orders
--   Hidden Markov Model (HMM) based noise filtering
--   Isomers identifying accoarding to SMILES
--   Generation of reaction network for visualization using force-directed algorithm
--   Parallel computing
-
 # Installation
 
 First, you need to download the source code on [our group website](http://computchem.cn/reacnetgenerator/) or email us to get the newest one. Then install ReacNetGenerator with one of the following guides:
