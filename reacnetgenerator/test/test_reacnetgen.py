@@ -50,7 +50,7 @@ class TestReacNetGen:
         try:
             gui = GUI()
             yield gui
-            gui.quit()
+            gui.root.quit()
         except TclError:
             pytest.skip("No display for GUI.")
 
@@ -77,8 +77,7 @@ class TestReacNetGen:
         pp = reacnetgen_param['rngparams']
         cc_hmm = '' if pp['runHMM'] else '--nohmm'
         cc_dump = '--dump' if pp['inputfiletype'] == 'lammpsdumpfile' else ''
-        cc_atomname = ' '.join(pp['atomname'])
-        ret = script_runner.run('reacnetgenerator', '-i', pp['inputfilename'], '-a', cc_atomname, cc_dump,
+        ret = script_runner.run('reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname'], cc_dump,
                                 '-s', pp['atomname'][0], cc_hmm, '--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0])
         assert ret.success
 
