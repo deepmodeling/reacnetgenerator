@@ -42,6 +42,7 @@ class TestReacNetGen:
         reacnetgen.draw()
         reacnetgen.report()
 
+    @pytest.fixture()
     def reacnetgengui(self):
         try:
             gui = GUI()
