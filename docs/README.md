@@ -43,7 +43,7 @@ reacnetgenerator -h
 ```
 
 ## Building a Docker Image
-1. [Install Docker](https://docs.docker.com/v17.12/install/).
+1. [Install Docker](https://docs.docker.com/install/).
 2. Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:
 
 ```bash
