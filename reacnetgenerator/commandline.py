@@ -39,5 +39,5 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
-        urls=[{"fn": url[0], "url": url[1]} for url in args.urls]
+        urls=[{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None,
     ).runanddraw()
