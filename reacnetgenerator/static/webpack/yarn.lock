@@ -12,10 +12,10 @@
   resolved "https://registry.yarnpkg.com/@csstools/sass-import-resolve/-/sass-import-resolve-1.0.0.tgz#32c3cdb2f7af3cd8f0dca357b592e7271f3831b5"
   integrity sha512-pH4KCsbtBLLe7eqUrw8brcuFO8IZlN36JjdKlOublibVdAIPHCzEnpBWOVUXK5sCf+DpBi8ZtuWtjF0srybdeA==
 
-"@fortawesome/fontawesome-free@5.9.0":
-  version "5.9.0"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.9.0.tgz#1aa5c59efb1b8c6eb6277d1e3e8c8f31998b8c8e"
-  integrity sha512-g795BBEzM/Hq2SYNPm/NQTIp3IWd4eXSH0ds87Na2jnrAUFX3wkyZAI4Gwj9DOaWMuz2/01i8oWI7P7T/XLkhg==
+"@fortawesome/fontawesome-free@5.10.2":
+  version "5.10.2"
+  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.10.2.tgz#27e02da1e34b50c9869179d364fb46627b521130"
+  integrity sha512-9pw+Nsnunl9unstGEHQ+u41wBEQue6XPBsILXtJF/4fNN1L3avJcMF/gGF86rIjeTAgfLjTY9ndm68/X4f4idQ==
 
 "@types/q@^1.5.1":
   version "1.5.2"
@@ -5966,12 +5966,12 @@ stack-utils@^0.4.0:
   resolved "https://registry.yarnpkg.com/stack-utils/-/stack-utils-0.4.0.tgz#940cb82fccfa84e8ff2f3fdf293fe78016beccd1"
   integrity sha1-lAy4L8z6hOj/Lz/fKT/ngBa+zNE=
 
-startbootstrap-creative@5.1.7:
-  version "5.1.7"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.7.tgz#e3be51a1d8d8f287bd5137af64657e1201bc5c57"
-  integrity sha512-9DE+imG55Jiguly7PdfgL9mvNC/FqK6XJ78VKwkJ4ezrhgECK6I8S6dRrT4Bv9/qPKG2j01QIaSEuGg/V9/IeA==
+startbootstrap-creative@5.1.8:
+  version "5.1.8"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.8.tgz#c225e5e09bd7826a89fbd05cba837d3389c50903"
+  integrity sha512-+tCRrkQOIhFOVEuSrWyH0J+/TyqRDnmAYoo2wnf0OygJB3Cw0chQ45ONjr7MoS2QR253NWwuoxL3Cm13tbND5A==
   dependencies:
-    "@fortawesome/fontawesome-free" "5.9.0"
+    "@fortawesome/fontawesome-free" "5.10.2"
     bootstrap "4.3.1"
     jquery "3.4.1"
     jquery.easing "^1.4.1"
