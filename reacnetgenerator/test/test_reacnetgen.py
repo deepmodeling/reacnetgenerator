@@ -63,7 +63,7 @@ class TestReacNetGen:
         pp = reacnetgen_param['rngparams']
         mocker.patch("tkinter.filedialog.askopenfilename", return_value=pp['inputfilename'])
         mocker.patch("tkinter.messagebox.showerror")
-        download_multifiles(pp['urls'][0:1])
+        download_multifiles(pp['urls'])
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp['atomname']))
         reacnetgengui._filetype.set(pp['inputfiletype'])
