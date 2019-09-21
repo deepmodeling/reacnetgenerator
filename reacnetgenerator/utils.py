@@ -195,5 +195,8 @@ async def download_file(urls, pathfilename, sha256):
 
     return pathfilename
 
-def download_multifiles(urls):
+async def gather_download_files(urls):
     await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
+
+def download_multifiles(urls):
+    asyncio.run(gather_download_files(urls))
