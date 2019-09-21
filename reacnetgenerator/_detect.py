@@ -27,7 +27,6 @@ import operator
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
-from multiprocessing import Pool, Semaphore
 
 import numpy as np
 import openbabel
@@ -35,7 +34,7 @@ from scipy.spatial import cKDTree
 from ase import Atom, Atoms
 
 from .dps import dps
-from .utils import WriteBuffer, listtobytes, multiopen, SharedRNGData
+from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
 
 
 class InputFileType(Enum):
@@ -76,25 +75,18 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     def _readinputfile(self):
         d = defaultdict(list)
         timestep = {}
-        pool = Pool(self.nproc, maxtasksperchild=1000)
-        try:
-            semaphore = Semaphore(self.nproc*150)
-            with fileinput.input(files=self.inputfilename) as f:
-                _steplinenum = self._readNfunc(f)
-            with fileinput.input(files=self.inputfilename) as f:
-                results = multiopen(pool, self._readstepfunc, f, semaphore, nlines=_steplinenum, return_num=True, interval=self.stepinterval,
-                                    desc="Read bond information and Detect molecules", unit="timestep")
-                for molecules, (step, thetimestep) in results:
-                    for molecule in molecules:
-                        d[molecule].append(step)
-                    timestep[step] = thetimestep
-                    semaphore.release()
-            self.temp1it = len(d)
-            values_c = list(multiopen(pool, self._compressvalue, d.values(
-            ), unordered=False, desc="Save molecules", unit="molecule", total=self.temp1it))
-        finally:
-            pool.close()
-            pool.join()
+        with fileinput.input(files=self.inputfilename) as f:
+            _steplinenum = self._readNfunc(f)
+        with fileinput.input(files=self.inputfilename) as f:
+            results = run_mp(self.nproc, func=self._readstepfunc, l=f, nlines=_steplinenum, return_num=True, interval=self.stepinterval,
+                             desc="Read bond information and Detect molecules", unit="timestep")
+            for molecules, (step, thetimestep) in results:
+                for molecule in molecules:
+                    d[molecule].append(step)
+                timestep[step] = thetimestep
+        self.temp1it = len(d)
+        values_c = list(run_mp(self.nproc, func=self._compressvalue, l=d.values(
+        ), unordered=False, desc="Save molecules", unit="molecule", total=self.temp1it))
         self._writemoleculetempfile((d.keys(), values_c))
         self.timestep = timestep
         self.step = len(timestep)

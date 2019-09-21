@@ -15,13 +15,12 @@ import logging
 import re
 import os
 from collections import defaultdict
-from multiprocessing import Pool
 import pkg_resources
 
 import openbabel
 import scour.scour
 
-from .utils import SCOUROPTIONS, multiopen, SharedRNGData
+from .utils import SCOUROPTIONS, run_mp, SharedRNGData
 
 
 class _HTMLResult(SharedRNGData):
@@ -85,14 +84,9 @@ class _HTMLResult(SharedRNGData):
                         if spec not in self._svgfiles:
                             append_spec.add(spec)
             if append_spec:
-                pool = Pool(self.nproc)
-                try:
-                    results = multiopen(pool, self._convertsvg, append_spec)
-                    for spec, svgfile in results:
-                        self._svgfiles[spec] = svgfile
-                finally:
-                    pool.close()
-                    pool.join()
+                results = run_mp(self.nproc, func=self._convertsvg, l=append_spec)
+                for spec, svgfile in results:
+                    self._svgfiles[spec] = svgfile
         return reactionsabcd
 
     def _convertsvg(self, smiles):
@@ -117,14 +111,9 @@ class _HTMLResult(SharedRNGData):
                 if spec not in specs:
                     specs.append(spec)
         if timeaxis is None:
-            pool = Pool(self.nproc)
-            try:
-                results = multiopen(pool, self._convertsvg, specs)
-                for spec, svgfile in results:
-                    self._svgfiles[spec] = svgfile
-            finally:
-                pool.close()
-                pool.join()
+            results = run_mp(self.nproc, func=self._convertsvg, l=specs)
+            for spec, svgfile in results:
+                self._svgfiles[spec] = svgfile
         # return list of dict
         return list([{"s": spec, "i": i} for i, spec in enumerate(specs, 1)])
 

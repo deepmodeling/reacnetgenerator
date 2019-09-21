@@ -20,12 +20,11 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 
 import tempfile
 from contextlib import ExitStack
-from multiprocessing import Pool, Semaphore
 
 import numpy as np
 from hmmlearn import hmm
 
-from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, multiopen, SharedRNGData
+from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, run_mp, SharedRNGData
 
 
 class _HMMFilter(SharedRNGData):
@@ -69,23 +68,16 @@ class _HMMFilter(SharedRNGData):
 
     def _calhmm(self):
         with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.getoriginfile or not self.runHMM else ExitStack() as fo, WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
-            pool = Pool(self.nproc, maxtasksperchild=1000)
-            try:
-                self.moleculetemp2filename = ft2.name
-                self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
-                self.hmmfilename = fh.name if self.runHMM else None
-                semaphore = Semaphore(self.nproc*150)
-                results = multiopen(pool, self._getoriginandhmm, ft, semaphore,
-                                    nlines=3, total=self.temp1it, desc="HMM filter", unit="molecule")
-                hmmit = 0
-                for originbytes, hmmbytes, line_c in results:
-                    if originbytes is not None or hmmbytes is not None:
-                        appendIfNotNone(fo, originbytes)
-                        appendIfNotNone(fh, hmmbytes)
-                        hmmit += 1
-                        ft2.extend(line_c)
-                    semaphore.release()
-            finally:
-                pool.close()
-                pool.join()
+            self.moleculetemp2filename = ft2.name
+            self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
+            self.hmmfilename = fh.name if self.runHMM else None
+            results = run_mp(self.nproc, func=self._getoriginandhmm, l=ft,
+                                nlines=3, total=self.temp1it, desc="HMM filter", unit="molecule")
+            hmmit = 0
+            for originbytes, hmmbytes, line_c in results:
+                if originbytes is not None or hmmbytes is not None:
+                    appendIfNotNone(fo, originbytes)
+                    appendIfNotNone(fh, hmmbytes)
+                    hmmit += 1
+                    ft2.extend(line_c)
         self.hmmit = hmmit

@@ -10,6 +10,7 @@ import logging
 import pickle
 import hashlib
 import asyncio
+from multiprocessing import Pool, Semaphore
 
 import lz4.frame
 import numpy as np
@@ -195,8 +196,23 @@ async def download_file(urls, pathfilename, sha256):
 
     return pathfilename
 
+
 async def gather_download_files(urls):
     await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
 
+
 def download_multifiles(urls):
     asyncio.run(gather_download_files(urls))
+
+
+def run_mp(nproc, **arg):
+    pool = Pool(nproc, maxtasksperchild=1000)
+    semaphore = Semaphore(nproc*150)
+    results = multiopen(pool=pool, semaphore=semaphore, **arg)
+    try:
+        for item in results:
+            yield item
+            semaphore.release()
+    finally:
+        pool.close()
+        pool.join()
