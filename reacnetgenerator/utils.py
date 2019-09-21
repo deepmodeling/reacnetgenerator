@@ -162,9 +162,7 @@ def checksha256(filename, sha256_check):
             h.update(mv[:n])
     sha256 = h.hexdigest()
     logging.info(f"SHA256 of {filename}: {sha256}")
-    if not isinstance(sha256_check, list):
-        sha256_check = [sha256_check]
-    if sha256 in sha256_check:
+    if sha256 in must_be_list(sha256_check):
         return True
     logging.warning("SHA256 is not correct.")
     logging.warning(open(filename).read())
@@ -180,9 +178,7 @@ async def download_file(urls, pathfilename, sha256):
         return pathfilename
 
     # from https://stackoverflow.com/questions/16694907
-    if not isinstance(urls, list):
-        urls = [urls]
-    for url in urls:
+    for url in must_be_list(urls):
         logging.info(f"Try to download {pathfilename} from {url}")
         with s.get(url, stream=True) as r, open(pathfilename, 'wb') as f:
             try:
@@ -200,3 +196,8 @@ async def gather_download_files(urls):
 
 def download_multifiles(urls):
     asyncio.run(gather_download_files(urls))
+
+def must_be_list(obj):
+    if isinstance(obj, list):
+        return obj
+    return [obj]
