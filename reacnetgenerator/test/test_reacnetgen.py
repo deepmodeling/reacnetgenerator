@@ -10,7 +10,7 @@ from tkinter import END, TclError
 import pkg_resources
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator.gui import GUI
-from reacnetgenerator.utils import checksha256, download_file
+from reacnetgenerator.utils import checksha256, download_multifiles
 
 
 class TestReacNetGen:
@@ -63,7 +63,7 @@ class TestReacNetGen:
         pp = reacnetgen_param['rngparams']
         mocker.patch("tkinter.filedialog.askopenfilename", return_value=pp['inputfilename'])
         mocker.patch("tkinter.messagebox.showerror")
-        download_file(pp['urls'][0]['url'][0], pp['urls'][0]['fn'], pp['urls'][0]['sha256'])
+        download_multifiles(pp['urls'][0:1])
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp['atomname']))
         reacnetgengui._filetype.set(pp['inputfiletype'])

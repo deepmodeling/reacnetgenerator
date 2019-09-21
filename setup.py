@@ -76,7 +76,8 @@ if __name__ == '__main__':
         "reacnetgenerator.reacnetgen",
         "reacnetgenerator._reaction",
         "reacnetgenerator.commandline",
-        "reacnetgenerator.utils"
+        "reacnetgenerator.utils",
+        "reacnetgenerator._download",
     ]
 
     define_macros = []
