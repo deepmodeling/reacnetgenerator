@@ -137,7 +137,7 @@ class _DetectLAMMPSbond(_Detect):
         return steplinenum
 
     def _readstepfunc(self, item):
-        (step, lines), _ = item
+        step, lines = item
         bond = [None]*self.N
         level = [None]*self.N
         for line in lines:
@@ -211,7 +211,7 @@ class _DetectLAMMPSdump(_Detect):
         return steplinenum
 
     def _readstepfunc(self, item):
-        (step, lines), _ = item
+        step, lines = item
         step_atoms = []
         boxsize = []
         for line in lines:

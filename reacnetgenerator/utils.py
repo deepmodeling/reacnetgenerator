@@ -69,7 +69,9 @@ def produce(semaphore, plist, parameter):
     """Prevent large memory usage due to slow IO."""
     for item in plist:
         semaphore.acquire()
-        yield item, parameter
+        if parameter is not None:
+            item = (item, parameter)
+        yield item
 
 
 def compress(x, isbytes=False):

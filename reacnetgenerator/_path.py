@@ -82,7 +82,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         return atomeach, conflict
 
     def _getatomroute(self, item):
-        (i, (atomeachi, atomtypei)), _ = item
+        i, (atomeachi, atomtypei) = item
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
         route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[
                                          0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
@@ -196,7 +196,7 @@ class _CollectSMILESPaths(_CollectPaths):
         self.mname = np.array(mname)
 
     def _calmoleculeSMILESname(self, item):
-        line, _ = item
+        line = item
         atoms, bonds = self._getatomsandbonds(line)
         name = self.convertSMILES(atoms, bonds)
         return name, atoms, bonds

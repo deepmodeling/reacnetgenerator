@@ -53,7 +53,7 @@ class _HMMFilter(SharedRNGData):
         self._model.emissionprob_ = self.b
 
     def _getoriginandhmm(self, item):
-        line_c, _ = item
+        line_c = item
         value = bytestolist(line_c[-1])
         origin = np.zeros((self.step, 1), dtype=np.int8)
         origin[value] = 1

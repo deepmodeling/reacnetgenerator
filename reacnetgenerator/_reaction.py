@@ -35,7 +35,7 @@ class ReactionsFinder(SharedRNGData):
                     f.append(f"{number} {reaction}")
 
     def _getstepreaction(self, item):
-        (atomeachj, atomeachjp1, conflictj, conflictjp1), _ = item
+        atomeachj, atomeachjp1, conflictj, conflictjp1 = item
         networks = []
         modifiedatoms = np.where(np.not_equal(atomeachj, atomeachjp1))[0]
         for i in modifiedatoms:
