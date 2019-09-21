@@ -204,8 +204,8 @@ def download_multifiles(urls):
 def run_mp(nproc, **arg):
     pool = Pool(nproc, maxtasksperchild=1000)
     semaphore = Semaphore(nproc*150)
-    results = multiopen(pool=pool, semaphore=semaphore, **arg)
     try:
+        results = multiopen(pool=pool, semaphore=semaphore, **arg)
         for item in results:
             yield item
             semaphore.release()
