@@ -7,6 +7,7 @@ import itertools
 import logging
 import pickle
 import hashlib
+import asyncio
 
 import lz4.frame
 import numpy as np
@@ -168,7 +169,7 @@ def checksha256(filename, sha256_check):
     return False
 
 
-def download_file(urls, pathfilename, sha256):
+async def download_file(urls, pathfilename, sha256):
     s = requests.Session()
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
@@ -186,8 +187,11 @@ def download_file(urls, pathfilename, sha256):
                 shutil.copyfileobj(r.raw, f)
                 break
             except requests.exceptions.RequestException as e:
-                logging.warning("Request Error.", exc_info=e)
+                logging.warning(f"Request {pathfilename} Error.", exc_info=e)
     else:
         raise RuntimeError(f"Cannot download {pathfilename}.")
 
     return pathfilename
+
+def download_multifiles(urls):
+    await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
