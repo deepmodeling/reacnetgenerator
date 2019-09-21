@@ -20,7 +20,6 @@ import itertools
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
 from itertools import groupby
-from multiprocessing import Pool, Semaphore
 
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -29,7 +28,7 @@ from rdkit import Chem
 from tqdm import tqdm
 
 from ._reaction import ReactionsFinder
-from .utils import WriteBuffer, bytestolist, listtostirng, multiopen, SharedRNGData
+from .utils import WriteBuffer, bytestolist, listtostirng, run_mp, SharedRNGData
 
 
 class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
@@ -83,7 +82,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         return atomeach, conflict
 
     def _getatomroute(self, item):
-        (i, (atomeachi, atomtypei)), _ = item
+        i, (atomeachi, atomtypei) = item
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
         route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[
                                          0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
@@ -96,20 +95,13 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _printatomroute(self, atomeach, timeaxis=None):
         with WriteBuffer(open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w'), sep='\n') as f:
-            pool = Pool(self.nproc, maxtasksperchild=1000)
-            try:
-                allmoleculeroute = []
-                semaphore = Semaphore(self.nproc*150)
-                results = multiopen(pool, self._getatomroute, zip(atomeach, self.atomtype), semaphore, return_num=True, start=1, unordered=False,
-                                    total=self.N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
-                for moleculeroute, routestr in results:
-                    f.append(routestr)
-                    if moleculeroute.size > 0:
-                        allmoleculeroute.append(moleculeroute)
-                    semaphore.release()
-            finally:
-                pool.close()
-                pool.join()
+            allmoleculeroute = []
+            results = run_mp(self.nproc, func=self._getatomroute, l=zip(atomeach, self.atomtype), return_num=True, start=1, unordered=False,
+                                total=self.N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
+            for moleculeroute, routestr in results:
+                f.append(routestr)
+                if moleculeroute.size > 0:
+                    allmoleculeroute.append(moleculeroute)
         allmoleculeroute = np.unique(np.concatenate(
             allmoleculeroute), axis=0) if allmoleculeroute else np.zeros((0, 2), dtype=int)
         return allmoleculeroute
@@ -194,24 +186,17 @@ class _CollectMolPaths(_CollectPaths):
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
-        pool = Pool(self.nproc, maxtasksperchild=1000)
-        try:
-            with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
-                semaphore = Semaphore(self.nproc*150)
-                results = multiopen(pool, self._calmoleculeSMILESname, ft, semaphore=semaphore,
-                                    nlines=3, total=self.hmmit, desc="Indentify isomers", unit="molecule")
-                for name, atoms, bonds in results:
-                    mname.append(name)
-                    fm.append(listtostirng(
-                        (name, atoms, bonds), sep=(' ', ';', ',')))
-                    semaphore.release()
-        finally:
-            pool.close()
-            pool.join()
+        with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
+            results = run_mp(self.nproc, func=self._calmoleculeSMILESname, l=ft,
+                                nlines=3, total=self.hmmit, desc="Indentify isomers", unit="molecule")
+            for name, atoms, bonds in results:
+                mname.append(name)
+                fm.append(listtostirng(
+                    (name, atoms, bonds), sep=(' ', ';', ',')))
         self.mname = np.array(mname)
 
     def _calmoleculeSMILESname(self, item):
-        line, _ = item
+        line = item
         atoms, bonds = self._getatomsandbonds(line)
         name = self.convertSMILES(atoms, bonds)
         return name, atoms, bonds

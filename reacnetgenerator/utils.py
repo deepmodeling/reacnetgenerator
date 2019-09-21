@@ -10,6 +10,7 @@ import logging
 import pickle
 import hashlib
 import asyncio
+from multiprocessing import Pool, Semaphore
 
 import lz4.frame
 import numpy as np
@@ -68,7 +69,9 @@ def produce(semaphore, plist, parameter):
     """Prevent large memory usage due to slow IO."""
     for item in plist:
         semaphore.acquire()
-        yield item, parameter
+        if parameter is not None:
+            item = (item, parameter)
+        yield item
 
 
 def compress(x, isbytes=False):
@@ -191,11 +194,27 @@ async def download_file(urls, pathfilename, sha256):
 
     return pathfilename
 
+
 async def gather_download_files(urls):
     await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
 
+
 def download_multifiles(urls):
     asyncio.run(gather_download_files(urls))
+
+
+def run_mp(nproc, **arg):
+    pool = Pool(nproc, maxtasksperchild=1000)
+    semaphore = Semaphore(nproc*150)
+    try:
+        results = multiopen(pool=pool, semaphore=semaphore, **arg)
+        for item in results:
+            yield item
+            semaphore.release()
+    finally:
+        pool.close()
+        pool.join()
+
 
 def must_be_list(obj):
     if isinstance(obj, list):

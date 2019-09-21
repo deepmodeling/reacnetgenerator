@@ -6,9 +6,8 @@
 '''
 import numpy as np
 from collections import Counter
-from multiprocessing import Pool, Semaphore
 
-from .utils import WriteBuffer, multiopen, SharedRNGData
+from .utils import WriteBuffer, run_mp, SharedRNGData
 
 
 class ReactionsFinder(SharedRNGData):
@@ -21,18 +20,13 @@ class ReactionsFinder(SharedRNGData):
 
     def findreactions(self, atomeach, conflict):
         allreactions = []
-        with Pool(self.nproc, maxtasksperchild=1000) as pool:
-            semaphore = Semaphore(self.nproc*150)
-            # atomeach j, atomeach j+1, conflict j, conflict j+1
-            givenarray = [(atomeach[:, j], atomeach[:, j+1], conflict[:, j],
-                           conflict[:, j+1]) for j in range(self.step-1)]
-            results = multiopen(pool, self._getstepreaction, givenarray, semaphore=semaphore,
-                                total=self.step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
-            for networks in results:
-                allreactions.extend(networks)
-                semaphore.release()
-            pool.close()
-            pool.join()
+        # atomeach j, atomeach j+1, conflict j, conflict j+1
+        givenarray = [(atomeach[:, j], atomeach[:, j+1], conflict[:, j],
+                        conflict[:, j+1]) for j in range(self.step-1)]
+        results = run_mp(self.nproc, func=self._getstepreaction, l=givenarray,
+                            total=self.step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
+        for networks in results:
+            allreactions.extend(networks)
         # reaction with SMILES
         allreactionswithname = Counter(allreactions).most_common()
         with WriteBuffer(open(self.reactionabcdfilename, 'w'), sep='\n') as f:
@@ -41,7 +35,7 @@ class ReactionsFinder(SharedRNGData):
                     f.append(f"{number} {reaction}")
 
     def _getstepreaction(self, item):
-        (atomeachj, atomeachjp1, conflictj, conflictjp1), _ = item
+        atomeachj, atomeachjp1, conflictj, conflictjp1 = item
         networks = []
         modifiedatoms = np.where(np.not_equal(atomeachj, atomeachjp1))[0]
         for i in modifiedatoms:
