@@ -61,6 +61,7 @@ from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
 from ._download import DownloadData
+from .utils import must_be_list
 
 
 class ReacNetGenerator:
@@ -101,8 +102,7 @@ class ReacNetGenerator:
             kwargs["inputfiletype"] = InputFileType.LAMMPSDUMP
         else:
             raise RuntimeError("Unsupported file format!")
-        if isinstance(kwargs["inputfilename"], str):
-            kwargs["inputfilename"] = [kwargs["inputfilename"]]
+        kwargs["inputfilename"] = must_be_list(kwargs["inputfilename"])
         for kk in default_value:
             kwargs.setdefault(kk, default_value[kk])
             if kwargs[kk] is None:
