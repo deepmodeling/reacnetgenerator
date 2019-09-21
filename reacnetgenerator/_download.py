@@ -1,3 +1,5 @@
+# cython: language_level=3
+# cython: linetrace=True
 """Download trajectory before running."""
 
 from .utils import SharedRNGData, download_multifiles

@@ -1,3 +1,5 @@
+# cython: language_level=3
+# cython: linetrace=True
 """Provide utils for ReacNetGenerator."""
 
 
