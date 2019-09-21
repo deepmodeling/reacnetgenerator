@@ -180,7 +180,7 @@ class ReacNetGenerator:
             return self.value
 
     def _process(self, steps):
-        timearray = [time.time()]
+        timearray = [time.perf_counter()]
         for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self.inputfiletype)(self).detect()
@@ -198,7 +198,7 @@ class ReacNetGenerator:
                 DownloadData(self).download_files()
             # garbage collect
             gc.collect()
-            timearray.append(time.time())
+            timearray.append(time.perf_counter())
             logging.info(
                 f"Step {i}: Done! Time consumed (s): {timearray[-1]-timearray[-2]:.3f} ({runstep})")
 
