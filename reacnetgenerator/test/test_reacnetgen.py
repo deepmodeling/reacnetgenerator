@@ -93,7 +93,7 @@ class TestReacNetGen:
             commands.extend(('-s', pp['atomname'][0]))
         if pp.get('urls', []):
             commands.extend(('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
-        ret = script_runner.run(commands)
+        ret = script_runner.run(*commands)
         assert ret.success
 
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
