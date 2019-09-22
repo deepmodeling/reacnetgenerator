@@ -2,15 +2,21 @@
 """Test ReacNetGen."""
 
 
+import fileinput
+import itertools
 import json
 import os
-import pytest
 from tkinter import END, TclError
 
+import numpy as np
 import pkg_resources
+import pytest
+
 from reacnetgenerator import ReacNetGenerator
+from reacnetgenerator._detect import _Detect
+from reacnetgenerator._hmmfilter import _HMMFilter
 from reacnetgenerator.gui import GUI
-from reacnetgenerator.utils import checksha256, download_multifiles
+from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
 
 
 class TestReacNetGen:
@@ -26,7 +32,7 @@ class TestReacNetGen:
     @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
     def reacnetgen_param(self, request):
         return request.param
-        
+
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
         rngclass = ReacNetGenerator(**reacnetgen_param['rngparams'])
@@ -58,10 +64,11 @@ class TestReacNetGen:
         """Test GUI of ReacNetGen."""
         reacnetgengui.root.after(100, reacnetgengui.root.destroy)
         reacnetgengui.gui()
-    
+
     def test_gui_openandrun(self, reacnetgengui, mocker, reacnetgen_param):
         pp = reacnetgen_param['rngparams']
-        mocker.patch("tkinter.filedialog.askopenfilename", return_value=pp['inputfilename'])
+        mocker.patch("tkinter.filedialog.askopenfilename",
+                     return_value=pp['inputfilename'])
         mocker.patch("tkinter.messagebox.showerror")
         download_multifiles(pp['urls'])
         reacnetgengui._atomnameet.delete(0, END)
@@ -85,3 +92,23 @@ class TestReacNetGen:
     @pytest.mark.xfail
     def test_unsupported_filetype(self):
         ReacNetGenerator(inputfilename="xx", inputfiletype="abc", atomname=[])
+
+    def test_benchmark_detect(self, benchmark, reacnetgen_param):
+        reacnetgen = ReacNetGenerator(**reacnetgen_param['rngparams'])
+        reacnetgen._process((reacnetgen.Status.DOWNLOAD,))
+        detectclass = _Detect.gettype(reacnetgen.inputfiletype)(reacnetgen)
+        with fileinput.input(files=detectclass.inputfilename) as f:
+            nlines = detectclass._readNfunc(f)
+        with fileinput.input(files=detectclass.inputfilename) as f:
+            lines = next(itertools.zip_longest(*[f] * nlines))
+        benchmark(detectclass._readstepfunc, (0, lines))
+
+    def test_benchmark_hmm(self, benchmark, reacnetgen_param):
+        reacnetgen = ReacNetGenerator(**reacnetgen_param['rngparams'])
+        reacnetgen.step = 250000
+        hmmclass = _HMMFilter(reacnetgen)
+        if hmmclass.runHMM:
+            hmmclass._initHMM()
+        index = np.sort(np.random.choice(hmmclass.step, hmmclass.step//2, replace=False))
+        compressed_bytes = [listtobytes((5,6)), listtobytes(((5,6,1),)), listtobytes(index)]
+        benchmark(hmmclass._getoriginandhmm, compressed_bytes)

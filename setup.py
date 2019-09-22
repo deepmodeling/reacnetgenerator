@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     tests_require = ['pytest-sugar', 'pytest-cov', 'cython',
                      'pytest-xvfb', "codecov>=1.4.0", "pytest-console-scripts",
-                     "pytest-mock",
+                     "pytest-mock", "pytest-benchmark",
                     ],
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
