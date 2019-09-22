@@ -50,7 +50,7 @@
         "rngparams": {
             "inputfilename": "xxx",
             "inputfiletype": "abc",
-            "atomname": [] 
+            "atomname": ['X'] 
         },
         "xfail": true
     }
