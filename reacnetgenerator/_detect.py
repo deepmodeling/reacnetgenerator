@@ -45,7 +45,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         SharedRNGData.__init__(self, rng, ['inputfilename', 'atomname', 'stepinterval', 'nproc', 'pbc'],
                                ['N', 'atomtype', 'step', 'timestep', 'temp1it', 'moleculetempfilename'])
 
-    @staticmethod
+    @classmethod
     def gettype(cls, rng):
         """Get the class for the input file type.
         
