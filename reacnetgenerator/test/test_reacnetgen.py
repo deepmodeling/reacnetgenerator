@@ -31,6 +31,8 @@ class TestReacNetGen:
 
     @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
     def reacnetgen_param(self, request):
+        if request.param.get("xfail", False):
+            pytest.xfail("Failing parameters (inputfiletype and inputfilename).")
         return request.param
 
     @pytest.fixture()
@@ -38,7 +40,7 @@ class TestReacNetGen:
         rngclass = ReacNetGenerator(**reacnetgen_param['rngparams'])
         yield rngclass
         assert checksha256(rngclass.reactionfilename,
-                           reacnetgen_param['reaction_sha256'])
+                           reacnetgen_param.get('reaction_sha256', []))
         assert os.path.exists(rngclass.reactionfilename)
         assert os.path.exists(rngclass.resultfilename)
 
@@ -88,10 +90,6 @@ class TestReacNetGen:
         ret = script_runner.run('reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname'], cc_dump,
                                 '-s', pp['atomname'][0], cc_hmm, '--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0])
         assert ret.success
-
-    @pytest.mark.xfail
-    def test_unsupported_filetype(self):
-        ReacNetGenerator(inputfilename="xx", inputfiletype="abc", atomname=[])
 
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
         reacnetgen = ReacNetGenerator(**reacnetgen_param['rngparams'])

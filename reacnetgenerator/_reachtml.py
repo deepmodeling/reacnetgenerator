@@ -26,17 +26,15 @@ from .utils import SCOUROPTIONS, run_mp, SharedRNGData
 class _HTMLResult(SharedRNGData):
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ['reactionfilename', 'resultfilename', 'imagefilename', 'reactionabcdfilename',
-                                           'jsonfilename', 'nproc', 'split', 'atomname'], [])
+                                           'jsonfilename', 'nproc', 'split', 'atomname'], [],
+                               ['_specs', '_reaction', '_reactionsabcd', '_svgfiles'])
         self._templatedict = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
         }
         self._linkreac = defaultdict(list)
         # define instance
-        self._specs = None
-        self._reaction = None
-        self._reactionsabcd = None
-        self._svgfiles = {}
+        self._svgspecs = set()
 
     def report(self):
         """Generate a web page to show the result."""
@@ -74,19 +72,13 @@ class _HTMLResult(SharedRNGData):
     def _readreactionabcd(self):
         reactionsabcd = []
         if os.path.isfile(self.reactionabcdfilename):
-            append_spec = set()
             with open(self.reactionabcdfilename) as f:
                 for i, line in enumerate(f, 1):
                     left, right, num = self._handlereaction(line)
                     reactionsabcd.append(
                         {"i": i, "l": left, "r": right, "n": num})
                     for spec in left + right:
-                        if spec not in self._svgfiles:
-                            append_spec.add(spec)
-            if append_spec:
-                results = run_mp(self.nproc, func=self._convertsvg, l=append_spec)
-                for spec, svgfile in results:
-                    self._svgfiles[spec] = svgfile
+                        self._svgspecs.add(spec)
         return reactionsabcd
 
     def _convertsvg(self, smiles):
@@ -110,10 +102,8 @@ class _HTMLResult(SharedRNGData):
             for spec in (reac['l'][0], reac['r'][0]):
                 if spec not in specs:
                     specs.append(spec)
-        if timeaxis is None:
-            results = run_mp(self.nproc, func=self._convertsvg, l=specs)
-            for spec, svgfile in results:
-                self._svgfiles[spec] = svgfile
+                    if timeaxis is None:
+                        self._svgspecs.add(spec)
         # return list of dict
         return list([{"s": spec, "i": i} for i, spec in enumerate(specs, 1)])
 
@@ -126,6 +116,7 @@ class _HTMLResult(SharedRNGData):
                 reaction = self._readreaction(timeaxis=i)
                 self._reaction.append(reaction)
                 self._specs.append(self._readspecies(reaction, timeaxis=i))
+        self._svgfiles = self._generatesvgs()
 
     def _generateresult(self):
         network = [self._generatenetwork()]
@@ -159,3 +150,10 @@ class _HTMLResult(SharedRNGData):
             svgdata = svgdata.replace(
                 r"""<style type="text/css">*{""", r"""<style type="text/css">#network svg *{""")
         return scour.scour.scourString(svgdata, SCOUROPTIONS)
+
+    def _generatesvgs(self):
+        _svgfiles = {}
+        results = run_mp(self.nproc, func=self._convertsvg, l=self._svgspecs)
+        for spec, svgfile in results:
+            _svgfiles[spec] = svgfile
+        return _svgfiles

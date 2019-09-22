@@ -45,5 +45,13 @@
             "dc591e2cbaf6d57c4635865089311b2fbf3c3c93761f5fd25b0eb723deb4a73e",
             "e5fe2b7e467fcc4a0a934987e7d97d8c586eb52ed2d95c434c719953ad4f0918"
         ]
+    },
+    {
+        "rngparams": {
+            "inputfilename": "xxx",
+            "inputfiletype": "abc",
+            "atomname": [] 
+        },
+        "xfail": true
     }
 ]
