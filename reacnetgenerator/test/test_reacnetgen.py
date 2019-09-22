@@ -57,7 +57,10 @@ class TestReacNetGen:
         try:
             gui = GUI()
             yield gui
-            gui.root.quit()
+            try:
+                gui.root.destroy()
+            except TclError:
+                pass
         except TclError:
             pytest.skip("No display for GUI.")
 
@@ -71,10 +74,11 @@ class TestReacNetGen:
         mocker.patch("tkinter.filedialog.askopenfilename",
                      return_value=pp['inputfilename'])
         mocker.patch("tkinter.messagebox.showerror")
-        download_multifiles(pp['urls'])
+        download_multifiles(pp.get('urls', []))
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp['atomname']))
-        reacnetgengui._filetype.set(pp['inputfiletype'])
+        if pp['inputfiletype'] in ['lammpsbondfile', 'lammpsdumpfile']:
+            reacnetgengui._filetype.set(pp['inputfiletype'])
         reacnetgengui._openbtn.invoke()
         reacnetgengui._runbtn.invoke()
 
@@ -84,10 +88,16 @@ class TestReacNetGen:
 
     def test_commandline_run(self, script_runner, reacnetgen_param):
         pp = reacnetgen_param['rngparams']
-        cc_hmm = '' if pp['runHMM'] else '--nohmm'
-        cc_dump = '--dump' if pp['inputfiletype'] == 'lammpsdumpfile' else ''
-        ret = script_runner.run('reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname'], cc_dump,
-                                '-s', pp['atomname'][0], cc_hmm, '--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0])
+        commands = ['reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname']]
+        if not pp.get('runHMM', True):
+            commands.append('--nohmm')
+        if pp['inputfiletype'] == 'lammpsdumpfile':
+            commands.append('--dump')
+        if pp['atomname']:
+            commands.extend(('-s', pp['atomname'][0]))
+        if pp.get('urls', []):
+            commands.extend(('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
+        ret = script_runner.run(*commands)
         assert ret.success
 
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
