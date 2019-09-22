@@ -117,7 +117,7 @@ function loaddata() {
         for (var i = 0; i < rngdata['species'].length; i++) {
             timelist.push({ "value": i + 2, "text": "Time " + String(i + 1) });
         }
-        $("#timeselect").html($.templates("#optionTmpl").render(timelist));
+        $("#timeselect").html($.templates("#optionTimeTmpl").render(timelist));
         $("#timeselectli").removeClass("d-none");
         $("select#timeselect").change(function () {
             showresults($(this).val());
