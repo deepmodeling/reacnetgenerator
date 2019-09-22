@@ -37,35 +37,32 @@ from .dps import dps
 from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
 
 
-class InputFileType(Enum):
-    """Enum for input file types.
-
-    Now ReacNetGen support the following files:
-    LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
-    LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
-    """
-
-    LAMMPSBOND = auto()
-    LAMMPSDUMP = auto()
-
-
 class _Detect(SharedRNGData, metaclass=ABCMeta):
     """Detect molecules."""
+    subclasses = {}
 
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ['inputfilename', 'atomname', 'stepinterval', 'nproc', 'pbc'],
                                ['N', 'atomtype', 'step', 'timestep', 'temp1it', 'moleculetempfilename'])
 
     @staticmethod
-    def gettype(inputtype):
-        """Get the class for the input file type."""
-        if inputtype == InputFileType.LAMMPSBOND:
-            detectclass = _DetectLAMMPSbond
-        elif inputtype == InputFileType.LAMMPSDUMP:
-            detectclass = _DetectLAMMPSdump
-        else:
-            raise RuntimeError("Wrong input file type")
-        return detectclass
+    def gettype(cls, rng):
+        """Get the class for the input file type.
+        
+        Now ReacNetGen support the following files:
+        LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
+        LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
+        """
+        if rng.inputfiletype not in cls.subclasses:
+            raise ValueError(f"Unsupported input file type {rng.inputfiletype}")
+        return cls.subclasses[rng.inputfiletype](rng)
+
+    @classmethod
+    def register_subclass(cls, message_type):
+        def decorator(subclass):
+            cls.subclasses[message_type] = subclass
+            return subclass
+        return decorator
 
     def detect(self):
         """Detect molecules."""
@@ -113,6 +110,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 f.extend(mol)
 
 
+@_Detect.register_subclass("lammpsbondfile")
 class _DetectLAMMPSbond(_Detect):
     def _readNfunc(self, f):
         iscompleted = False
@@ -156,6 +154,7 @@ class _DetectLAMMPSbond(_Detect):
         return molecules, (step, timestep)
 
 
+@_Detect.register_subclass("lammpsdumpfile")
 class _DetectLAMMPSdump(_Detect):
     class LineType(Enum):
         """Line type in the LAMMPS dump files."""

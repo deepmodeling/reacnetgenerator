@@ -103,7 +103,7 @@ class TestReacNetGen:
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
         reacnetgen = ReacNetGenerator(**reacnetgen_param['rngparams'])
         reacnetgen._process((reacnetgen.Status.DOWNLOAD,))
-        detectclass = _Detect.gettype(reacnetgen.inputfiletype)(reacnetgen)
+        detectclass = _Detect.gettype(reacnetgen)
         with fileinput.input(files=detectclass.inputfilename) as f:
             nlines = detectclass._readNfunc(f)
         with fileinput.input(files=detectclass.inputfilename) as f:

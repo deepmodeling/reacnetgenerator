@@ -38,16 +38,16 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                                            "selectatoms", "split"], ["mname", "atomnames", "allmoleculeroute", "splitmoleculeroute"])
 
     @staticmethod
-    def getstype(SMILES):
+    def getstype(rng):
         """Get a class for different methods.
 
         Following methonds are used to identify isomers:
         * SMILES (default)
         * VF2
         """
-        if SMILES:
-            return _CollectSMILESPaths
-        return _CollectMolPaths
+        if rng.SMILES:
+            return _CollectSMILESPaths(rng)
+        return _CollectMolPaths(rng)
 
     def collect(self):
         """Collect paths."""
