@@ -29,7 +29,8 @@ class TestReacNetGen:
         yield
         os.chdir(start_direcroty)
 
-    @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
+    @pytest.fixture(params=[pytest.param(param, marks=(pytest.mark.xfail if param.get("xfail", False) else ()))
+                            for param in json.load(pkg_resources.resource_stream(__name__, 'test.json'))])
     def reacnetgen_param(self, request):
         return request.param
 
@@ -38,7 +39,7 @@ class TestReacNetGen:
         rngclass = ReacNetGenerator(**reacnetgen_param['rngparams'])
         yield rngclass
         assert checksha256(rngclass.reactionfilename,
-                           reacnetgen_param['reaction_sha256'])
+                           reacnetgen_param.get('reaction_sha256', []))
         assert os.path.exists(rngclass.reactionfilename)
         assert os.path.exists(rngclass.resultfilename)
 
@@ -89,10 +90,6 @@ class TestReacNetGen:
                                 '-s', pp['atomname'][0], cc_hmm, '--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0])
         assert ret.success
 
-    @pytest.mark.xfail
-    def test_unsupported_filetype(self):
-        ReacNetGenerator(inputfilename="xx", inputfiletype="abc", atomname=[])
-
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
         reacnetgen = ReacNetGenerator(**reacnetgen_param['rngparams'])
         reacnetgen._process((reacnetgen.Status.DOWNLOAD,))
@@ -109,6 +106,8 @@ class TestReacNetGen:
         hmmclass = _HMMFilter(reacnetgen)
         if hmmclass.runHMM:
             hmmclass._initHMM()
-        index = np.sort(np.random.choice(hmmclass.step, hmmclass.step//2, replace=False))
-        compressed_bytes = [listtobytes((5,6)), listtobytes(((5,6,1),)), listtobytes(index)]
+        index = np.sort(np.random.choice(
+            hmmclass.step, hmmclass.step//2, replace=False))
+        compressed_bytes = [listtobytes((5, 6)), listtobytes(
+            ((5, 6, 1),)), listtobytes(index)]
         benchmark(hmmclass._getoriginandhmm, compressed_bytes)

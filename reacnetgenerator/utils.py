@@ -141,13 +141,16 @@ class SCOUROPTIONS:
 
 
 class SharedRNGData:
-    def __init__(self, rng, usedRNGKeys, returnedRNGKeys):
+    def __init__(self, rng, usedRNGKeys, returnedRNGKeys, extraNoneKeys = None):
         self.rng = rng
         self.returnedRNGKeys = returnedRNGKeys
         for key in usedRNGKeys:
             setattr(self, key, getattr(self.rng, key))
         for key in returnedRNGKeys:
             setattr(self, key, None)
+        if extraNoneKeys is not None:
+            for key in extraNoneKeys:
+                setattr(self, key, None)
 
     def returnkeys(self):
         for key in self.returnedRNGKeys:
