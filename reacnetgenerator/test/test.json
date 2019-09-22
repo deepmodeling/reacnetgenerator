@@ -39,8 +39,7 @@
             "inputfiletype": "lammpsdumpfile",
             "runHMM": false,
             "SMILES": false,
-            "speciescenter": "[H][H]",
-            "selectatoms" : ["H"]
+            "speciescenter": "[H][H]"
         },
         "reaction_sha256": [
             "dc591e2cbaf6d57c4635865089311b2fbf3c3c93761f5fd25b0eb723deb4a73e",
