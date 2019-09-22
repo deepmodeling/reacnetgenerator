@@ -31,9 +31,9 @@ class TestReacNetGen:
 
     @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
     def reacnetgen_param(self, request):
+        yield request.param
         if request.param.get("xfail", False):
             pytest.xfail("Failing parameters (inputfiletype and inputfilename).")
-        return request.param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
