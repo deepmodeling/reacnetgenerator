@@ -57,7 +57,10 @@ class TestReacNetGen:
         try:
             gui = GUI()
             yield gui
-            gui.root.quit()
+            try:
+                gui.root.destroy()
+            except TclError:
+                pass
         except TclError:
             pytest.skip("No display for GUI.")
 
@@ -74,7 +77,8 @@ class TestReacNetGen:
         download_multifiles(pp.get('urls', []))
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp['atomname']))
-        reacnetgengui._filetype.set(pp['inputfiletype'])
+        if pp['inputfiletype'] in ['lammpsbondfile', 'lammpsdumpfile']:
+            reacnetgengui._filetype.set(pp['inputfiletype'])
         reacnetgengui._openbtn.invoke()
         reacnetgengui._runbtn.invoke()
 
