@@ -29,11 +29,10 @@ class TestReacNetGen:
         yield
         os.chdir(start_direcroty)
 
-    @pytest.fixture(params=json.load(pkg_resources.resource_stream(__name__, 'test.json')))
+    @pytest.fixture(params=[pytest.param(param, marks=(pytest.mark.xfail if param.get("xfail", False) else ()))
+                            for param in json.load(pkg_resources.resource_stream(__name__, 'test.json'))])
     def reacnetgen_param(self, request):
-        yield request.param
-        if request.param.get("xfail", False):
-            pytest.xfail("Failing parameters (inputfiletype and inputfilename).")
+        return request.param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
@@ -107,6 +106,8 @@ class TestReacNetGen:
         hmmclass = _HMMFilter(reacnetgen)
         if hmmclass.runHMM:
             hmmclass._initHMM()
-        index = np.sort(np.random.choice(hmmclass.step, hmmclass.step//2, replace=False))
-        compressed_bytes = [listtobytes((5,6)), listtobytes(((5,6,1),)), listtobytes(index)]
+        index = np.sort(np.random.choice(
+            hmmclass.step, hmmclass.step//2, replace=False))
+        compressed_bytes = [listtobytes((5, 6)), listtobytes(
+            ((5, 6, 1),)), listtobytes(index)]
         benchmark(hmmclass._getoriginandhmm, compressed_bytes)
