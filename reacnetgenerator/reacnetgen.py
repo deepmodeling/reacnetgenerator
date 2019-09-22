@@ -54,7 +54,7 @@ from multiprocessing import cpu_count
 import numpy as np
 
 from . import __version__, __date__, __update__
-from ._detect import InputFileType, _Detect
+from ._detect import _Detect
 from ._draw import _DrawNetwork
 from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
@@ -96,12 +96,6 @@ class ReacNetGenerator:
             set(kwargs)), "Must give neccessary key: %s" % ", ".join(necessary_key)
         assert set(kwargs).issubset(
             set(necessary_key) | set(default_value) | set(none_key) | set(file_key)), "Unsupported key"
-        if kwargs["inputfiletype"] == "lammpsbondfile":
-            kwargs["inputfiletype"] = InputFileType.LAMMPSBOND
-        elif kwargs["inputfiletype"] == "lammpsdumpfile":
-            kwargs["inputfiletype"] = InputFileType.LAMMPSDUMP
-        else:
-            raise RuntimeError("Unsupported file format!")
         kwargs["inputfilename"] = must_be_list(kwargs["inputfilename"])
         for kk in default_value:
             kwargs.setdefault(kk, default_value[kk])
@@ -183,11 +177,11 @@ class ReacNetGenerator:
         timearray = [time.perf_counter()]
         for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
-                _Detect.gettype(self.inputfiletype)(self).detect()
+                _Detect.gettype(self).detect()
             elif runstep == self.Status.HMM:
                 _HMMFilter(self).filter()
             elif runstep == self.Status.PATH:
-                _CollectPaths.getstype(self.SMILES)(self).collect()
+                _CollectPaths.getstype(self).collect()
             elif runstep == self.Status.MATRIX:
                 _GenerateMatrix(self).generate()
             elif runstep == self.Status.NETWORK:
