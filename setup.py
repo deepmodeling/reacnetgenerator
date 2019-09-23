@@ -19,21 +19,22 @@ import setuptools.command.build_ext
 class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
     def run(self):
+        log.info(__doc__)
+        log.info('Prepare JavaScript files with webpack...')
+        yarn = shutil.which('yarn')
+        if yarn is None:
+            raise RuntimeError(
+                "Yarn is not installed. Plase install it by `conda install yarn`.")
         try:
-            log.info(__doc__)
-            log.info('Prepare JavaScript files with webpack...')
-            yarn = shutil.which('yarn')
             sp.run(yarn, check=True, cwd=os.path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             sp.run([yarn, 'start'], check=True, cwd=os.path.join(
                 this_directory, 'reacnetgenerator', 'static', 'webpack'))
             assert os.path.exists(os.path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.js'))
-        except sp.CalledProcessError:
-            raise ImportError(
-                "Maybe you didn't install yarn? Plase install it by `conda install yarn`.")
-        except AssertionError:
-            raise OSError("No bundle.js found, please retry.")
+                this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'))
+        except (sp.CalledProcessError, AssertionError):
+            raise RuntimeError(
+                "Fail to build bundle.html with Yarn, please retry.")
         # copy files
         try:
             os.makedirs(os.path.join(self.build_lib, 'reacnetgenerator', 'static', 'webpack'))
