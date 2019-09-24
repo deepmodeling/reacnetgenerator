@@ -3223,12 +3223,12 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jsrender@1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.4.tgz#99de5bf13341f46af677248361a8e126c164ceb7"
-  integrity sha512-4QKxxbqY2nFmH59Z8/nXV4zm7S8KP+T7z0WWiIU4dHkRd8gE5RQ8hgt8HD9aEg0g/NWYJsA2Y7VkSATCa2zkGQ==
+jsrender@1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.5.tgz#79d8d8beaf2bed1daa6caec5eeadf70c6f6b6bd1"
+  integrity sha512-ZaO8kYV1XBAcazMVOq32N+QGqMI2DIGdDo1QHROWbQ0JdKYJ6pg3E1WH0xzFTR9yqvoenXDL8+tzbT/JjJNmnA==
   dependencies:
-    through2 "^2.0.0"
+    through2 "^3.0.1"
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
@@ -5395,7 +5395,7 @@ read-pkg@^1.0.0:
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@^3.1.1:
+"readable-stream@2 || 3", readable-stream@^3.1.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.4.0.tgz#a51c26754658e0a3c21dbf59163bd45ba6f447fc"
   integrity sha512-jItXPLmrSR8jmTRmRWJXCnGJsfy85mB3Wd/uINMXA65yrnFo0cPClFIUWzo2najVNSl+mx7/4W8ttlLWJe99pQ==
@@ -6346,6 +6346,13 @@ through2@^2.0.0:
   dependencies:
     readable-stream "~2.3.6"
     xtend "~4.0.1"
+
+through2@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/through2/-/through2-3.0.1.tgz#39276e713c3302edf9e388dd9c812dd3b825bd5a"
+  integrity sha512-M96dvTalPT3YbYLaKaCuwu+j06D/8Jfib0o/PxbVt6Amhv3dUAtW6rTV1jPgJSBG83I/e04Y6xkVdVhSRhi0ww==
+  dependencies:
+    readable-stream "2 || 3"
 
 through@^2.3.6:
   version "2.3.8"
