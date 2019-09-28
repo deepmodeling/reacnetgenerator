@@ -11,12 +11,14 @@ cdef extern from 'c_stack.h':
         void push(int val);
         int pop();
 
-def dps(bonds, levels):
-    molecule = []
-    bondlist = []
+def dps(bonds: list, levels:list) -> tuple:
+    cdef list molecule = []
+    cdef list bondlist = []
     cdef int _N = len(bonds)
     cdef int *visited = <int *> malloc(_N * sizeof(int))
-    cdef int i, s, b_c, l
+    cdef int i, s, b, l
+    cdef list mol
+    cdef list bond
     cdef C_Stack st
     for i in range(_N):
         visited[i]=0
@@ -34,10 +36,9 @@ def dps(bonds, levels):
                     continue
                 mol.append(s)
                 for b, l in zip(bonds[s], levels[s]):
-                    b_c = b
-                    if visited[b_c]==0:
+                    if visited[b]==0:
                         bond.append((s, b, l) if i < b else (b, s, l))
-                        st.push(b_c)
+                        st.push(b)
                 visited[s]=1
             mol.sort()
             bond.sort()
@@ -46,13 +47,15 @@ def dps(bonds, levels):
     free(visited)
     return molecule, bondlist
 
-def dps_reaction(reactdict):
+def dps_reaction(reactdict:list) -> list:
     """A+B->C+D"""
     # left in index 0 and right in index 1
-    reactions = []
+    cdef list reactions = []
     cdef set visited_left = set()
     cdef set visited_right = set()
-    visited = [visited_left, visited_right]
+    cdef tuple visited = (visited_left, visited_right)
+    cdef int side, mol, init_mol, r
+    cdef list reaction
     cdef C_Stack st
 
     for init_mol in reactdict[0]:
