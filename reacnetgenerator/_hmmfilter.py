@@ -47,7 +47,7 @@ class _HMMFilter(SharedRNGData):
         self.returnkeys()
 
     def _initHMM(self):
-        self._model = hmm.MultinomialHMM(n_components=2)
+        self._model = hmm.MultinomialHMM(n_components=2, algorithm="viterbi")
         self._model.startprob_ = self.p
         self._model.transmat_ = self.a
         self._model.emissionprob_ = self.b
@@ -61,7 +61,7 @@ class _HMMFilter(SharedRNGData):
             origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
-            _, hmm = self._model.decode(origin, algorithm="viterbi")
+            hmm = self._model.predict(origin)
             if 1 in hmm or self.printfiltersignal:
                 hmmbytes = listtobytes(hmm)
         return originbytes, hmmbytes, line_c
