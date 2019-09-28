@@ -22,8 +22,8 @@ class ReactionsFinder(SharedRNGData):
     def findreactions(self, atomeach, conflict):
         allreactions = []
         # atomeach j, atomeach j+1, conflict j, conflict j+1
-        givenarray = np.stack((atomeach[:-1], atomeach[1:],
-                               conflict[:-1], conflict[1:]), axis=1)
+        givenarray = zip(atomeach[:-1], atomeach[1:],
+                         conflict[:-1], conflict[1:])
         results = run_mp(self.nproc, func=self._getstepreaction, l=givenarray,
                          total=self.step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
         for networks in results:
@@ -40,7 +40,7 @@ class ReactionsFinder(SharedRNGData):
         modifiedatoms = np.not_equal(item[0], item[1])
         # covert to dict
         reactdict = [defaultdict(list), defaultdict(list)]
-        for mol in item[:, modifiedatoms].T:
+        for mol in np.array(item)[:, modifiedatoms].T:
             reactdict[0][mol[0]].append(mol[1])
             reactdict[1][mol[1]].append(mol[0])
             if mol[2]:
