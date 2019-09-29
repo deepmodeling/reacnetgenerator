@@ -21,6 +21,7 @@ requirements:
     - cython >=0.24.1
     - setuptools_scm
     - pytest-runner
+    - numpy >=1.15
   build:
     - {{ compiler('cxx') }}
     - yarn
