@@ -48,13 +48,14 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     @classmethod
     def gettype(cls, rng):
         """Get the class for the input file type.
-        
+
         Now ReacNetGen support the following files:
         LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
         LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
         """
         if rng.inputfiletype not in cls.subclasses:
-            raise ValueError(f"Unsupported input file type {rng.inputfiletype}")
+            raise ValueError(
+                f"Unsupported input file type {rng.inputfiletype}")
         return cls.subclasses[rng.inputfiletype](rng)
 
     @classmethod
@@ -250,39 +251,35 @@ class _DetectLAMMPSdump(_Detect):
             ghost_atoms = repeated_atoms[nearest]
             realnumber = np.where(nearest)[0] % atomnumber
             step_atoms += ghost_atoms
-        xyzstring = ''.join((f"{len(step_atoms)}\nReacNetGenerator\n", "\n".join(
-            [f'{s:2s} {x:22.15f} {y:22.15f} {z:22.15f}'
-             for s, (x, y, z) in zip(
-                 step_atoms.get_chemical_symbols(),
-                 step_atoms.positions)])))
-        conv = openbabel.OBConversion()
-        conv.SetInAndOutFormats('xyz', 'mol2')
+        # Use openbabel to connect atoms
         mol = openbabel.OBMol()
-        conv.ReadString(mol, xyzstring)
-        mol2string = conv.WriteString(mol)
-        linecontent = -1
+        mol.BeginModify()
+        for num, position in zip(step_atoms.get_atomic_numbers(), step_atoms.positions):
+            a = mol.NewAtom()
+            a.SetAtomicNum(num)
+            a.SetVector(*position)
+        mol.ConnectTheDots()
+        mol.PerceiveBondOrders()
+        mol.EndModify()
         bond = [[] for i in range(atomnumber)]
         bondlevel = [[] for i in range(atomnumber)]
-        for line in mol2string.split('\n'):
-            if line.startswith("@<TRIPOS>BOND"):
-                linecontent = 0
-            else:
-                if linecontent == 0:
-                    s = line.split()
-                    if len(s) > 3:
-                        s1 = int(s[1])-1
-                        s2 = int(s[2])-1
-                        if s1 >= atomnumber and s2 >= atomnumber:
-                            # duplicated
-                            continue
-                        elif s1 >= atomnumber:
-                            s1 = realnumber[s1-atomnumber]
-                        elif s2 >= atomnumber:
-                            s2 = realnumber[s2-atomnumber]
-                        bond[s1].append(s2)
-                        bond[s2].append(s1)
-                        level = 12 if s[3] == 'ar' else (
-                            1 if s[3] == 'am' else int(s[3]))
-                        bondlevel[s1].append(level)
-                        bondlevel[s2].append(level)
+        for ii in range(mol.NumBonds()):
+            b = mol.GetBondById(ii)
+            s1 = b.GetBeginAtomIdx()
+            s2 = b.GetEndAtomIdx()
+            level = b.GetBO()
+            if level == 5:
+                # aromatic, 5 in openbabel but 12 in rdkit
+                level = 12
+            if s1 >= atomnumber and s2 >= atomnumber:
+                # duplicated
+                continue
+            elif s1 >= atomnumber:
+                s1 = realnumber[s1-atomnumber]
+            elif s2 >= atomnumber:
+                s2 = realnumber[s2-atomnumber]
+            bond[s1].append(s2)
+            bond[s2].append(s1)
+            bondlevel[s1].append(level)
+            bondlevel[s2].append(level)
         return bond, bondlevel
