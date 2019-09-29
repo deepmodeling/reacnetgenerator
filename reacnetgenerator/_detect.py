@@ -265,8 +265,8 @@ class _DetectLAMMPSdump(_Detect):
         bondlevel = [[] for i in range(atomnumber)]
         for ii in range(mol.NumBonds()):
             b = mol.GetBond(ii)
-            s1 = b.GetBeginAtomIdx()
-            s2 = b.GetEndAtomIdx()
+            s1 = b.GetBeginAtom().getID()
+            s2 = b.GetEndAtom().getID()
             level = b.GetBO()
             if level == 5:
                 # aromatic, 5 in openbabel but 12 in rdkit
