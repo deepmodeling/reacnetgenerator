@@ -1,6 +1,7 @@
 # distutils: language = c++
 # cython: language_level=3
 # cython: linetrace=True
+# cython: infer_types=True
 """Connect molecule with Depth-First Search."""
 from libc.stdlib cimport malloc, free
 

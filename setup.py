@@ -90,6 +90,10 @@ if __name__ == '__main__':
             "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],
             language="c++", define_macros=define_macros,
         ),
+        Extension("reacnetgenerator.utils_np", sources=[
+            "reacnetgenerator/utils_np.pyx"],
+            language="c", define_macros=define_macros,
+        ),
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[

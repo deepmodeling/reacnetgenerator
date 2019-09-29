@@ -21,10 +21,10 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 import tempfile
 from contextlib import ExitStack
 
-import numpy as np
 from hmmlearn import hmm
 
 from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, run_mp, SharedRNGData
+from .utils_np import idx_to_signal, check_zero_signal
 
 
 class _HMMFilter(SharedRNGData):
@@ -55,15 +55,14 @@ class _HMMFilter(SharedRNGData):
     def _getoriginandhmm(self, item):
         line_c = item
         value = bytestolist(line_c[-1])
-        origin = np.zeros((self.step, 1), dtype=np.int8)
-        origin[value] = 1
+        origin = idx_to_signal(value, self.step)
         originbytes = listtobytes(
             origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
-            hmm = self._model.predict(origin)
-            if 1 in hmm or self.printfiltersignal:
-                hmmbytes = listtobytes(hmm)
+            hmmsignal = self._model.predict(origin)
+            if check_zero_signal(hmmsignal) or self.printfiltersignal:
+                hmmbytes = listtobytes(hmmsignal)
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
