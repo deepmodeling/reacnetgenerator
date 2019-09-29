@@ -264,9 +264,7 @@ class _DetectLAMMPSdump(_Detect):
         bond = [[] for i in range(atomnumber)]
         bondlevel = [[] for i in range(atomnumber)]
         for ii in range(mol.NumBonds()):
-            b = mol.GetBondById(ii)
-            if b is None:
-                continue
+            b = mol.GetBond(ii)
             s1 = b.GetBeginAtomIdx() - 1
             s2 = b.GetEndAtomIdx() - 1
             level = b.GetBO()
