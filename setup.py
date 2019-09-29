@@ -46,6 +46,9 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
             verbose=self.verbose,
             dry_run=self.dry_run
         )
+        # Add numpy headers to include_dirs
+        import numpy as np
+        self.include_dirs.append(np.get_include())
         setuptools.command.build_ext.build_ext.run(self)
 
 class BuildPyCommand(setuptools.command.build_py.build_py):
@@ -136,7 +139,8 @@ if __name__ == '__main__':
               'setuptools>=18.0',
               'setuptools_scm',
               'pytest-runner',
-              'cython',
+              'cython>=0.16',
+              'numpy>=1.15',
           ],
           package_data={
               'reacnetgenerator': ['static/webpack/bundle.html',
