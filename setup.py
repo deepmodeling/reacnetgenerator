@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     define_macros = []
     if os.environ.get("DEBUG", 0):
-         define_macros.append(('CYTHON_TRACE', '1'))
+         define_macros.extend((('CYTHON_TRACE', '1'), ('CYTHON_TRACE_NOGIL', '1')))
 
     ext_modules = [
         Extension("reacnetgenerator.dps", sources=[
