@@ -4,6 +4,7 @@
 # cython: infer_types=True
 """Connect molecule with Depth-First Search."""
 from libc.stdlib cimport malloc, free
+from collections import defaultdict
 
 cdef extern from 'c_stack.h':
     # This function is copied from https://zhuanlan.zhihu.com/p/38212302
@@ -45,3 +46,32 @@ def dps(bonds, levels):
             bondlist.append(bond)
     free(visited)
     return molecule, bondlist
+
+def dps_reaction(reactdict):
+    """A+B->C+D"""
+    # left in index 0 and right in index 1
+    reactions = []
+    cdef set visited_left = set()
+    cdef set visited_right = set()
+    visited = [visited_left, visited_right]
+    cdef C_Stack st
+
+    for init_mol in reactdict[0]:
+        if init_mol not in visited[0]:
+            reaction = [[], []]
+            st.push(init_mol)
+            st.push(0)
+            while True:
+                side, mol = st.pop(), st.pop()
+                if mol < 0:
+                    break
+                elif mol in visited[side]:
+                    continue
+                reaction[side].append(mol)
+                for r in reactdict[side][mol]:
+                    if r not in visited[1-side]:
+                        st.push(r)
+                        st.push(1-side)
+                visited[side].add(mol)
+            reactions.append(reaction)
+    return reactions

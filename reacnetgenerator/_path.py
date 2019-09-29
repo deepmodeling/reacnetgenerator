@@ -60,7 +60,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             self.splitmoleculeroute = list([self._printatomroute(
                 atomeach[:, st], timeaxis=i) for i, st in enumerate(splittime)])
         self.returnkeys()
-        ReactionsFinder(self.rng).findreactions(atomeach, conflict)
+        ReactionsFinder(self.rng).findreactions(atomeach.T, conflict.T)
 
     @abstractmethod
     def _printmoleculename(self):
