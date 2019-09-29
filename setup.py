@@ -46,6 +46,9 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
             verbose=self.verbose,
             dry_run=self.dry_run
         )
+        # Add numpy headers to include_dirs
+        import numpy as np
+        self.include_dirs.append(np.get_include())
         setuptools.command.build_ext.build_ext.run(self)
 
 class BuildPyCommand(setuptools.command.build_py.build_py):
@@ -83,12 +86,16 @@ if __name__ == '__main__':
 
     define_macros = []
     if os.environ.get("DEBUG", 0):
-         define_macros.append(('CYTHON_TRACE', '1'))
+         define_macros.extend((('CYTHON_TRACE', '1'), ('CYTHON_TRACE_NOGIL', '1')))
 
     ext_modules = [
         Extension("reacnetgenerator.dps", sources=[
             "reacnetgenerator/dps.pyx", "reacnetgenerator/c_stack.cpp"],
             language="c++", define_macros=define_macros,
+        ),
+        Extension("reacnetgenerator.utils_np", sources=[
+            "reacnetgenerator/utils_np.pyx"],
+            language="c", define_macros=define_macros,
         ),
     ]
     # encrypt python files
@@ -132,7 +139,8 @@ if __name__ == '__main__':
               'setuptools>=18.0',
               'setuptools_scm',
               'pytest-runner',
-              'cython',
+              'cython>=0.16',
+              'numpy>=1.15',
           ],
           package_data={
               'reacnetgenerator': ['static/webpack/bundle.html',
