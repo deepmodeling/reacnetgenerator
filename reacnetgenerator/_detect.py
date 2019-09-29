@@ -266,7 +266,7 @@ class _DetectLAMMPSdump(_Detect):
         for ii in range(mol.NumBonds()):
             b = mol.GetBondById(ii)
             if b is None:
-                break
+                continue
             s1 = b.GetBeginAtomIdx() - 1
             s2 = b.GetEndAtomIdx() - 1
             level = b.GetBO()
