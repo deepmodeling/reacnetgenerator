@@ -148,11 +148,18 @@ class _DetectLAMMPSbond(_Detect):
                     s = line.split()
                     s0 = int(s[0])-1
                     s2 = int(s[2])
-                    bond[s0] = map(lambda x: int(x)-1, s[3:3+s2])
-                    level[s0] = map(lambda x: max(
-                        1, round(float(x))), s[4+s2:4+2*s2])
+                    bond[s0] = map(self._get_idx, s[3:3+s2])
+                    level[s0] = map(self._get_bo, s[4+s2:4+2*s2])
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
+    
+    @staticmethod
+    def _get_idx(x):
+        return int(x) - 1
+    
+    @staticmethod
+    def _get_bo(x):
+        return max(1, round(float(x)))
 
 
 @_Detect.register_subclass("lammpsdumpfile")
