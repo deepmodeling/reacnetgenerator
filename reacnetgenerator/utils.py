@@ -81,12 +81,12 @@ def compress(x, isbytes=False):
     """
     if not isbytes:
         x = x.encode()
-    return codecs.escape_encode(lz4.frame.compress(x))
+    return codecs.escape_encode(lz4.frame.compress(x))[0]
 
 
 def decompress(x, isbytes=False):
     """Decompress the line."""
-    y = lz4.frame.decompress(codecs.escape_decode(x.strip()))
+    y = lz4.frame.decompress(codecs.escape_decode(x.strip())[0])
     if not isbytes:
         return y.decode()
     return y
