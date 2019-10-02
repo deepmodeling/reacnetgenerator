@@ -1,7 +1,7 @@
 # ReacNetGenerator
 
 [![DOI:10.26434/chemrxiv.7421534](https://zenodo.org/badge/DOI/10.26434/chemrxiv.7421534.svg)](https://doi.org/10.26434/chemrxiv.7421534)
-[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](http://computchem.cn)
+[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](http://computchem.cn) [![Greenkeeper badge](https://badges.greenkeeper.io/njzjz/reacnetgenerator.svg?token=f40c024fe456fbe93b531cfb0fc30315211fd10d04eadb05f9f969da0a893a03&ts=1569994170255)](https://greenkeeper.io/)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
