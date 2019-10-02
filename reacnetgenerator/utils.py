@@ -81,7 +81,7 @@ def compress(x, isbytes=False):
     """
     if not isbytes:
         x = x.encode()
-    return codecs.escape_encode(lz4.frame.compress(x))[0]
+    return codecs.escape_encode(lz4.frame.compress(x))[0] + b'\n'
 
 
 def decompress(x, isbytes=False):

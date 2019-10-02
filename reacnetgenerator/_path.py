@@ -172,6 +172,7 @@ class _CollectMolPaths(_CollectPaths):
 
         def _makemoleculegraph(self):
             graph = nx.Graph()
+            print(self.bonds)
             for line in self.bonds:
                 graph.add_edge(line[0], line[1], level=line[2])
             for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
