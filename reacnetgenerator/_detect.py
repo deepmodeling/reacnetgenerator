@@ -101,11 +101,11 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        return list([b' '.join((listtobytes(mol),
-                                listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
-
+        return list([b'\n'.join((listtobytes(mol),
+                                 listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
+ 
     def _writemoleculetempfile(self, d):
-        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as f:
+        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False), sep=b'\n') as f:
             self.moleculetempfilename = f.name
             for mol in zip(*d):
                 f.extend(mol)

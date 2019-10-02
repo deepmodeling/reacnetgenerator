@@ -121,7 +121,7 @@ if __name__ == '__main__':
               'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
               'ase', 'scour', 'tqdm',
               'coloredlogs',
-              'pandas', 'pybase64', 'lz4',
+              'pandas', 'lz4',
               'requests',
           ],
           entry_points={'console_scripts': [

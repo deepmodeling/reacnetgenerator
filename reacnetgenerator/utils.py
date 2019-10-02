@@ -3,18 +3,18 @@
 """Provide utils for ReacNetGenerator."""
 
 
-import os
-import shutil
+import asyncio
+import codecs
+import hashlib
 import itertools
 import logging
+import os
 import pickle
-import hashlib
-import asyncio
+import shutil
 from multiprocessing import Pool, Semaphore
 
 import lz4.frame
 import numpy as np
-import pybase64
 import requests
 from requests.adapters import HTTPAdapter
 from tqdm import tqdm
@@ -79,16 +79,17 @@ def compress(x, isbytes=False):
 
     This function reduces IO overhead to speed up the program.
     """
-    if isbytes:
-        return pybase64.b64encode(lz4.frame.compress(x, compression_level=0))+b'\n'
-    return pybase64.b64encode(lz4.frame.compress(x.encode(), compression_level=-1))+b'\n'
+    if not isbytes:
+        x = x.encode()
+    return codecs.escape_encode(lz4.frame.compress(x))
 
 
 def decompress(x, isbytes=False):
     """Decompress the line."""
-    if isbytes:
-        return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True))
-    return lz4.frame.decompress(pybase64.b64decode(x.strip(), validate=True)).decode()
+    y = lz4.frame.decompress(codecs.escape_decode(x.strip()))
+    if not isbytes:
+        return y.decode()
+    return y
 
 
 def listtobytes(x):
