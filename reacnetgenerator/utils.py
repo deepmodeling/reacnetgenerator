@@ -214,8 +214,13 @@ def run_mp(nproc, **arg):
         for item in results:
             yield item
             semaphore.release()
-    finally:
+    except:
+        logging.exception("run_mp failed")
+        raise
+        pool.terminate()
+    else:
         pool.close()
+    finally:
         pool.join()
 
 
