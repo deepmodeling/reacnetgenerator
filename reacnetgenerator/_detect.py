@@ -270,14 +270,9 @@ class _DetectLAMMPSdump(_Detect):
         mol.EndModify()
         bond = [[] for i in range(atomnumber)]
         bondlevel = [[] for i in range(atomnumber)]
-        for ii in range(mol.NumBonds()):
-            b = mol.GetBond(ii)
-            s1 = b.GetBeginAtom().GetId()
-            s2 = b.GetEndAtom().GetId()
-            level = b.GetBO()
-            if level == 5:
-                # aromatic, 5 in openbabel but 12 in rdkit
-                level = 12
+        for b in openbabel.OBMolBondIter(mol):
+            s1 = b.GetBeginAtomIdx()
+            s2 = b.GetEndAtomIdx()
             if s1 >= atomnumber and s2 >= atomnumber:
                 # duplicated
                 continue
@@ -285,6 +280,10 @@ class _DetectLAMMPSdump(_Detect):
                 s1 = realnumber[s1-atomnumber]
             elif s2 >= atomnumber:
                 s2 = realnumber[s2-atomnumber]
+            level = b.GetBondOrder()
+            if level == 5:
+                # aromatic, 5 in openbabel but 12 in rdkit
+                level = 12
             bond[s1].append(s2)
             bond[s2].append(s1)
             bondlevel[s1].append(level)
