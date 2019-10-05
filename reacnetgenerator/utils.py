@@ -216,8 +216,8 @@ def run_mp(nproc, **arg):
             semaphore.release()
     except:
         logging.exception("run_mp failed")
-        raise
         pool.terminate()
+        raise
     else:
         pool.close()
     finally:
