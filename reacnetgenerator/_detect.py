@@ -271,8 +271,8 @@ class _DetectLAMMPSdump(_Detect):
         bond = [[] for i in range(atomnumber)]
         bondlevel = [[] for i in range(atomnumber)]
         for b in openbabel.OBMolBondIter(mol):
-            s1 = b.GetBeginAtomIdx()
-            s2 = b.GetEndAtomIdx()
+            s1 = b.GetBeginAtom().GetId()
+            s2 = b.GetBeginAtom().GetId()
             if s1 >= atomnumber and s2 >= atomnumber:
                 # duplicated
                 continue
