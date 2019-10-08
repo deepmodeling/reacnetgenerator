@@ -4,7 +4,7 @@ heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
 tagline: An automatic generator of reaction network for reactive molecular dynamics simulation
 actionText: Download
-actionLink: http://computchem.cn/reacnetgenerator/
+actionLink: https://computchem.cn/reacnetgenerator/
 features:
 - title: Trajectory
   details: Processing of MD trajectory containing atomic coordinates or bond orders
@@ -29,7 +29,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # Installation
 
-First, you need to download the source code on [our group website](http://computchem.cn/reacnetgenerator/) or email us to get the newest one. Then install ReacNetGenerator with one of the following guides:
+First, you need to download the source code on [our group website](https://computchem.cn/reacnetgenerator/) or email us to get the newest one. Then install ReacNetGenerator with one of the following guides:
 
 ## Building a conda package
 1. [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda.

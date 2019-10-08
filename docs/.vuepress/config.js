@@ -27,7 +27,7 @@ module.exports = {
 					{ text: 'Home', link: '/' },
 					{ text: 'Report', link: 'https://njzjz.github.io/reacnetgenerator/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json' },
 					{ text: 'Article', link: 'https://doi.org/10.26434/chemrxiv.7421534'},
-					{ text: 'Group', link: 'http://computchem.cn'},
+					{ text: 'Group', link: 'https://computchem.cn'},
 				]
 			},
 			'/zh/': {
@@ -37,7 +37,7 @@ module.exports = {
 					{ text: '主页', link: '/zh/' },
 					{ text: '分析结果', link: 'https://njzjz.github.io/reacnetgenerator/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json' },
 					{ text: '论文', link: 'https://doi.org/10.26434/chemrxiv.7421534'},
-					{ text: '课题组', link: 'http://computchem.cn'},
+					{ text: '课题组', link: 'https://computchem.cn'},
 				]
 			},
 		}
