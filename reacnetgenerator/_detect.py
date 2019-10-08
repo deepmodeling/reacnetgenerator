@@ -32,7 +32,7 @@ import numpy as np
 try:
     from openbabel import openbabel
 except ImportError:
-    import openbabel
+    import openbabel  # pragma: no cover
 from scipy.spatial import cKDTree
 from ase import Atom, Atoms
 
