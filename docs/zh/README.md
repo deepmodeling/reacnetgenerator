@@ -4,7 +4,7 @@ heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
 tagline: 基于反应分子动力学模拟轨迹的反应网络自动构建和可视化软件
 actionText: 下载
-actionLink: http://computchem.cn/reacnetgenerator
+actionLink: https://computchem.cn/reacnetgenerator
 features:
 - title: 轨迹
   details: 处理包含原子坐标或键级的轨迹
@@ -29,7 +29,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # 安装
 
-在[我们的课题组网站](http://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip，或者用电子邮件向我们索取最新版本。接着选择一项安装ReacNetGenerator：
+在[我们的课题组网站](https://computchem.cn/reacnetgenerator)下载reacnetgenerator.zip，或者用电子邮件向我们索取最新版本。接着选择一项安装ReacNetGenerator：
 
 ## 构建conda包
 1. [从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/) ；
