@@ -31,8 +31,8 @@ from enum import Enum, auto
 import numpy as np
 try:
     from openbabel import openbabel
-except ImportError:
-    import openbabel  # pragma: no cover
+except ImportError:  # pragma: no cover
+    import openbabel
 from scipy.spatial import cKDTree
 from ase import Atom, Atoms
 
