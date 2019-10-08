@@ -29,7 +29,10 @@ from collections import defaultdict
 from enum import Enum, auto
 
 import numpy as np
-import openbabel
+try:
+    from openbabel import openbabel
+except ImportError:
+    import openbabel
 from scipy.spatial import cKDTree
 from ase import Atom, Atoms
 
