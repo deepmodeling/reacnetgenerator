@@ -17,7 +17,7 @@
   "version": "0.0.0-development",
   "repository": {
     "type": "git",
-    "url": "https://github.com/njzjz/reacnetgenerator.git"
+    "url": "https://github.com/tongzhugroup/reacnetgenerator.git"
   },
   "publishConfig": {
     "access": "restricted"
