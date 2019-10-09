@@ -19,7 +19,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 ## Installation
 
-First, you need to download the source code on [our group website](https://computchem.cn/reacnetgenerator/) or email us to get the newest one. Then install ReacNetGenerator with one of the following guides:
+First, you need to download the source code on [the Releases page](https://github.com/njzjz/reacnetgenerator/releases). Then install ReacNetGenerator with one of the following guides:
 
 ### Building a conda package
 1. [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda.
@@ -50,7 +50,7 @@ ReacNetGenerator can process any kind of trajectory files containing atomic coor
 ```bash
 reacnetgenerator --dump -i dump.reaxc -a C H O
 ```
-where C, H, and O are atomic names in the input file. [Analysis report](https://njzjz.github.io/reacnetgenerator/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json) will be generated automatically.
+where C, H, and O are atomic names in the input file. [Analysis report](https://reacnetgenerator.njzjz.win/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json) will be generated automatically.
 
 Also, ReacNetGenerator can process files containing bond information, e.g. LAMMPS bond file:
 
