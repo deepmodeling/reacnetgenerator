@@ -43,14 +43,16 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
-        urls=[{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None,
-        a=np.array(args.matrixa).reshape((2,2)),
-        b=np.array(args.matrixb).reshape((2,2)),
+        urls=[{"fn": url[0], "url": url[1]}
+            for url in args.urls] if args.urls else None,
+        a=np.array(args.matrixa).reshape((2, 2)),
+        b=np.array(args.matrixb).reshape((2, 2)),
     ).runanddraw()
 
 
 def parm2cmd(pp):
-    commands = ['reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname']]
+    commands = ['reacnetgenerator', '-i',
+        pp['inputfilename'], '-a', *pp['atomname']]
     if not pp.get('runHMM', True):
         commands.append('--nohmm')
     if pp['inputfiletype'] == 'lammpsdumpfile':
@@ -58,7 +60,8 @@ def parm2cmd(pp):
     if pp['atomname']:
         commands.extend(('-s', pp['atomname'][0]))
     if pp.get('urls', []):
-        commands.extend(('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
+        commands.extend(
+            ('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
     if pp.get('a', []):
         commands.extend(('--matrixa', str(pp['a'][0][0]), str(pp['a'][0][1]), str(pp['a'][1][0]), str(pp['a'][1][1]))
     if pp.get('b', []):
