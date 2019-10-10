@@ -71,5 +71,5 @@ def parm2cmd(pp):
             ('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1])))
     for ii in ['nproc', 'selectatoms', 'stepinterval', 'split', 'maxspecies']:
         if pp.get(ii, None):
-            commands.extend((ii, str(pp[ii])))
+            commands.extend(("--{}".format(ii), str(pp[ii])))
     return commands
