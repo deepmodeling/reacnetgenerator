@@ -28,6 +28,10 @@ def _commandline():
         '--split', help='Split number for the time axis', type=int, default=1)
     parser.add_argument(
         '--maxspecies', help='Max number of nodes (species) in the network', type=int, default=20)
+    parser.add_argument(
+        '--matrixa', help='Matrix A of HMM parameters', type=float, nargs=4, default=[0.999, 0.001, 0.001, 0.999])
+    parser.add_argument(
+        '--matrixb', help='Matrix B of HMM parameters', type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
     parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
     args = parser.parse_args()
     from .reacnetgen import ReacNetGenerator
@@ -40,4 +44,6 @@ def _commandline():
         split=args.split,
         maxspecies=args.maxspecies,
         urls=[{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None,
+        a=np.array(args.matrixa).reshape((2,2))
+        b=np.array(args.matrixb).reshape((2,2))
     ).runanddraw()
