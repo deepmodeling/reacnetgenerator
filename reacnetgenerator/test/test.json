@@ -17,7 +17,9 @@
             "inputfiletype": "lammpsbondfile",
             "runHMM": true,
             "SMILES": true,
-            "split": 10
+            "split": 10,
+            "a": [[0.999, 0.001], [0.001, 0.999]],
+            "b": [[0.6, 0.4], [0.4, 0.6]]
         },
         "reaction_sha256": "5eb802a5a4f5c537ea556528a7db9402ab401f9cbd650e75b2a03e809ab9c8ad"
     },
