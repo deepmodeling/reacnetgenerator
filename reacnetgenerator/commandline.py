@@ -44,6 +44,6 @@ def _commandline():
         split=args.split,
         maxspecies=args.maxspecies,
         urls=[{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None,
-        a=np.array(args.matrixa).reshape((2,2))
-        b=np.array(args.matrixb).reshape((2,2))
+        a=np.array(args.matrixa).reshape((2,2)),
+        b=np.array(args.matrixb).reshape((2,2)),
     ).runanddraw()
