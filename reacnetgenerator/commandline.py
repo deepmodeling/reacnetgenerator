@@ -63,10 +63,10 @@ def parm2cmd(pp):
         commands.extend(
             ('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
     if pp.get('a', []):
-        commands.extend(('--matrixa', str(pp['a'][0][0]), str(pp['a'][0][1]), str(pp['a'][1][0]), str(pp['a'][1][1]))
+        commands.extend(('--matrixa', str(pp['a'][0][0]), str(pp['a'][0][1]), str(pp['a'][1][0]), str(pp['a'][1][1])))
     if pp.get('b', []):
-        commands.extend(('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1]))
+        commands.extend(('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1])))
     for ii in ['nproc', 'selectatoms', 'stepinterval', 'split', 'maxspecies']:
         if pp.get(ii, None):
-            commands.extend((ii, str(pp[ii]))
+            commands.extend((ii, str(pp[ii])))
     return commands
