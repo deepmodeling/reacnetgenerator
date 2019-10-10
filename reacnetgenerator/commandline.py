@@ -47,3 +47,23 @@ def _commandline():
         a=np.array(args.matrixa).reshape((2,2)),
         b=np.array(args.matrixb).reshape((2,2)),
     ).runanddraw()
+
+
+def parm2cmd(pp):
+    commands = ['reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname']]
+    if not pp.get('runHMM', True):
+        commands.append('--nohmm')
+    if pp['inputfiletype'] == 'lammpsdumpfile':
+        commands.append('--dump')
+    if pp['atomname']:
+        commands.extend(('-s', pp['atomname'][0]))
+    if pp.get('urls', []):
+        commands.extend(('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
+    if pp.get('A', []):
+        commands.extend(('--matrixa', str(pp['A'][0][0]), str(pp['A'][0][1]), str(pp['A'][1][0]), str(pp['A'][1][1]))
+    if pp.get('B', []):
+        commands.extend(('--matrixb', str(pp['B'][0][0]), str(pp['B'][0][1]), str(pp['B'][1][0]), str(pp['B'][1][1]))
+    for ii in ['nproc', 'selectatoms', 'stepinterval', 'split', 'maxspecies']:
+        if pp.get(ii, None):
+            commands.extend((ii, str(pp[ii]))
+    return commands
