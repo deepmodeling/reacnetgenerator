@@ -35,6 +35,7 @@ def _commandline():
     parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
     args = parser.parse_args()
     from .reacnetgen import ReacNetGenerator
+    import numpy as np
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
         runHMM=not args.nohmm,
