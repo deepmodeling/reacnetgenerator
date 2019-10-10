@@ -44,7 +44,7 @@ def _commandline():
         split=args.split,
         maxspecies=args.maxspecies,
         urls=[{"fn": url[0], "url": url[1]}
-            for url in args.urls] if args.urls else None,
+              for url in args.urls] if args.urls else None,
         a=np.array(args.matrixa).reshape((2, 2)),
         b=np.array(args.matrixb).reshape((2, 2)),
     ).runanddraw()
@@ -52,7 +52,7 @@ def _commandline():
 
 def parm2cmd(pp):
     commands = ['reacnetgenerator', '-i',
-        pp['inputfilename'], '-a', *pp['atomname']]
+                pp['inputfilename'], '-a', *pp['atomname']]
     if not pp.get('runHMM', True):
         commands.append('--nohmm')
     if pp['inputfiletype'] == 'lammpsdumpfile':
@@ -63,9 +63,11 @@ def parm2cmd(pp):
         commands.extend(
             ('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
     if pp.get('a', []):
-        commands.extend(('--matrixa', str(pp['a'][0][0]), str(pp['a'][0][1]), str(pp['a'][1][0]), str(pp['a'][1][1])))
+        commands.extend(
+            ('--matrixa', str(pp['a'][0][0]), str(pp['a'][0][1]), str(pp['a'][1][0]), str(pp['a'][1][1])))
     if pp.get('b', []):
-        commands.extend(('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1])))
+        commands.extend(
+            ('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1])))
     for ii in ['nproc', 'selectatoms', 'stepinterval', 'split', 'maxspecies']:
         if pp.get(ii, None):
             commands.extend((ii, str(pp[ii])))
