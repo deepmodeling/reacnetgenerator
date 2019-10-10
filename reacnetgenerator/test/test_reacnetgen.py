@@ -17,6 +17,7 @@ from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
+from reacnetgenerator.commandline import parm2cmd
 
 
 class TestReacNetGen:
@@ -87,17 +88,7 @@ class TestReacNetGen:
         assert ret.success
 
     def test_commandline_run(self, script_runner, reacnetgen_param):
-        pp = reacnetgen_param['rngparams']
-        commands = ['reacnetgenerator', '-i', pp['inputfilename'], '-a', *pp['atomname']]
-        if not pp.get('runHMM', True):
-            commands.append('--nohmm')
-        if pp['inputfiletype'] == 'lammpsdumpfile':
-            commands.append('--dump')
-        if pp['atomname']:
-            commands.extend(('-s', pp['atomname'][0]))
-        if pp.get('urls', []):
-            commands.extend(('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
-        ret = script_runner.run(*commands)
+        ret = script_runner.run(*parm2cmd(reacnetgen_param['rngparams']))
         assert ret.success
 
     def test_benchmark_detect(self, benchmark, reacnetgen_param):

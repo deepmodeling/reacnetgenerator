@@ -28,9 +28,14 @@ def _commandline():
         '--split', help='Split number for the time axis', type=int, default=1)
     parser.add_argument(
         '--maxspecies', help='Max number of nodes (species) in the network', type=int, default=20)
+    parser.add_argument(
+        '--matrixa', help='Matrix A of HMM parameters', type=float, nargs=4, default=[0.999, 0.001, 0.001, 0.999])
+    parser.add_argument(
+        '--matrixb', help='Matrix B of HMM parameters', type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
     parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
     args = parser.parse_args()
     from .reacnetgen import ReacNetGenerator
+    import numpy as np
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
         runHMM=not args.nohmm,
@@ -39,5 +44,32 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
-        urls=[{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None,
+        urls=[{"fn": url[0], "url": url[1]}
+              for url in args.urls] if args.urls else None,
+        a=np.array(args.matrixa).reshape((2, 2)),
+        b=np.array(args.matrixb).reshape((2, 2)),
     ).runanddraw()
+
+
+def parm2cmd(pp):
+    commands = ['reacnetgenerator', '-i',
+                pp['inputfilename'], '-a', *pp['atomname']]
+    if not pp.get('runHMM', True):
+        commands.append('--nohmm')
+    if pp['inputfiletype'] == 'lammpsdumpfile':
+        commands.append('--dump')
+    if pp['atomname']:
+        commands.extend(('-s', pp['atomname'][0]))
+    if pp.get('urls', []):
+        commands.extend(
+            ('--urls', pp['urls'][0]['fn'], pp['urls'][0]['url'][0]))
+    if pp.get('a', []):
+        commands.extend(
+            ('--matrixa', str(pp['a'][0][0]), str(pp['a'][0][1]), str(pp['a'][1][0]), str(pp['a'][1][1])))
+    if pp.get('b', []):
+        commands.extend(
+            ('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1])))
+    for ii in ['nproc', 'selectatoms', 'stepinterval', 'split', 'maxspecies']:
+        if pp.get(ii, None):
+            commands.extend(("--{}".format(ii), str(pp[ii])))
+    return commands
