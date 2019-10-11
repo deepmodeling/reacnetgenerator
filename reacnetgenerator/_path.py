@@ -19,7 +19,6 @@ and Machine Intelligence 2004, 26, 1367-1372.
 import itertools
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
-from itertools import groupby
 
 import networkx as nx
 import networkx.algorithms.isomorphism as iso

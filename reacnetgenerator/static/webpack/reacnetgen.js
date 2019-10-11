@@ -290,7 +290,7 @@ function addloadbutton() {
 }
 
 //define global
-window.$ = $
+window.$ = $;
 window.addnode = addnode;
 window.savesvg = savesvg;
 window.clearnode = clearnode;
@@ -298,3 +298,4 @@ window.G = G;
 window.timer1 = null;
 window.timer2 = null;
 window.isdrag = false;
+
