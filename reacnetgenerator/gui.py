@@ -10,7 +10,7 @@ $ reacnetgeneratorgui
 import os
 import tkinter as tk
 import tkinter.filedialog as tkfd
-import tkinter.messagebox
+import tkinter.messagebox as tkmb
 import webbrowser
 import base64
 import pkg_resources
@@ -110,10 +110,10 @@ class GUI:
                         reacnetgenerator.resultfilename))
             except Exception as e:
                 logging.error(e)
-                tk.messagebox.showerror("Error", e)
+                tkmb.showerror("Error", e)
         else:
             logging.error("File not exsit.")
-            tk.messagebox.showerror("Error", "File not exsit.")
+            tkmb.showerror("Error", "File not exsit.")
 
     def _openfiles(self):
         self._filename = tkfd.askopenfilename()
