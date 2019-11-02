@@ -11,7 +11,7 @@ jobs:
         node-version: 12
     - uses: actions/setup-python@v1
       with:
-        python-version: '3.7'
+        python-version: '3.8'
         architecture: 'x64'
     - run: npm install -g yarn
     - run: pip install tox-conda
