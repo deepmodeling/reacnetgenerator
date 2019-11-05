@@ -35,7 +35,7 @@
     "url-loader": "2.2.0",
     "webpack": "4.41.2",
     "webpack-cli": "3.3.10",
-    "snyk": "1.242.1"
+    "snyk": "1.242.2"
   },
   "devDependencies": {
     "cssnano": "4.1.10",
