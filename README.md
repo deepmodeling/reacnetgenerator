@@ -1,4 +1,4 @@
-# ReacNetGenerator
+# <img src=docs/.vuepress/public/reacnetgen.svg height=40/>  ReacNetGenerator
 
 [![DOI:10.26434/chemrxiv.7421534](https://zenodo.org/badge/DOI/10.26434/chemrxiv.7421534.svg)](https://doi.org/10.26434/chemrxiv.7421534)
 [![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](https://computchem.cn)
