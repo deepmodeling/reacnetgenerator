@@ -89,8 +89,9 @@ function loadrngdata() {
         return;
     }
     // read from url
-    var getURLParam = require("get-url-param");
-    var jdata = getURLParam(window.location.href, 'jdata')
+	const queryString = require('query-string');
+	const parsed = queryString.parse(location.search);
+	var jdata = parsed['jdata']
     if (jdata) {
         $.get(decodeURIComponent(jdata), function (data) {
             if (!handlejsondata(data)) {
