@@ -7,6 +7,7 @@ import './reacnetgen.scss'
 
 /* global rngdata */
 global.$ = global.jQuery = require('jquery');
+global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
 require('jquery.easing');
 require('jsrender');
@@ -14,7 +15,7 @@ require('paginationjs');
 require("magnific-popup");
 require("bootstrap-select");
 require('startbootstrap-creative/js/creative');
-var jsnx = require("jsnetworkx");
+var jsnx = require("@njzjz/jsnetworkx");
 var G = new jsnx.Graph();
 
 $(function () {
