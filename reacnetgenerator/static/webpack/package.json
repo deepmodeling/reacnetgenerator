@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "JavaScript files for reacnetgenerator.",
   "scripts": {
-    "start": "webpack",
-    "snyk-protect": "snyk protect",
-    "prepublish": "npm run snyk-protect"
+    "start": "webpack"
   },
   "keywords": [
     "reacnetgenerator",
