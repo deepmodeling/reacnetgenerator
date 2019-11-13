@@ -26,7 +26,7 @@
     "mini-css-extract-plugin": "0.8.0",
     "paginationjs": "2.1.4",
     "popper.js": "1.16.0",
-    "query-string": "6.8.3",
+    "query-string": "6.9.0",
     "regenerator-runtime": "0.13.3",
     "startbootstrap-creative": "5.1.8",
     "string-replace-webpack-plugin": "0.1.3",
