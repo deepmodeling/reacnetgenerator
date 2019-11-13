@@ -69,7 +69,10 @@ def dps_reaction(reactdict):
                     continue
                 reaction[side].append(mol)
                 for r in reactdict[side][mol]:
-                    if r not in visited[1-side]:
+                    if r < 0:
+                        if r not in reaction[1-side]:
+                            reaction[1-side].append(r)
+                    elif r not in visited[1-side]:
                         st.push(r)
                         st.push(1-side)
                 visited[side].add(mol)
