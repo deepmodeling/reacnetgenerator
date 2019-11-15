@@ -100,7 +100,7 @@ if __name__ == '__main__':
     ]
     # encrypt python files
     ext_modules.extend([Extension(encrypted_python_file, sources=[
-            f"{os.path.join(*encrypted_python_file.split('.'))}{os.path.extsep}py"],
+            os.path.join(*encrypted_python_file.split('.')) + os.path.extsep + "py"],
             language="c", define_macros=define_macros,
         ) for encrypted_python_file in encrypted_python_files])
 
