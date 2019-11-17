@@ -65,7 +65,7 @@ class _HTMLResult(SharedRNGData):
                 left, right, num = self._handlereaction(line)
                 reaction.append({"i": i, "l": left, "r": right, "n": num})
                 for start, end in [(left[0], right[0]), (right[0], left[0])]:
-                    if timeaxis is None and len(self._linkreac[start]) < linknum:
+                    if timeaxis is None and len(self._linkreac[start]) < linknum and end not in self._linkreac[start]:
                         self._linkreac[start].append(end)
         return reaction
 
