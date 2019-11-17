@@ -186,7 +186,7 @@ class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
         with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
-            results = run_mp(self.nproc, func=self._calmoleculeSMILESname, l=ft,
+            results = run_mp(self.nproc, func=self._calmoleculeSMILESname, l=ft, unordered=False,
                                 nlines=3, total=self.hmmit, desc="Indentify isomers", unit="molecule")
             for name, atoms, bonds in results:
                 mname.append(name)
