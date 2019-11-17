@@ -116,8 +116,8 @@ function handlejsondata(text) {
 function loaddata() {
     if (rngdata['species'].length > 1) {
         var timelist = [{ "value": 1, "text": "All" }]
-        for (var i = 0; i < rngdata['species'].length; i++) {
-            timelist.push({ "value": i + 2, "text": "Time " + String(i + 1) });
+        for (var i = 1; i < rngdata['species'].length; i++) {
+            timelist.push({ "value": i + 1, "text": "Time " + String(i) });
         }
         $("#timeselect").html($.templates("#optionTimeTmpl").render(timelist));
         $("#timeselectli").removeClass("d-none");
