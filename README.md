@@ -1,7 +1,7 @@
 # <img src=docs/.vuepress/public/reacnetgen.svg height=40/>  ReacNetGenerator
 
 [![DOI:10.26434/chemrxiv.7421534](https://zenodo.org/badge/DOI/10.26434/chemrxiv.7421534.svg)](https://doi.org/10.26434/chemrxiv.7421534)
-[![Research Group](https://img.shields.io/website-up-down-green-red/http/computchem.cn.svg?label=Research%20Group)](https://computchem.cn)
+[![Research Group](https://img.shields.io/website-up-down-green-red/https/computchem.cn.svg?label=Research%20Group)](https://computchem.cn)
 
 An automatic generator of reaction network for reactive molecular dynamics simulation.
 
@@ -39,6 +39,13 @@ reacnetgenerator -h
 ```bash
 docker build . -t njzjz/reacnetgenerator
 docker run njzjz/reacnetgenerator reacnetgenerator -h
+```
+
+## Installing via pip
+1. Install [OpenBabel](https://github.com/openbabel), [RDKit](https://github.com/rdkit/rdkit), and [Yarn](https://github.com/yarnpkg/yarn).
+2. Decompress reacnetgenerator.zip and use `pip` to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.
+```bash
+pip install .
 ```
 
 ## Usage
