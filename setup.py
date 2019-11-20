@@ -118,7 +118,7 @@ if __name__ == '__main__':
           python_requires='~=3.6',
           install_requires=[
               'numpy>=1.15', 'scipy>=0.20.1', 'networkx',
-              'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
+              'matplotlib', 'hmmlearn>=0.2.1',
               'ase', 'scour', 'tqdm',
               'coloredlogs',
               'pandas', 'pybase64', 'lz4',
