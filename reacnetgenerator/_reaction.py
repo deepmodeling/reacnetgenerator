@@ -61,8 +61,8 @@ class ReactionsFinder(SharedRNGData):
         leftname, rightname = (
             Counter(self.mname[np.array(side)-1]) for side in reaction)
         # remove duplicate species
-        leftname -= rightname
-        rightname -= leftname
-        if leftname and rightname:
-            return '->'.join(('+'.join(sorted(side.elements())) for side in (leftname, rightname)))
+        new_leftname = leftname - rightname
+        new_rightname = rightname - leftname
+        if new_leftname and new_rightname:
+            return '->'.join(('+'.join(sorted(side.elements())) for side in (new_leftname, new_rightname)))
         return None
