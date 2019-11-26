@@ -44,5 +44,6 @@
     "postcss-loader": "3.0.0",
     "precss": "4.0.0",
     "sass-loader": "8.0.0"
-  }
+  },
+  "engines" : ">=10.13.0"
 }
