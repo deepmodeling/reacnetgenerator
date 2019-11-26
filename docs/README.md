@@ -23,7 +23,7 @@ features:
 
 # Citation and contact
 
-ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2019, doi: [10.26434/chemrxiv.7421534](https://dx.doi.org/10.26434/chemrxiv.7421534)
+ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, Phys. Chem. Chem. Phys., 2019, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
@@ -85,3 +85,9 @@ reacnetgeneratorgui
 # Awards
 * The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
 * The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students
+
+## Acknowledge
+* National Natural Science Foundation of China (Grants No. 91641116)
+* National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
+* ECNU Multifunctional Platform for Innovation (No. 001)
+

@@ -23,7 +23,7 @@ features:
 
 # 引用和联系方式
 
-ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, 2019, doi: [10.26434/chemrxiv.7421534](https://dx.doi.org/10.26434/chemrxiv.7421534)
+ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, Phys. Chem. Chem. Phys., 2019, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
@@ -85,3 +85,9 @@ reacnetgeneratorgui
 # 荣誉
 * 2019年（第十一届）上海市大学生计算机应用能力大赛一等奖
 * 2019年（第12届）中国大学生计算机设计大赛一等奖
+
+## Acknowledge
+* 国家自然科学基金（编号91641116）
+* 国家大学生创新创业训练计划项目（201910269080）
+* 华东师范大学仪器共享平台（001号）
+
