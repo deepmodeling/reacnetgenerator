@@ -7,8 +7,9 @@
 Automatic generator of reaction network for reactive molecular dynamics
 simulation.
 
-Plase cite: ReacNetGen: an Automatic Reaction Network Generator for
-Reactive Molecular Dynamic Simulations, doi: 10.26434/chemrxiv.7421534
+Plase cite: ReacNetGenerator: an Automatic Reaction Network Generator
+for Reactive Molecular Dynamic Simulations, Phys. Chem. Chem. Phys.,
+2019, doi: 10.1039/C9CP05091D
 
 Jinzhe Zeng (jinzhe.zeng@rutgers.edu), Tong Zhu (tzhu@lps.ecnu.edu.cn)
 
