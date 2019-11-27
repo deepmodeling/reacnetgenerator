@@ -54,5 +54,6 @@
       ]
     ]
   },
-  "dependencies": {}
+  "dependencies": {},
+  "engines": ">=10.16.0"
 }
