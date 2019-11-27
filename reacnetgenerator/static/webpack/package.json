@@ -45,5 +45,7 @@
     "precss": "4.0.0",
     "sass-loader": "8.0.0"
   },
-  "engines" : ">=10.13.0"
+  "engines" : {
+    "node": "10.x"
+  }
 }

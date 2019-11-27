@@ -55,5 +55,7 @@
     ]
   },
   "dependencies": {},
-  "engines": ">=10.16.0"
+  "engines": {
+    "node": "10.x"
+  }
 }
