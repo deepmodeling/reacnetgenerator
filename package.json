@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@qiwi/semantic-release-gh-pages-plugin": "1.14.2",
+    "@qiwi/semantic-release-gh-pages-plugin": "1.15.4",
     "semantic-release": "15.13.31",
     "vuepress": "1.2.0"
   },
