@@ -765,15 +765,15 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@qiwi/semantic-release-gh-pages-plugin@1.14.2":
-  version "1.14.2"
-  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.14.2.tgz#4c29df6c7501447e8f092432d0782700f91127b6"
-  integrity sha512-f81VJRfMqSmPastPRe1I0zY0Q/VOoA6dA5meCECO7SB5HW3Xzux5BSea+G+PGQ3KZTayL27kDeK2U6BT056RTA==
+"@qiwi/semantic-release-gh-pages-plugin@1.15.4":
+  version "1.15.4"
+  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.4.tgz#5cc5ef9001c693e743bc94b2813007d8c623d81a"
+  integrity sha512-VWHAcHyz4z/v3Ji9fxYIC0J9TBgGhXxxnu0k1cdGF+99g7Yaa9nENHbzvzvnSTo/hI/vI/u35S/AVPb9Xshfxg==
   dependencies:
     "@types/git-url-parse" "^9.0.0"
     aggregate-error "^3.0.1"
     dot "^1.1.2"
-    execa "^3.2.0"
+    execa "^3.3.0"
     gh-pages "^2.1.1"
     git-url-parse "^11.1.2"
     lodash "^4.17.15"
@@ -3631,7 +3631,7 @@ execa@^1.0.0:
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
 
-execa@^3.2.0:
+execa@^3.2.0, execa@^3.3.0:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-3.4.0.tgz#c08ed4550ef65d858fac269ffc8572446f37eb89"
   integrity sha512-r9vdGQk4bmCuK1yKQu1KTwcT2zwfWdbdaXfCtAh+5nU/4fSX+JAb7vZGvI5naJrQlvONrEB20jeruESI69530g==
