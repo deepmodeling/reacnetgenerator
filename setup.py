@@ -118,7 +118,7 @@ if __name__ == '__main__':
           python_requires='~=3.6',
           install_requires=[
               'numpy>=1.15', 'scipy>=0.20.1', 'networkx',
-              'scikit-learn', 'matplotlib', 'hmmlearn>=0.2.1',
+              'matplotlib', 'hmmlearn>=0.2.1',
               'ase', 'scour', 'tqdm',
               'coloredlogs',
               'pandas', 'pybase64', 'lz4',
@@ -156,6 +156,7 @@ if __name__ == '__main__':
               "Operating System :: Microsoft :: Windows",
               "Programming Language :: Python :: 3.6",
               "Programming Language :: Python :: 3.7",
+              "Programming Language :: Python :: 3.8",
               "Programming Language :: JavaScript",
               "Topic :: Scientific/Engineering :: Chemistry",
               "Topic :: Scientific/Engineering :: Visualization",
