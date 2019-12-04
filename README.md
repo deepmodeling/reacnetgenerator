@@ -41,7 +41,7 @@ docker build . -t njzjz/reacnetgenerator
 docker run njzjz/reacnetgenerator reacnetgenerator -h
 ```
 
-## Installing via pip
+### Installing via pip
 1. Install [OpenBabel](https://github.com/openbabel), [RDKit](https://github.com/rdkit/rdkit), and [Yarn](https://github.com/yarnpkg/yarn).
 2. Decompress reacnetgenerator.zip and use `pip` to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.
 ```bash
