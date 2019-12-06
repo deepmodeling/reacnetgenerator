@@ -17,7 +17,10 @@ import os
 from collections import defaultdict
 import pkg_resources
 
-import openbabel
+try:
+    from openbabel import openbabel
+except ImportError:  # pragma: no cover
+    import openbabel
 import scour.scour
 
 from .utils import SCOUROPTIONS, run_mp, SharedRNGData
