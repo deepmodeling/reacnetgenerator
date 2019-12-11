@@ -21,7 +21,7 @@ features:
 footer: Copyright © 2018-2019 East China Normal University
 ---
 
-<video width="560" height="240" controls>
+<video width="512" height="397.6" controls>
   <source src="http://www.rsc.org/suppdata/c9/cp/c9cp05091d/c9cp05091d2.mp4" type="video/mp4">
 </video> 
 
