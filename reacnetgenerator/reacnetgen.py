@@ -2,14 +2,12 @@
 # -*- coding: UTF-8 -*-
 # cython: language_level=3
 # cython: linetrace=True
-"""ReacNetGenerator.
+"""ReacNetGenerator: an automatic reaction network generator for reactive
+molecular dynamics simulation.
 
-Automatic generator of reaction network for reactive molecular dynamics
-simulation.
-
-Plase cite: ReacNetGenerator: an Automatic Reaction Network Generator
-for Reactive Molecular Dynamic Simulations, Phys. Chem. Chem. Phys.,
-2019, doi: 10.1039/C9CP05091D
+Plase cite: ReacNetGenerator: an automatic reaction network generator
+for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,
+2020, doi: 10.1039/C9CP05091D
 
 Jinzhe Zeng (jinzhe.zeng@rutgers.edu), Tong Zhu (tzhu@lps.ecnu.edu.cn)
 
