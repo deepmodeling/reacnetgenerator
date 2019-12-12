@@ -18,8 +18,12 @@ features:
   details: 展示可交互的网页结果
 - title: 快速
   details: 包含并行计算和性能优化
-  footer: Copyright © 2018-2019 East China Normal University
+footer: Copyright © 2018-2019 East China Normal University
 ---
+
+<video width="512" height="397.6" controls>
+  <source src="http://www.rsc.org/suppdata/c9/cp/c9cp05091d/c9cp05091d2.mp4" type="video/mp4">
+</video> 
 
 # 引用和联系方式
 
