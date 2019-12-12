@@ -3,9 +3,9 @@
 [![DOI:10.1039/C9CP05091D](https://zenodo.org/badge/DOI/10.1039/C9CP05091D.svg)](https://doi.org/10.1039/C9CP05091D)
 [![Research Group](https://img.shields.io/website-up-down-green-red/https/computchem.cn.svg?label=Research%20Group)](https://computchem.cn)
 
-An automatic generator of reaction network for reactive molecular dynamics simulation.
+An automatic reaction network generator for reactive molecular dynamics simulation.
 
-ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, Phys. Chem. Chem. Phys., 2019, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
+ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 

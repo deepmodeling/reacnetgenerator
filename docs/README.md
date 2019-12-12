@@ -2,7 +2,7 @@
 home: true
 heroImage: /reacnetgen.svg
 heroText: ReacNetGenerator
-tagline: An automatic generator of reaction network for reactive molecular dynamics simulation
+tagline: An automatic reaction network generator for reactive molecular dynamics simulation
 actionText: Download
 actionLink: https://github.com/tongzhugroup/reacnetgenerator/releases
 features:
@@ -27,7 +27,7 @@ footer: Copyright © 2018-2019 East China Normal University
 
 # Citation and contact
 
-ReacNetGenerator: an Automatic Reaction Network Generator for Reactive Molecular Dynamic Simulations, Phys. Chem. Chem. Phys., 2019, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
+ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 

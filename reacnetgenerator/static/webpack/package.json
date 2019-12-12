@@ -10,7 +10,7 @@
     "webpack"
   ],
   "author": "Jinzhe Zeng",
-  "license": "UNLICENSED",
+  "license": "LGPL-3.0-only",
   "dependencies": {
     "@njzjz/jsnetworkx": "0.3.5",
     "bootstrap": "4.4.1",
