@@ -35,7 +35,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 [从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/)，然后用conda安装ReacNetGenerator:
 
 ```bash
-conda install reacnetgenerator -c conda-forge
+conda install reacnetgenerator -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 ```
 
 如果你想自己构建ReacNetGenerator，参见[构建教程](guide/build.md)。
@@ -80,4 +80,3 @@ reacnetgeneratorgui
 * 国家自然科学基金（编号91641116）
 * 国家大学生创新创业训练计划项目（201910269080）
 * 华东师范大学仪器共享平台（001号）
-
