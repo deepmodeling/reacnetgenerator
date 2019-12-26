@@ -13,7 +13,7 @@ import matplotlib as mpl
 mpl.use("svg")  # noqa
 import networkx  # avoid qhull library error
 
-import ._logging
+import reacnetgenerator._logging
 from ._version import __version__
 from .reacnetgen import ReacNetGenerator
 
