@@ -4,6 +4,8 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
 const webpack = require('webpack');
+const WebpackCdnPlugin = require('webpack-cdn-plugin');
+
 
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
 Copyright 2018-2019 East China Normal University
@@ -60,22 +62,22 @@ module.exports = {
   plugins: [
     new StringReplacePlugin(),
     new MiniCssExtractPlugin({
-			filename: "bundle.css"
+      filename: "bundle.css"
     }),
     new HtmlWebpackPlugin({
       filename: 'bundle.html',
-			template: __dirname + '/template.html',
+      template: __dirname + '/template.html',
       inject: 'true',
       inlineSource: '.(js|css)$',
-			minify: {
-				collapseWhitespace: true,
-				collapseBooleanAttributes: true,
-				collapseInlineTagWhitespace: true,
-				minifyCSS: true,
+      minify: {
+        collapseWhitespace: true,
+        collapseBooleanAttributes: true,
+        collapseInlineTagWhitespace: true,
+        minifyCSS: true,
         minifyJS: true,
         minifyURLs: true,
         decodeEntities: true,
-				removeScriptTypeAttributes: true,
+        removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         removeAttributeQuotes: true,
         removeOptionalTags: true,
@@ -84,12 +86,41 @@ module.exports = {
         sortAttributes: true,
         sortClassName: true,
         useShortDoctype: true,
-        ignoreCustomFragments: [ /<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/ ],
+        ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/],
         processScripts: ['text/x-jsrender']
-			}
+      }
     }),
-    new HtmlWebpackInlineSourcePlugin(),
-    new webpack.BannerPlugin(banner)
+    process.env.CDN == 'yes' ? new WebpackCdnPlugin({
+      modules: [
+        { name: "jquery", var: ["$", "jQuery"], path: "dist/jquery.min.js" },
+        { name: "regenerator-runtime", path: "runtime.min.js" },
+        {
+          name: "bootstrap",
+          path: "dist/js/bootstrap.min.js",
+          //style: "dist/css/bootstrap.min.css"
+        },
+        { name: "jquery.easing", path: "jquery.easing.min.js" },
+        { name: "jsrender", path: "jsrender.min.js" },
+        { name: "paginationjs", path: "dist/pagination.min.js" },
+        {
+          name: "magnific-popup",
+          path: "dist/jquery.magnific-popup.min.js",
+          //style: "dist/magnific-popup.css"
+        },
+        { nane: "bootstrap-select", path: "dist/js/bootstrap-select.min.js" },
+        {
+          name: "startbootstrap-creative",
+          path: "js/creative.min.js",
+          //style: "css/creative.min.css"
+        },
+        { name: "d3", path: "d3.min.js"},
+        { name: "query-string", path: "index.min.js"},
+        { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js"},
+      ],
+      publicPath: "/node_modules",
+      prodUrl: "//cdn.jsdelivr.net/npm/:name@:version/:path"
+    }) : new HtmlWebpackInlineSourcePlugin(),
+    new webpack.BannerPlugin(banner),
   ],
   optimization: {
     minimizer: [
@@ -102,5 +133,5 @@ module.exports = {
   stats: {
     entrypoints: false,
     children: false
- },
+  },
 }
