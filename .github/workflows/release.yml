@@ -1,0 +1,27 @@
+on: [push, pull_request]
+name: Release to pypi
+jobs:
+  release:
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version:
+        - 3.8
+        - 3.7
+        os:
+        - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@master
+    - name: Setup python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - run: pip install pep517
+    - run: python -m pep517.build .
+    - name: Publish a Python distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
