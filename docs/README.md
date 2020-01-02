@@ -27,7 +27,7 @@ footer: Copyright © 2018-2019 East China Normal University
 
 # Citation and contact
 
-ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
+ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
