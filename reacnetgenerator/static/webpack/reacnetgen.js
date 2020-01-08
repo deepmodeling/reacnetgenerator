@@ -10,10 +10,10 @@ import "bootstrap-select/dist/css/bootstrap-select.min.css";
 import "./reacnetgen.css";
 
 /* global rngdata */
-global.$ = global.jQuery = require('jquery');
+global.$ = global.jQuery = global.jquery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
-require('jquery.easing');
+require('jquery.easing')(jQuery);
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");
