@@ -51,7 +51,7 @@ if (process.env.CDN == 'yes') {
     new WebpackCdnPlugin({
       modules: [
         { name: "jquery", var: ["$", "jQuery"], path: "dist/jquery.min.js" },
-        { name: "regenerator-runtime", path: "runtime.min.js" },
+        { name: "regenerator-runtime", path: "runtime.min.js", var: ["regenerator"] },
         {
           name: "bootstrap",
           path: "dist/js/bootstrap.min.js",
@@ -72,7 +72,6 @@ if (process.env.CDN == 'yes') {
           style: "css/creative.min.css"
         },
         { name: "d3", path: "d3.min.js" },
-        { name: "query-string", path: "index.min.js" },
         { name: "njzjzjsnetworkx", path: "jsnetworkx.js" },
       ],
       publicPath: "/node_modules",

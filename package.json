@@ -13,7 +13,7 @@
     "build-report": "cd reacnetgenerator/static/webpack && yarn && yarn start && cd ../../../",
     "build-report-cdn": "cd reacnetgenerator/static/webpack && yarn && yarn start-cdn && cd ../../../",
     "copy-report": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/reportoffline.html",
-    "copy-report-cdn": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html && mv reacnetgenerator/static/webpack/bundle.js docs/.vuepress/public/bundle.js"
+    "copy-report-cdn": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html && mv reacnetgenerator/static/webpack/bundle.js docs/.vuepress/public/bundle.js && mv reacnetgenerator/static/webpack/bundle.css docs/.vuepress/public/bundle.css"
   },
   "license": "UNLICENSED",
   "version": "0.0.0-development",
