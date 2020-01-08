@@ -13,7 +13,7 @@ import "./reacnetgen.css";
 global.$ = global.jQuery = global.jquery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
-require('jquery.easing')(jQuery);
+require('jquery.easing');
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");
