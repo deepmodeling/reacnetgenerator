@@ -50,8 +50,8 @@ if (process.env.CDN == 'yes') {
   myplugins.push(
     new WebpackCdnPlugin({
       modules: [
-        { name: "jquery", var: ["$", "jQuery"], path: "dist/jquery.min.js" },
-        { name: "regenerator-runtime", path: "runtime.min.js", var: ["regeneratorRuntime"] },
+        { name: "jquery", var: "$", path: "dist/jquery.min.js" },
+        { name: "regenerator-runtime", path: "runtime.min.js", var: "regeneratorRuntime" },
         {
           name: "bootstrap",
           path: "dist/js/bootstrap.min.js",
