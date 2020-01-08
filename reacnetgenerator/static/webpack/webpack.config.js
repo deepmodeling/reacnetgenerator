@@ -57,15 +57,16 @@ if (process.env.CDN == 'yes') {
           path: "dist/js/bootstrap.min.js",
           //style: "dist/css/bootstrap.min.css"
         },
-        { name: "jquery.easing", path: "jquery.easing.min.js" },
-        { name: "jsrender", path: "jsrender.min.js" },
-        { name: "paginationjs", path: "dist/pagination.min.js", style: "dist/pagination.css" },
+        { name: "jquery.easing", path: "jquery.easing.min.js", var: "$.easing" },
+        { name: "jsrender", path: "jsrender.min.js", var: "$.jsrender" },
+        { name: "paginationjs", path: "dist/pagination.min.js", style: "dist/pagination.css", var: "$.paginationjs" },
         {
           name: "magnific-popup",
           path: "dist/jquery.magnific-popup.min.js",
-          style: "dist/magnific-popup.min.css"
+          style: "dist/magnific-popup.min.css",
+          var: "$.magnificPopup"
         },
-        { name: "bootstrap-select", path: "dist/js/bootstrap-select.min.js", style: "dist/css/bootstrap-select.min.css" },
+        { name: "bootstrap-select", path: "dist/js/bootstrap-select.min.js", style: "dist/css/bootstrap-select.min.css", var:"$.selectpicker" },
         {
           name: "startbootstrap-creative",
           path: "js/creative.min.js",
