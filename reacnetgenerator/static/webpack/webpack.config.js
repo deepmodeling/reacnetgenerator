@@ -72,7 +72,7 @@ if (process.env.CDN == 'yes') {
           style: "css/creative.min.css"
         },
         { name: "d3", path: "d3.min.js" },
-        { name: "njzjzjsnetworkx", path: "jsnetworkx.js" },
+        { name: "njzjzjsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
       ],
       publicPath: "/node_modules",
       prodUrl: "//cdn.jsdelivr.net/npm/:name@:version/:path"

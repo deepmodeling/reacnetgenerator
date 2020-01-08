@@ -12,13 +12,13 @@ import "./reacnetgen.css";
 /* global rngdata */
 global.$ = global.jQuery = global.jquery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
-require('bootstrap');
-require('jquery.easing');
-require('jsrender');
-require('paginationjs');
-require("magnific-popup");
-require("bootstrap-select");
-require('startbootstrap-creative/js/creative');
+import 'bootstrap';
+import 'jquery.easing';
+import 'jsrender';
+import 'paginationjs';
+import "magnific-popup";
+import "bootstrap-select";
+import 'startbootstrap-creative/js/creative';
 var jsnx = require("njzjzjsnetworkx");
 var G = new jsnx.Graph();
 
