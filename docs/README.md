@@ -27,40 +27,19 @@ footer: Copyright © 2018-2019 East China Normal University
 
 # Citation and contact
 
-ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
+ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # Installation
 
-First, you need to download the source code from [the Releases page](https://github.com/tongzhugroup/reacnetgenerator/releases). Then install ReacNetGenerator with one of the following guides:
-
-## Building a conda package
-1. [Install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda.
-2. Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:
+You can [install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda, and install ReacNetGenerator easily with conda:
 
 ```bash
-conda config --add channels conda-forge
-conda build conda/recipe
-conda install reacnetgenerator --use-local
-reacnetgenerator -h
+conda install reacnetgenerator -c conda-forge
 ```
 
-## Building a Docker Image
-1. [Install Docker](https://docs.docker.com/install/).
-2. Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:
-
-```bash
-docker build . -t njzjz/reacnetgenerator
-docker run njzjz/reacnetgenerator reacnetgenerator -h
-```
-
-## Installing via pip
-1. Install [OpenBabel](https://github.com/openbabel), [RDKit](https://github.com/rdkit/rdkit), and [Yarn](https://github.com/yarnpkg/yarn).
-2. Decompress reacnetgenerator.zip and use `pip` to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.
-```bash
-pip install .
-```
+See [the build guide](guide/build.md) if you want to build ReacNetGenerator by yourself. 
 
 # Usage
 
