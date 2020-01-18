@@ -8,7 +8,7 @@ env:
   global:
     - TWINE_USERNAME=__token__
     - CIBW_BUILD="cp36-* cp37-* cp38-*"
-    - CIBW_BEFORE_BUILD="curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo; curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -; yum -y install yarn"
+    - CIBW_BEFORE_BUILD="curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo; curl --silent --location https://rpm.nodesource.com/setup_12.x | bash -; yum -y install yarn"
 
 install:
   - python -m pip install twine cibuildwheel==1.1.0
