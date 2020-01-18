@@ -93,16 +93,28 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach, timeaxis=None):
+        """For analysis without HMM, we may not need to use np.unique"""
         with WriteBuffer(open(self.atomroutefilename if timeaxis is None else f"{self.atomroutefilename}.{timeaxis}", 'w'), sep='\n') as f:
             allmoleculeroute = []
+            if not self.runHMM:
+                have_added = {}
             results = run_mp(self.nproc, func=self._getatomroute, l=zip(atomeach, self.atomtype), return_num=True, start=1, unordered=False,
                                 total=self.N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
-            for moleculeroute, routestr in results:
+            for ii, (moleculeroute, routestr) in enumerate(results):
                 f.append(routestr)
                 if moleculeroute.size > 0:
-                    allmoleculeroute.append(moleculeroute)
-        allmoleculeroute = np.unique(np.concatenate(
-            allmoleculeroute), axis=0) if allmoleculeroute else np.zeros((0, 2), dtype=int)
+                    if not self.runHMM:
+                        # check whether repeated or not if analyzing without HMM
+                        for rr in moleculeroute:
+                            tpr = tuple(rr)
+                            if have_added.get(tpr, atomeach.shape[0]) >= ii:
+                                have_added[tpr] = ii
+                                allmoleculeroute.append(rr.reshape(1,2))
+                    else:
+                        allmoleculeroute.append(moleculeroute)
+        allmoleculeroute = np.concatenate(allmoleculeroute) if allmoleculeroute else np.zeros((0, 2), dtype=int)
+        if self.runHMM and allmoleculeroute.size:
+            allmoleculeroute = np.unique(allmoleculeroute, axis=0)
         return allmoleculeroute
 
     def convertSMILES(self, atoms, bonds):
