@@ -767,16 +767,16 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@qiwi/semantic-release-gh-pages-plugin@1.15.7":
-  version "1.15.7"
-  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.7.tgz#22f973ad1ac88a84d3adfe9bc916521fa7c0dde3"
-  integrity sha512-gJj2YnEH8CorXIWMukxGwyiCLF3COhtaKb7o//X3kapKEF+oLK8ejYDRfmiU6CUEHUyIB8vyqvOX9BegOPImvA==
+"@qiwi/semantic-release-gh-pages-plugin@1.15.8":
+  version "1.15.8"
+  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.8.tgz#ae592e663f0c87a24a8020c6732e3cef83db45a6"
+  integrity sha512-fjG1H79flRgbHkMPzhwaRp+05pi2QvM9RyVl9AErEU7LGFwAi4zupHWBPwi7ZiX1nivRxDcgqY1r9aeN1sjITA==
   dependencies:
     "@types/git-url-parse" "^9.0.0"
     aggregate-error "^3.0.1"
     dot "^1.1.3"
     execa "^4.0.0"
-    gh-pages "^2.1.1"
+    gh-pages "^2.2.0"
     git-url-parse "^11.1.2"
     lodash "^4.17.15"
     read-pkg "^5.2.0"
@@ -4177,7 +4177,7 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
-gh-pages@^2.1.1:
+gh-pages@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/gh-pages/-/gh-pages-2.2.0.tgz#74ebeaca8d2b9a11279dcbd4a39ddfff3e6caa24"
   integrity sha512-c+yPkNOPMFGNisYg9r4qvsMIjVYikJv7ImFOhPIVPt0+AcRUamZ7zkGRLHz7FKB0xrlZ+ddSOJsZv9XAFVXLmA==
