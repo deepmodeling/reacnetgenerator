@@ -49,7 +49,7 @@ class WriteBuffer:
 
     def flush(self):
         if self.buff:
-            self.f.write(self.sep.join(self.buff))
+            self.f.writelines([self.sep.join(self.buff), self.sep])
             self.buff[:] = []
 
     def __enter__(self):
