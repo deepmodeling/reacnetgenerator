@@ -194,3 +194,5 @@ typings/
 bundle.*
 *.swp
 pip-wheel-metadata/
+
+_build/
