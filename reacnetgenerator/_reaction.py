@@ -7,7 +7,7 @@
 import numpy as np
 from collections import Counter, defaultdict
 
-from .utils import WriteBuffer, run_mp, SharedRNGData
+from .utils import WriteBuffer, run_mp, SharedRNGData, listtobytes, bytestolist
 from .dps import dps_reaction
 
 
@@ -24,7 +24,7 @@ class ReactionsFinder(SharedRNGData):
         # atomeach j, atomeach j+1, conflict j, conflict j+1
         givenarray = zip(atomeach[:-1], atomeach[1:],
                          conflict[:-1], conflict[1:])
-        results = run_mp(self.nproc, func=self._getstepreaction, l=givenarray,
+        results = run_mp(self.nproc, func=self._getstepreaction, l=[listtobytes(x) for x in givenarray],
                          total=self.step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
         for networks in results:
             allreactions.extend(networks)
@@ -37,6 +37,7 @@ class ReactionsFinder(SharedRNGData):
 
     def _getstepreaction(self, item):
         # atomeachj, atomeachjp1, conflictj, conflictjp1
+        item = bytestolist(item)
         modifiedatoms = np.not_equal(item[0], item[1])
         # covert to dict
         reactdict = [defaultdict(list), defaultdict(list)]
