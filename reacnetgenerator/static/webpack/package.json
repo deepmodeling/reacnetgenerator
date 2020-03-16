@@ -23,7 +23,7 @@
     "paginationjs": "2.1.5",
     "popper.js": "1.16.1",
     "query-string": "6.11.1",
-    "regenerator-runtime": "0.13.3",
+    "regenerator-runtime": "0.13.4",
     "startbootstrap-creative": "5.1.8"
   },
   "devDependencies": {
