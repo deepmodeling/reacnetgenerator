@@ -12,11 +12,6 @@
   resolved "https://registry.yarnpkg.com/@csstools/sass-import-resolve/-/sass-import-resolve-1.0.0.tgz#32c3cdb2f7af3cd8f0dca357b592e7271f3831b5"
   integrity sha512-pH4KCsbtBLLe7eqUrw8brcuFO8IZlN36JjdKlOublibVdAIPHCzEnpBWOVUXK5sCf+DpBi8ZtuWtjF0srybdeA==
 
-"@fortawesome/fontawesome-free@5.10.2":
-  version "5.10.2"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.10.2.tgz#27e02da1e34b50c9869179d364fb46627b521130"
-  integrity sha512-9pw+Nsnunl9unstGEHQ+u41wBEQue6XPBsILXtJF/4fNN1L3avJcMF/gGF86rIjeTAgfLjTY9ndm68/X4f4idQ==
-
 "@njzjz/jsnetworkx@0.3.5":
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@njzjz/jsnetworkx/-/jsnetworkx-0.3.5.tgz#5e7afacb12ef2c43e77cf16de234f79afc8f0ec5"
@@ -437,11 +432,6 @@ bootstrap-select@1.13.12:
   version "1.13.12"
   resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.13.12.tgz#81b9f1394cb8d7151aea16fb9030c112330dbf98"
   integrity sha512-epsPt6WpgmL9Q9Y22JFntajdhhqvCwV/JKiBZF3YFvMHK9YzzDPQft/Cjqvsgq0bhF32BlvG03Qs3qA/pVRAqQ==
-
-bootstrap@4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.3.1.tgz#280ca8f610504d99d7b6b4bfc4b68cec601704ac"
-  integrity sha512-rXqOmH1VilAt2DyPzluTi2blhk17bO7ef+zLLPlWvG494pDxcM234pJ8wTc/6R40UWizAIIMgxjvxZg5kmsbag==
 
 bootstrap@4.4.1:
   version "4.4.1"
@@ -2408,7 +2398,7 @@ jest-worker@^25.1.0:
     merge-stream "^2.0.0"
     supports-color "^7.0.0"
 
-jquery.easing@1.4.1, jquery.easing@^1.4.1:
+jquery.easing@1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/jquery.easing/-/jquery.easing-1.4.1.tgz#47982c5836bd758fd48494923c4a101ef6e93e3b"
   integrity sha1-R5gsWDa9dY/UhJSSPEoQHvbpPjs=
@@ -2602,7 +2592,7 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
-magnific-popup@1.1.0, magnific-popup@^1.1.0:
+magnific-popup@1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/magnific-popup/-/magnific-popup-1.1.0.tgz#3e7362c5bd18f6785fe99e59d013e20af33d3049"
   integrity sha1-PnNixb0Y9nhf6Z5Z0BPiCvM9MEk=
@@ -4672,16 +4662,12 @@ stable@^0.1.8:
   resolved "https://registry.yarnpkg.com/stable/-/stable-0.1.8.tgz#836eb3c8382fe2936feaf544631017ce7d47a3cf"
   integrity sha512-ji9qxRnOVfcuLDySj9qzhGSEFVobyt1kIOSkj1qZzYLzq7Tos/oUUWvotUPQLlrsidqsK6tBH89Bc9kL5zHA6w==
 
-startbootstrap-creative@5.1.8:
-  version "5.1.8"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-5.1.8.tgz#c225e5e09bd7826a89fbd05cba837d3389c50903"
-  integrity sha512-+tCRrkQOIhFOVEuSrWyH0J+/TyqRDnmAYoo2wnf0OygJB3Cw0chQ45ONjr7MoS2QR253NWwuoxL3Cm13tbND5A==
+startbootstrap-creative@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-6.0.0.tgz#18532950886492e9e5cf33cbda559af39d16aed2"
+  integrity sha512-YF/fZYegI6r27OECDET+GQwPdrupu/Upns8mKpefFLFfuAmYwd0fpaE2Pw4Mfd4sye3Q0llwdZV1pbHx2LvQKg==
   dependencies:
-    "@fortawesome/fontawesome-free" "5.10.2"
-    bootstrap "4.3.1"
-    jquery "3.4.1"
-    jquery.easing "^1.4.1"
-    magnific-popup "^1.1.0"
+    bootstrap "4.4.1"
 
 static-extend@^0.1.1:
   version "0.1.2"
