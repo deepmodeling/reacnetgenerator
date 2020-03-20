@@ -14,7 +14,7 @@ require('jsrender');
 require('paginationjs');
 require("magnific-popup");
 require("bootstrap-select");
-require('startbootstrap-creative/js/creative');
+require('startbootstrap-creative/dist/js/scripts');
 var jsnx = require("@njzjz/jsnetworkx");
 var G = new jsnx.Graph();
 
@@ -300,4 +300,3 @@ window.G = G;
 window.timer1 = null;
 window.timer2 = null;
 window.isdrag = false;
-
