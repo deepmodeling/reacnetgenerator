@@ -14,7 +14,7 @@ require('jsrender');
 require('paginationjs');
 require("magnific-popup");
 require("bootstrap-select");
-require('startbootstrap-creative/js/creative');
+require('startbootstrap-creative/js/scripts');
 var jsnx = require("@njzjz/jsnetworkx");
 var G = new jsnx.Graph();
 
