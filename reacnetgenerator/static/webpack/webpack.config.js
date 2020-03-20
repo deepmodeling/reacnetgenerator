@@ -27,7 +27,7 @@ module.exports = {
         {
           loader: StringReplacePlugin.replace({
             replacements: [{
-              pattern: /..\/img\/bg-masthead.jpg/g,
+              pattern: /..\/assets\/img\/bg-masthead.jpg/g,
               replacement: function (_match, _p1, _offset, _string) {
                 return '';
               }
