@@ -935,10 +935,10 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@qiwi/semantic-release-gh-pages-plugin@1.15.9":
-  version "1.15.9"
-  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.9.tgz#d20f209026eec0b62d823339a88e7415e59d3a56"
-  integrity sha512-wduwwbrBQj6DXiOypKULnHmHGFKWFJ8CWDHIahmT74PpPAeNoQxGIulA6cnNQ/cnzOGNZWiLJ0wvLkEXvdLXWA==
+"@qiwi/semantic-release-gh-pages-plugin@1.15.10":
+  version "1.15.10"
+  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.10.tgz#ebded3ee58178935fe84585f1098b99187647461"
+  integrity sha512-bDlJ9mFk3dWSNaBrHG5WkmTn3ehSFeAJSuasHtvLqzuiwgXlwammwUwBhUAfR/79I5sUBfL9SSCUlBUVifb0MQ==
   dependencies:
     "@types/git-url-parse" "^9.0.0"
     aggregate-error "^3.0.1"
@@ -949,7 +949,7 @@
     lodash "^4.17.15"
     read-pkg "^5.2.0"
     sync-request "^6.1.0"
-    tslib "^1.10.0"
+    tslib "^1.11.1"
 
 "@semantic-release/commit-analyzer@^8.0.0":
   version "8.0.1"
@@ -10128,7 +10128,7 @@ trim-repeated@^1.0.0:
   dependencies:
     escape-string-regexp "^1.0.2"
 
-tslib@^1.10.0, tslib@^1.9.0:
+tslib@^1.11.1, tslib@^1.9.0:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.11.1.tgz#eb15d128827fbee2841549e171f45ed338ac7e35"
   integrity sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
