@@ -45,7 +45,8 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     subclasses = {}
 
     def __init__(self, rng):
-        SharedRNGData.__init__(self, rng, ['inputfilename', 'atomname', 'stepinterval', 'nproc', 'pbc'],
+        SharedRNGData.__init__(self, rng, ['inputfilename', 'atomname', 'stepinterval', 'nproc', 'pbc',
+                                           'cell'],
                                ['N', 'atomtype', 'step', 'timestep', 'temp1it', 'moleculetempfilename'])
 
     @classmethod
@@ -155,18 +156,66 @@ class _DetectLAMMPSbond(_Detect):
                     level[s0] = map(self._get_bo, s[4+s2:4+2*s2])
         molecules = self._connectmolecule(bond, level)
         return molecules, (step, timestep)
-    
+
     @staticmethod
     def _get_idx(x):
         return int(x) - 1
-    
+
     @staticmethod
     def _get_bo(x):
         return max(1, round(float(x)))
 
 
+class _DetectCrd(_Detect):
+    def _getbondfromcrd(self, step_atoms, cell):
+        atomnumber = len(step_atoms)
+        if self.pbc:
+            # Apply period boundry conditions
+            step_atoms.set_pbc(True)
+            step_atoms.set_cell(cell)
+            # add ghost atoms
+            repeated_atoms = step_atoms.repeat(2)[atomnumber:]
+            tree = cKDTree(step_atoms.get_positions())
+            d = tree.query(repeated_atoms.get_positions(), k=1)[0]
+            nearest = d < 5
+            ghost_atoms = repeated_atoms[nearest]
+            realnumber = np.where(nearest)[0] % atomnumber
+            step_atoms += ghost_atoms
+        # Use openbabel to connect atoms
+        mol = openbabel.OBMol()
+        mol.BeginModify()
+        for idx, (num, position) in enumerate(zip(step_atoms.get_atomic_numbers(), step_atoms.positions)):
+            a = mol.NewAtom(idx)
+            a.SetAtomicNum(int(num))
+            a.SetVector(*position)
+        mol.ConnectTheDots()
+        mol.PerceiveBondOrders()
+        mol.EndModify()
+        bond = [[] for i in range(atomnumber)]
+        bondlevel = [[] for i in range(atomnumber)]
+        for b in openbabel.OBMolBondIter(mol):
+            s1 = b.GetBeginAtom().GetId()
+            s2 = b.GetEndAtom().GetId()
+            if s1 >= atomnumber and s2 >= atomnumber:
+                # duplicated
+                continue
+            elif s1 >= atomnumber:
+                s1 = realnumber[s1-atomnumber]
+            elif s2 >= atomnumber:
+                s2 = realnumber[s2-atomnumber]
+            level = b.GetBondOrder()
+            if level == 5:
+                # aromatic, 5 in openbabel but 12 in rdkit
+                level = 12
+            bond[s1].append(s2)
+            bond[s2].append(s1)
+            bondlevel[s1].append(level)
+            bondlevel[s2].append(level)
+        return bond, bondlevel
+
+
 @_Detect.register_subclass("lammpsdumpfile")
-class _DetectLAMMPSdump(_Detect):
+class _DetectLAMMPSdump(_DetectCrd):
     class LineType(Enum):
         """Line type in the LAMMPS dump files."""
 
@@ -247,48 +296,40 @@ class _DetectLAMMPSdump(_Detect):
         molecules = self._connectmolecule(bond, level)
         return molecules, timestep
 
-    def _getbondfromcrd(self, step_atoms, cell):
-        atomnumber = len(step_atoms)
-        if self.pbc:
-            # Apply period boundry conditions
-            step_atoms.set_pbc(True)
-            step_atoms.set_cell(cell)
-            # add ghost atoms
-            repeated_atoms = step_atoms.repeat(2)[atomnumber:]
-            tree = cKDTree(step_atoms.get_positions())
-            d = tree.query(repeated_atoms.get_positions(), k=1)[0]
-            nearest = d < 5
-            ghost_atoms = repeated_atoms[nearest]
-            realnumber = np.where(nearest)[0] % atomnumber
-            step_atoms += ghost_atoms
-        # Use openbabel to connect atoms
-        mol = openbabel.OBMol()
-        mol.BeginModify()
-        for idx, (num, position) in enumerate(zip(step_atoms.get_atomic_numbers(), step_atoms.positions)):
-            a = mol.NewAtom(idx)
-            a.SetAtomicNum(int(num))
-            a.SetVector(*position)
-        mol.ConnectTheDots()
-        mol.PerceiveBondOrders()
-        mol.EndModify()
-        bond = [[] for i in range(atomnumber)]
-        bondlevel = [[] for i in range(atomnumber)]
-        for b in openbabel.OBMolBondIter(mol):
-            s1 = b.GetBeginAtom().GetId()
-            s2 = b.GetEndAtom().GetId()
-            if s1 >= atomnumber and s2 >= atomnumber:
-                # duplicated
-                continue
-            elif s1 >= atomnumber:
-                s1 = realnumber[s1-atomnumber]
-            elif s2 >= atomnumber:
-                s2 = realnumber[s2-atomnumber]
-            level = b.GetBondOrder()
-            if level == 5:
-                # aromatic, 5 in openbabel but 12 in rdkit
-                level = 12
-            bond[s1].append(s2)
-            bond[s2].append(s1)
-            bondlevel[s1].append(level)
-            bondlevel[s2].append(level)
-        return bond, bondlevel
+
+@_Detect.register_subclass("xyz")
+class _Detectxyz(_DetectCrd):
+    """xyz file. Two frames are connected. Cell information must be inputed by user."""
+
+    def _readNfunc(self, f):
+        atomname_dict = dict(zip(self.atomname.tolist(), range(self.atomname.size)))
+        for index, line in enumerate(f):
+            s = line.split()
+            if index == 0:
+                N = int(line.strip())
+                atomtype = np.zeros(N, dtype=int)
+            elif index > N+1:
+                break
+            elif index > 1:
+                atomtype[index-2] = atomname_dict[s[0]]
+        self.N = N
+        self.atomtype = atomtype
+        steplinenum = N + 2
+        return steplinenum
+
+    def _readstepfunc(self, item):
+        step, lines = item
+        timestep = step, step
+        step_atoms = []
+        boxsize = self.cell
+        if self.pbc and boxsize is None:
+            raise RuntimeError("No cell information is given.")
+        for index, line in enumerate(lines):
+            s = line.split()
+            if index > 1:
+                step_atoms.append((index-1, Atom(s[0] ,tuple((float(x) for x in s[1:4])))))
+        _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
+        step_atoms = Atoms(step_atoms)
+        bond, level = self._getbondfromcrd(step_atoms, boxsize)
+        molecules = self._connectmolecule(bond, level)
+        return molecules, timestep

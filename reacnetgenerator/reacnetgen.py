@@ -80,7 +80,7 @@ class ReacNetGenerator:
                             "nolabel": False,  "printfiltersignal": False, "showid": True, "runHMM": True, "SMILES": True,
                             "getoriginfile": False, "needprintspecies": True, "urls": []
                             }
-        none_key = ['selectatoms', 'species', 'pos', 'k', 'speciescenter']
+        none_key = ['selectatoms', 'species', 'pos', 'k', 'speciescenter', 'cell']
         accept_keys = ['atomtype', 'step', 'hmmit', 'timestep', 'steplinenum', 'N',
             'temp1it', 'originfilename', 'hmmfilename', 'moleculetempfilename', 'moleculetemp2filename',
             'allmoleculeroute', 'splitmoleculeroute']
