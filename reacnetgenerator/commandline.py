@@ -20,6 +20,8 @@ def _commandline():
     parser.add_argument(
         '--type', '-t', help='Input file type', default='lammpsbondfile')
     parser.add_argument(
+        '--nopbc', help='Disable PBC.', action="store_true")
+    parser.add_argument(
         '--cell', '-c', nargs=3, type=float, help='Cell')
     parser.add_argument(
         '-n', '-np', '--nproc', help='Number of processes', type=int)
@@ -52,6 +54,7 @@ def _commandline():
               for url in args.urls] if args.urls else None,
         a=np.array(args.matrixa).reshape((2, 2)),
         b=np.array(args.matrixb).reshape((2, 2)),
+        pbc=not args.nopbc,
         cell=args.cell,
     ).runanddraw()
 
