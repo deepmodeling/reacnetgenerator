@@ -18,6 +18,12 @@ def _commandline():
     parser.add_argument(
         '--dump', help='Process the LAMMPS dump file', action="store_true")
     parser.add_argument(
+        '--type', '-t', help='Input file type', default='lammpsbondfile')
+    parser.add_argument(
+        '--nopbc', help='Disable PBC.', action="store_true")
+    parser.add_argument(
+        '--cell', '-c', nargs=3, type=float, help='Cell')
+    parser.add_argument(
         '-n', '-np', '--nproc', help='Number of processes', type=int)
     parser.add_argument(
         '-s', '--selectatoms',
@@ -39,7 +45,7 @@ def _commandline():
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
         runHMM=not args.nohmm,
-        inputfiletype=('lammpsdumpfile' if args.dump else 'lammpsbondfile'),
+        inputfiletype=('lammpsdumpfile' if args.dump else args.type),
         nproc=args.nproc, selectatoms=args.selectatoms,
         stepinterval=args.stepinterval,
         split=args.split,
@@ -48,6 +54,8 @@ def _commandline():
               for url in args.urls] if args.urls else None,
         a=np.array(args.matrixa).reshape((2, 2)),
         b=np.array(args.matrixb).reshape((2, 2)),
+        pbc=not args.nopbc,
+        cell=args.cell,
     ).runanddraw()
 
 
@@ -56,8 +64,8 @@ def parm2cmd(pp):
                 pp['inputfilename'], '-a', *pp['atomname']]
     if not pp.get('runHMM', True):
         commands.append('--nohmm')
-    if pp['inputfiletype'] == 'lammpsdumpfile':
-        commands.append('--dump')
+    if pp['inputfiletype']:
+        commands.extend(('--type', pp['inputfiletype']))
     if pp['atomname']:
         commands.extend(('-s', pp['atomname'][0]))
     if pp.get('urls', []):
@@ -69,6 +77,9 @@ def parm2cmd(pp):
     if pp.get('b', []):
         commands.extend(
             ('--matrixb', str(pp['b'][0][0]), str(pp['b'][0][1]), str(pp['b'][1][0]), str(pp['b'][1][1])))
+    if pp.get('cell', []):
+        commands.extend(
+            ('--cell', str(pp['cell'][0]), str(pp['cell'][1]), str(pp['cell'][2])))
     for ii in ['nproc', 'selectatoms', 'stepinterval', 'split', 'maxspecies']:
         if pp.get(ii, None):
             commands.extend(("--{}".format(ii), str(pp[ii])))
