@@ -427,10 +427,10 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
 
-bootstrap-select@1.13.13:
-  version "1.13.13"
-  resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.13.13.tgz#33976b55dad5f93786d8e2c01244894706452e86"
-  integrity sha512-VKIKuBAPT0KfS5XDppA0DL++THsd0Y0a0h+Xn5UDRjWb1pNXAylAQRcYVAWKA/4rOIloXyE719fyzNcLBFQExg==
+bootstrap-select@1.13.14:
+  version "1.13.14"
+  resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.13.14.tgz#f866eeffbe9a86c0fe8b345634c2b0807f1cd0bd"
+  integrity sha512-TiL2BobDTwPNV1pteDhukepamPXnbH33+B7D9oMI672KnsyDl0/j6lfQ+0TCL74TI1vaUv+gjL/0nvpmiTCzxQ==
 
 bootstrap@4.4.1:
   version "4.4.1"
