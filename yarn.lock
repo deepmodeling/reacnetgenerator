@@ -936,10 +936,10 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@qiwi/semantic-release-gh-pages-plugin@1.15.10":
-  version "1.15.10"
-  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.10.tgz#ebded3ee58178935fe84585f1098b99187647461"
-  integrity sha512-bDlJ9mFk3dWSNaBrHG5WkmTn3ehSFeAJSuasHtvLqzuiwgXlwammwUwBhUAfR/79I5sUBfL9SSCUlBUVifb0MQ==
+"@qiwi/semantic-release-gh-pages-plugin@1.15.11":
+  version "1.15.11"
+  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-1.15.11.tgz#a3fa19b68e0e55b4e186ab11d190913261d6b68c"
+  integrity sha512-73ieSQM4kF7BS1iyc/Hn1bqbszVUroyVi2mGfsOkvlXkx+pOe6vFIsJeYE1VS/52ZR8xNmhcv3bXqhBaF+m5Iw==
   dependencies:
     "@types/git-url-parse" "^9.0.0"
     aggregate-error "^3.0.1"
