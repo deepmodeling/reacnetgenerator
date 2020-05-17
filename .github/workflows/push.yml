@@ -44,6 +44,12 @@ jobs:
         TOXENV: docs
     - run: yarn install
     - run: yarn build
+    - uses: amondnet/vercel-action@v19
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID}}
+          vercel-project-id: ${{ secrets.PROJECT_ID}}
     - run: yarn semantic-release
       if: github.ref == 'refs/heads/master'
       env:
