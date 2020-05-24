@@ -39,9 +39,9 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 #    - run: conda build conda/recipe -c conda-forge --output-folder conda
 #      if: github.ref == 'refs/heads/master'
-    - run: tox
-      env:
-        TOXENV: docs
+    #- run: tox
+    #  env:
+    #    TOXENV: docs
     - run: yarn install
     - run: yarn build
     - run: yarn semantic-release
