@@ -20,7 +20,8 @@ from .utils import WriteBuffer, bytestolist, SharedRNGData
 class _GenerateMatrix(SharedRNGData):
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ["tablefilename", "speciesfilename", "reactionfilename", "moleculetemp2filename", "n_searchspecies",
-                                           "needprintspecies", "allmoleculeroute", "speciescenter", "mname", "timestep", 'splitmoleculeroute'], [])
+                                           "needprintspecies", "allmoleculeroute", "speciescenter", "mname", "timestep", 'splitmoleculeroute',
+                                           "matrix_size"], [])
 
     def generate(self):
         """Generate a reaction matrix and print species.
@@ -44,7 +45,8 @@ class _GenerateMatrix(SharedRNGData):
             return zip(equations[0].tolist(), equations[1].tolist())
         return []
 
-    def _printtable(self, allroute, maxsize=100, timeaxis=None):
+    def _printtable(self, allroute, timeaxis=None):
+        maxsize = self.matrix_size
         species = []
         sortedreactions = sorted(
             allroute, key=operator.itemgetter(1, 0), reverse=True)
