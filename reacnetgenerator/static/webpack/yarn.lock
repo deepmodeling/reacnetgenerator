@@ -4545,10 +4545,10 @@ stable@^0.1.8:
   resolved "https://registry.yarnpkg.com/stable/-/stable-0.1.8.tgz#836eb3c8382fe2936feaf544631017ce7d47a3cf"
   integrity sha512-ji9qxRnOVfcuLDySj9qzhGSEFVobyt1kIOSkj1qZzYLzq7Tos/oUUWvotUPQLlrsidqsK6tBH89Bc9kL5zHA6w==
 
-startbootstrap-creative@6.0.2:
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-6.0.2.tgz#a7e5696445e13151b4e8a868dde9e5b38b9ce826"
-  integrity sha512-npm6uN18V1MJhS8Kl0eqVsn7CclozLYyM2L9n8TiOmEqYPudpBOSjZKU9PUZQj7xx3jb1YIXQwgHB7rN9R2KBw==
+startbootstrap-creative@6.0.3:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-6.0.3.tgz#47c874271f5c93af627973d2733b2287639826e9"
+  integrity sha512-5mzXp9MEAmK98fNOIvVbG4qGNQLrJb64CQnuJi97eQ5nkduyo29ezMDT7uM0g7DLZp7PK1bOuC8NBSb0/f97Gw==
   dependencies:
     bootstrap "4.5.0"
 
