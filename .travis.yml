@@ -15,7 +15,7 @@ before_install:
   - nvm install 10
 
 install:
-  - python -m pip install twine cibuildwheel==1.1.0
+  - python -m pip install twine cibuildwheel
 
 script:
   - python -m cibuildwheel --output-dir wheelhouse
