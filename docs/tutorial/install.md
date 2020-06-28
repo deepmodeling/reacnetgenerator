@@ -1,1 +1,1 @@
-<<< @/../../tutorial/install.ipynb
+<<< @/tutorial/install.ipynb
