@@ -17,7 +17,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 -   Generation of reaction network for visualization using force-directed algorithm
 -   Parallel computing
 
-# Guide and Tutorial
+## Guide and Tutorial
 
 See [the guide](https://reacnetgenerator.njzjz.win/guide/) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](https://reacnetgenerator.njzjz.win/tutorial/) to help you learn ReacNetGenerator.
 
