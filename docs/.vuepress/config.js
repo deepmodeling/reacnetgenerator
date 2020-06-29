@@ -29,12 +29,21 @@ module.exports = {
 				label: 'English',
 				nav: [
 					{ text: 'Home', link: '/' },
-					{ text: 'Report', link: '/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&', target: '_blank' },
-					{ text: 'Article', link: 'https://doi.org/10.1039/C9CP05091D'},
-					{ text: 'Group', link: 'https://computchem.cn'},
+					{ text: 'Guide', link: '/guide/' },
+					{ text: 'Toturial', link: '/toturial/' },
+					{
+					    text: '了解更多',
+					    ariaLabel: '了解更多',
+					    items: [
+						{ text: 'Report', link: '/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&', target: '_blank' },
+						{ text: 'Article', link: 'https://doi.org/10.1039/C9CP05091D'},
+						{ text: 'Group', link: 'https://computchem.cn'},
+						]
+					}
 				],
 				sidebar: {
                     '/guide/': getGuideSidebar("Guide"),
+		    '/toturial/': getTutorialSidebar("Toturial"),
 				},
 			},
 			'/zh/': {
@@ -42,12 +51,21 @@ module.exports = {
 				label: '中文',
 				nav: [
 					{ text: '主页', link: '/zh/' },
-					{ text: '分析结果', link: '/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&', target: '_blank' },
-					{ text: '论文', link: 'https://doi.org/10.1039/C9CP05091D'},
-					{ text: '课题组', link: 'https://computchem.cn'},
+					{ text: '指南', link: '/zh/guide/' },
+					{ text: '教程', link: '/toturial/' },
+					{
+					    text: '了解更多',
+					    ariaLabel: '了解更多',
+					    items: [
+						{ text: '分析结果', link: '/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&', target: '_blank' },
+						{ text: '论文', link: 'https://doi.org/10.1039/C9CP05091D'},
+						{ text: '课题组', link: 'https://computchem.cn'},
+						]
+					}
 				],
 				sidebar: {
                     '/zh/guide/': getGuideSidebar("指南"),
+		    '/toturial/': getTutorialSidebar("教程"),
 				},
 			},
 		}
@@ -62,6 +80,19 @@ function getGuideSidebar (title) {
 			collapsable: true,
 			children: [
 				"build",
+			]
+		}
+	]
+}
+
+
+function getTutorialSidebar (title) {
+	return [
+		{
+			title: title,
+			collapsable: true,
+			children: [
+				"install",
 			]
 		}
 	]
