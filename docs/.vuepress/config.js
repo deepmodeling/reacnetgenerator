@@ -29,8 +29,8 @@ module.exports = {
 				label: 'English',
 				nav: [
 					{ text: 'Home', link: '/' },
-					{ text: 'Guide', link: '/guide/' },
-					{ text: 'Tutorial', link: '/tutorial/' },
+					{ text: 'Guide', link: '/guide/install' },
+					{ text: 'Tutorial', link: '/tutorial/install' },
 					{
 					    text: 'See more',
 					    ariaLabel: 'See more',
@@ -51,8 +51,8 @@ module.exports = {
 				label: '中文',
 				nav: [
 					{ text: '主页', link: '/zh/' },
-					{ text: '指南', link: '/zh/guide/' },
-					{ text: '教程', link: '/tutorial/' },
+					{ text: '指南', link: '/zh/guide/install' },
+					{ text: '教程', link: '/tutorial/install' },
 					{
 					    text: '了解更多',
 					    ariaLabel: '了解更多',
