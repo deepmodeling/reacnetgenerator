@@ -17,46 +17,9 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 -   Generation of reaction network for visualization using force-directed algorithm
 -   Parallel computing
 
-## Installation
+# Guide and Tutorial
 
-You can [install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda, and install ReacNetGenerator easily with conda:
-
-```bash
-conda install reacnetgenerator -c conda-forge
-```
-
-See [the build guide](guide/build.md) if you want to build ReacNetGenerator by yourself. 
-
-## Usage
-
-### Command line
-
-ReacNetGenerator can process any kind of trajectory files containing atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1 all custom 100 dump.reaxc id type x y z” in LAMMPS:
-
-```bash
-reacnetgenerator --dump -i dump.reaxc -a C H O
-```
-where C, H, and O are atomic names in the input file. [Analysis report](https://reacnetgenerator.njzjz.win/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json) will be generated automatically.
-
-Also, ReacNetGenerator can process files containing bond information, e.g. LAMMPS bond file:
-
-```bash
-reacnetgenerator -i bonds.reaxc -a C H O
-```
-
-You can running the following script for help:
-
-```bash
-reacnetgenerator -h
-```
-
-### GUI version
-
-You can open a GUI version for ReacNetGenerator by typing:
-
-```bash
-reacnetgeneratorgui
-```
+See [the guide](https://reacnetgenerator.njzjz.win/guide/) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](https://reacnetgenerator.njzjz.win/tutorial/) to help you learn ReacNetGenerator.
 
 ## Awards
 * The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
