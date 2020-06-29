@@ -30,10 +30,10 @@ module.exports = {
 				nav: [
 					{ text: 'Home', link: '/' },
 					{ text: 'Guide', link: '/guide/' },
-					{ text: 'Toturial', link: '/toturial/' },
+					{ text: 'Tutorial', link: '/tutorial/' },
 					{
-					    text: '了解更多',
-					    ariaLabel: '了解更多',
+					    text: 'See more',
+					    ariaLabel: 'See more',
 					    items: [
 						{ text: 'Report', link: '/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&', target: '_blank' },
 						{ text: 'Article', link: 'https://doi.org/10.1039/C9CP05091D'},
@@ -43,7 +43,7 @@ module.exports = {
 				],
 				sidebar: {
                     '/guide/': getGuideSidebar("Guide"),
-		    '/toturial/': getTutorialSidebar("Toturial"),
+		    '/tutorial/': getTutorialSidebar("Tutorial"),
 				},
 			},
 			'/zh/': {
@@ -52,7 +52,7 @@ module.exports = {
 				nav: [
 					{ text: '主页', link: '/zh/' },
 					{ text: '指南', link: '/zh/guide/' },
-					{ text: '教程', link: '/toturial/' },
+					{ text: '教程', link: '/tutorial/' },
 					{
 					    text: '了解更多',
 					    ariaLabel: '了解更多',
@@ -65,7 +65,7 @@ module.exports = {
 				],
 				sidebar: {
                     '/zh/guide/': getGuideSidebar("指南"),
-		    '/toturial/': getTutorialSidebar("教程"),
+		    '/tutorial/': getTutorialSidebar("教程"),
 				},
 			},
 		}
