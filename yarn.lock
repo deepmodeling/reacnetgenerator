@@ -969,19 +969,19 @@
   dependencies:
     "@types/node" ">= 8"
 
-"@qiwi/semantic-release-gh-pages-plugin@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-3.0.0.tgz#3d18908f07084f732672343b023a7fbf076f2b05"
-  integrity sha512-tA7/AN2tcvjxSQqEHKNbCx5WSgbtUgsHdO5Ij7XZBgQIAitpaEwCW/8dOm3FLCyk4XxMzXTyP2UtL7TJoJB4Vw==
+"@qiwi/semantic-release-gh-pages-plugin@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@qiwi/semantic-release-gh-pages-plugin/-/semantic-release-gh-pages-plugin-4.0.0.tgz#41268ffb2d98bc1d4fe89e7b836fc630af31c73e"
+  integrity sha512-+NAtZd2InzIHG55gxMdz4vhCG+ylEl3I5Ww4plFrDGndDvar2Lv/fbThSqb1PoEM/Y7RH9PUz7o7Um9Y0bC4Pw==
   dependencies:
     "@types/git-url-parse" "^9.0.0"
     aggregate-error "^3.0.1"
     dot "^1.1.3"
     execa "^4.0.2"
-    gh-pages "^3.0.0"
+    gh-pages "^3.1.0"
     git-url-parse "^11.1.2"
     lodash "^4.17.15"
-    queuefy "^1.1.0"
+    queuefy "^1.1.1"
     read-pkg "^5.2.0"
     sync-request "^6.1.0"
     tslib "^2.0.0"
@@ -4571,7 +4571,7 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
-gh-pages@^3.0.0:
+gh-pages@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/gh-pages/-/gh-pages-3.1.0.tgz#ec3ed0f6a6e3fc3d888758fa018f08191c96bd55"
   integrity sha512-3b1rly9kuf3/dXsT8+ZxP0UhNLOo1CItj+3e31yUVcaph/yDsJ9RzD7JOw5o5zpBTJVQLlJAASNkUfepi9fe2w==
@@ -8562,10 +8562,10 @@ querystringify@^2.1.1:
   resolved "https://registry.yarnpkg.com/querystringify/-/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
   integrity sha512-w7fLxIRCRT7U8Qu53jQnJyPkYZIaR4n5151KMfcJlO/A9397Wxb1amJvROTK6TOnp7PfoAmg/qXiNHI+08jRfA==
 
-queuefy@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/queuefy/-/queuefy-1.1.0.tgz#e2212392724d25d800e7455104e44810991a8e9f"
-  integrity sha512-Fb/gdfuv67bq99jYM7OJ8Ir/SMUvvivPB9A6Z7XWQwxfxL3j9CLEJtCDymJC+m1qUnPd3APXq7e//KoFMEqWug==
+queuefy@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/queuefy/-/queuefy-1.1.1.tgz#3a45c339ccf203a4b8f12780288cadd66aa8366e"
+  integrity sha512-ArpYpS5PA2uKTRzHYr+tAI/5pX96cmVuFYELEo51u6W6ZO1XSSAKhCvlzOH7nMuCj1xxnwno3cX75ZpAG4+UJQ==
   dependencies:
     tslib "^2.0.0"
 
