@@ -6,7 +6,6 @@
 import os
 import shutil
 import itertools
-import logging
 import pickle
 import hashlib
 import asyncio
@@ -18,6 +17,8 @@ import pybase64
 import requests
 from requests.adapters import HTTPAdapter
 from tqdm import tqdm
+
+from ._logging import log
 
 
 class WriteBuffer:
@@ -167,11 +168,11 @@ def checksha256(filename, sha256_check):
         for n in iter(lambda: f.readinto(mv), 0):
             h.update(mv[:n])
     sha256 = h.hexdigest()
-    logging.info(f"SHA256 of {filename}: {sha256}")
+    log.info(f"SHA256 of {filename}: {sha256}")
     if sha256 in must_be_list(sha256_check):
         return True
-    logging.warning("SHA256 is not correct.")
-    logging.warning(open(filename).read())
+    log.warning("SHA256 is not correct.")
+    log.warning(open(filename).read())
     return False
 
 
@@ -185,13 +186,13 @@ async def download_file(urls, pathfilename, sha256):
 
     # from https://stackoverflow.com/questions/16694907
     for url in must_be_list(urls):
-        logging.info(f"Try to download {pathfilename} from {url}")
+        log.info(f"Try to download {pathfilename} from {url}")
         with s.get(url, stream=True) as r, open(pathfilename, 'wb') as f:
             try:
                 shutil.copyfileobj(r.raw, f)
                 break
             except requests.exceptions.RequestException as e:
-                logging.warning(f"Request {pathfilename} Error.", exc_info=e)
+                log.warning(f"Request {pathfilename} Error.", exc_info=e)
     else:
         raise RuntimeError(f"Cannot download {pathfilename}.")
 
@@ -215,7 +216,7 @@ def run_mp(nproc, **arg):
             yield item
             semaphore.release()
     except:
-        logging.exception("run_mp failed")
+        log.exception("run_mp failed")
         pool.terminate()
         raise
     else:

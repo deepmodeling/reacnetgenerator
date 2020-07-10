@@ -11,7 +11,6 @@ network which starts from it.
 """
 
 import json
-import logging
 import re
 import os
 from collections import defaultdict
@@ -23,6 +22,7 @@ except ImportError:  # pragma: no cover
     import openbabel
 import scour.scour
 
+from ._logging import log
 from .utils import SCOUROPTIONS, run_mp, SharedRNGData
 
 
@@ -43,7 +43,7 @@ class _HTMLResult(SharedRNGData):
         """Generate a web page to show the result."""
         self._readdata()
         self._generateresult()
-        logging.info(
+        log.info(
             f"Report is generated. Please see {self.resultfilename} for more details.")
 
     def _re(self, smi):

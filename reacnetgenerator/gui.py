@@ -14,10 +14,10 @@ import tkinter.messagebox as tkmb
 import webbrowser
 import base64
 import pkg_resources
-import logging
 from multiprocessing import cpu_count
 
 from . import ReacNetGenerator, __version__
+from ._logging import log
 
 
 class GUI:
@@ -25,7 +25,7 @@ class GUI:
 
     def __init__(self):
         """Init GUI class."""
-        logging.info(__doc__)
+        log.info(__doc__)
         self._filename = ''
 
         self._top = tk.Tk()
@@ -109,10 +109,10 @@ class GUI:
                     webbrowser.open_new(os.path.abspath(
                         reacnetgenerator.resultfilename))
             except Exception as e:
-                logging.error(e)
+                log.error(e)
                 tkmb.showerror("Error", e)
         else:
-            logging.error("File not exsit.")
+            log.error("File not exsit.")
             tkmb.showerror("Error", "File not exsit.")
 
     def _openfiles(self):

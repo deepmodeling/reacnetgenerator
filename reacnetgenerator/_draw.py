@@ -18,7 +18,6 @@ Alamos, NM (United States): 2008.
 placement. Software: Practice and experince. 1991, 21(11),1129-1164.
 """
 
-import logging
 import math
 import traceback
 from io import StringIO
@@ -30,6 +29,7 @@ import numpy as np
 import pandas as pd
 import scour.scour
 
+from ._logging import log
 from .utils import SCOUROPTIONS, SharedRNGData
 
 
@@ -73,8 +73,8 @@ class _DrawNetwork(SharedRNGData):
                                    fixed=list(self.pos) if self.pos else None,
                                    k=self.k)
             if pos:
-                logging.info("The position of the species in the network is:")
-                logging.info(pos)
+                log.info("The position of the species in the network is:")
+                log.info(pos)
             for with_labels in ([True] if not self.nolabel else [True, False]):
                 nx.draw(
                     G, pos=pos, width=widths, node_size=self.node_size,
@@ -88,7 +88,7 @@ class _DrawNetwork(SharedRNGData):
                         stringio.getvalue(), SCOUROPTIONS))
                 plt.close()
         except Exception as e:
-            logging.error(f"Error: cannot draw images. Details: {e}")
+            log.error(f"Error: cannot draw images. Details: {e}")
             traceback.print_tb(e.__traceback__)
 
     def _readtable(self, filename):
@@ -106,7 +106,7 @@ class _DrawNetwork(SharedRNGData):
         else:
             showname = dict([(u, u) for u in species])
         if species:
-            logging.info("Species are:")
+            log.info("Species are:")
             for specname, n in showname.items():
-                logging.info("{} {}".format(n, specname))
+                log.info("{} {}".format(n, specname))
         return species, showname
