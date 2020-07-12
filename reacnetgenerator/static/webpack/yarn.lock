@@ -2347,10 +2347,10 @@ json5@^2.1.2:
   dependencies:
     minimist "^1.2.5"
 
-jsrender@1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.6.tgz#67bd4290bc1cea97d962971413457a45cdb109e3"
-  integrity sha512-zjuv7qbn1PPSCDpb9axd6Uad9WOJOsCq7hlFgFt3VEyLv/yDL1oFjnSiHnliJHv1AZVZ5j8F37Diy3WN8eqtXw==
+jsrender@1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.7.tgz#0b62038218cf32e10ea996501e22017684fd9119"
+  integrity sha512-+zFdpE2/yy076rbnfGKVTom+qY3McZ6IeWK/8WAB/3O4SMel3Ad4DrW6KeNApPhRyIeH83oEl8vH8RxsrpoapA==
   dependencies:
     through2 "^3.0.1"
 
