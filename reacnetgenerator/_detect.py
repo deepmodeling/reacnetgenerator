@@ -176,7 +176,6 @@ class _DetectCrd(_Detect):
             step_atoms.set_cell(cell)
             # add ghost atoms
             repeated_atoms = step_atoms.repeat(2)[atomnumber:]
-            write("r.xyz",repeated_atoms)
             tree = cKDTree(step_atoms.get_positions())
             d = tree.query(repeated_atoms.get_positions(), k=1)[0]
             nearest = d < 5
