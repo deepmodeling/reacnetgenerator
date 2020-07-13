@@ -35,7 +35,6 @@ except ImportError:  # pragma: no cover
     import openbabel
 from scipy.spatial import cKDTree
 from ase import Atom, Atoms
-from ase.io import read, write
 
 from .dps import dps
 from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
@@ -273,8 +272,6 @@ class _DetectLAMMPSdump(_DetectCrd):
     def _readstepfunc(self, item):
         step, lines = item
         step_atoms = []
-        #boxsize = []
-        boxsize = [[],[],[]]
         ss = []
         for line in lines:
             if line:
@@ -292,20 +289,23 @@ class _DetectLAMMPSdump(_DetectCrd):
                         timestep = step, int(line.split()[0])
                     elif linecontent == self.LineType.BOX:
                         s = line.split()
-                        ss.append(s)
-                        #boxsize.append(float(s[1])-float(s[0]))
-        xy=float(ss[0][2])
-        xz=float(ss[1][2])
-        yz=float(ss[2][2])
-        xlo=float(ss[0][0]) - min(0.0,xy,xz,xy+xz)
-        xhi=float(ss[0][1]) - max(0.0,xy,xz,xy+xz)
-        ylo=float(ss[1][0]) - min(0.0,yz)
-        yhi=float(ss[1][1]) - max(0.0,yz)
-        zlo=float(ss[2][0])
-        zhi=float(ss[2][1]) 
-        boxsize[0] = [xhi-xlo,0,0]
-        boxsize[1] = [xy,yhi-ylo,0]
-        boxsize[2] = [xz,yz,zhi-zlo]
+                        ss.append(float(s))
+        ss = np.array(ss)
+        if ss.shape[1]>2:
+            xy = ss[0][2]
+            xz = ss[1][2]
+            yz = ss[2][2]
+        else:
+            xy, xz, yz = 0., 0., 0.
+        xlo = ss[0][0] - min(0., xy, xz, xy+xz)
+        xhi = ss[0][1] - max(0., xy, xz, xy+xz)
+        ylo = ss[1][0] - min(0., yz)
+        yhi = ss[1][1] - max(0., yz)
+        zlo = ss[2][0]
+        zhi = ss[2][1] 
+        boxsize = np.array([[xhi-xlo, 0., 0.],
+                   [xy, yhi-ylo, 0.],
+                   [xz, yz, zhi-zlo]])
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
