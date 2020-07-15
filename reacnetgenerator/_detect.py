@@ -272,7 +272,7 @@ class _DetectLAMMPSdump(_DetectCrd):
     def _readstepfunc(self, item):
         step, lines = item
         step_atoms = []
-        boxsize = []
+        ss = []
         for line in lines:
             if line:
                 if line.startswith("ITEM:"):
@@ -289,7 +289,23 @@ class _DetectLAMMPSdump(_DetectCrd):
                         timestep = step, int(line.split()[0])
                     elif linecontent == self.LineType.BOX:
                         s = line.split()
-                        boxsize.append(float(s[1])-float(s[0]))
+                        ss.append(list(map(float, s)))
+        ss = np.array(ss)
+        if ss.shape[1]>2:
+            xy = ss[0][2]
+            xz = ss[1][2]
+            yz = ss[2][2]
+        else:
+            xy, xz, yz = 0., 0., 0.
+        xlo = ss[0][0] - min(0., xy, xz, xy+xz)
+        xhi = ss[0][1] - max(0., xy, xz, xy+xz)
+        ylo = ss[1][0] - min(0., yz)
+        yhi = ss[1][1] - max(0., yz)
+        zlo = ss[2][0]
+        zhi = ss[2][1] 
+        boxsize = np.array([[xhi-xlo, 0., 0.],
+                   [xy, yhi-ylo, 0.],
+                   [xz, yz, zhi-zlo]])
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
