@@ -289,7 +289,7 @@ class _DetectLAMMPSdump(_DetectCrd):
                         timestep = step, int(line.split()[0])
                     elif linecontent == self.LineType.BOX:
                         s = line.split()
-                        ss.append(float(s))
+                        ss.append(list(map(float, s)))
         ss = np.array(ss)
         if ss.shape[1]>2:
             xy = ss[0][2]
