@@ -13,7 +13,7 @@
   "license": "LGPL-3.0-only",
   "dependencies": {
     "@njzjz/jsnetworkx": "0.3.5",
-    "bootstrap": "4.5.0",
+    "bootstrap": "4.5.1",
     "bootstrap-select": "1.13.18",
     "d3": "3.5.17",
     "jquery": "3.5.1",
