@@ -135,7 +135,7 @@ class SCOUROPTIONS:
     strip_comments = True
     enable_viewboxing = True
     strip_xml_space_attribute = True
-    strip_ids = True
+    strip_ids = False
     shorten_ids = True
     newlines = False
 
