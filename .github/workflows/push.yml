@@ -1,4 +1,10 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - $default-branch
+    tags:
+      - v*
+  pull_request:
 name: Test and deploy
 jobs:
   test:
