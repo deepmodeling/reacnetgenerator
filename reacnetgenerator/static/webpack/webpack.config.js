@@ -38,14 +38,16 @@ module.exports = {
         {
           loader: 'postcss-loader',
           options: {
-            plugins: function () {
-              return [
-                require('postcss-import'),
-                require('precss'),
-                require('cssnano')({
-                  preset: 'advanced',
-                }),
-              ];
+            postcssOptions: {
+              plugins: function () {
+                return [
+                  require('postcss-import'),
+                  require('precss'),
+                  require('cssnano')({
+                    preset: 'advanced',
+                  }),
+                ];
+              }
             }
           }
         }, {
