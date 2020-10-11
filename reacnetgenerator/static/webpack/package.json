@@ -15,7 +15,7 @@
     "@njzjz/jsnetworkx": "0.3.5",
     "bootstrap": "4.5.2",
     "bootstrap-select": "1.13.18",
-    "d3": "3.5.17",
+    "d3": "6.2.0",
     "jquery": "3.5.1",
     "jquery.easing": "1.4.1",
     "jsrender": "1.0.7",
