@@ -2,7 +2,8 @@ const StringReplacePlugin = require("string-replace-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
+const StyleExtHtmlWebpackPlugin = require("style-ext-html-webpack-plugin");
 const webpack = require('webpack');
 
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
@@ -88,7 +89,8 @@ module.exports = {
         processScripts: ['text/x-jsrender']
 			}
     }),
-    new HtmlWebpackInlineSourcePlugin(),
+	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
+	new StyleExtHtmlWebpackPlugin(),
     new webpack.BannerPlugin(banner)
   ],
   optimization: {
