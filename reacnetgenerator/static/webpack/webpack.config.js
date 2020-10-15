@@ -81,7 +81,7 @@ module.exports = {
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         removeAttributeQuotes: true,
-        removeOptionalTags: true,
+        removeOptionalTags: false,
         removeRedundantAttributes: true,
         removeEmptyAttributes: true,
         sortAttributes: true,
