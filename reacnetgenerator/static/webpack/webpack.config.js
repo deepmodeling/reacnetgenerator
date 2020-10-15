@@ -92,7 +92,6 @@ module.exports = {
 			}
     }),
 	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
-	new StyleExtHtmlWebpackPlugin(),
 	new HTMLInlineCSSWebpackPlugin(),
     new webpack.BannerPlugin(banner)
   ],
