@@ -4,6 +4,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
 const HTMLInlineCSSWebpackPlugin = require("html-inline-css-webpack-plugin").default;
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const webpack = require('webpack');
 
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
@@ -99,6 +100,7 @@ module.exports = {
   optimization: {
     minimizer: [
       new TerserPlugin(),
+	  new OptimizeCssAssetsPlugin(),
     ],
   },
   performance: {
