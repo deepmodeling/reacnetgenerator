@@ -3,7 +3,8 @@ const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
-const StyleExtHtmlWebpackPlugin = require("style-ext-html-webpack-plugin");
+const HTMLInlineCSSWebpackPlugin = require("html-inline-css-webpack-plugin").default;
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const webpack = require('webpack');
 
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
@@ -81,7 +82,7 @@ module.exports = {
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         removeAttributeQuotes: true,
-        removeOptionalTags: true,
+        removeOptionalTags: false,
         removeRedundantAttributes: true,
         removeEmptyAttributes: true,
         sortAttributes: true,
@@ -91,13 +92,14 @@ module.exports = {
         processScripts: ['text/x-jsrender']
 			}
     }),
+	new HTMLInlineCSSWebpackPlugin(),
 	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
-	new StyleExtHtmlWebpackPlugin(),
     new webpack.BannerPlugin(banner)
   ],
   optimization: {
     minimizer: [
       new TerserPlugin(),
+	  new OptimizeCssAssetsPlugin(),
     ],
   },
   performance: {
