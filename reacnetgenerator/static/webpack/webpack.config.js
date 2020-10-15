@@ -82,7 +82,7 @@ module.exports = {
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         removeAttributeQuotes: true,
-        removeOptionalTags: true,
+        removeOptionalTags: false,
         removeRedundantAttributes: true,
         removeEmptyAttributes: true,
         sortAttributes: true,
@@ -92,9 +92,8 @@ module.exports = {
         processScripts: ['text/x-jsrender']
 			}
     }),
-	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
-	new StyleExtHtmlWebpackPlugin(),
 	new HTMLInlineCSSWebpackPlugin(),
+	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
     new webpack.BannerPlugin(banner)
   ],
   optimization: {
