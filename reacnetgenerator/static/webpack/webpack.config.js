@@ -91,8 +91,8 @@ module.exports = {
         processScripts: ['text/x-jsrender']
 			}
     }),
-	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
 	new HTMLInlineCSSWebpackPlugin(),
+	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
     new webpack.BannerPlugin(banner)
   ],
   optimization: {
