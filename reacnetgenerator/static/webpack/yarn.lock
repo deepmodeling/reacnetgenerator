@@ -1565,10 +1565,10 @@ json5@^2.1.2:
   dependencies:
     minimist "^1.2.5"
 
-jsrender@1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.7.tgz#0b62038218cf32e10ea996501e22017684fd9119"
-  integrity sha512-+zFdpE2/yy076rbnfGKVTom+qY3McZ6IeWK/8WAB/3O4SMel3Ad4DrW6KeNApPhRyIeH83oEl8vH8RxsrpoapA==
+jsrender@1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/jsrender/-/jsrender-1.0.8.tgz#c916604ab429acc2ffd144eb93698a2450447226"
+  integrity sha512-ja1MWYKTEHq8xyndsC+iXZ/UuaDL2fgGFGhrlFTGzBoMT5FrU3IUsBl8HMh7vK2v7G+TTbHEP7M3c/uZi6sBnA==
   dependencies:
     through2 "^3.0.1"
 
