@@ -53,4 +53,4 @@ jobs:
     - run: yarn semantic-release
       if: github.ref == 'refs/heads/master'
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
