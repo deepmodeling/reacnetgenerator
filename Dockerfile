@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:latest@sha256:456e3196bf3ffb13fee7c9216db4b18b5e6f4d37090b31df3e0309926e98cfe2
+FROM continuumio/miniconda3:latest@sha256:1069d3220e8b6c8259d07f3fafbc36aff3d43a02a6d0efac7f07d139b458cf65
 COPY . /reacnetgenerator
 RUN conda config --add channels conda-forge && \
     conda install conda-build -y && \
