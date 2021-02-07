@@ -1188,10 +1188,10 @@ html-comment-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/html-comment-regex/-/html-comment-regex-1.1.2.tgz#97d4688aeb5c81886a364faa0cad1dda14d433a7"
   integrity sha512-P+M65QY2JQ5Y0G9KKdlDpo0zK+/OHptU5AaBwUfAIDJZk1MYf32Frm84EcOytfJE0t5JvkAnKlmjsXDnWzCJmQ==
 
-html-inline-css-webpack-plugin@1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/html-inline-css-webpack-plugin/-/html-inline-css-webpack-plugin-1.10.0.tgz#b5719c622e381238e73e5299d33552e49c649d02"
-  integrity sha512-3/kIyVMT51hLm88ZF28xTxXVPbzkLyw/Fz768TBS4SF5ad+M4O2KHWRBHqmVG/Shntamxk/27DzjXv6gVdfP4w==
+html-inline-css-webpack-plugin@1.10.1:
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/html-inline-css-webpack-plugin/-/html-inline-css-webpack-plugin-1.10.1.tgz#a0e7adcf77ee603fe4fb60921720014231d799b8"
+  integrity sha512-VRNQ8G4bSooqtVoQ7eQbaeEeaw4cmVvI3jxO7WhCEKZb5rtrCFHzX0W18rImaA8Jb+pg20BqgpkNGuBVRElFfw==
   dependencies:
     lodash "^4.17.15"
 
