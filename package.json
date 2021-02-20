@@ -6,7 +6,7 @@
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "now-build": "yarn build-report && yarn build && mv docs/.vuepress/dist dist",
+    "now-build": "yarn build-report && yarn build && mv docs/.vuepress/dist public",
     "build": "yarn copy-report && yarn docs:build",
     "semantic-release": "semantic-release",
     "build-report": "cd reacnetgenerator/static/webpack && yarn && yarn start && cd ../../../",
