@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@qiwi/semantic-release-gh-pages-plugin": "5.0.4",
     "semantic-release": "17.3.9",
     "vuepress": "1.8.2"
   },
@@ -44,12 +43,6 @@
               "label": "conda packages for Windows (x64)"
             }
           ]
-        }
-      ],
-      [
-        "@qiwi/semantic-release-gh-pages-plugin",
-        {
-          "src": "docs/.vuepress/dist"
         }
       ]
     ]
