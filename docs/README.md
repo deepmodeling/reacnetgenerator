@@ -21,9 +21,7 @@ features:
 footer: Copyright © 2018-2019 East China Normal University
 ---
 
-<video width="512" height="397.6" controls>
-  <source src="https://bf.njzjz.win/c9cp05091d2.mp4" type="video/mp4">
-</video> 
+<div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
 
 # Citation and contact
 
