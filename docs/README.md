@@ -42,3 +42,12 @@ See [the guide](guide/) to learn how to install and use ReacNetGenerattor. We al
 * National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
 * ECNU Multifunctional Platform for Innovation (No. 001)
 
+<VueScriptComponent script="<script src='https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js' defer></script>"/>
+<script>
+import VueScriptComponent from 'vue-script-component'
+export default {
+	components: {
+		VueScriptComponent,VueScriptComponent
+	}
+}
+</script>
