@@ -16,7 +16,8 @@ module.exports = {
 		['link', { rel: 'icon', href: `/reacnetgen.svg` }],
 		['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
 		['link', { rel: 'apple-touch-icon', href: `/reacnetgen.svg` }],
-		['meta', { name: 'msapplication-TileImage', content: '/reacnetgen.svg' }]
+		['meta', { name: 'msapplication-TileImage', content: '/reacnetgen.svg' }],
+    ['script', {src: 'https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js'}],
 	],
 	themeConfig: {
 		repo: "tongzhugroup/reacnetgenerator",
