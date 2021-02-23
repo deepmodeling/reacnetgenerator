@@ -42,12 +42,18 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 * 国家大学生创新创业训练计划项目（201910269080）
 * 华东师范大学仪器共享平台（001号）
 
-<VueScriptComponent script="<script src='https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js' defer></script>"/>
-<script>
-import VueScriptComponent from 'vue-script-component'
-export default {
-	components: {
-		VueScriptComponent,VueScriptComponent
-	}
-}
-</script>
+<component v-if="VueScriptComponent" :is="VueScriptComponent" script="<script src='https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js' defer></script>"/>
+ <script>
+ export default {
+   data() {
+     return {
+       VueScriptComponent: null
+     }
+   },
+   mounted () {
+     import('vue-script-component').then(module => {
+       this.VueScriptComponent = module.default
+     })
+   }
+ }
+ </script>
