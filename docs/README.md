@@ -21,9 +21,7 @@ features:
 footer: Copyright © 2018-2019 East China Normal University
 ---
 
-<video width="512" height="397.6" controls>
-  <source src="https://bf.njzjz.win/c9cp05091d2.mp4" type="video/mp4">
-</video> 
+<div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
 
 # Citation and contact
 
@@ -44,3 +42,4 @@ See [the guide](guide/) to learn how to install and use ReacNetGenerattor. We al
 * National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
 * ECNU Multifunctional Platform for Innovation (No. 001)
 
+<script src="https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js" defer></script>

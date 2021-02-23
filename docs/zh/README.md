@@ -21,9 +21,7 @@ features:
 footer: Copyright © 2018-2019 East China Normal University
 ---
 
-<video width="512" height="397.6" controls>
-  <source src="https://bf.njzjz.win/c9cp05091d2.mp4" type="video/mp4">
-</video> 
+<div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
 
 # 引用和联系方式
 
@@ -33,7 +31,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # 指南和教程
 
-我们提供了[使用指南](guide/)，包括如何安装和使用ReacNetGenerator。我们也提供了[一系列教程](../tutorial/)来帮助你使用Re acNe他Generator。
+我们提供了[使用指南](guide/)，包括如何安装和使用ReacNetGenerator。我们也提供了[一系列教程](../tutorial/)来帮助你使用ReacNetGenerator。
 
 # 荣誉
 * 2019年（第十一届）上海市大学生计算机应用能力大赛一等奖
@@ -43,3 +41,5 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 * 国家自然科学基金（编号91641116）
 * 国家大学生创新创业训练计划项目（201910269080）
 * 华东师范大学仪器共享平台（001号）
+
+<script src="https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js" defer></script>
