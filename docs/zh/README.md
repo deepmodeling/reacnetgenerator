@@ -42,4 +42,3 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 * 国家大学生创新创业训练计划项目（201910269080）
 * 华东师范大学仪器共享平台（001号）
 
-<script src="https://cdn.jsdelivr.net/npm/bilitube@0/dist/bilitube.min.js" defer></script>
