@@ -48,9 +48,9 @@
     ]
   },
   "dependencies": {
-    "document-ready": "^2.0.2",
-    "postscribe": "^2.0.8",
-    "vue-script-component": "^0.1.7"
+    "document-ready": "2.0.2",
+    "postscribe": "2.0.8",
+    "vue-script-component": "0.1.7"
   },
   "engines": {
     "node": ">=10.x"
