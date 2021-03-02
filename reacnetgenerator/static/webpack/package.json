@@ -16,7 +16,7 @@
     "bootstrap": "4.6.0",
     "bootstrap-select": "1.13.18",
     "d3": "3.5.17",
-    "jquery": "3.5.1",
+    "jquery": "3.6.0",
     "jquery.easing": "1.4.1",
     "jsrender": "1.0.11",
     "magnific-popup": "1.1.0",
