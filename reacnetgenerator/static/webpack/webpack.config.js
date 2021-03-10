@@ -69,7 +69,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       filename: 'bundle.html',
 			template: __dirname + '/template.html',
-      inject: 'true',
+      inject: 'body',
       inlineSource: '.(js|css)$',
 			minify: {
 				collapseWhitespace: true,
