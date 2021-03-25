@@ -52,13 +52,15 @@ class _HTMLResult(SharedRNGData):
         you have to use [H][C]([H])[H], if you need to process some radicals.
 
         Examples:
-        * C -> [C]
-        * [C] -> [C]
-        * [CH] -> [CH]
+        >>> self._re('C')
+        [C]
+        >>> self._re('[C]')
+        [C]
+        >>> self._re('[CH]')
+        [CH]
         """
-        upper = "".join([an.upper() for an in self.atomname if an != 'H'])
-        lower = "".join([an.lower() for an in self.atomname if an != 'H'])
-        smi = re.sub(r'(?<!\[)([' + upper + lower + r'])(?!H)', r'[\1]', smi)
+        elements = "".join([an.upper() + an.lower() for an in self.atomname if an != 'H'])
+        smi = re.sub(r'(?<!\[)([' + elements + r'])(?!H)', r'[\1]', smi)
         return smi.replace("[HH]", "[H]")
 
     def _handlereaction(self, line):
