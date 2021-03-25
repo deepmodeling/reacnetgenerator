@@ -58,9 +58,11 @@ class _HTMLResult(SharedRNGData):
         [C]
         >>> self._re('[CH]')
         [CH]
+        >>> self._re('Na')
+        [Na]
         """
-        elements = "".join([an.upper() + an.lower() for an in self.atomname if an != 'H'])
-        smi = re.sub(r'(?<!\[)([' + elements + r'])(?!H)', r'[\1]', smi)
+        elements = "|".join([((an.upper() + "|" + an.lower()) if len(an)==1 else an) for an in self.atomname if an != 'H'])
+        smi = re.sub(r'(?<!\[)(' + elements + r')(?!H)', r'[\1]', smi)
         return smi.replace("[HH]", "[H]")
 
     def _handlereaction(self, line):
