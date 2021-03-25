@@ -47,10 +47,20 @@ class _HTMLResult(SharedRNGData):
             f"Report is generated. Please see {self.resultfilename} for more details.")
 
     def _re(self, smi):
-        for an in self.atomname:
-            if an != 'H':
-                smi = smi.replace(an.upper(), f"[{an.upper()}]").replace(
-                    an.lower(), f"[{an.lower()}]")
+        """If you use RDkit to convert a methyl radical to SMILES, you will get something
+        like [H]C([H])[H]. However, OpenBabel will consider it as a methane molecule. So,
+        you have to use [H][C]([H])[H], if you need to process some radicals.
+
+        Examples:
+        >>> self._re('C')
+        [C]
+        >>> self._re('[C]')
+        [C]
+        >>> self._re('[CH]')
+        [CH]
+        """
+        elements = "".join([an.upper() + an.lower() for an in self.atomname if an != 'H'])
+        smi = re.sub(r'(?<!\[)([' + elements + r'])(?!H)', r'[\1]', smi)
         return smi.replace("[HH]", "[H]")
 
     def _handlereaction(self, line):
