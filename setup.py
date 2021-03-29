@@ -108,6 +108,9 @@ if __name__ == '__main__':
                      'pytest-xvfb', "codecov>=1.4.0", "pytest-console-scripts",
                      "pytest-mock", "pytest-benchmark",
                     ],
+    no_conda_require = []
+    if not os.environ.get("CONDA_BUILD", 0):
+        no_conda_require.extend(["openbabel-wheel", "rdkit-pypi"])
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
           keywords="reaction network",
@@ -123,7 +126,7 @@ if __name__ == '__main__':
               'coloredlogs',
               'pandas', 'pybase64', 'lz4',
               'requests',
-          ],
+          ] + no_conda_require,
           entry_points={'console_scripts': [
               'reacnetgenerator=reacnetgenerator.commandline:_commandline',
               'reacnetgeneratorgui=reacnetgenerator.gui:gui'

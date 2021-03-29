@@ -4,7 +4,13 @@ ReacNetGenerator is an automatic reaction network generator for reactive molecul
 
 ## Installation
 
-You can [install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda, and install ReacNetGenerator easily with conda:
+You can easily use `pip` to install ReacNetGenerator:
+
+```bash
+pip install reacnetgenerator
+```
+
+You can also [install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda, and install ReacNetGenerator easily with conda:
 
 ```bash
 conda install reacnetgenerator -c conda-forge
