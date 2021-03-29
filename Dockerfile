@@ -7,6 +7,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 	rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir /reacnetgenerator && \
 	apt-get remove -y nodejs yarn && \
+	apt-get autoremove -y && \
     reacnetgenerator -h
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD ["/bin/bash" ]
