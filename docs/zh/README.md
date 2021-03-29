@@ -31,6 +31,13 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # 指南和教程
 
+使用`pip`安装ReacNetGenerator：
+
+```sh
+pip install reacnetgenerator
+reacnetgenerator -h
+```
+
 我们提供了[使用指南](guide/)，包括如何安装和使用ReacNetGenerator。我们也提供了[一系列教程](../tutorial/)来帮助你使用ReacNetGenerator。
 
 # 荣誉
