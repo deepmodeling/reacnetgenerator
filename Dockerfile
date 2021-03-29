@@ -1,6 +1,8 @@
 FROM python:3
 COPY . /reacnetgenerator
-RUN apt-get update && \
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends yarn && \
 	rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir /reacnetgenerator && \
