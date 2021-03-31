@@ -1,4 +1,4 @@
-FROM python:3@sha256:f611a8d88dfec4e50f72fd3d80d082c778f56896243619e8d4eed3d719891ffc
+FROM python:3@sha256:cfa59e777e54fd12e9c90c9241ff19b5e9e07ce3db0f7e14763db5aceb0d3e28
 COPY . /reacnetgenerator
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
