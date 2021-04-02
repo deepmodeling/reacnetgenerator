@@ -144,7 +144,7 @@ if __name__ == '__main__':
               'setuptools_scm',
               'pytest-runner',
               'cython>=0.16',
-              'numpy>=1.15',
+              'numpy',
           ],
           package_data={
               'reacnetgenerator': ['static/webpack/bundle.html',
