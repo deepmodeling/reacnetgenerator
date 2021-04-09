@@ -1,0 +1,16 @@
+The thermal decomposition of CL-20(C6H6N12O12):
+1.Reference dataset.
+In this study, a workflow was developed for making reference datasets with DP-GEN program. The details of each module in the workflow are given in paper(...)
+You can install DP-GEN program with the tutorial in https://github.com/deepmodeling/dpgen. In this example, the input files for DP-GEN program are provided in cp2k_dpgen directory.
+2.QM calculation.
+CP2K package was used for DFT calculation, which can be obtained at https://github.com/cp2k/cp2k. PBE-D3 method was employed in this example, because it is generally used for DFT calculation of energetic materials.
+3.Training of the NN PES.
+The DeepPot-SE (Deep Potential-Smooth Edition) model was used to train the NN potential by the DeePMD-kit program. Details of this method can be found in  https://www.sciencedirect.com/science/article/pii/S0010465518300882.
+You can install DeePMD-kit program with the tutorial in https://github.com/deepmodeling/deepmd-kit.
+4.Reactive molecular dynamic simulation.
+After training, the well-behaved NN PESs can be used for running molecular dynamics simulation by DeePMD-kit program. 
+5.Analysis by ReacNetGenerator
+The trajectory of a single frame can be integrated into the entire trajectory, and the format of trajectory here is dump. The reaction mechanism can be obtained by the following command:
+Reacnetgenerator -i all.lammstrj -a H C N O dump --nohmm
+
+The output files are available in the results directory.
