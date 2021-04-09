@@ -1,0 +1,117 @@
+{    
+    "type_map":		["H", "C", "N", "O"],
+    "mass_map":		[1.0079400, 12.010700, 14.006700, 15.999400],
+    
+    "init_data_prefix":	"/***/data/",
+    "init_data_sys":	["deepmd"],
+    "init_batch_size":	["auto"],
+    "sys_configs":	[
+	["/***/data/data.2"]
+    ],
+    "sys_batch_size":	["auto"],
+	"sys_format":"lammps/lmp",
+
+    "_comment":		" 00.train ",
+    "set_prefix":           "set",
+    "numb_models":  4,
+    "train_param":  "input.json",
+    "default_training_param" : { 
+        "model":{
+                 "type_map": ["H", "C", "N", "O"],
+                "descriptor":{
+                    "type":"se_a",
+                    "sel":  [40,50,60,70],
+                    "rcut_smth": 1.00,
+                    "rcut":      5.00,
+                    "neuron":   [25,50,100],
+                    "resnet_dt": false,
+                    "axis_neuron": 12
+                },
+                "fitting_net":{
+                    "neuron":   [240,240,240],
+                    "resnet_dt": true
+                }
+        },
+        "learning_rate":{
+                "type": "exp",
+                "start_lr":  0.001,
+                "decay_steps": 400,
+                "decay_rate":   0.99
+        },
+        "loss":{
+                "start_pref_e":   0.01,
+                "limit_pref_e":   1,
+                "start_pref_f":   1000,
+                "limit_pref_f":   1,
+                "start_pref_v":   0,
+                "limit_pref_v":   0,
+                "start_pref_pf":  0,
+                "limit_pref_pf":  0
+        },
+        "training":{
+                "set_prefix":  "set",
+                "stop_batch":  400000,
+                "disp_file":   "lcurve.out",
+                "disp_freq":   100,
+                "numb_test":   1,
+                "save_freq":   100,
+                "save_ckpt":   "model.ckpt",
+                "load_ckpt":   "model.ckpt",
+                "disp_training": true,
+                "time_training": true,
+                "profiling":   false,
+                "profilingfile": "timeline.json"
+          }, 
+     "_comment":     "that's all"
+      },
+
+    "_comment":		" 01.model_devi ",
+    "_comment": "model_devi_skip: the first x of the recorded frames",
+        "use_atom_pref": true,    
+        "use_relative": true,
+    "epsilon": 1.0,
+    "model_devi_dt":		0.0001,
+    "model_devi_skip":		0,
+    "model_devi_f_trust_lo":	0.3,
+    "model_devi_f_trust_hi":	0.5,
+    "model_devi_e_trust_lo":	1e10,
+    "model_devi_e_trust_hi":	1e10,
+    "model_devi_clean_traj":	false,
+    "model_devi_jobs":	[
+	    {"sys_idx": [0], "temps": [  3000], "trj_freq": 10, "nsteps": 1000, "ensemble": "nvt", "_idx": "00"},
+        {"sys_idx": [0], "temps": [  3000], "trj_freq": 10, "nsteps": 1000, "ensemble": "nvt", "_idx": "01"},
+        {"sys_idx": [0], "temps": [  3000], "trj_freq": 10, "nsteps": 1000, "ensemble": "nvt", "_idx": "02"}
+    ],
+    "_comment":		" 02.fp ",
+    "shuffle_poscar":   false,
+    "fp_pp_path":       ".",
+    "fp_pp_files":      [],
+    "fp_style":         "cp2k",
+    "fp_task_max":	100,
+    "fp_task_min":	10,
+    "user_fp_params":	{
+    "FORCE_EVAL":{
+    "DFT":{
+    "BASIS_SET_FILE_NAME":"/***/cp2k-6.1.0/data/BASIS_MOLOPT",
+    "POTENTIAL_FILE_NAME":"/***/cp2k-6.1.0/data/GTH_POTENTIALS",
+    "XC":{
+    "VDW_POTENTIAL":{
+    "POTENTIAL_TYPE":"PAIR_POTENTIAL",
+    "PAIR_POTENTIAL":{
+    "TYPE": "DFTD3",
+    "PARAMETER_FILE_NAME":"/***/cp2k-6.1.0/data/dftd3.dat",
+    "REFERENCE_FUNCTIONAL":"PBE"
+    }
+    }
+    }
+    },
+    "SUBSYS":{
+    "KIND":{
+    "_":["H","C","N","O"],
+    "POTENTIAL":["GTH-PBE-q1", "GTH-PBE-q4","GTH-PBE-q5","GTH-PBE-q6"],
+    "BASIS_SET": ["DZVP-MOLOPT-GTH", "DZVP-MOLOPT-GTH", "DZVP-MOLOPT-GTH", "DZVP-MOLOPT-GTH"]
+    }
+    }
+    }
+    }
+}

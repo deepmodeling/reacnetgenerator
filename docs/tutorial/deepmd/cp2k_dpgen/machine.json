@@ -1,0 +1,64 @@
+{
+    "_comment":		"training on localhost ",
+    "python_path":	"/***/deepmd-kit/bin/python",
+    "train_machine":	{
+	"machine_type":	"shell",
+	"work_path" :	"***",
+	"_comment" :	"that's all"
+    },	
+    "train_resources":	{
+	"envs": {
+                "KMP_BLOCKTIME":0,
+                "KMP_AFFINITY=granularity": "granularity=fine,verbose,compact,1,0"
+	},
+	"numb_gpu": 0,
+	"numb_node": 1,
+        "manual_cuda_devices":4,
+        "train_group_size":4,
+	"_comment":	"that's all"
+    },    
+
+
+    "_comment":		"model_devi on localhost ",
+    "lmp_command":	"/***/deepmd-kit/bin/lmp",
+    "model_devi_group_size": 1,
+    "model_devi_machine":	{
+	"machine_type":	"shell",
+	"work_path" :	"***",
+	"_comment" :	"that's all"
+    },	
+    "model_devi_resources":	{
+	"envs": {
+                "KMP_BLOCKTIME":0,
+                "KMP_AFFINITY=granularity": "granularity=fine,verbose,compact,1,0"
+	},
+	"numb_gpu": 0,
+	"numb_node": 1,
+	"_comment":	"that's all"
+    },    
+
+    "_comment":		"fp on lsf //localhost ",
+    "fp_command":	" mpirun -np 32 /***/cp2k-6.1.0/exe/local/cp2k.psmp -i input.inp",
+    "fp_group_size":	1,
+    "fp_machine":	{
+	"machine_type":	"pbs",
+	"hostname" :	"***",
+	"port" :	**,
+	"username":	"***",
+	"password":     "***",
+	"work_path" :	"***",
+	"_comment" :	"that's all"
+    },	
+    "fp_resources":	{
+	"source_list":["/***/.bashrc"],
+	"node_cpu":32,
+	"numb_node":1,
+	"task_per_node":32,
+	"with_mpi":	false,
+	"time_limit": "100:00:00",
+	"allow_failure": true,
+        "job_name": "cp2k",
+	"_comment":	"that's all"
+    },
+    "_comment":		" that's all "
+}
