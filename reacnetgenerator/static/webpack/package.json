@@ -29,7 +29,7 @@
   "devDependencies": {
     "css-loader": "5.2.2",
     "cssnano": "4.1.11",
-    "cssnano-preset-advanced": "4.0.8",
+    "cssnano-preset-advanced": "5.0.0",
     "html-inline-css-webpack-plugin": "1.11.0",
     "html-webpack-plugin": "5.3.1",
     "mini-css-extract-plugin": "1.4.1",
