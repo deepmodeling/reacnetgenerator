@@ -32,7 +32,7 @@
     "cssnano-preset-advanced": "5.0.0",
     "html-inline-css-webpack-plugin": "1.11.0",
     "html-webpack-plugin": "5.3.1",
-    "mini-css-extract-plugin": "1.4.1",
+    "mini-css-extract-plugin": "1.5.0",
     "optimize-css-assets-webpack-plugin": "5.0.4",
     "postcss": "8.2.10",
     "postcss-import": "14.0.1",
