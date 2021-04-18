@@ -1,11 +1,6 @@
-FROM continuumio/miniconda3:latest@sha256:456e3196bf3ffb13fee7c9216db4b18b5e6f4d37090b31df3e0309926e98cfe2
+FROM nikolaik/python-nodejs:python3.9-nodejs14@sha256:9f2ccfa16e3c5298896de78e5073382ea14c1aeff46f7aeb6016026f27387fe0
 COPY . /reacnetgenerator
-RUN conda config --add channels conda-forge && \
-    conda install conda-build -y && \
-    conda build /reacnetgenerator/conda/recipe && \
-    conda install reacnetgenerator --use-local -y && \
-    conda clean -tipsy && \
-    conda build purge-all && \
+RUN pip install --no-cache-dir /reacnetgenerator && \
     reacnetgenerator -h
 ENTRYPOINT [ "/usr/bin/tini", "--" ]
 CMD ["/bin/bash" ]

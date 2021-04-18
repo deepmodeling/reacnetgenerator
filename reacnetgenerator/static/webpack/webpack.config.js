@@ -2,7 +2,9 @@ const StringReplacePlugin = require("string-replace-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
+const HTMLInlineCSSWebpackPlugin = require("html-inline-css-webpack-plugin").default;
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const webpack = require('webpack');
 
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
@@ -37,14 +39,16 @@ module.exports = {
         {
           loader: 'postcss-loader',
           options: {
-            plugins: function () {
-              return [
-                require('postcss-import'),
-                require('precss'),
-                require('cssnano')({
-                  preset: 'advanced',
-                }),
-              ];
+            postcssOptions: {
+              plugins: function () {
+                return [
+                  require('postcss-import'),
+                  require('precss'),
+                  require('cssnano')({
+                    preset: 'advanced',
+                  }),
+                ];
+              }
             }
           }
         }, {
@@ -65,7 +69,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       filename: 'bundle.html',
 			template: __dirname + '/template.html',
-      inject: 'true',
+      inject: 'body',
       inlineSource: '.(js|css)$',
 			minify: {
 				collapseWhitespace: true,
@@ -78,7 +82,7 @@ module.exports = {
 				removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         removeAttributeQuotes: true,
-        removeOptionalTags: true,
+        removeOptionalTags: false,
         removeRedundantAttributes: true,
         removeEmptyAttributes: true,
         sortAttributes: true,
@@ -88,12 +92,14 @@ module.exports = {
         processScripts: ['text/x-jsrender']
 			}
     }),
-    new HtmlWebpackInlineSourcePlugin(),
+	new HTMLInlineCSSWebpackPlugin(),
+	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
     new webpack.BannerPlugin(banner)
   ],
   optimization: {
     minimizer: [
       new TerserPlugin(),
+	  new OptimizeCssAssetsPlugin(),
     ],
   },
   performance: {

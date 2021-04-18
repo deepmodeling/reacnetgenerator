@@ -1,13 +1,12 @@
 {
   "devDependencies": {
-    "@qiwi/semantic-release-gh-pages-plugin": "2.0.0",
-    "semantic-release": "17.0.8",
-    "vuepress": "1.5.0"
+    "semantic-release": "17.4.2",
+    "vuepress": "1.8.2"
   },
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "now-build": "yarn build-report && yarn build && mv docs/.vuepress/dist dist",
+    "now-build": "yarn build-report && yarn build && mv docs/.vuepress/dist public",
     "build": "yarn copy-report && yarn docs:build",
     "semantic-release": "semantic-release",
     "build-report": "cd reacnetgenerator/static/webpack && yarn && yarn start && cd ../../../",
@@ -45,16 +44,14 @@
             }
           ]
         }
-      ],
-      [
-        "@qiwi/semantic-release-gh-pages-plugin",
-        {
-          "src": "docs/.vuepress/dist"
-        }
       ]
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "document-ready": "2.0.2",
+    "postscribe": "2.0.8",
+    "vue-script-component": "0.1.7"
+  },
   "engines": {
     "node": ">=10.x"
   }
