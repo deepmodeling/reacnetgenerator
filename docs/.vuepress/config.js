@@ -95,6 +95,7 @@ function getTutorialSidebar(title) {
 			children: [
 				"",
 				"install",
+				"cl20",
 			]
 		}
 	]
