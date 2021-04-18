@@ -36,7 +36,7 @@ module.exports = {
 						ariaLabel: 'See more',
 						items: [
 							{ text: 'Report', link: '/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&', target: '_blank' },
-							{ text: 'Article', link: 'https://doi.org/10.1039/C9CP05091D' },
+							{ text: 'Paper', link: 'https://doi.org/10.1039/C9CP05091D' },
 							{ text: 'Group', link: 'https://computchem.cn' },
 						]
 					}
@@ -95,6 +95,7 @@ function getTutorialSidebar(title) {
 			children: [
 				"",
 				"install",
+				"cl20",
 			]
 		}
 	]
