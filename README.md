@@ -1,6 +1,6 @@
 # <img src=docs/.vuepress/public/reacnetgen.svg height=40/>  ReacNetGenerator
 
-[![DOI:10.1039/C9CP05091D](https://zenodo.org/badge/DOI/10.1039/C9CP05091D.svg)](https://doi.org/10.1039/C9CP05091D)
+[![DOI:10.1039/C9CP05091D](https://img.shields.io/badge/DOI-10.1039%2FC9CP05091D-blue)](https://doi.org/10.1039/C9CP05091D)
 [![Research Group](https://img.shields.io/website-up-down-green-red/https/computchem.cn.svg?label=Research%20Group)](https://computchem.cn)
 
 An automatic reaction network generator for reactive molecular dynamics simulation.
