@@ -24,7 +24,7 @@
     "popper.js": "1.16.1",
     "query-string": "7.0.0",
     "regenerator-runtime": "0.13.7",
-    "startbootstrap-creative": "6.0.4"
+    "startbootstrap-creative": "6.0.5"
   },
   "devDependencies": {
     "css-loader": "5.2.4",

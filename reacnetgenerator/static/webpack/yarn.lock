@@ -380,11 +380,6 @@ bootstrap-select@1.13.18:
   resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.13.18.tgz#4557119d58dc1159189977161c803962220e4dda"
   integrity sha512-V1IzK4rxBq5FrJtkzSH6RmFLFBsjx50byFbfAf8jYyXROWs7ZpprGjdHeoyq2HSsHyjJhMMwjsQhRoYAfxCGow==
 
-bootstrap@4.5.3:
-  version "4.5.3"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.5.3.tgz#c6a72b355aaf323920be800246a6e4ef30997fe6"
-  integrity sha512-o9ppKQioXGqhw8Z7mah6KdTYpNQY//tipnkxppWhPbiSWdD+1raYsnhwEZjkTHYbGee4cVQ0Rx65EhOY/HNLcQ==
-
 bootstrap@4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.6.0.tgz#97b9f29ac98f98dfa43bf7468262d84392552fd7"
@@ -3232,12 +3227,12 @@ stable@^0.1.8:
   resolved "https://registry.yarnpkg.com/stable/-/stable-0.1.8.tgz#836eb3c8382fe2936feaf544631017ce7d47a3cf"
   integrity sha512-ji9qxRnOVfcuLDySj9qzhGSEFVobyt1kIOSkj1qZzYLzq7Tos/oUUWvotUPQLlrsidqsK6tBH89Bc9kL5zHA6w==
 
-startbootstrap-creative@6.0.4:
-  version "6.0.4"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-6.0.4.tgz#5633b22d3ee66b2bc315997bfb2a55709cf30c01"
-  integrity sha512-9UWGMAjw8Lt2edRhxDmUtk8mU1mtFoYXb4D+YkvAAvjmKJfqAujpZebuTvwpF3Oe+hqqZ/X6Sx59+5tnloHqGg==
+startbootstrap-creative@6.0.5:
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-6.0.5.tgz#5d034eb961aeebaca3bb8e4c9eda672294801ab6"
+  integrity sha512-mP9aVLQAUrHhxPapwGztAD9Fe2nRBr1oSfRklt53VKlvB04m3c7ZE5xAMW/d7WDqmHQuAN5L0LAMpj2YUvAQ3A==
   dependencies:
-    bootstrap "4.5.3"
+    bootstrap "4.6.0"
 
 strict-uri-encode@^2.0.0:
   version "2.0.0"
