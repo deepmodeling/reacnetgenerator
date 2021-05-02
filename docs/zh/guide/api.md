@@ -1,1 +1,2 @@
-<Redirect to="../../guide/api.md" />
+# API
+<Redirect to="../../guide/api.html" />
