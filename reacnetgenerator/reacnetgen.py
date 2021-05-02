@@ -5,7 +5,7 @@
 """ReacNetGenerator: an automatic reaction network generator for reactive
 molecular dynamics simulation.
 
-Plase cite: ReacNetGenerator: an automatic reaction network generator
+Please cite: ReacNetGenerator: an automatic reaction network generator
 for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,
 2020, 22 (2): 683–691, doi: 10.1039/C9CP05091D
 
@@ -27,13 +27,13 @@ Simple example
 ReacNetGenerator can process any kind of trajectory files containing 
 atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1
 all custom 100 dump.reaxc id type x y z” in LAMMPS:
-$ reacnetgenerator --dump -i dump.reaxc -a C H O
+$ reacnetgenerator --type dump -i dump.reaxc -a C H O
 where C, H, and O are atomic names in the input file. Analysis report
 will be generated automatically.
 
 Also, ReacNetGenerator can process files containing bond information, 
 e.g. LAMMPS bond file:
-$ reacnetgenerator -i bonds.reaxc -a C H O
+$ reacnetgenerator --type bond -i bonds.reaxc -a C H O
 
 You can running the following script for help:
 $ reacnetgenerator -h
@@ -62,13 +62,59 @@ from .utils import must_be_list
 
 
 class ReacNetGenerator:
-    """Use ReacNetGenerator for trajectory analysis."""
+    """Use ReacNetGenerator for trajectory analysis.
+    
+    Parameters
+    ----------
+    inputfiletype: str
+        The type of the input file. The following type is allowed:
+        * dump: LAMMPS dump file, which can be outputed by using `dump 1 all custom 100 dump.reaxc
+          id type x y z`. See https://lammps.sandia.gov/doc/dump.html for details.
+        * bond: LAMMPS ReaxFF bond file. See https://lammps.sandia.gov/doc/fix_reaxc_bonds.html
+          for details.
+        * xyz: XYZ file, which can also be outputed by LAMMPS using dump.
+    inputfilename: str or list of strs
+        The filename(s) of the input file, which can be either relative path or absolute path. If
+        it is a list, the files will be read in order.
+    atomname: tuple of strs
+        The list of the atomic names in the input file, such as `('C', 'H', 'O')`. It should match
+        the order of that in the input file.
+    runHMM: bool, optional, default: True
+        Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
+        are filtered, they can turn off this option.
+    pbc: bool, optional, default: True
+        Use periodic boundary conditions (PBC) or not.
+    cell: (3,3) array_like or (3,) array_like, optional, default: None
+        The cell (box size) of the system. If None (default), the cell will be read from the input
+        file. If the input file doesn't have cell information, this parameter will be necessary.
+    nproc: int, optional, default: None
+        The number of processors used for analysis. If None (default), the program will try to use
+        all processors.
+    selectatoms: str, optional, default: None
+        Select an element from the atomic names, such as `C`, and only show species with this
+        element in the reaction network. If None (default), the network will show all elements.
+    split: int, optional, default: None
+        Split number for the time axis. For example, if set to 10, the whole trajectroy will
+        be divided into 10 parts and reactions of each part will be shown.
+    a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]
+        Transition matrix A of HMM parameters. It is recommended for users to choose their own
+        parameters. See the paper for details.
+    b: (2,2) array_like, optional, default: [[0.6, 0.4], [0.4, 0.6]]
+        Emission matrix B of HMM parameters. It is recommended for users to choose their own
+        parameters. See the paper for details.
+    
+    Examples
+    --------
+    >>> from reacnetgenerator import ReacNetGenerator
+    >>> rng=ReacNetGenerator(inputfiletype="dump", inputfilename="dump.ch4", atomname=['C', 'H', 'O'])
+    >>> rng.runanddraw()
+    """
 
     def __init__(self, **kwargs):
         """Init ReacNetGenerator."""
         logging.info(__doc__)
         logging.info(
-            f"Version: {__version__}  Creation date: {__date__}  Update date: {__update__}")
+            f"Version: {__version__}  Creation date: {__date__}")
         
         # process kwargs
         necessary_key = ['inputfiletype', 'inputfilename', 'atomname']
@@ -113,7 +159,17 @@ class ReacNetGenerator:
         self.__dict__.update(kwargs)
 
     def runanddraw(self, run=True, draw=True, report=True):
-        """Analyze the trajectory from MD simulation."""
+        """Analyze the trajectory from MD simulation.
+        
+        Parameters
+        ----------
+        run: bool, optional, default: True
+            Process the trajectory or not, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.
+        draw: bool, optional, default: True
+            Draw the reaction network or not, i.e. NETWORK step.
+        report: bool, optional, default: True
+            Generate the analysis report, i.e. NETWORK step.
+        """
         processthing = []
         if run:
             if self.urls:
@@ -131,7 +187,12 @@ class ReacNetGenerator:
         self._process(processthing)
 
     def run(self):
-        """Process MD trajectory."""
+        """Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.
+        
+        Parameters
+        ----------
+        None
+        """
         processthing = []
         if self.urls:
             processthing.append(self.Status.DOWNLOAD)
@@ -144,22 +205,39 @@ class ReacNetGenerator:
         self._process(processthing)
 
     def draw(self):
-        """Draw the reaction network."""
+        """Draw the reaction network, i.e. NETWORK step.
+        
+        Parameters
+        ----------
+        None
+        """
         self._process((self.Status.NETWORK,))
 
     def report(self):
-        """Generate the analysis report."""
+        """Generate the analysis report, i.e. REPORT step.
+        
+        Parameters
+        ----------
+        None
+        """
         self._process((self.Status.REPORT,))
 
     class Status(Enum):
-        """ReacNetGen status.
+        """ReacNetGenerator status.
 
-        The ReacNetGen consists of several modules and algorithms to
-        process the information from the given trajectory.
+        The ReacNetGenerator consists of several modules and algorithms to
+        process the information from the given trajectory, including:
+          DOWNLOAD: Download trajectory from urls
+          DETECT: Read bond information and detect molecules
+          HMM: HMM filter
+          PATH: Indentify isomers and collect reaction paths
+          MATRIX: Reaction matrix generation
+          NETWORK: Draw reaction network
+          REPORT: Generate analysis report
         """
 
         INIT = "Init"
-        DETECT = "Read bond information and Detect molecules"
+        DETECT = "Read bond information and detect molecules"
         HMM = "HMM filter"
         PATH = "Indentify isomers and collect reaction paths"
         MATRIX = "Reaction matrix generation"
@@ -172,6 +250,13 @@ class ReacNetGenerator:
             return self.value
 
     def _process(self, steps):
+        """Process steps in order.
+
+        Parameters
+        ----------
+        steps: tuple of ReacNetGenerator.Status
+            The process that needs to be processed.
+        """
         timearray = [time.perf_counter()]
         for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
