@@ -48,17 +48,17 @@ for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">reacnetgenerator.</span></code><code class="sig-name descname"><span class="pre">ReacNetGenerator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use ReacNetGenerator for trajectory analysis.</p>
 <dl>
-<dt>inputfiletype: str</dt><dd><p>The type of the input file. The following type is allowed:
-- dump: LAMMPS dump file, which can be outputed by using</p>
-<blockquote>
-<div><p><cite>dump 1 all custom 100 dump.reaxc id type x y z</cite>. See
-<a class="reference external" href="https://lammps.sandia.gov/doc/dump.html">https://lammps.sandia.gov/doc/dump.html</a> for details.</p>
-</div></blockquote>
-<ul class="simple">
-<li><p>bond: LAMMPS ReaxFF bond file. See <a class="reference external" href="https://lammps.sandia.gov/doc/fix_reaxc_bonds.html">https://lammps.sandia.gov/doc/fix_reaxc_bonds.html</a>
-for details.</p></li>
-<li><p>xyz: XYZ file, which can also be outputed by LAMMPS using dump.</p></li>
+<dt>inputfiletype: str</dt><dd><dl>
+<dt>The type of the input file. The following type is allowed:</dt><dd><ul class="simple">
+<li><p>dump: LAMMPS dump file, which can be outputed by
+using <cite>dump 1 all custom 100 dump.reaxc id type x y z</cite>. See
+<a class="reference external" href="https://lammps.sandia.gov/doc/dump.html">https://lammps.sandia.gov/doc/dump.html</a> for details.</p></li>
+<li><p>bond: LAMMPS ReaxFF bond file. See <a class="reference external" href="https://lammps.sandia.gov/doc/fix_reaxc_bonds.html">https://lammps.sandia.gov/doc/fix_reaxc_bonds.html</a></p></li>
 </ul>
+<p>for details.
+- xyz: XYZ file, which can also be outputed by LAMMPS using dump.</p>
+</dd>
+</dl>
 </dd>
 <dt>inputfilename: str or list of strs</dt><dd><p>The filename(s) of the input file, which can be either relative path or absolute path. If
 it is a list, the files will be read in order.</p>
