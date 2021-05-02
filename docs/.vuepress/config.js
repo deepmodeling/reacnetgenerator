@@ -81,7 +81,6 @@ function getGuideSidebar(title) {
 			children: [
 				"",
 				"build",
-				"api",
 			]
 		}
 	]
