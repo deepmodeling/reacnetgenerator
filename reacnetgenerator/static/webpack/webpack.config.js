@@ -7,9 +7,11 @@ const HTMLInlineCSSWebpackPlugin = require("html-inline-css-webpack-plugin").def
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const webpack = require('webpack');
 
+const year = new Date().getFullYear();
 const banner = `ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
-Copyright 2018-2019 East China Normal University
+Copyright 2018-${year} East China Normal University
 Date: ${new Date().toLocaleString()}`;
+const buildweb = process.env.REACNETGENERATOR_BUILDWEB;
 
 module.exports = {
   entry: __dirname + "/reacnetgen.js",
@@ -64,22 +66,22 @@ module.exports = {
   plugins: [
     new StringReplacePlugin(),
     new MiniCssExtractPlugin({
-			filename: "bundle.css"
+      filename: "bundle.css"
     }),
     new HtmlWebpackPlugin({
       filename: 'bundle.html',
-			template: __dirname + '/template.html',
+      template: __dirname + '/template.html',
       inject: 'body',
       inlineSource: '.(js|css)$',
-			minify: {
-				collapseWhitespace: true,
-				collapseBooleanAttributes: true,
-				collapseInlineTagWhitespace: true,
-				minifyCSS: true,
+      minify: {
+        collapseWhitespace: true,
+        collapseBooleanAttributes: true,
+        collapseInlineTagWhitespace: true,
+        minifyCSS: true,
         minifyJS: true,
         minifyURLs: true,
         decodeEntities: true,
-				removeScriptTypeAttributes: true,
+        removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         removeAttributeQuotes: true,
         removeOptionalTags: false,
@@ -88,18 +90,23 @@ module.exports = {
         sortAttributes: true,
         sortClassName: true,
         useShortDoctype: true,
-        ignoreCustomFragments: [ /<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/ ],
+        ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/],
         processScripts: ['text/x-jsrender']
-			}
+      }
     }),
-	new HTMLInlineCSSWebpackPlugin(),
-	new ScriptExtHtmlWebpackPlugin({inline: /\.js$/}),
+    ...(buildweb ? [
+      // build web, replace CDN
+    ] : [
+      // build inline
+      new HTMLInlineCSSWebpackPlugin(),
+      new ScriptExtHtmlWebpackPlugin({ inline: /\.js$/ }),
+    ]),
     new webpack.BannerPlugin(banner)
   ],
   optimization: {
     minimizer: [
       new TerserPlugin(),
-	  new OptimizeCssAssetsPlugin(),
+      new OptimizeCssAssetsPlugin(),
     ],
   },
   performance: {
@@ -108,5 +115,5 @@ module.exports = {
   stats: {
     entrypoints: false,
     children: false
- },
+  },
 }
