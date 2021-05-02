@@ -115,6 +115,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 f.extend(mol)
 
 
+@_Detect.register_subclass("bond")
 @_Detect.register_subclass("lammpsbondfile")
 class _DetectLAMMPSbond(_Detect):
     def _readNfunc(self, f):
@@ -214,6 +215,7 @@ class _DetectCrd(_Detect):
         return bond, bondlevel
 
 
+@_Detect.register_subclass("dump")
 @_Detect.register_subclass("lammpsdumpfile")
 class _DetectLAMMPSdump(_DetectCrd):
     class LineType(Enum):

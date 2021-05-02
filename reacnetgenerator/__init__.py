@@ -1,5 +1,17 @@
 # Copyright 2018-2019, East China Normal University
-"""ReacNetGen."""
+"""
+``reacnetgenerator``
+====================
+
+ReacNetGenerator is an automatic reaction network generator for
+reactive molecular dynamics simulation.
+
+Notes
+-----
+Please cite: ReacNetGenerator: an automatic reaction network generator
+for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,
+2020, 22 (2): 683–691, doi: 10.1039/C9CP05091D
+"""
 
 __date__ = '2018-03-11'
 __update__ = '2019-10-07'

@@ -180,7 +180,7 @@ async def download_file(urls, pathfilename, sha256):
     s.mount('http://', HTTPAdapter(max_retries=3))
     s.mount('https://', HTTPAdapter(max_retries=3))
     # download if not exists
-    if os.path.isfile(pathfilename) and (checksha256(pathfilename, sha256) or sha256 is None):
+    if os.path.isfile(pathfilename) and (sha256 is None or checksha256(pathfilename, sha256)):
         return pathfilename
 
     # from https://stackoverflow.com/questions/16694907
