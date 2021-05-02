@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 
 class WriteBuffer:
+    """Store a buffer for writing files."""
     def __init__(self, f, linenumber=1200, sep=None):
         self.f = f
         if sep is not None:

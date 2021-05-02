@@ -68,12 +68,12 @@ class ReacNetGenerator:
     ----------
     inputfiletype: str
         The type of the input file. The following type is allowed:
-        - dump: LAMMPS dump file, which can be outputed by using
-          `dump 1 all custom 100 dump.reaxc id type x y z`. See
-          https://lammps.sandia.gov/doc/dump.html for details.
-        - bond: LAMMPS ReaxFF bond file. See https://lammps.sandia.gov/doc/fix_reaxc_bonds.html
-          for details.
-        - xyz: XYZ file, which can also be outputed by LAMMPS using dump.
+            - dump: LAMMPS dump file, which can be outputed by
+              using `dump 1 all custom 100 dump.reaxc id type x y z`. See
+              https://lammps.sandia.gov/doc/dump.html for details.
+            - bond: LAMMPS ReaxFF bond file. See https://lammps.sandia.gov/doc/fix_reaxc_bonds.html
+            for details.
+            - xyz: XYZ file, which can also be outputed by LAMMPS using dump.
     inputfilename: str or list of strs
         The filename(s) of the input file, which can be either relative path or absolute path. If
         it is a list, the files will be read in order.

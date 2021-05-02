@@ -41,7 +41,13 @@ from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
 
 
 class _Detect(SharedRNGData, metaclass=ABCMeta):
-    """Detect molecules."""
+    """Detect molecules.
+    
+    Parameters
+    ----------
+    rng: reacnetgenerator.ReacNetGenerator
+        The ReacNetGenerator class.
+    """
     subclasses = {}
 
     def __init__(self, rng):
@@ -54,9 +60,19 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         """Get the class for the input file type.
 
         Now ReacNetGen support the following files:
-        lammpsbondfile: LAMMPS bond files, see http://lammps.sandia.gov/doc/fix_reax_bonds.html
-        lammpsdumpfile: LAMMPS dump files, see https://lammps.sandia.gov/doc/dump.html
-        xyz files
+            - lammpsbondfile: LAMMPS bond files, see http://lammps.sandia.gov/doc/fix_reax_bonds.html
+            - lammpsdumpfile: LAMMPS dump files, see https://lammps.sandia.gov/doc/dump.html
+            - xyz: xyz files
+
+        Parameters
+        ----------
+        rng: reacnetgenerator.ReacNetGenerator
+            The ReacNetGenerator class.
+        
+        Returns
+        -------
+        cls.subclasses[rng.inputfiletype](rng): class
+            The _Detect class for specific file type.
         """
         if rng.inputfiletype not in cls.subclasses:
             raise ValueError(
@@ -65,6 +81,23 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 
     @classmethod
     def register_subclass(cls, message_type):
+        """Register the file type, used as a decorator.
+        
+        Parameters
+        ----------
+        message_type: str
+            The type name to register, such as `xyz`.
+        
+        Returns
+        -------
+        decorator: function
+            The decorator that used for a subclass.
+
+        Examples
+        --------
+        @_Detect.register_subclass("lammpsbondfile")
+        class _DetectLAMMPSbond(_Detect):
+        """
         def decorator(subclass):
             cls.subclasses[message_type] = subclass
             return subclass
@@ -76,6 +109,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self.returnkeys()
 
     def _readinputfile(self):
+        """Read the input file."""
         d = defaultdict(list)
         timestep = {}
         with fileinput.input(files=self.inputfilename) as f:
