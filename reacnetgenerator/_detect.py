@@ -54,8 +54,9 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         """Get the class for the input file type.
 
         Now ReacNetGen support the following files:
-        LAMMPS bond files: http://lammps.sandia.gov/doc/fix_reax_bonds.html
-        LAMMPS dump files: https://lammps.sandia.gov/doc/dump.html
+        lammpsbondfile: LAMMPS bond files, see http://lammps.sandia.gov/doc/fix_reax_bonds.html
+        lammpsdumpfile: LAMMPS dump files, see https://lammps.sandia.gov/doc/dump.html
+        xyz files
         """
         if rng.inputfiletype not in cls.subclasses:
             raise ValueError(

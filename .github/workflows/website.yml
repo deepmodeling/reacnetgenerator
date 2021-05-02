@@ -38,12 +38,12 @@ jobs:
           ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+    - run: yarn install
+    - run: yarn build
     - run: pip install tox
     - run: tox
       env:
         TOXENV: docs
-    - run: yarn install
-    - run: yarn build
     - run: yarn semantic-release
       if: github.ref == 'refs/heads/master'
       env:
