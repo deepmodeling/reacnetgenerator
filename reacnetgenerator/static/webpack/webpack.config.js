@@ -97,7 +97,7 @@ module.exports = {
     }),
     ...(buildweb ? [
       // build web, replace CDN
-      WebpackCdnPlugin({
+      new WebpackCdnPlugin({
         modules: [
           { name: "jquery", var: "$", path: "dist/jquery.min.js" },
           { name: "regenerator-runtime", path: "runtime.min.js", var: "regeneratorRuntime" },
