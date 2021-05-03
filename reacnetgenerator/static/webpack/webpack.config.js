@@ -117,12 +117,13 @@ module.exports = {
           { name: "bootstrap-select", path: "dist/js/bootstrap-select.min.js", style: "dist/css/bootstrap-select.min.css", var: "$.selectpicker" },
           {
             name: "startbootstrap-creative",
-            path: "js/creative.min.js",
+            path: "dist/js/scripts.min.js",
             //style: "css/creative.min.css"
           },
           { name: "d3", path: "d3.min.js" },
           { name: "njzjzjsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
-        ]
+        ],
+        prodUrl: '//cdn.jsdelivr.net/npm/:name@:version/:path',
       })
     ] : [
       // build inline
