@@ -20,6 +20,7 @@ require("magnific-popup");
 require("bootstrap-select");
 require('startbootstrap-creative/dist/js/scripts');
 var jsnx = require("@njzjz/jsnetworkx");
+var jsnx = jsnx.default || jsnx;
 var G = new jsnx.Graph();
 
 $(function () {
