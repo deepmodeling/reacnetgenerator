@@ -3,13 +3,17 @@
  * Copyright 2018-2019 East China Normal University
  */
 //CSS
+/// #if process.env.REACNETGENERATOR_BUILDWEB
+import './reacnetgen.css'
+/// #else
 import './reacnetgen.scss'
+/// #endif
 
 /* global rngdata */
 global.$ = global.jQuery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
-require('animejs');
+global.anime = require('animejs');
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");

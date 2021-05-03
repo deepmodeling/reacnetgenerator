@@ -62,6 +62,13 @@ module.exports = {
         test: /\.(jpg|png)$/,
         loader: 'url-loader',
       },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: [
+          { loader: "ifdef-loader" }
+        ]
+      },
     ],
   },
   plugins: [
@@ -104,24 +111,35 @@ module.exports = {
           {
             name: "bootstrap",
             path: "dist/js/bootstrap.min.js",
-            //style: "dist/css/bootstrap.min.css"
+            style: "dist/css/bootstrap.min.css"
           },
           { name: "jsrender", path: "jsrender.min.js", var: "$.jsrender" },
-          { name: "paginationjs", path: "dist/pagination.min.js", style: "dist/pagination.css", var: "$.paginationjs" },
+          {
+            name: "paginationjs",
+            path: "dist/pagination.min.js",
+            style: "dist/pagination.css",
+            var: "$.paginationjs"
+          },
           {
             name: "magnific-popup",
             path: "dist/jquery.magnific-popup.min.js",
-            //style: "dist/magnific-popup.min.css",
+            style: "dist/magnific-popup.min.css",
             var: "$.magnificPopup"
           },
-          { name: "bootstrap-select", path: "dist/js/bootstrap-select.min.js", style: "dist/css/bootstrap-select.min.css", var: "$.selectpicker" },
+          {
+            name: "bootstrap-select",
+            path: "dist/js/bootstrap-select.min.js",
+            style: "dist/css/bootstrap-select.min.css",
+            var: "$.selectpicker"
+          },
           {
             name: "startbootstrap-creative",
             path: "dist/js/scripts.min.js",
-            //style: "css/creative.min.css"
+            style: "dist/css/styles.min.css"
           },
           { name: "d3", path: "d3.min.js" },
           { name: "njzjzjsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
+          { name: "animejs", path: "lib/anime.min.js", var: "anime" },
         ],
         prodUrl: '//cdn.jsdelivr.net/npm/:name@:version/:path',
       })
