@@ -13,7 +13,7 @@ import './reacnetgen.scss'
 global.$ = global.jQuery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
-global.anime = require('animejs');
+global.anime = window.anime = require('animejs');
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");
@@ -154,6 +154,29 @@ function loadsection() {
     }
     $("#navs").append($.templates("#navTmpl").render(sections));
     $("#buttons").html($.templates("#buttonTmpl").render(sections));
+
+    // set anime again after new button appears
+    $('a.js-scroll-trigger[href*="#"]:not([href="#"])').on('click', function () {
+        if (
+            location.pathname.replace(/^\//, "") ==
+            this.pathname.replace(/^\//, "") &&
+            location.hostname == this.hostname
+        ) {
+            var target = $(this.hash);
+            target = target.length ?
+                target :
+                $("[name=" + this.hash.slice(1) + "]");
+            if (target.length) {
+                anime({
+                    targets: 'html, body',
+                    scrollTop: target.offset().top - 72,
+                    duration: 1000,
+                    easing: 'easeInOutExpo'
+                });
+                return false;
+            }
+        }
+    });
 }
 
 /** 
