@@ -3,19 +3,26 @@
  * Copyright 2018-2019 East China Normal University
  */
 //CSS
+/// #if process.env.REACNETGENERATOR_BUILDWEB
+import './reacnetgen_web.scss'
+/// #else
 import './reacnetgen.scss'
+/// #endif
 
 /* global rngdata */
 global.$ = global.jQuery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
-require('jquery.easing');
+global.anime = window.anime = require('animejs');
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");
 require("bootstrap-select");
+/// #if !process.env.REACNETGENERATOR_BUILDWEB
 require('startbootstrap-creative/dist/js/scripts');
+/// #endif
 var jsnx = require("@njzjz/jsnetworkx");
+var jsnx = jsnx.default || jsnx;
 var G = new jsnx.Graph();
 
 $(function () {
@@ -150,6 +157,29 @@ function loadsection() {
     }
     $("#navs").append($.templates("#navTmpl").render(sections));
     $("#buttons").html($.templates("#buttonTmpl").render(sections));
+
+    // set anime again after new button appears
+    $('a.js-scroll-trigger[href*="#"]:not([href="#"])').on('click', function () {
+        if (
+            location.pathname.replace(/^\//, "") ==
+            this.pathname.replace(/^\//, "") &&
+            location.hostname == this.hostname
+        ) {
+            var target = $(this.hash);
+            target = target.length ?
+                target :
+                $("[name=" + this.hash.slice(1) + "]");
+            if (target.length) {
+                anime({
+                    targets: 'html, body',
+                    scrollTop: target.offset().top - 72,
+                    duration: 1000,
+                    easing: 'easeInOutExpo'
+                });
+                return false;
+            }
+        }
+    });
 }
 
 /** 

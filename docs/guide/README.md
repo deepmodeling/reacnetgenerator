@@ -58,4 +58,4 @@ from reacnetgenerator import ReacNetGenerator
 ReacNetGenerator(inputfiletype="dump", inputfilename="dump.ch4", atomname=['C', 'H', 'O']).runanddraw()
 ```
 
-See [Python API](/api/) for details.
+See <a href="/api/" target="_blank">Python API</a> for details.
