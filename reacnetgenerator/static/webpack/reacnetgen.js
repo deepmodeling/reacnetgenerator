@@ -4,7 +4,7 @@
  */
 //CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
-import './reacnetgen.css'
+import './reacnetgen_web.scss'
 /// #else
 import './reacnetgen.scss'
 /// #endif
