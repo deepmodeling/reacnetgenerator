@@ -124,7 +124,7 @@ module.exports = {
           { name: "njzjzjsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
         ]
       })
-    ], : [
+    ] : [
       // build inline
       new HTMLInlineCSSWebpackPlugin(),
       new ScriptExtHtmlWebpackPlugin({ inline: /\.js$/ }),
