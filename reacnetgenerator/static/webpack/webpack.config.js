@@ -138,7 +138,7 @@ module.exports = {
             style: "dist/css/styles.min.css"
           },
           { name: "d3", path: "d3.min.js" },
-          { name: "njzjzjsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
+          { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
           { name: "animejs", path: "lib/anime.min.js", var: "anime" },
         ],
         prodUrl: '//cdn.jsdelivr.net/npm/:name@:version/:path',
