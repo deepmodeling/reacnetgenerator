@@ -9,7 +9,7 @@ import './reacnetgen.scss'
 global.$ = global.jQuery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
-require('jquery.easing');
+require('anime');
 require('jsrender');
 require('paginationjs');
 require("magnific-popup");

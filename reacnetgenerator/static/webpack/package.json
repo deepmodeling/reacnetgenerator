@@ -13,11 +13,11 @@
   "license": "LGPL-3.0-only",
   "dependencies": {
     "@njzjz/jsnetworkx": "0.3.5",
+    "anime": "^0.1.2",
     "bootstrap": "4.6.0",
     "bootstrap-select": "1.13.18",
     "d3": "3.5.17",
     "jquery": "3.6.0",
-    "jquery.easing": "1.4.1",
     "jsrender": "1.0.11",
     "magnific-popup": "1.1.0",
     "paginationjs": "2.1.5",
@@ -46,6 +46,7 @@
     "terser-webpack-plugin": "5.1.1",
     "url-loader": "4.1.1",
     "webpack": "5.36.2",
+    "webpack-cdn-plugin": "^3.3.1",
     "webpack-cli": "4.6.0"
   },
   "engines": {
