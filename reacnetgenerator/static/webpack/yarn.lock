@@ -276,7 +276,7 @@ amdefine@>=0.0.4:
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
 
-animejs@^3.2.1:
+animejs@3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/animejs/-/animejs-3.2.1.tgz#de9fe2e792f44a777a7fdf6ae160e26604b0cdda"
   integrity sha512-sWno3ugFryK5nhiDm/2BKeFCpZv7vzerWUcUPyAZLDhMek3+S/p418ldZJbJXo5ZUOpfm2kP2XRO4NJcULMy9A==
@@ -1503,7 +1503,7 @@ icss-utils@^5.0.0, icss-utils@^5.1.0:
   resolved "https://registry.yarnpkg.com/icss-utils/-/icss-utils-5.1.0.tgz#c6be6858abd013d768e98366ae47e25d5887b1ae"
   integrity sha512-soFhflCVWLfRNOPU3iv5Z9VUdT44xFRbzjLsEzSr5AQmgqPMTHdU3PMT1Cf1ssx8fLNJDA1juftYl+PUcv3MqA==
 
-ifdef-loader@^2.3.0:
+ifdef-loader@2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.3.0.tgz#cc8d7c52bdd83de7621bde90f00f256bdf56b7cb"
   integrity sha512-JY3rPC1QNMzQ/h8pJlxyP6DsujlGnCYDmEYROQpMe90m1aRFVLtpTuqmN15aaq2/9vOmzByWMxWdvR1O+xNHGw==
@@ -3828,7 +3828,7 @@ watchpack@^2.0.0:
     glob-to-regexp "^0.4.1"
     graceful-fs "^4.1.2"
 
-webpack-cdn-plugin@^3.3.1:
+webpack-cdn-plugin@3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/webpack-cdn-plugin/-/webpack-cdn-plugin-3.3.1.tgz#7e08855ab3fc0af6859f0b49620dc81f58914e23"
   integrity sha512-xwhQ6xstFbPlgEkKNAOjXs/6YkPdzYeXl9na+CSBF7p1L88PZIGgL++vel4oiAnp+WTud7fhnSjlB79U6aN28w==
