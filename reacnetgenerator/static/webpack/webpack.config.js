@@ -108,6 +108,7 @@ module.exports = {
         modules: [
           { name: "jquery", var: "$", path: "dist/jquery.min.js" },
           { name: "regenerator-runtime", path: "runtime.min.js", var: "regeneratorRuntime" },
+          { name: "popper.js", path: "dist/popper.min.js" }, // must above bootstrap
           {
             name: "bootstrap",
             path: "dist/js/bootstrap.min.js",
@@ -140,7 +141,6 @@ module.exports = {
           { name: "d3", path: "d3.min.js" },
           { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
           { name: "animejs", path: "lib/anime.min.js", var: "anime" },
-          { name: "popper.js", path: "dist/popper.min.js" }
         ],
         prodUrl: '//cdn.jsdelivr.net/npm/:name@:version/:path',
       })
