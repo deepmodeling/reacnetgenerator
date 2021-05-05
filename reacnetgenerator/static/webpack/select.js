@@ -16,16 +16,16 @@ const search = async (select, from, func) => {
     return from.filter((_v, index) => results[index]);
 }
 
-const searchspecies = (select, from) => await search(select, from, async(element, select) => {
+const searchspecies = (select, from) => (await search(select, from, async (element, select) => {
     return select.includes(element);
-});
+}));
 
-const searchreaction = (select, from) => await search(select, from, async(element, select) => {
+const searchreaction = (select, from) => (await search(select, from, async (element, select) => {
     return [element["l"], element["r"]].some(spec => select.includes(spec));
-});
+}));
 
-const searchreactionabcd = (select, from) => await search(select, from, async(element, select) => {
+const searchreactionabcd = (select, from) => (await search(select, from, async (element, select) => {
     return element["l"].concat(element["r"]).some(spec => select.includes(spec));
-});
+}));
 
 module.exports = { searchspecies, searchreaction, searchreactionabcd };
