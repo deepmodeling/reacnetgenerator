@@ -186,13 +186,12 @@ function showresult(data, size, tmpl, result, pager) {
         pageSize: size,
         callback: function (data, pagination) {
             data.forEach(dd => {
-                dd["svg"] = {};
                 const smiles = [];
                 ['s', 'l', 'r'].map(pp => dd[pp]).filter(Boolean).forEach(smi => {
                     if (typeof (smi) == "string") {
                         smiles.push(smi);
                     } else {
-                        smiles.concat(smi);
+                        smiles.push(...smi);
                     }
                 });
                 dd["svg"] = Object.assign({}, ...smiles.map(smi => ({ [smi]: getSpecSvg(smi) })));
