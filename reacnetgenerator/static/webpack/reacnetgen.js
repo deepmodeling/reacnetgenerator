@@ -2,6 +2,9 @@
  * ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
  * Copyright 2018-2019 East China Normal University
  */
+
+const { searchspecies, searchreaction, searchreactionabcd } = require("./select.js");
+
 //CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
 import './reacnetgen_web.scss'
@@ -55,14 +58,14 @@ function drawcanvas() {
             "title"(d) { return d.label; },
             "xlink:href"(d) {
                 var circle = '<circle cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />';
-                return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + rngdata['speciessvg'][d.node] + '</svg>');
+                return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + getSpecSvg(d.node) + '</svg>');
             },
             "ondblclick"(d) {
-                return "clearTimeout(timer1);G.removeNode('" + d.node + "');";
+                return `clearTimeout(timer1);G.removeNode('${d.node}');`;
             },
             "onmousedown": "isdrag = false;timer2 = setTimeout(function(){isdrag = true}, 300);",
             "onmouseup"(d) {
-                return "if(!isdrag){clearTimeout(timer2);clearTimeout(timer1);timer1 = setTimeout(function(){addnode('" + d.node + "')}, 300);}else{isdrag=false}";
+                return `if(!isdrag){clearTimeout(timer2);clearTimeout(timer1);timer1 = setTimeout(function(){addnode('${d.node}')}, 300);}else{isdrag=false}`;
             },
             "width": 100,
             "height": 100,
@@ -77,7 +80,7 @@ function drawcanvas() {
         },
         "edgeAttr": {
             "ondblclick"(d) {
-                return "G.removeEdge('" + d.edge[0] + "','" + d.edge[1] + "');";
+                return `G.removeEdge('${d.edge[0]}','${d.edge[1]}');`;
             },
         },
         "stickyDrag": true,
@@ -91,14 +94,14 @@ function loadcitation() {
 }
 
 function loadrngdata() {
-    var text = $('#rngdata').html();
+    const text = $('#rngdata').html();
     if (handlejsondata(text)) {
         return;
     }
     // read from url
-	const queryString = require('query-string');
-	const parsed = queryString.parse(location.search);
-	var jdata = parsed['jdata']
+    const queryString = require('query-string');
+    const parsed = queryString.parse(location.search);
+    const jdata = parsed['jdata']
     if (jdata) {
         $.get(decodeURIComponent(jdata), function (data) {
             if (!handlejsondata(data)) {
@@ -108,6 +111,10 @@ function loadrngdata() {
     } else {
         addloadbutton();
     }
+}
+
+const getSpecSvg = (smi) => {
+    return rngdata['speciessvg'][smi];
 }
 
 function handlejsondata(text) {
@@ -122,39 +129,27 @@ function handlejsondata(text) {
 
 function loaddata() {
     if (rngdata['species'].length > 1) {
-        var timelist = [{ "value": 1, "text": "All" }]
-        for (var i = 1; i < rngdata['species'].length; i++) {
-            timelist.push({ "value": i + 1, "text": "Time " + String(i) });
-        }
+        // load time select
+        const timelist = [{ "value": 1, "text": "All" }];
+        timelist.concat([...rngdata['species'].keys()].slice(1).map(
+            ii => ({ "value": ii + 1, "text": `Time ${ii}` })
+        ));
         $("#timeselect").html($.templates("#optionTimeTmpl").render(timelist));
         $("#timeselectli").removeClass("d-none");
-        $("select#timeselect").change(function () {
+        $("select#timeselect").on("change", function () {
             showresults($(this).val());
         });
     }
-    if (rngdata['reactionsabcd'].length > 0) {
+    if (rngdata['reactionsabcd'].length) {
         $("#reactionsabcd").removeClass("d-none");
     }
     showresults(1);
 }
 
 function loadsection() {
-    var sections = [];
-    if (rngdata['network']) {
-        sections.push('network');
-        $('#network').show();
-    }
-    if (rngdata['species']) {
-        sections.push('species');
-        $('#species').show();
-    }
-    if (rngdata['reactions']) {
-        sections.push('reactions');
-        $('#reactions').show();
-    }
-    if (rngdata['reactionsabcd']) {
-        $('#reactionsabcd').show();
-    }
+    // show sections
+    const sections = ['network', 'species', 'reactions', 'reactionsabcd'].filter(ii => rngdata[ii]);
+    sections.forEach(ii => $(`#${ii}`).show());
     $("#navs").append($.templates("#navTmpl").render(sections));
     $("#buttons").html($.templates("#buttonTmpl").render(sections));
 
@@ -168,7 +163,7 @@ function loadsection() {
             var target = $(this.hash);
             target = target.length ?
                 target :
-                $("[name=" + this.hash.slice(1) + "]");
+                $(`[name=${this.hash.slice(1)}]`);
             if (target.length) {
                 anime({
                     targets: 'html, body',
@@ -190,22 +185,18 @@ function showresult(data, size, tmpl, result, pager) {
         dataSource: data,
         pageSize: size,
         callback: function (data, pagination) {
-            for (var i in data) {
-                data[i]["svg"] = {};
-                var p = ['s', 'l', 'r'];
-                for (var ii in p) {
-                    if (p[ii] in data[i]) {
-                        if (typeof (data[i][p[ii]]) == "string") {
-                            data[i]["svg"][data[i][p[ii]]] = rngdata['speciessvg'][data[i][p[ii]]];
-                        } else {
-                            for (var j in data[i][p[ii]]) {
-                                data[i]["svg"][data[i][p[ii]][j]] = rngdata['speciessvg'][data[i][p[ii]][j]];
-                            }
-                        }
-
+            data.forEach(dd => {
+                dd["svg"] = {};
+                const smiles = [];
+                ['s', 'l', 'r'].map(pp => dd[pp]).filter(Boolen).forEach(smi => {
+                    if (typeof (smi) == "string") {
+                        smiles.push(smi);
+                    } else {
+                        smiles.concat(smi);
                     }
-                }
-            }
+                });
+                dd["svg"] = Object.assign({}, ...smiles.map(smi => ({ [smi]: getSpecSvg(smi) })));
+            });
             $(result).html($.templates(tmpl).render(data));
             $(".popup-modal").magnificPopup({
                 "type": "inline",
@@ -216,58 +207,25 @@ function showresult(data, size, tmpl, result, pager) {
 }
 
 function showresults(time) {
+    const specdata = rngdata['species'][time - 1];
     $("#networkresult").html(rngdata['network'][time - 1]);
-    showresult(rngdata['species'][time - 1], rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
+    showresult(specdata, rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
     showresult(rngdata['reactions'][time - 1], rngdata['reactionsshownum'], "#reacTmpl", "#reactionsresult", "#reactionspager");
     showresult(rngdata['reactionsabcd'], rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     // select
-    $("#speciesselect").html($.templates("#optionTmpl").render(rngdata['species'][time - 1]));
-    $("#reactionsselect").html($.templates("#optionTmpl").render(rngdata['species'][time - 1]));
-    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(rngdata['species'][time - 1]));
-    $("select#speciesselect").change(function () {
-        if ($(this).val().length > 0) {
-            var speciessearch = [];
-            for (var i in rngdata['species'][time - 1]) {
-                if ($(this).val().indexOf(rngdata['species'][time - 1][i]['s']) >= 0) {
-                    speciessearch.push(rngdata['species'][time - 1][i]);
-                }
-            }
-        } else {
-            speciessearch = rngdata['species'][time - 1];
-        }
+    $("#speciesselect").html($.templates("#optionTmpl").render(specdata));
+    $("#reactionsselect").html($.templates("#optionTmpl").render(specdata);
+    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata);
+    $("select#speciesselect").on("change", function () {
+        const speciessearch = searchspecies($(this).val(), specdata);
         showresult(speciessearch, rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
     });
-    $("select#reactionsselect").change(function () {
-        if ($(this).val().length > 0) {
-            var reactionssearch = [];
-            for (var i in rngdata['reactions'][time - 1]) {
-                if ($(this).val().indexOf(rngdata['reactions'][time - 1][i]["l"][0]) >= 0 || $(this).val().indexOf(rngdata['reactions'][time - 1][i]["r"][0]) >= 0) {
-                    reactionssearch.push(rngdata['reactions'][time - 1][i]);
-                }
-            }
-        } else {
-            reactionssearch = rngdata['reactions'][time - 1];
-        }
+    $("select#reactionsselect").on("change", function () {
+        const reactionssearch = searchreaction($(this).val(), specdata);
         showresult(reactionssearch, rngdata['reactionsshownum'], "#reacTmpl", "#reactionsresult", "#reactionspager");
     });
-    $("select#reactionsabcdselect").change(function () {
-        if ($(this).val().length > 0) {
-            var reactionsabcdsearch = [];
-            for (var i in rngdata['reactionsabcd']) {
-                var b = false;
-                for (var j in rngdata['reactionsabcd'][i]['l']) {
-                    if ($(this).val().indexOf(rngdata['reactionsabcd'][i]["l"][j]) >= 0) b = true;
-                }
-                for (var j in rngdata['reactionsabcd'][i]['r']) {
-                    if ($(this).val().indexOf(rngdata['reactionsabcd'][i]["r"][j]) >= 0) b = true;
-                }
-                if (b) {
-                    reactionsabcdsearch.push(rngdata['reactionsabcd'][i]);
-                }
-            }
-        } else {
-            reactionsabcdsearch = rngdata['reactionsabcd'];
-        }
+    $("select#reactionsabcdselect").on("change", function () {
+        const reactionsabcdsearch = searchreactionabcd($(this).val(), specdata);
         showresult(reactionsabcdsearch, rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     });
     // refresh select picker
@@ -280,11 +238,10 @@ function showresults(time) {
 function addnode(spec) {
     G.addNode(spec);
     if (spec in rngdata['linkreac']) {
-        var rightspecs = rngdata['linkreac'][spec];
-        for (var i = 0; i < rightspecs.length; i++) {
-            G.addNode(rightspecs[i]);
-            G.addEdge(rightspecs[i], spec);
-        }
+        rngdata['linkreac'][spec].forEach(rightspec => {
+            G.addNode(rightspec);
+            G.addEdge(rightspec, spec);
+        });
     }
 }
 
@@ -301,17 +258,14 @@ function savesvg() {
 }
 
 function clearnode() {
-    var nodes = G.nodes();
-    for (var i = 0; i < nodes.length; i++) {
-        G.removeNode(nodes[i]);
-    }
+    G.nodes().foreach(node => G.removeNode(node));
 }
 
 function addloadbutton() {
     $("#buttons").html($("#loadTmpl").html());
-    $('#loadbutton').change(function (e) {
-        var f = e.target.files[0];
-        var reader = new FileReader();
+    $('#loadbutton').on("change", function (e) {
+        const f = e.target.files[0];
+        const reader = new FileReader();
         reader.onload = (function (theFile) {
             return function (e) {
                 handlejsondata(e.target.result);
