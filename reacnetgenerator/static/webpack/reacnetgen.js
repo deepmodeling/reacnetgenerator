@@ -208,25 +208,29 @@ function showresult(data, size, tmpl, result, pager) {
 
 function showresults(time) {
     const specdata = rngdata['species'][time - 1];
+    const reactionsdata = rngdata['reactions'][time - 1];
+    const reactionsabcddata = rngdata['reactionsabcd'];
+    const speciesshownum = rngdata['speciesshownum'];
+    const reactionsshownum = rngdata['reactionsshownum'];
     $("#networkresult").html(rngdata['network'][time - 1]);
-    showresult(specdata, rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
-    showresult(rngdata['reactions'][time - 1], rngdata['reactionsshownum'], "#reacTmpl", "#reactionsresult", "#reactionspager");
-    showresult(rngdata['reactionsabcd'], rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+    showresult(specdata, speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
+    showresult(reactionsdata, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
+    showresult(reactionsabcddata, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     // select
     $("#speciesselect").html($.templates("#optionTmpl").render(specdata));
     $("#reactionsselect").html($.templates("#optionTmpl").render(specdata));
     $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata));
     $("select#speciesselect").on("change", function () {
         const speciessearch = searchspecies($(this).val(), specdata);
-        showresult(speciessearch, rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
+        showresult(speciessearch, speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
     });
     $("select#reactionsselect").on("change", function () {
-        const reactionssearch = searchreaction($(this).val(), specdata);
-        showresult(reactionssearch, rngdata['reactionsshownum'], "#reacTmpl", "#reactionsresult", "#reactionspager");
+        const reactionssearch = searchreaction($(this).val(), reactionsdata);
+        showresult(reactionssearch, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
     });
     $("select#reactionsabcdselect").on("change", function () {
-        const reactionsabcdsearch = searchreactionabcd($(this).val(), specdata);
-        showresult(reactionsabcdsearch, rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
+        const reactionsabcdsearch = searchreactionabcd($(this).val(), reactionsabcddata);
+        showresult(reactionsabcdsearch, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     });
     // refresh select picker
     $('.selectpicker').selectpicker("refresh");
