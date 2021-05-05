@@ -188,7 +188,7 @@ function showresult(data, size, tmpl, result, pager) {
             data.forEach(dd => {
                 dd["svg"] = {};
                 const smiles = [];
-                ['s', 'l', 'r'].map(pp => dd[pp]).filter(Boolen).forEach(smi => {
+                ['s', 'l', 'r'].map(pp => dd[pp]).filter(Boolean).forEach(smi => {
                     if (typeof (smi) == "string") {
                         smiles.push(smi);
                     } else {
