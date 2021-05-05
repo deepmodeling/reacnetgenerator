@@ -13,6 +13,7 @@
   "license": "LGPL-3.0-only",
   "dependencies": {
     "@njzjz/jsnetworkx": "0.3.5",
+    "@popperjs/core": "2.9.2",
     "animejs": "3.2.1",
     "bootstrap": "4.6.0",
     "bootstrap-select": "1.13.18",
@@ -21,7 +22,6 @@
     "jsrender": "1.0.11",
     "magnific-popup": "1.1.0",
     "paginationjs": "2.1.5",
-    "popper.js": "1.16.1",
     "query-string": "7.0.0",
     "regenerator-runtime": "0.13.7",
     "startbootstrap-creative": "6.0.5"
