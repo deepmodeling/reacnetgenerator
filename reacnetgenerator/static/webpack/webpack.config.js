@@ -108,6 +108,7 @@ module.exports = {
         modules: [
           { name: "jquery", var: "$", path: "dist/jquery.min.js" },
           { name: "regenerator-runtime", path: "runtime.min.js", var: "regeneratorRuntime" },
+          { name: "popper.js", path: "dist/umd/popper.min.js" }, // must above bootstrap
           {
             name: "bootstrap",
             path: "dist/js/bootstrap.min.js",
