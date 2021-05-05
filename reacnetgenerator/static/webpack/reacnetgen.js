@@ -214,8 +214,8 @@ function showresults(time) {
     showresult(rngdata['reactionsabcd'], rngdata['reactionsshownum'], "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     // select
     $("#speciesselect").html($.templates("#optionTmpl").render(specdata));
-    $("#reactionsselect").html($.templates("#optionTmpl").render(specdata);
-    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata);
+    $("#reactionsselect").html($.templates("#optionTmpl").render(specdata));
+    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata));
     $("select#speciesselect").on("change", function () {
         const speciessearch = searchspecies($(this).val(), specdata);
         showresult(speciessearch, rngdata['speciesshownum'], "#specTmpl", "#speciesresult", "#speciespager");
