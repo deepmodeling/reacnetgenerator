@@ -14,7 +14,8 @@ const search = (select, from, func) => {
     if (!select.length) return from;
     const searchSync = async (select, from, func) => Promise.all(from.map(element => func(element, select)))
         .then((results) => from.filter((_v, index) => results[index]))
-    return await searchSync(select, from, func);
+    const searchresult = await searchSync(select, from, func);
+    return searchresult;
 }
 
 const searchspecies = (select, from) => search(select, from, async (element, select) => {
