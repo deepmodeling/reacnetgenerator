@@ -9,23 +9,23 @@
  *      has two parameters: element, select.
  * @return {array} The selected list.
  */
-const search = async (select, from, func) => {
+const search = (select, from, func) => {
     // if there is no select, return all of list
     if (!select.length) return from;
-    const results = await Promise.all(from.map(element => func(element, select)));
-    return from.filter((_v, index) => results[index]);
+    return await(async (select, from, func) => Promise.all(from.map(element => func(element, select)))
+        .then((results) => from.filter((_v, index) => results[index])))(select, from, func);
 }
 
-const searchspecies = (select, from) => (await search(select, from, async (element, select) => {
+const searchspecies = (select, from) => search(select, from, async (element, select) => {
     return select.includes(element);
-}));
+});
 
-const searchreaction = (select, from) => (await search(select, from, async (element, select) => {
+const searchreaction = (select, from) => search(select, from, async (element, select) => {
     return [element["l"], element["r"]].some(spec => select.includes(spec));
-}));
+});
 
-const searchreactionabcd = (select, from) => (await search(select, from, async (element, select) => {
+const searchreactionabcd = (select, from) => search(select, from, async (element, select) => {
     return element["l"].concat(element["r"]).some(spec => select.includes(spec));
-}));
+});
 
 module.exports = { searchspecies, searchreaction, searchreactionabcd };
