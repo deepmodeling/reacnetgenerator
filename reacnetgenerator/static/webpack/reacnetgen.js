@@ -3,7 +3,7 @@
  * Copyright 2018-2019 East China Normal University
  */
 
-const { searchspecies, searchreaction, searchreactionabcd } = require("./select.js");
+const { searchspecies, searchreaction } = require("./select.js");
 
 //CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
@@ -228,7 +228,7 @@ function showresults(time) {
         showresult(reactionssearch, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
     });
     $("select#reactionsabcdselect").on("change", function () {
-        const reactionsabcdsearch = searchreactionabcd($(this).val(), reactionsabcddata);
+        const reactionsabcdsearch = searchreaction($(this).val(), reactionsabcddata);
         showresult(reactionsabcdsearch, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     });
     // refresh select picker

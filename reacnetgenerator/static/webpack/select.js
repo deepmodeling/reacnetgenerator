@@ -13,15 +13,11 @@ const search = (select, from, func) => {
 }
 
 const searchspecies = (select, from) => search(select, from, (element, select) => {
-    return select.includes(element);
+    return select.includes(element["s"]);
 });
 
 const searchreaction = (select, from) => search(select, from, (element, select) => {
-    return [element["l"], element["r"]].some(spec => select.includes(spec));
-});
-
-const searchreactionabcd = (select, from) => search(select, from, (element, select) => {
     return element["l"].concat(element["r"]).some(spec => select.includes(spec));
 });
 
-module.exports = { searchspecies, searchreaction, searchreactionabcd };
+module.exports = { searchspecies, searchreaction };
