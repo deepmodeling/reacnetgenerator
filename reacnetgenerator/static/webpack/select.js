@@ -9,7 +9,7 @@
 const search = (select, from, func) => {
     // if there is no select, return all of list
     if (!select.length) return from;
-    return from.map(element => func(element, select));
+    return from.filter(element => func(element, select));
 }
 
 const searchspecies = (select, from) => search(select, from, (element, select) => {
