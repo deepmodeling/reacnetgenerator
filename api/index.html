@@ -4,11 +4,12 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>API of ReacNetGenerator &#8212; ReacNetGenerator API reacnetgenerator_api documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
@@ -30,22 +31,22 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="api-of-reacnetgenerator">
+  <section id="api-of-reacnetgenerator">
 <h1>API of ReacNetGenerator<a class="headerlink" href="#api-of-reacnetgenerator" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<span class="target" id="module-reacnetgenerator"></span><div class="section" id="reacnetgenerator">
+<span class="target" id="module-reacnetgenerator"></span><section id="reacnetgenerator">
 <h2><code class="docutils literal notranslate"><span class="pre">reacnetgenerator</span></code><a class="headerlink" href="#reacnetgenerator" title="Permalink to this headline">¶</a></h2>
 <p>ReacNetGenerator is an automatic reaction network generator for
 reactive molecular dynamics simulation.</p>
-<div class="section" id="notes">
+<section id="notes">
 <h3>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
 <p>Please cite: ReacNetGenerator: an automatic reaction network generator
 for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,
 2020, 22 (2): 683–691, doi: 10.1039/C9CP05091D</p>
 <dl class="py class">
-<dt id="reacnetgenerator.ReacNetGenerator">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">reacnetgenerator.</span></code><code class="sig-name descname"><span class="pre">ReacNetGenerator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="reacnetgenerator.ReacNetGenerator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">reacnetgenerator.</span></span><span class="sig-name descname"><span class="pre">ReacNetGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use ReacNetGenerator for trajectory analysis.</p>
 <dl class="simple">
 <dt>inputfiletype: str</dt><dd><dl class="simple">
@@ -96,8 +97,8 @@ parameters. See the paper for details.</p>
 </pre></div>
 </div>
 <dl class="py class">
-<dt id="reacnetgenerator.ReacNetGenerator.Status">
-<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Status</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.Status" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="reacnetgenerator.ReacNetGenerator.Status">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">Status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.Status" title="Permalink to this definition">¶</a></dt>
 <dd><p>ReacNetGenerator status.</p>
 <p>The ReacNetGenerator consists of several modules and algorithms to
 process the information from the given trajectory, including:</p>
@@ -115,29 +116,29 @@ process the information from the given trajectory, including:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="reacnetgenerator.ReacNetGenerator.draw">
-<code class="sig-name descname"><span class="pre">draw</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.draw" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="reacnetgenerator.ReacNetGenerator.draw">
+<span class="sig-name descname"><span class="pre">draw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.draw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw the reaction network, i.e. NETWORK step.</p>
 <p>None</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="reacnetgenerator.ReacNetGenerator.report">
-<code class="sig-name descname"><span class="pre">report</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.report" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="reacnetgenerator.ReacNetGenerator.report">
+<span class="sig-name descname"><span class="pre">report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.report" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the analysis report, i.e. REPORT step.</p>
 <p>None</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="reacnetgenerator.ReacNetGenerator.run">
-<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.run" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="reacnetgenerator.ReacNetGenerator.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</p>
 <p>None</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="reacnetgenerator.ReacNetGenerator.runanddraw">
-<code class="sig-name descname"><span class="pre">runanddraw</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.runanddraw" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="reacnetgenerator.ReacNetGenerator.runanddraw">
+<span class="sig-name descname"><span class="pre">runanddraw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#reacnetgenerator.ReacNetGenerator.runanddraw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyze the trajectory from MD simulation.</p>
 <dl class="simple">
 <dt>run: bool, optional, default: True</dt><dd><p>Process the trajectory or not, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</p>
@@ -151,9 +152,9 @@ process the information from the given trajectory, including:</p>
 
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -206,7 +207,7 @@ process the information from the given trajectory, including:</p>
       &copy;2020, Jinzhe Zeng.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
