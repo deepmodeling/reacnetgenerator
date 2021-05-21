@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "css-loader": "5.2.5",
-    "cssnano": "5.0.3",
+    "cssnano": "5.0.4",
     "cssnano-preset-advanced": "5.1.0",
     "html-inline-css-webpack-plugin": "1.11.0",
     "html-webpack-plugin": "5.3.1",
