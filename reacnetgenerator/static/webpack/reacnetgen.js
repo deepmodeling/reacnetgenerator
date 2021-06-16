@@ -115,7 +115,7 @@ function loadrngdata() {
 
 const getSpecSvg = (smi) => {
     return rngdata['speciessvg'][smi];
-}
+};
 
 function handlejsondata(text) {
     try {
@@ -130,8 +130,8 @@ function handlejsondata(text) {
 function loaddata() {
     if (rngdata['species'].length > 1) {
         // load time select
-        const timelist = [{ "value": 1, "text": "All" }];
-        timelist.concat([...rngdata['species'].keys()].slice(1).map(
+        var timelist = [{ "value": 1, "text": "All" }];
+        timelist = timelist.concat([...rngdata['species'].keys()].slice(1).map(
             ii => ({ "value": ii + 1, "text": `Time ${ii}` })
         ));
         $("#timeselect").html($.templates("#optionTimeTmpl").render(timelist));
