@@ -1,9 +1,12 @@
 {
   "devDependencies": {
+    "@njzjz/preview-cfpages": "0.0.6",
     "semantic-release": "17.4.3",
     "vuepress": "1.8.2"
   },
   "scripts": {
+    "postinstall": "preview-cfpages preview",
+    "cfpages:build": "yarn build",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "now-build": "yarn build-report && yarn copy-report && yarn build && mv docs/.vuepress/dist public",
