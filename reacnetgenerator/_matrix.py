@@ -71,8 +71,8 @@ class _GenerateMatrix(SharedRNGData):
                     newreactions.append(reac)
             sortedreactions = newreactions
 
-        table = np.zeros((maxsize, maxsize), dtype=np.int)
-        reactionnumber = np.zeros((2), dtype=np.int)
+        table = np.zeros((maxsize, maxsize), dtype=int)
+        reactionnumber = np.zeros((2), dtype=int)
         with open(self.reactionfilename if timeaxis is None else f"{self.reactionfilename}.{timeaxis}", 'w') as f:
             for reaction, n_reaction in sortedreactions:
                 f.write(f"{n_reaction} {'->'.join(reaction)}\n")
