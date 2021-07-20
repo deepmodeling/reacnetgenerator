@@ -7,7 +7,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-DTYPE = np.int
+DTYPE = int
 ctypedef np.int_t DTYPE_t
 DTYPE8 = np.int8
 ctypedef np.int8_t DTYPE8_t
@@ -31,7 +31,7 @@ cpdef idx_to_signal(DTYPE_t[:] idx, int step):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef check_zero_signal(DTYPE_t[:] signal):
+cpdef check_zero_signal(DTYPE8_t[:] signal):
     """Benchmark for 1,000,000 loops (1000/2000):
     Cython: 1.45 s
     Python: 3.67 s

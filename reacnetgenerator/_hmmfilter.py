@@ -21,6 +21,7 @@ applications in speech recognition. Proc. IEEE 1989, 77(2), 257-286.
 import tempfile
 from contextlib import ExitStack
 
+import numpy as np
 from hmmlearn import hmm
 
 from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, run_mp, SharedRNGData
@@ -60,7 +61,7 @@ class _HMMFilter(SharedRNGData):
             origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
-            hmmsignal = self._model.predict(origin)
+            hmmsignal = self._model.predict(origin).astype(np.int8)
             if check_zero_signal(hmmsignal) or self.printfiltersignal:
                 hmmbytes = listtobytes(hmmsignal)
         return originbytes, hmmbytes, line_c
