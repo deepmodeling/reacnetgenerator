@@ -1,0 +1,30 @@
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Zeng"
+    given-names: "Jinzhe"
+    orcid: "https://orcid.org/0000-0002-1515-8172"
+  - family-names: "Cao"
+    given-names: "Liqun"
+    orcid: "https://orcid.org/0000-0003-2943-7057"
+  - family-names: "Chin"
+    given-names: "Chih-Hao"
+    orcid: "https://orcid.org/0000-0003-2580-8236"
+  - family-names: "Ren"
+    given-names: "Haisheng"
+    orcid: "https://orcid.org/0000-0002-8638-7570"
+  - family-names: "Zhang"
+    given-names: "John Z. H."
+    orcid: "https://orcid.org/0000-0003-4612-1863"
+  - family-names: "Zhu"
+    given-names: "Tong"
+    orcid: "https://orcid.org/0000-0001-7472-3736"
+  doi: "10.1039/C9CP05091D"
+  journal: "Physical Chemistry Chemical Physics"
+  month: 1
+  start: 683 # First page number
+  end: 691 # Last page number
+  title: "ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations"
+  issue: 2
+  volume: 22
+  year: 2020
