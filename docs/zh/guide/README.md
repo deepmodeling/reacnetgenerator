@@ -3,13 +3,8 @@
 ReacNetGenerator是基于反应分子动力学模拟轨迹的反应网络自动构建和可视化软件。本页面提供了快速上手的指南。
 
 ## 安装
-你可以用`pip`安装ReacNetGenerator:
 
-```bash
-pip install reacnetgenerator
-```
-
-你也可以[从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/)，然后用conda安装ReacNetGenerator:
+你可以[从清华大学开源软件镜像站下载并安装 Anaconda 或 Miniconda](https://mirror.tuna.tsinghua.edu.cn/help/anaconda/)，然后用conda安装ReacNetGenerator:
 
 ```bash
 conda install reacnetgenerator -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/

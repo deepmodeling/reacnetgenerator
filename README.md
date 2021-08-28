@@ -19,10 +19,10 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 ## Guide and Tutorial
 
-You can install ReacNetGenerator with `pip`:
+You can install ReacNetGenerator with `conda`:
 
 ```sh
-pip install reacnetgenerator
+conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 

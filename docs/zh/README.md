@@ -31,10 +31,10 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 # 指南和教程
 
-使用`pip`安装ReacNetGenerator：
+使用`conda`安装ReacNetGenerator：
 
 ```sh
-pip install reacnetgenerator
+conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 
