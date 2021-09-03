@@ -2807,10 +2807,10 @@ tcomb@^3.2.21:
   resolved "https://registry.yarnpkg.com/tcomb/-/tcomb-3.2.29.tgz#32404fe9456d90c2cf4798682d37439f1ccc386c"
   integrity sha512-di2Hd1DB2Zfw6StGv861JoAF5h/uQVu/QJp2g8KVbtfKnoHdBQl5M32YWq6mnSYBQ1vFFrns5B1haWJL7rKaOQ==
 
-terser-webpack-plugin@5.2.2:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/terser-webpack-plugin/-/terser-webpack-plugin-5.2.2.tgz#d7fd08109d47b8d4ec7dbfeee6b18fe1a9142d8c"
-  integrity sha512-/SNcbgI4Igd0E02R6HY7BnKkQBfAdV6BHcYYXk++QrGXpQoayMt79eaOtTrghtdRoDL5w3hgyMh+AippkuOEFg==
+terser-webpack-plugin@5.2.3:
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/terser-webpack-plugin/-/terser-webpack-plugin-5.2.3.tgz#4852c91f709a4ea2bcf324cf48e7e88124cda0cc"
+  integrity sha512-eDbuaDlXhVaaoKuLD3DTNTozKqln6xOG6Us0SzlKG5tNlazG+/cdl8pm9qiF1Di89iWScTI0HcO+CDcf2dkXiw==
   dependencies:
     jest-worker "^27.0.6"
     p-limit "^3.1.0"
