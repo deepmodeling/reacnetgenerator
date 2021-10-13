@@ -37,7 +37,7 @@
     "optimize-css-assets-webpack-plugin": "6.0.1",
     "postcss": "8.3.9",
     "postcss-import": "14.0.2",
-    "postcss-loader": "6.1.1",
+    "postcss-loader": "6.2.0",
     "precss": "4.0.0",
     "sass": "1.42.1",
     "sass-loader": "11.1.1",
