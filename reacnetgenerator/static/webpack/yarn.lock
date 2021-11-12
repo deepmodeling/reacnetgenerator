@@ -1242,10 +1242,10 @@ icss-utils@^5.0.0, icss-utils@^5.1.0:
   resolved "https://registry.yarnpkg.com/icss-utils/-/icss-utils-5.1.0.tgz#c6be6858abd013d768e98366ae47e25d5887b1ae"
   integrity sha512-soFhflCVWLfRNOPU3iv5Z9VUdT44xFRbzjLsEzSr5AQmgqPMTHdU3PMT1Cf1ssx8fLNJDA1juftYl+PUcv3MqA==
 
-ifdef-loader@2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.3.1.tgz#355cc407596d2b698622ba90adc1ff0bdd392f3f"
-  integrity sha512-vi+B7SS1HzcuK+QZ9xLqTRQAecQxTAGPwpoTtdv5YFhu7d8srsGoHLykLjjvHDDOtvsXxVup73jex5kmyrBvMg==
+ifdef-loader@2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/ifdef-loader/-/ifdef-loader-2.3.2.tgz#d08972f53c32e90dce6722b6efb9b3a91717cfef"
+  integrity sha512-kH9bHPrfIFxLpq3XEruJqSlHXch2nOljKIDRS/6MU5LDZTyHeaSWVf04wNYX+8RT+NDmeS8Vm5HwZ7akkXo8ig==
   dependencies:
     loader-utils "^1.1.0"
 
