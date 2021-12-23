@@ -2,7 +2,7 @@
   "devDependencies": {
     "@njzjz/preview-cfpages": "0.0.6",
     "semantic-release": "18.0.1",
-    "vuepress": "1.9.1"
+    "vuepress": "1.9.3"
   },
   "scripts": {
     "postinstall": "preview-cfpages preview",
