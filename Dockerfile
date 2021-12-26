@@ -1,4 +1,4 @@
-FROM nikolaik/python-nodejs:python3.9-nodejs14@sha256:35bd80fb95b5e0440da8242496ae155ba4a0844ae5b954e0c77f2b5390828853
+FROM nikolaik/python-nodejs:python3.9-nodejs14@sha256:ee73c81544ef9c62094986dd89bb3dc2d11cb1fdb262ee6329b10733d8e82bc2
 COPY . /reacnetgenerator
 RUN pip install --no-cache-dir /reacnetgenerator && \
     reacnetgenerator -h
