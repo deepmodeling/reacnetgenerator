@@ -29,7 +29,7 @@
   "devDependencies": {
     "css-loader": "6.5.1",
     "cssnano": "5.0.15",
-    "cssnano-preset-advanced": "5.1.9",
+    "cssnano-preset-advanced": "5.1.10",
     "html-inline-css-webpack-plugin": "1.11.1",
     "html-webpack-plugin": "5.5.0",
     "ifdef-loader": "2.3.2",
