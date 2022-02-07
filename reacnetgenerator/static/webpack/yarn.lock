@@ -711,17 +711,17 @@ cssesc@^3.0.0:
   resolved "https://registry.yarnpkg.com/cssesc/-/cssesc-3.0.0.tgz#37741919903b868565e1c09ea747445cd18983ee"
   integrity sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==
 
-cssnano-preset-advanced@5.1.11:
-  version "5.1.11"
-  resolved "https://registry.yarnpkg.com/cssnano-preset-advanced/-/cssnano-preset-advanced-5.1.11.tgz#43242fc1686dd0ed063affd6aced01df5d9161e7"
-  integrity sha512-M9f/4oRh5oxVUOtpKztACqtwAtcvHoWpEIB7axIxnLwhndvEMi7MtwPAOnKdSPBvH3RDGE80AL2JJ/e3Ruv2Qg==
+cssnano-preset-advanced@5.1.12:
+  version "5.1.12"
+  resolved "https://registry.yarnpkg.com/cssnano-preset-advanced/-/cssnano-preset-advanced-5.1.12.tgz#11f5b0c4e3c32bcfd475465a283fa14dec8df972"
+  integrity sha512-5WWV9mbqVNwH4nRjs5UbhNl7eKo+16eYNzGogmz0Sa6iqWUeLdN8oo83WuTTqz5vjEKhTbRM5oX6WV1i6ees6g==
   dependencies:
     autoprefixer "^10.3.7"
-    cssnano-preset-default "^5.1.11"
-    postcss-discard-unused "^5.0.2"
-    postcss-merge-idents "^5.0.2"
-    postcss-reduce-idents "^5.0.2"
-    postcss-zindex "^5.0.1"
+    cssnano-preset-default "^5.1.12"
+    postcss-discard-unused "^5.0.3"
+    postcss-merge-idents "^5.0.3"
+    postcss-reduce-idents "^5.0.3"
+    postcss-zindex "^5.0.2"
 
 cssnano-preset-default@^5.1.11:
   version "5.1.11"
@@ -793,7 +793,7 @@ cssnano-preset-default@^5.1.12:
     postcss-svgo "^5.0.4"
     postcss-unique-selectors "^5.0.4"
 
-cssnano-utils@^3.0.0, cssnano-utils@^3.0.1:
+cssnano-utils@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/cssnano-utils/-/cssnano-utils-3.0.1.tgz#d3cc0a142d3d217f8736837ec0a2ccff6a89c6ea"
   integrity sha512-VNCHL364lh++/ono+S3j9NlUK+d97KNkxI77NlqZU2W3xd2/qmyN61dsa47pTpb55zuU4G4lI7qFjAXZJH1OAQ==
@@ -1970,10 +1970,10 @@ postcss-discard-overridden@^5.0.4:
   resolved "https://registry.yarnpkg.com/postcss-discard-overridden/-/postcss-discard-overridden-5.0.4.tgz#cc999d6caf18ea16eff8b2b58f48ec3ddee35c9c"
   integrity sha512-3j9QH0Qh1KkdxwiZOW82cId7zdwXVQv/gRXYDnwx5pBtR1sTkU4cXRK9lp5dSdiM0r0OICO/L8J6sV1/7m0kHg==
 
-postcss-discard-unused@^5.0.2:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/postcss-discard-unused/-/postcss-discard-unused-5.0.2.tgz#674bad5fde61517217e7e056015fda694e0cb722"
-  integrity sha512-vP5MOINH2LouL2slqENa8vmKphKjv+VOeeAdlUfySkwi3HoaW1p7++Oh8bqRQzoAmeTrf5G6CHzxa7xMXFNkIA==
+postcss-discard-unused@^5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/postcss-discard-unused/-/postcss-discard-unused-5.0.3.tgz#89fd3ebdbed8320df77a4ad503bd83cff52409f5"
+  integrity sha512-WO6FJxL5fGnuE77ZbTcZ/nRZJ4+TOqNaqLBLWgkR4e+WdmHn77OHPyQmsRv7eOB2rLKL6tsq2bs1GwoKXD/++Q==
   dependencies:
     postcss-selector-parser "^6.0.5"
 
@@ -2085,12 +2085,12 @@ postcss-media-minmax@^4.0.0:
   dependencies:
     postcss "^7.0.2"
 
-postcss-merge-idents@^5.0.2:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/postcss-merge-idents/-/postcss-merge-idents-5.0.2.tgz#d67d9505857a9546c3f7a305386e4147497322d6"
-  integrity sha512-V8IlmvQez+/mB06touksO3lUKtzL3ZKfBxfXFK2q136TOyOLXBuoI8kQwZsIOFWUfA8gk/XpFtmMsqURqYPk6Q==
+postcss-merge-idents@^5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/postcss-merge-idents/-/postcss-merge-idents-5.0.3.tgz#04f333f32767bd7b7b002f0032da347ec3c8c484"
+  integrity sha512-Z4LCzh2WzMn69KaS2FaJcrIeDQ170V13QHq+0hnBEFKJJkD+y5qndZ/bl3AhpddrSrXWIVR+xAwjmHQIJI2Eog==
   dependencies:
-    cssnano-utils "^3.0.0"
+    cssnano-utils "^3.0.2"
     postcss-value-parser "^4.2.0"
 
 postcss-merge-longhand@^5.0.5:
@@ -2467,10 +2467,10 @@ postcss-pseudo-class-any-link@^6.0.0:
     postcss "^7.0.2"
     postcss-selector-parser "^5.0.0-rc.3"
 
-postcss-reduce-idents@^5.0.2:
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/postcss-reduce-idents/-/postcss-reduce-idents-5.0.2.tgz#526b171979c063796cec87b2864e5657c412fec0"
-  integrity sha512-R53mUIa6hJC+m1vKSFVrs+wU2J7vPAm35IWE3kz5VV1sx8XBXV2PU8yXGqI8Jm9RzfL7EUiJ5Kml5t/eEeD1XA==
+postcss-reduce-idents@^5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/postcss-reduce-idents/-/postcss-reduce-idents-5.0.3.tgz#b632796275b4fa1a4040799969dd17167eaf4d8b"
+  integrity sha512-9bj9/Xhwiti0Z35kkguJX4G6yUYVw8S1kRLU4jFSCTEuHu4yJggf4rNUoVnT45lm/vU97Wd593CxspMDbHxy4w==
   dependencies:
     postcss-value-parser "^4.2.0"
 
@@ -2588,10 +2588,10 @@ postcss-values-parser@^2.0.0, postcss-values-parser@^2.0.1:
     indexes-of "^1.0.1"
     uniq "^1.0.1"
 
-postcss-zindex@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/postcss-zindex/-/postcss-zindex-5.0.1.tgz#c585724beb69d356af8c7e68847b28d6298ece03"
-  integrity sha512-nwgtJJys+XmmSGoYCcgkf/VczP8Mp/0OfSv3v0+fw0uABY4yxw+eFs0Xp9nAZHIKnS5j+e9ywQ+RD+ONyvl5pA==
+postcss-zindex@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/postcss-zindex/-/postcss-zindex-5.0.2.tgz#7e48aee54062c93418593035229ea06b92381251"
+  integrity sha512-KPQFjQu73H35HLHmE8Wv31ygfQoucxD52oRm4FPFv1emYhFMzUQdF8adaXCevFLIHPRp2rRYfbaDiEqZ4YjVtw==
 
 postcss@8.4.6, postcss@^8.2.1, postcss@^8.4.5:
   version "8.4.6"
