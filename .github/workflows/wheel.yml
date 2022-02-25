@@ -23,7 +23,7 @@ jobs:
         name: Install Python
         with:
           python-version: '3.8'
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 14
 
@@ -53,7 +53,7 @@ jobs:
         name: Install Python
         with:
           python-version: '3.8'
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 14
 
