@@ -60,8 +60,11 @@ class _HTMLResult(SharedRNGData):
         [CH]
         >>> self._re('Na')
         [Na]
+        >>> self._re('[H]c(Cl)C([H])Cl')
+        [H][c]([Cl])[C]([H])[Cl]
         """
-        elements = "|".join([((an.upper() + "|" + an.lower()) if len(an)==1 else an) for an in self.atomname if an != 'H'])
+        Satom = sorted(self.atomname, key = lambda i:len(i), reverse=True)
+        elements = "|".join([((an.upper() + "|" + an.lower()) if len(an)==1 else an) for an in Satom if an != 'H'])
         smi = re.sub(r'(?<!\[)(' + elements + r')(?!H)', r'[\1]', smi)
         return smi.replace("[HH]", "[H]")
 
