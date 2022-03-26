@@ -27,7 +27,7 @@
     "startbootstrap-creative": "6.0.5"
   },
   "devDependencies": {
-    "css-loader": "6.6.0",
+    "css-loader": "6.7.1",
     "cssnano": "5.1.5",
     "cssnano-preset-advanced": "5.2.0",
     "html-inline-css-webpack-plugin": "1.11.1",
