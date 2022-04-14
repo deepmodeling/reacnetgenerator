@@ -114,7 +114,8 @@ class TestReacNetGen:
             ((5, 6, 1),)), listtobytes(index)]
         benchmark(hmmclass._getoriginandhmm, compressed_bytes)
 
-    def test_re(self, reacnetgen):
+    def test_re(self, reacnetgen_param):
+        reacnetgen = ReacNetGenerator(**reacnetgen_param['rngparams'])
         r = _HTMLResult(reacnetgen)
         r.atomname = ['C', 'H', 'O', 'Na', 'Cl']
         assert r._re('C'), '[C]'
