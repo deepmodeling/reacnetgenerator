@@ -22,7 +22,7 @@ def _commandline():
     parser.add_argument(
         '--nopbc', help='Disable PBC.', action="store_true")
     parser.add_argument(
-        '--cell', '-c', nargs=3, type=float, help='Cell')
+        '--cell', '-c', nargs='+', type=float, help='Cell')
     parser.add_argument(
         '-n', '-np', '--nproc', help='Number of processes', type=int)
     parser.add_argument(
