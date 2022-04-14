@@ -15,6 +15,7 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
+from reacnetgenerator._reachtml import _HTMLResult
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
 from reacnetgenerator.commandline import parm2cmd
@@ -112,3 +113,13 @@ class TestReacNetGen:
         compressed_bytes = [listtobytes((5, 6)), listtobytes(
             ((5, 6, 1),)), listtobytes(index)]
         benchmark(hmmclass._getoriginandhmm, compressed_bytes)
+
+    def test_re(self, reacnetgen):
+        r = _HTMLResult(reacnetgen)
+        r.atomname = ['C', 'H', 'O', 'Na', 'Cl']
+        assert r._re('C'), '[C]'
+        assert r._re('[C]'), '[C]' 
+        assert r._re('[CH]'), '[CH]'
+        assert r._re('Na'), '[Na]'
+        assert r._re('[H]c(Cl)C([H])Cl'), '[H][c]([Cl])[C]([H])[Cl]'
+
