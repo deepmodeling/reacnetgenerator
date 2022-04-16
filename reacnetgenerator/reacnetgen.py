@@ -85,7 +85,7 @@ class ReacNetGenerator:
         are filtered, they can turn off this option.
     pbc: bool, optional, default: True
         Use periodic boundary conditions (PBC) or not.
-    cell: (3,3) array_like or (3,) array_like, optional, default: None
+    cell: (3,3) array_like or (3,) array_like or (9,) array_like, optional, default: None
         The cell (box size) of the system. If None (default), the cell will be read from the input
         file. If the input file doesn't have cell information, this parameter will be necessary.
     nproc: int, optional, default: None
@@ -158,6 +158,8 @@ class ReacNetGenerator:
         if kwargs["selectatoms"] is None:
             kwargs["selectatoms"] = kwargs["atomname"]
         self.__dict__.update(kwargs)
+        if self.cell is not None and len(self.cell) == 9:
+            self.cell = np.array(self.cell).reshape((3,3))
 
     def runanddraw(self, run=True, draw=True, report=True):
         """Analyze the trajectory from MD simulation.
