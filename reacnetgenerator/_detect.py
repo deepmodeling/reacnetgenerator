@@ -140,9 +140,14 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
+        # return list([b''.join((listtobytes(mol),
+        #                        listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
+        # int() because sometimes, the elements in bondlist are type numpy.int64 sometimes are int
+        # which cause the different bytes results from same bond-network.
         return list([b''.join((listtobytes(mol),
-                               listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
-
+                               listtobytes([(int(i[0]),int(i[1])) for i in bondlist]).replace(b'\n',b'\t'),
+                               listtobytes([int(i[2]) for i in bondlist])
+                               )) for mol, bondlist in zip(*dps(bond, level))])
     def _writemoleculetempfile(self, d):
         with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as f:
             self.moleculetempfilename = f.name

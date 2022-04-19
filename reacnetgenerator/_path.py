@@ -130,7 +130,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _getatomsandbonds(self, line):
         atoms = np.array(bytestolist(line[0]), dtype=int)
-        bonds = bytestolist(line[1])
+        # bonds = bytestolist(line[1])
+        pairs=bytestolist(line[1].split()[0])
+        levels=bytestolist(line[1].split()[1])
+        bonds=[[*pair,level] for pair,level in zip(pairs,levels)]
         return atoms, bonds
 
 
