@@ -14,10 +14,8 @@ class _mergeISO(SharedRNGData):
         self.returnkeys()
 
     def _mergeISO(self):
-        with open(self.moleculetempfilename, 'rb') as ft,open('/data/home/cx/test/reac/test.dat', 'wb') as ft2:
+        with open(self.moleculetempfilename, 'rb') as ft:
             items=ft.readlines()
-            for i in items:
-                ft2.write(i)
         items=[[items[i],items[i+1],items[i+2]] for i in range(0,len(items),3)]
         new_items=[]
         _oldbitem=b''
