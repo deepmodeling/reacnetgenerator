@@ -131,7 +131,7 @@ class ReacNetGenerator:
                             "nproc": cpu_count(), "pos": {}, "pbc": True, "split": 1, "n_searchspecies": 2,
                             "node_size": 200, "font_size": 6, "widthcoefficient": 1, "maxspecies": 20, "stepinterval": 1,
                             "nolabel": False,  "printfiltersignal": False, "showid": True, "runHMM": True, "SMILES": True,
-                            "miso":0,
+                            "miso": 0,
                             "getoriginfile": False, "needprintspecies": True, "urls": [],
                             "matrix_size":100,
                             }
