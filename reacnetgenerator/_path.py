@@ -19,6 +19,7 @@ and Machine Intelligence 2004, 26, 1367-1372.
 import itertools
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
+from re import S
 
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -131,8 +132,9 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     def _getatomsandbonds(self, line):
         atoms = np.array(bytestolist(line[0]), dtype=int)
         # bonds = bytestolist(line[1])
-        pairs = bytestolist(line[1].split()[0])
-        levels = bytestolist(line[1].split()[1])
+        s = line[1].split()
+        pairs = bytestolist(s[0])
+        levels = bytestolist(s[1])
         bonds = [[*pair, level] for pair, level in zip(pairs, levels)]
         return atoms, bonds
 
