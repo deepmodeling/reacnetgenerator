@@ -140,8 +140,15 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
+        # return list([b''.join((listtobytes(mol),
+        #                        listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
+        # int() because sometimes, the elements in bondlist are type numpy.int64 sometimes are int
+        # which cause the different bytes results from same bond-network.
         return list([b''.join((listtobytes(mol),
-                               listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
+                               listtobytes([(int(i[0]), int(i[1]))
+                                           for i in bondlist]).replace(b'\n', b'\t'),
+                               listtobytes([int(i[2]) for i in bondlist])
+                               )) for mol, bondlist in zip(*dps(bond, level))])
 
     def _writemoleculetempfile(self, d):
         with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as f:
@@ -328,7 +335,7 @@ class _DetectLAMMPSdump(_DetectCrd):
                         s = line.split()
                         ss.append(list(map(float, s)))
         ss = np.array(ss)
-        if ss.shape[1]>2:
+        if ss.shape[1] > 2:
             xy = ss[0][2]
             xz = ss[1][2]
             yz = ss[2][2]
@@ -339,10 +346,10 @@ class _DetectLAMMPSdump(_DetectCrd):
         ylo = ss[1][0] - min(0., yz)
         yhi = ss[1][1] - max(0., yz)
         zlo = ss[2][0]
-        zhi = ss[2][1] 
+        zhi = ss[2][1]
         boxsize = np.array([[xhi-xlo, 0., 0.],
-                   [xy, yhi-ylo, 0.],
-                   [xz, yz, zhi-zlo]])
+                            [xy, yhi-ylo, 0.],
+                            [xz, yz, zhi-zlo]])
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
@@ -355,7 +362,8 @@ class _Detectxyz(_DetectCrd):
     """xyz file. Two frames are connected. Cell information must be inputed by user."""
 
     def _readNfunc(self, f):
-        atomname_dict = dict(zip(self.atomname.tolist(), range(self.atomname.size)))
+        atomname_dict = dict(
+            zip(self.atomname.tolist(), range(self.atomname.size)))
         for index, line in enumerate(f):
             s = line.split()
             if index == 0:
@@ -380,7 +388,8 @@ class _Detectxyz(_DetectCrd):
         for index, line in enumerate(lines):
             s = line.split()
             if index > 1:
-                step_atoms.append((index-1, Atom(s[0] ,tuple((float(x) for x in s[1:4])))))
+                step_atoms.append(
+                    (index-1, Atom(s[0], tuple((float(x) for x in s[1:4])))))
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)

@@ -16,6 +16,8 @@ def _commandline():
         '--nohmm', help='Process trajectory without Hidden Markov Model (HMM)',
         action="store_true")
     parser.add_argument(
+        '--miso', help='Merge the isomers',type=int, default=0)
+    parser.add_argument(
         '--dump', help='Process the LAMMPS dump file', action="store_true")
     parser.add_argument(
         '--type', '-t', help='Input file type', default='lammpsbondfile')
@@ -44,6 +46,7 @@ def _commandline():
     import numpy as np
     ReacNetGenerator(
         inputfilename=args.inputfilename, atomname=args.atomname,
+        miso=args.miso,
         runHMM=not args.nohmm,
         inputfiletype=('lammpsdumpfile' if args.dump else args.type),
         nproc=args.nproc, selectatoms=args.selectatoms,

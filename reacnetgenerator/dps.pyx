@@ -37,7 +37,8 @@ def dps(bonds, levels):
                 for b, l in zip(bonds[s], levels[s]):
                     b_c = b
                     if visited[b_c]==0:
-                        bond.append((s, b, l) if i < b else (b, s, l))
+                        # bond.append((s, b, l) if i < b else (b, s, l))
+                        bond.append((s, b, l) if s < b else (b, s, l))
                         st.push(b_c)
                 visited[s]=1
             mol.sort()

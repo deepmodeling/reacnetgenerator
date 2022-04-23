@@ -53,6 +53,7 @@ import numpy as np
 from . import __version__, __date__, __update__
 from ._detect import _Detect
 from ._draw import _DrawNetwork
+from ._mergeiso import _mergeISO 
 from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
@@ -83,6 +84,11 @@ class ReacNetGenerator:
     runHMM: bool, optional, default: True
         Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
         are filtered, they can turn off this option.
+    miso: int, optional, default: 0
+        Merge the isomers and the highest frequency is used as the representative. 0, off 
+        two available levels:
+        1, merge the isomers with same atoms and same bond-network but different bond levels;
+        2, merge the isomers with same atoms with different bond-network.
     pbc: bool, optional, default: True
         Use periodic boundary conditions (PBC) or not.
     cell: (3,3) array_like or (3,) array_like or (9,) array_like, optional, default: None
@@ -125,6 +131,7 @@ class ReacNetGenerator:
                             "nproc": cpu_count(), "pos": {}, "pbc": True, "split": 1, "n_searchspecies": 2,
                             "node_size": 200, "font_size": 6, "widthcoefficient": 1, "maxspecies": 20, "stepinterval": 1,
                             "nolabel": False,  "printfiltersignal": False, "showid": True, "runHMM": True, "SMILES": True,
+                            "miso": 0,
                             "getoriginfile": False, "needprintspecies": True, "urls": [],
                             "matrix_size":100,
                             }
@@ -179,6 +186,7 @@ class ReacNetGenerator:
                 processthing.append(self.Status.DOWNLOAD)
             processthing.extend((
                 self.Status.DETECT,
+                self.Status.MISO,
                 self.Status.HMM,
                 self.Status.PATH,
                 self.Status.MATRIX,
@@ -201,6 +209,7 @@ class ReacNetGenerator:
             processthing.append(self.Status.DOWNLOAD)
         processthing.extend((
             self.Status.DETECT,
+            self.Status.MISO,
             self.Status.HMM,
             self.Status.PATH,
             self.Status.MATRIX,
@@ -233,6 +242,7 @@ class ReacNetGenerator:
             - DOWNLOAD: Download trajectory from urls
             - DETECT: Read bond information and detect molecules
             - HMM: HMM filter
+            - MISO: Merge isomers
             - PATH: Indentify isomers and collect reaction paths
             - MATRIX: Reaction matrix generation
             - NETWORK: Draw reaction network
@@ -241,6 +251,7 @@ class ReacNetGenerator:
 
         INIT = "Init"
         DETECT = "Read bond information and detect molecules"
+        MISO = "Merge isomers"
         HMM = "HMM filter"
         PATH = "Indentify isomers and collect reaction paths"
         MATRIX = "Reaction matrix generation"
@@ -264,6 +275,8 @@ class ReacNetGenerator:
         for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self).detect()
+            elif runstep == self.Status.MISO:  
+                _mergeISO(self).merge()
             elif runstep == self.Status.HMM:
                 _HMMFilter(self).filter()
             elif runstep == self.Status.PATH:
