@@ -70,6 +70,11 @@ the order of that in the input file.</p>
 <dt>runHMM: bool, optional, default: True</dt><dd><p>Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
 are filtered, they can turn off this option.</p>
 </dd>
+<dt>miso: int, optional, default: 0</dt><dd><p>Merge the isomers and the highest frequency is used as the representative. 0, off 
+two available levels:
+1, merge the isomers with same atoms and same bond-network but different bond levels;
+2, merge the isomers with same atoms with different bond-network.</p>
+</dd>
 <dt>pbc: bool, optional, default: True</dt><dd><p>Use periodic boundary conditions (PBC) or not.</p>
 </dd>
 <dt>cell: (3,3) array_like or (3,) array_like or (9,) array_like, optional, default: None</dt><dd><p>The cell (box size) of the system. If None (default), the cell will be read from the input
@@ -107,6 +112,7 @@ process the information from the given trajectory, including:</p>
 <li><p>DOWNLOAD: Download trajectory from urls</p></li>
 <li><p>DETECT: Read bond information and detect molecules</p></li>
 <li><p>HMM: HMM filter</p></li>
+<li><p>MISO: Merge isomers</p></li>
 <li><p>PATH: Indentify isomers and collect reaction paths</p></li>
 <li><p>MATRIX: Reaction matrix generation</p></li>
 <li><p>NETWORK: Draw reaction network</p></li>
