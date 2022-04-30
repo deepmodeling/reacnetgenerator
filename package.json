@@ -15,7 +15,7 @@
     "build-report": "cd reacnetgenerator/static/webpack && yarn && yarn start && cd ../../../",
     "copy-report": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report_inline.html",
     "build-web-report": "cd reacnetgenerator/static/webpack && yarn && REACNETGENERATOR_BUILDWEB=1 yarn start && cd ../../../",
-    "copy-web-report": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html && mv reacnetgenerator/static/webpack/bundle.js reacnetgenerator/static/webpack/bundle.css reacnetgenerator/static/webpack/2ba5ddf3996b653ecfbc.png docs/.vuepress/public/"
+    "copy-web-report": "mv reacnetgenerator/static/webpack/bundle.html docs/.vuepress/public/report.html && mv reacnetgenerator/static/webpack/bundle.js reacnetgenerator/static/webpack/bundle.css docs/.vuepress/public/"
   },
   "license": "LGPL-3.0-only",
   "version": "0.0.0-development",
