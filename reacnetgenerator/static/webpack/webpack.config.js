@@ -147,7 +147,7 @@ module.exports = {
           { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
           { name: "animejs", path: "lib/anime.min.js", var: "anime" },
         ],
-        prodUrl: '//cdn.jsdelivr.net/npm/:name@:version/:path',
+        prodUrl: '//unpkg.com/:name@:version/:path',
       })
     ] : [
       // build inline
