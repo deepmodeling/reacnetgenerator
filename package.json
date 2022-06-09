@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@njzjz/preview-cfpages": "0.0.6",
-    "semantic-release": "19.0.2",
+    "semantic-release": "19.0.3",
     "vuepress": "1.9.7"
   },
   "scripts": {
