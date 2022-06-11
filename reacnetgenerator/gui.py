@@ -35,7 +35,7 @@ class GUI:
         self._filetype = tk.StringVar()
         self._filetype.set('lammpsbondfile')
         self._runhmm = tk.IntVar()
-        self._runhmm.set(1)
+        self._runhmm.set(0)
         self._openpage = tk.IntVar()
         self._openpage.set(1)
 

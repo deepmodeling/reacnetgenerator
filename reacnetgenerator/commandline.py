@@ -13,7 +13,7 @@ def _commandline():
                         help='Atomic names in the trajectory, e.g. C H O',
                         nargs='*', required=True)
     parser.add_argument(
-        '--nohmm', help='Process trajectory without Hidden Markov Model (HMM)',
+        '--nohmm', help='Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly read the related section in the paper',
         action="store_true")
     parser.add_argument(
         '--miso', help='Merge the isomers',type=int, default=0)
