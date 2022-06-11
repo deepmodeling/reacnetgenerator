@@ -19,7 +19,7 @@ conda install reacnetgenerator -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/
 ReacNetGenerator可以处理任意类型含有原子坐标的轨迹文件，例如LAMMPS dump文件，可以通过在 LAMMPS 中执行dump 1 all custom 100 dump.reaxc id type x y z来获得：
 
 ```bash
-reacnetgenerator --type lammpsdumpfile -i dump.reaxc -a C H O
+reacnetgenerator --type lammpsdumpfile -i dump.reaxc -a C H O --nohmm
 ```
 
 其中，C、H、O 是轨迹中的原子种类。软件将自动生成<a href="/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json" target="_blank">分析结果</a>。
@@ -27,7 +27,7 @@ reacnetgenerator --type lammpsdumpfile -i dump.reaxc -a C H O
 软件也可以处理含有键级信息的文件，例如LAMMPS键级文件：
 
 ```bash
-reacnetgenerator --type lammpsbondfile -i bonds.reaxc -a C H O
+reacnetgenerator --type lammpsbondfile -i bonds.reaxc -a C H O --nohmm
 ```
 
 运行以下命令查看帮助：
@@ -35,6 +35,12 @@ reacnetgenerator --type lammpsbondfile -i bonds.reaxc -a C H O
 ```bash
 reacnetgenerator -h
 ```
+
+### 启用HMM过滤
+
+在上述命令中移除`--nohmm`，可以启用隐马尔可夫模型（HMM）过滤。但是，HMM可以过滤掉一些重要物种。使用者应当阅读[原始论文](https://doi.org/10.1039/C9CP05091D)，仔细调节相关参数。
+
+HMM过滤不应用于生成随时间变化的物种信息。
 
 ### 图形界面
 
