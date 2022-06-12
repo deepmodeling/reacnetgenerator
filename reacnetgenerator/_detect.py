@@ -40,6 +40,9 @@ from .dps import dps
 from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
 
 
+openbabel.obErrorLog.StopLogging()
+
+
 class _Detect(SharedRNGData, metaclass=ABCMeta):
     """Detect molecules.
     
