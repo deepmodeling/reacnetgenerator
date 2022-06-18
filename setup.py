@@ -110,7 +110,7 @@ if __name__ == '__main__':
                     ],
     no_conda_require = []
     if not os.environ.get("CONDA_BUILD", 0):
-        no_conda_require.extend(["openbabel-wheel", "rdkit-pypi"])
+        no_conda_require.extend(["openbabel-wheel", "rdkit"])
     setup(name='reacnetgenerator',
           description='Reaction Network Generator',
           keywords="reaction network",
