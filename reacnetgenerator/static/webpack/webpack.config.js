@@ -112,7 +112,7 @@ module.exports = {
       new WebpackCdnPlugin({
         modules: [
           { name: "jquery", var: "$", path: "dist/jquery.min.js" },
-          { name: "regenerator-runtime", path: "runtime.min.js", var: "regeneratorRuntime" },
+          { name: "regenerator-runtime", path: "runtime.js", var: "regeneratorRuntime" },
           { name: "popper.js", path: "dist/umd/popper.min.js" }, // must above bootstrap
           {
             name: "bootstrap",
@@ -129,7 +129,7 @@ module.exports = {
           {
             name: "magnific-popup",
             path: "dist/jquery.magnific-popup.min.js",
-            style: "dist/magnific-popup.min.css",
+            style: "dist/magnific-popup.css",
             var: "$.magnificPopup"
           },
           {
@@ -140,8 +140,8 @@ module.exports = {
           },
           {
             name: "startbootstrap-creative",
-            path: "dist/js/scripts.min.js",
-            style: "dist/css/styles.min.css"
+            path: "dist/js/scripts.js",
+            style: "dist/css/styles.css"
           },
           { name: "d3", path: "d3.min.js" },
           { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
