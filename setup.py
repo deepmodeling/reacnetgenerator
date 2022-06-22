@@ -142,6 +142,7 @@ if __name__ == '__main__':
                 'numpydoc',
                 'sphinx-argparse',
                 'myst_parser',
+                'sphinx-favicon',
               ],
           },
           use_scm_version=os.path.exists(os.path.join(this_directory, ".git")),

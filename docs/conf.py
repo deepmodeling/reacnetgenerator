@@ -39,6 +39,7 @@ extensions = [
     'sphinxarg.ext',
     'myst_parser',
     'numpydoc',
+    'sphinx-favicon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -71,6 +72,14 @@ html_theme_options = {
 }
 
 myst_heading_anchors = 3
+
+favicons = [
+    {
+        "rel": "icon",
+        "static-file": "reacnetgen.svg",
+        "type": "image/svg+xml",
+    },
+]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
