@@ -141,6 +141,7 @@ if __name__ == '__main__':
                 'sphinx-press-theme',
                 'numpydoc',
                 'sphinx-argparse',
+                'myst_parser',
               ],
           },
           use_scm_version=os.path.exists(os.path.join(this_directory, ".git")),
