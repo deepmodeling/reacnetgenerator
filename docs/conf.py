@@ -108,13 +108,15 @@ def copy_report(app):
 
     cur_dir = os.path.abspath(os.path.dirname(__file__))
     webpack = os.path.join(cur_dir, "..", "reacnetgenerator", "static", "webpack")
-    staticdir = os.path.join(app.builder.outdir, '_static')
+    outdir = app.builder.outdir
     sp.check_output(["yarn"], cwd=webpack)
     sp.check_output(["yarn", "start"], cwd=webpack, env={**os.environ, "REACNETGENERATOR_BUILDWEB": "1"})
-    copy_asset_file(os.path.join(webpack, "bundle.html"), os.path.join(staticdir, "report.html"))
-    copy_asset_file(os.path.join(webpack, "bundle.js"), os.path.join(staticdir, "bundle.js"))
-    copy_asset_file(os.path.join(webpack, "bundle.css"), os.path.join(staticdir, "bundle.css"))
-    copy_asset_file(os.path.join(webpack, "fire.png"), os.path.join(staticdir, "fire.png"))
+    # first create the directory..
+    os.makedirs(outdir, exist_ok=True)
+    copy_asset_file(os.path.join(webpack, "bundle.html"), os.path.join(outdir, "report.html"))
+    copy_asset_file(os.path.join(webpack, "bundle.js"), os.path.join(outdir, "bundle.js"))
+    copy_asset_file(os.path.join(webpack, "bundle.css"), os.path.join(outdir, "bundle.css"))
+    copy_asset_file(os.path.join(webpack, "fire.png"), os.path.join(outdir, "fire.png"))
 
 
 def setup(app):
