@@ -13,7 +13,7 @@ Table of contents
    guide/hmm
    guide/gui
    guide/python
-   Online report loader <report.html#https://>
+   Online report loader </report.html#https://>
 
 .. toctree::
    :maxdepth: 2
