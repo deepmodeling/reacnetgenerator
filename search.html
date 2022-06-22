@@ -2,38 +2,42 @@
 <html  lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-    <link rel="icon" href="../_static/reacnetgen.svg" type="image/svg+xml">
-
-      <title>Guides</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Search</title>
     
-          <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-          <link rel="stylesheet" href="../_static/theme.css " type="text/css" />
-          <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  
       
       <!-- sphinx script_files -->
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
         <script src="https://unpkg.com/bilitube@0/dist/bilitube.min.js"></script>
 
       
       <!-- bundled in js (rollup iife) -->
-      <!-- <script src="../_static/theme-vendors.js"></script> -->
-      <script src="../_static/theme.js" defer></script>
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+  <script type="text/javascript" src="_static/searchtools.js"></script>
+  <script src="_static/language_data.js"></script>
     
-  <link rel="index" title="Index" href="../genindex.html" />
-  <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Installation" href="install.html" />
-  <link rel="prev" title="ReacNetGenerator" href="../index.html" /> 
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="#" />
+  <script type="text/javascript" src="searchindex.js" defer></script>
+  
+  <script type="text/javascript" id="searchindexloader"></script>
+   
+
   </head>
 
   <body>
     <div id="app">
     <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
-  <router-link to="../index.html" class="home-link">
+  <router-link to="index.html" class="home-link">
     
       <span class="site-name">ReacNetGenerator</span>
     
@@ -44,28 +48,28 @@
 
   
     <div class="nav-item">
-      <a href="#guides"
+      <a href="guide/index.html#guides"
          class="nav-link ">
          Guides
       </a>
     </div>
   
     <div class="nav-item">
-      <a href="../tutorial/index.html#tutorials"
+      <a href="tutorial/index.html#tutorials"
          class="nav-link ">
          Tutorials
       </a>
     </div>
   
     <div class="nav-item">
-      <a href="../develop.html#developing"
+      <a href="develop.html#developing"
          class="nav-link ">
          Developing
       </a>
     </div>
   
     <div class="nav-item">
-      <a href="../external.html#external-resources"
+      <a href="external.html#external-resources"
          class="nav-link ">
          External resources
       </a>
@@ -111,28 +115,28 @@
 
   
     <div class="nav-item">
-      <a href="#guides"
+      <a href="guide/index.html#guides"
          class="nav-link ">
          Guides
       </a>
     </div>
   
     <div class="nav-item">
-      <a href="../tutorial/index.html#tutorials"
+      <a href="tutorial/index.html#tutorials"
          class="nav-link ">
          Tutorials
       </a>
     </div>
   
     <div class="nav-item">
-      <a href="../develop.html#developing"
+      <a href="develop.html#developing"
          class="nav-link ">
          Developing
       </a>
     </div>
   
     <div class="nav-item">
-      <a href="../external.html#external-resources"
+      <a href="external.html#external-resources"
          class="nav-link ">
          External resources
       </a>
@@ -168,7 +172,7 @@
           </navlinks><div id="searchbox" class="searchbox" role="search">
   <div class="caption"><span class="caption-text">Quick search</span>
     <div class="searchformwrapper">
-      <form class="search" action="../search.html" method="get">
+      <form class="search" action="#" method="get">
         <input type="text" name="q" />
         <input type="submit" value="Search" />
         <input type="hidden" name="check_keywords" value="yes" />
@@ -180,13 +184,13 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="#guides">Guides</a></span>
+        <span class="caption-text"><a href="guide/index.html#guides">Guides</a></span>
       </p>
       <ul class="">
         
           <li class="toctree-l1 ">
             
-              <a href="install.html" class="reference internal ">Installation</a>
+              <a href="guide/install.html" class="reference internal ">Installation</a>
             
 
             
@@ -195,7 +199,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="build.html" class="reference internal ">Build ReacNetGenerator</a>
+              <a href="guide/build.html" class="reference internal ">Build ReacNetGenerator</a>
             
 
             
@@ -204,7 +208,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="cli.html" class="reference internal ">Command line interface</a>
+              <a href="guide/cli.html" class="reference internal ">Command line interface</a>
             
 
             
@@ -213,7 +217,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="hmm.html" class="reference internal ">Enable HMM filter</a>
+              <a href="guide/hmm.html" class="reference internal ">Enable HMM filter</a>
             
 
             
@@ -222,7 +226,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="gui.html" class="reference internal ">GUI version</a>
+              <a href="guide/gui.html" class="reference internal ">GUI version</a>
             
 
             
@@ -231,7 +235,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="python.html" class="reference internal ">Python interface</a>
+              <a href="guide/python.html" class="reference internal ">Python interface</a>
             
 
             
@@ -252,13 +256,13 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="../tutorial/index.html#tutorials">Tutorials</a></span>
+        <span class="caption-text"><a href="tutorial/index.html#tutorials">Tutorials</a></span>
       </p>
       <ul class="">
         
           <li class="toctree-l1 ">
             
-              <a href="../tutorial/cl20.html" class="reference internal ">The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</a>
+              <a href="tutorial/cl20.html" class="reference internal ">The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</a>
             
 
             
@@ -270,13 +274,13 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="../develop.html#developing">Developing</a></span>
+        <span class="caption-text"><a href="develop.html#developing">Developing</a></span>
       </p>
       <ul class="">
         
           <li class="toctree-l1 ">
             
-              <a href="../api/api.html" class="reference internal ">Python API</a>
+              <a href="api/api.html" class="reference internal ">Python API</a>
             
 
             
@@ -288,7 +292,7 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="../external.html#external-resources">External resources</a></span>
+        <span class="caption-text"><a href="external.html#external-resources">External resources</a></span>
       </p>
       <ul class="">
         
@@ -329,70 +333,45 @@
           <div class="body-header" role="navigation" aria-label="navigation">
   
   <ul class="breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
+    <li><a href="index.html">Docs</a> &raquo;</li>
     
-    <li>Guides</li>
+    <li>Search</li>
   </ul>
   
 
   <ul class="page-nav">
-  <li class="prev">
-    <a href="../index.html"
-       title="previous chapter">← ReacNetGenerator</a>
-  </li>
-  <li class="next">
-    <a href="install.html"
-       title="next chapter">Installation →</a>
-  </li>
 </ul>
   
 </div>
 <hr>
           <div class="content" role="main" v-pre>
             
-  <section id="guides">
-<h1>Guides<a class="headerlink" href="#guides" title="Permalink to this heading">¶</a></h1>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#install-via-conda">Install via conda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#install-via-pip">Install via pip</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="build.html">Build ReacNetGenerator</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="build.html#building-a-conda-package">Building a conda package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="build.html#building-a-docker-image">Building a Docker Image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="build.html#installing-via-pip">Installing via pip</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command line interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#Named Arguments">Named Arguments</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="hmm.html">Enable HMM filter</a></li>
-<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI version</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python.html">Python interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="python.html#reacnetgenerator"><code class="docutils literal notranslate"><span class="pre">reacnetgenerator</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference external" href="/report.html#https://">Online report loader</a></li>
-</ul>
-</div>
-</section>
-
+  <h1 id="search-documentation">Search</h1>
+  <div id="fallback" class="admonition warning">
+  <p>
+    Please activate JavaScript to enable the search
+    functionality.
+  </p>
+  </div>
+  <p>
+    From here you can search these documents. Enter your search
+    words into the box below and click "search". Note that the search
+    function will automatically search for all of the words. Pages
+    containing fewer words won't appear in the result list.
+  </p>
+  <form action="" method="get">
+    <input type="text" name="q" value="" />
+    <input type="submit" value="search" />
+    <span id="search-progress" style="padding-left: 10px"></span>
+  </form>
+  
+  <div id="search-results">
+  
+  </div>
 
           </div>
           <div class="page-nav">
             <div class="inner"><ul class="page-nav">
-  <li class="prev">
-    <a href="../index.html"
-       title="previous chapter">← ReacNetGenerator</a>
-  </li>
-  <li class="next">
-    <a href="install.html"
-       title="next chapter">Installation →</a>
-  </li>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2019-2022, East China Normal University.
     <br>
@@ -403,6 +382,9 @@
       </page>
     </div></div>
     
-    
+  <script type="text/javascript">
+    $('#fallback').hide();
+  </script>
+
   </body>
 </html>

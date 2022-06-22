@@ -1,67 +1,488 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html  lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ReacNetGenerator</title>
-    <meta name="generator" content="VuePress 1.9.7">
-    <link rel="icon" href="/reacnetgen.svg">
-    <link rel="apple-touch-icon" href="/reacnetgen.svg">
-    <meta name="description" content="An automatic generator of reaction network for reactive molecular dynamics simulation">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="msapplication-TileImage" content="/reacnetgen.svg">
+    <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <link rel="icon" href="_static/reacnetgen.svg" type="image/svg+xml">
+
+      <title>ReacNetGenerator</title>
     
-    <link rel="preload" href="/assets/css/0.styles.f0916d54.css" as="style"><link rel="preload" href="/assets/js/app.d0aaa236.js" as="script"><link rel="preload" href="/assets/js/2.3e4a03ae.js" as="script"><link rel="preload" href="/assets/js/9.63cb5c81.js" as="script"><link rel="preload" href="/assets/js/7.8b358dd5.js" as="script"><link rel="prefetch" href="/assets/js/10.5cd54db8.js"><link rel="prefetch" href="/assets/js/11.9c751e62.js"><link rel="prefetch" href="/assets/js/12.44757cd3.js"><link rel="prefetch" href="/assets/js/13.c114cfbf.js"><link rel="prefetch" href="/assets/js/14.477cfaaf.js"><link rel="prefetch" href="/assets/js/15.ea7bc893.js"><link rel="prefetch" href="/assets/js/16.5b2b8a7f.js"><link rel="prefetch" href="/assets/js/17.651c9650.js"><link rel="prefetch" href="/assets/js/3.6b252702.js"><link rel="prefetch" href="/assets/js/4.3be44078.js"><link rel="prefetch" href="/assets/js/5.cc167467.js"><link rel="prefetch" href="/assets/js/6.3dfc5331.js"><link rel="prefetch" href="/assets/js/8.d3da171e.js">
-    <link rel="stylesheet" href="/assets/css/0.styles.f0916d54.css">
+          <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+          <link rel="stylesheet" href="_static/theme.css " type="text/css" />
+          <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+      
+      <!-- sphinx script_files -->
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="https://unpkg.com/bilitube@0/dist/bilitube.min.js"></script>
+
+      
+      <!-- bundled in js (rollup iife) -->
+      <!-- <script src="_static/theme-vendors.js"></script> -->
+      <script src="_static/theme.js" defer></script>
+    
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Guides" href="guide/index.html" /> 
   </head>
+
   <body>
-    <div id="app" data-server-rendered="true"><div class="theme-container no-sidebar"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/" aria-current="page" class="home-link router-link-exact-active router-link-active"><!----> <span class="site-name">ReacNetGenerator</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/" aria-current="page" class="nav-link router-link-exact-active router-link-active">
-  Home
-</a></div><div class="nav-item"><a href="/guide/" class="nav-link">
-  Guide
-</a></div><div class="nav-item"><a href="/tutorial/" class="nav-link">
-  Tutorial
-</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="See more" class="dropdown-title"><span class="title">See more</span> <span class="arrow down"></span></button> <button type="button" aria-label="See more" class="mobile-dropdown-title"><span class="title">See more</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&amp;.html" target="_blank" rel="noopener noreferrer" class="nav-link external">
-  Report
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://doi.org/10.1039/C9CP05091D" target="_blank" rel="noopener noreferrer" class="nav-link external">
-  Paper
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://computchem.cn" target="_blank" rel="noopener noreferrer" class="nav-link external">
-  Group
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow down"></span></button> <button type="button" aria-label="Select language" class="mobile-dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/" aria-current="page" class="nav-link router-link-exact-active router-link-active">
-  English
-</a></li><li class="dropdown-item"><!----> <a href="/zh/" class="nav-link">
-  中文
-</a></li></ul></div></div> <a href="https://github.com/tongzhugroup/reacnetgenerator" target="_blank" rel="noopener noreferrer" class="repo-link">
-    GitHub
-    <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/" aria-current="page" class="nav-link router-link-exact-active router-link-active">
-  Home
-</a></div><div class="nav-item"><a href="/guide/" class="nav-link">
-  Guide
-</a></div><div class="nav-item"><a href="/tutorial/" class="nav-link">
-  Tutorial
-</a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="See more" class="dropdown-title"><span class="title">See more</span> <span class="arrow down"></span></button> <button type="button" aria-label="See more" class="mobile-dropdown-title"><span class="title">See more</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json&amp;.html" target="_blank" rel="noopener noreferrer" class="nav-link external">
-  Report
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://doi.org/10.1039/C9CP05091D" target="_blank" rel="noopener noreferrer" class="nav-link external">
-  Paper
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li><li class="dropdown-item"><!----> <a href="https://computchem.cn" target="_blank" rel="noopener noreferrer" class="nav-link external">
-  Group
-  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></li></ul></div></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Select language" class="dropdown-title"><span class="title">Languages</span> <span class="arrow down"></span></button> <button type="button" aria-label="Select language" class="mobile-dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/" aria-current="page" class="nav-link router-link-exact-active router-link-active">
-  English
-</a></li><li class="dropdown-item"><!----> <a href="/zh/" class="nav-link">
-  中文
-</a></li></ul></div></div> <a href="https://github.com/tongzhugroup/reacnetgenerator" target="_blank" rel="noopener noreferrer" class="repo-link">
-    GitHub
-    <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></nav>  <!----> </aside> <main aria-labelledby="main-title" class="home"><header class="hero"><img src="/reacnetgen.svg" alt="hero"> <h1 id="main-title">
-      ReacNetGenerator
-    </h1> <p class="description">
-      An automatic reaction network generator for reactive molecular dynamics simulation
-    </p> <p class="action"><a href="/guide/" class="nav-link action-button">
-  Get Started
-</a></p></header> <div class="features"><div class="feature"><h2>Trajectory</h2> <p>Processing of MD trajectory containing atomic coordinates or bond orders</p></div><div class="feature"><h2>Filtering</h2> <p>Hidden Markov Model (HMM) based noise filtering</p></div><div class="feature"><h2>Isomers</h2> <p>Isomers identifying accoarding to SMILES</p></div><div class="feature"><h2>Network</h2> <p>Generation of reaction network for visualization using force-directed algorithm</p></div><div class="feature"><h2>HTML5</h2> <p>Showing an interactive web page</p></div><div class="feature"><h2>Fast</h2> <p>Parallel computing and performance optimization</p></div></div> <div class="theme-default-content custom content__default"><div data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG" class="bilitube">Loading...</div> <h1 id="citation-and-contact"><a href="#citation-and-contact" class="header-anchor">#</a> Citation and contact</h1> <p>ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691, doi: <a href="https://dx.doi.org/10.1039/C9CP05091D" target="_blank" rel="noopener noreferrer">10.1039/C9CP05091D<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></p> <p>jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)</p> <h1 id="guide-and-tutorial"><a href="#guide-and-tutorial" class="header-anchor">#</a> Guide and Tutorial</h1> <p>You can install ReacNetGenerator with <code>conda</code>:</p> <div class="language-sh extra-class"><pre class="language-sh"><code>conda <span class="token function">install</span> reacnetgenerator -c conda-forge
+    <div id="app">
+    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
+  <router-link to="#" class="home-link">
+    
+      <span class="site-name">ReacNetGenerator</span>
+    
+  </router-link>
+
+  <div class="links">
+    <navlinks class="can-hide">
+
+  
+    <div class="nav-item">
+      <a href="guide/index.html#guides"
+         class="nav-link ">
+         Guides
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="tutorial/index.html#tutorials"
+         class="nav-link ">
+         Tutorials
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="develop.html#developing"
+         class="nav-link ">
+         Developing
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="external.html#external-resources"
+         class="nav-link ">
+         External resources
+      </a>
+    </div>
+  
+
+
+
+  
+    <div class="nav-item">
+      <a href="https://doi.org/10.1039/C9CP05091D"
+        class="nav-link external">
+          Paper <outboundlink></outboundlink>
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="https://computchem.cn"
+        class="nav-link external">
+          Group <outboundlink></outboundlink>
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="https://github.com/tongzhugroup/reacnetgenerator"
+        class="nav-link external">
+          GitHub <outboundlink></outboundlink>
+      </a>
+    </div>
+  
+
+    </navlinks>
+  </div>
+</navbar>
+
+      
+      <div class="sidebar-mask" @click="toggleSidebar(false)">
+      </div>
+        <sidebar @toggle-sidebar="toggleSidebar">
+          
+          <navlinks>
+            
+
+  
+    <div class="nav-item">
+      <a href="guide/index.html#guides"
+         class="nav-link ">
+         Guides
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="tutorial/index.html#tutorials"
+         class="nav-link ">
+         Tutorials
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="develop.html#developing"
+         class="nav-link ">
+         Developing
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="external.html#external-resources"
+         class="nav-link ">
+         External resources
+      </a>
+    </div>
+  
+
+
+
+  
+    <div class="nav-item">
+      <a href="https://doi.org/10.1039/C9CP05091D"
+        class="nav-link external">
+          Paper <outboundlink></outboundlink>
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="https://computchem.cn"
+        class="nav-link external">
+          Group <outboundlink></outboundlink>
+      </a>
+    </div>
+  
+    <div class="nav-item">
+      <a href="https://github.com/tongzhugroup/reacnetgenerator"
+        class="nav-link external">
+          GitHub <outboundlink></outboundlink>
+      </a>
+    </div>
+  
+
+            
+          </navlinks><div id="searchbox" class="searchbox" role="search">
+  <div class="caption"><span class="caption-text">Quick search</span>
+    <div class="searchformwrapper">
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Search" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="guide/index.html#guides">Guides</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="guide/install.html" class="reference internal ">Installation</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="guide/build.html" class="reference internal ">Build ReacNetGenerator</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="guide/cli.html" class="reference internal ">Command line interface</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="guide/hmm.html" class="reference internal ">Enable HMM filter</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="guide/gui.html" class="reference internal ">GUI version</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="guide/python.html" class="reference internal ">Python interface</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="/report.html#https://" class="reference">Online report loader <outboundlink></outboundlink></a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="tutorial/index.html#tutorials">Tutorials</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="tutorial/cl20.html" class="reference internal ">The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="develop.html#developing">Developing</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="api/api.html" class="reference internal ">Python API</a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+    <div class="sidebar-group">
+      <p class="caption">
+        <span class="caption-text"><a href="external.html#external-resources">External resources</a></span>
+      </p>
+      <ul class="">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="https://doi.org/10.1039/C9CP05091D" class="reference">ReacNetGenerator paper <outboundlink></outboundlink></a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&filePid=13678734780004646&download=true" class="reference">Accepted manuscript <outboundlink></outboundlink></a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="https://github.com/tongzhugroup/reacnetgenerator" class="reference">GitHub <outboundlink></outboundlink></a>
+            
+
+            
+          </li>
+
+        
+      </ul>
+    </div>
+  
+</div>
+        </sidebar>
+
+      <page>
+          <div class="body-header" role="navigation" aria-label="navigation">
+  
+  <ul class="breadcrumbs">
+    <li><a href="#">Docs</a> &raquo;</li>
+    
+    <li>ReacNetGenerator</li>
+  </ul>
+  
+
+  <ul class="page-nav">
+  <li class="next">
+    <a href="guide/index.html"
+       title="next chapter">Guides →</a>
+  </li>
+</ul>
+  
+</div>
+<hr>
+          <div class="content" role="main" v-pre>
+            
+  <header class="hero">
+<p><img alt="Logo" src="_images/reacnetgen.svg" /></p>
+<section id="reacnetgenerator">
+<h1>ReacNetGenerator<a class="headerlink" href="#reacnetgenerator" title="Permalink to this heading">¶</a></h1>
+<p>An automatic reaction network generator for reactive molecular dynamics simulation</p>
+<p><a href="/guide/install.html" class="nav-link action-button">Get Started</a></p>
+</header>
+<div class="features">
+<section id="trajectory">
+<h2>Trajectory<a class="headerlink" href="#trajectory" title="Permalink to this heading">¶</a></h2>
+<p>Processing of MD trajectory containing atomic coordinates or bond orders</p>
+</section>
+<section id="filtering">
+<h2>Filtering<a class="headerlink" href="#filtering" title="Permalink to this heading">¶</a></h2>
+<p>Hidden Markov Model (HMM) based noise filtering</p>
+</section>
+<section id="isomers">
+<h2>Isomers<a class="headerlink" href="#isomers" title="Permalink to this heading">¶</a></h2>
+<p>Isomers identifying accoarding to SMILES</p>
+</section>
+<section id="network">
+<h2>Network<a class="headerlink" href="#network" title="Permalink to this heading">¶</a></h2>
+<p>Generation of reaction network for visualization using force-directed algorithm</p>
+</section>
+<section id="html5">
+<h2>HTML5<a class="headerlink" href="#html5" title="Permalink to this heading">¶</a></h2>
+<p>Showing an interactive web page</p>
+</section>
+<section id="fast">
+<h2>Fast<a class="headerlink" href="#fast" title="Permalink to this heading">¶</a></h2>
+<p>Parallel computing and performance optimization</p>
+</div>
+<div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
+</section>
+</section>
+<section id="citation-and-contact">
+<h1>Citation and contact<a class="headerlink" href="#citation-and-contact" title="Permalink to this heading">¶</a></h1>
+<p>ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691, doi: <a class="reference external" href="https://dx.doi.org/10.1039/C9CP05091D">10.1039/C9CP05091D</a></p>
+<p>jinzhe.zeng&#64;rutgers.edu (Jinzhe Zeng), tzhu&#64;lps.ecnu.edu.cn (Tong Zhu)</p>
+</section>
+<section id="guide-and-tutorials">
+<h1>Guide and Tutorials<a class="headerlink" href="#guide-and-tutorials" title="Permalink to this heading">¶</a></h1>
+<p>You can install ReacNetGenerator with <code class="docutils literal notranslate"><span class="pre">conda</span></code>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
-</code></pre></div><p>See <a href="/guide/">the guide</a> to learn how to install and use ReacNetGenerattor. We also provide <a href="/tutorial/">a series of tutorials</a> to help you learn ReacNetGenerator.</p> <h1 id="awards"><a href="#awards" class="header-anchor">#</a> Awards</h1> <ul><li>The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students</li> <li>The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students</li></ul> <h1 id="acknowledge"><a href="#acknowledge" class="header-anchor">#</a> Acknowledge</h1> <ul><li>National Natural Science Foundation of China (Grants No. 91641116)</li> <li>National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)</li> <li>ECNU Multifunctional Platform for Innovation (No. 001)</li></ul> <!----></div> <div class="footer">
-    Copyright © 2018-2019 East China Normal University
-  </div></main></div><div class="global-ui"></div></div>
-    <script src="/assets/js/app.d0aaa236.js" defer></script><script src="/assets/js/2.3e4a03ae.js" defer></script><script src="/assets/js/9.63cb5c81.js" defer></script><script src="/assets/js/7.8b358dd5.js" defer></script>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="guide/index.html"><span class="doc std std-doc">the guide</span></a> to learn how to install and use ReacNetGenerattor. We also provide <a class="reference internal" href="tutorial/index.html"><span class="doc std std-doc">a series of tutorials</span></a> to help you learn ReacNetGenerator.</p>
+</section>
+<section id="awards">
+<h1>Awards<a class="headerlink" href="#awards" title="Permalink to this heading">¶</a></h1>
+<ul class="simple">
+<li><p>The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students</p></li>
+<li><p>The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students</p></li>
+</ul>
+</section>
+<section id="acknowledge">
+<h1>Acknowledge<a class="headerlink" href="#acknowledge" title="Permalink to this heading">¶</a></h1>
+<ul class="simple">
+<li><p>National Natural Science Foundation of China (Grants No. 91641116)</p></li>
+<li><p>National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)</p></li>
+<li><p>ECNU Multifunctional Platform for Innovation (No. 001)</p></li>
+</ul>
+</section>
+<section id="table-of-contents">
+<h1>Table of contents<a class="headerlink" href="#table-of-contents" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/index.html">Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/install.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/build.html">Build ReacNetGenerator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/cli.html">Command line interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/hmm.html">Enable HMM filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/gui.html">GUI version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/python.html">Python interface</a></li>
+<li class="toctree-l2"><a class="reference external" href="/report.html#https://">Online report loader</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/index.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial/cl20.html">The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Developing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="develop.html">Developing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/api.html">Python API</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">External resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="external.html">External resources</a><ul>
+<li class="toctree-l2"><a class="reference external" href="https://doi.org/10.1039/C9CP05091D">ReacNetGenerator paper</a></li>
+<li class="toctree-l2"><a class="reference external" href="https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&amp;filePid=13678734780004646&amp;download=true">Accepted manuscript</a></li>
+<li class="toctree-l2"><a class="reference external" href="https://github.com/tongzhugroup/reacnetgenerator">GitHub</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          <div class="page-nav">
+            <div class="inner"><ul class="page-nav">
+  <li class="next">
+    <a href="guide/index.html"
+       title="next chapter">Guides →</a>
+  </li>
+</ul><div class="footer" role="contentinfo">
+      &#169; Copyright 2019-2022, East China Normal University.
+    <br>
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+</div>
+            </div>
+          </div>
+      </page>
+    </div></div>
+    
+    
   </body>
 </html>

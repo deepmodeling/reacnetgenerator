@@ -1,0 +1,31 @@
+# The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)
+
+This tutorial is proposed to develop a Deep Potential for the thermal decomposition of CL-20, perform MD simulations, and then use the ReacNetGenerator to analyze reactions.  
+
+## Reference dataset
+
+In this study, a workflow was developed for making reference datasets with DP-GEN program. <!-- The details of each module in the workflow are given in paper(...) -->
+You can install DP-GEN program with the tutorial in [DP-GEN](https://github.com/deepmodeling/dpgen). In this example, the input files for DP-GEN program are provided [here](https://github.com/tongzhugroup/NNREAX/blob/cbb5cbf3eb3b89919ee555147427e071c012f37a/cl20/cl20_v1.yaml).
+
+## QM calculation
+
+CP2K package was used for DFT calculation, which can be obtained at [CP2k](https://github.com/cp2k/cp2k). PBE-D3 method was employed in this example, because it is generally used for DFT calculation of energetic materials.
+
+## Training of the NN PES
+
+The DeepPot-SE (Deep Potential-Smooth Edition) model was used to train the NN potential by the DeePMD-kit program. Details of this method can be found in [the paper](https://www.sciencedirect.com/science/article/pii/S0010465518300882).
+You can install DeePMD-kit program with the tutorial in [DeePMD-kit](https://github.com/deepmodeling/deepmd-kit).
+
+## Reactive molecular dynamic simulation
+
+After training, the well-behaved NN PESs can be used for running molecular dynamics simulation by DeePMD-kit program. 
+
+## Analysis by ReacNetGenerator
+
+The trajectory of a single frame can be integrated into [the entire trajectory](https://github.com/tongzhugroup/TRAJREAX/blob/f10a5c2cab77d3f3b659d9dd08256ae7b27c2820/cl20/cl20.lammpstrj), and the format of trajectory here is `dump`. The reaction mechanism can be obtained by the following command:
+
+```sh
+reacnetgenerator -i cl20.lammpstrj -a H C N O --type lammpsdumpfile --nohmm
+```
+
+The results can be viewed at <a href="/report.html?jdata=https://fastly.jsdelivr.net/gh/tongzhugroup/TRAJREAX@f10a5c2cab77d3f3b659d9dd08256ae7b27c2820/cl20/cl20.json&">this page</a>.

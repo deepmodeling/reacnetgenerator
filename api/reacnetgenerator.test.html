@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
     <link rel="icon" href="../_static/reacnetgen.svg" type="image/svg+xml">
 
-      <title>Build ReacNetGenerator</title>
+      <title>reacnetgenerator.test package</title>
     
           <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
           <link rel="stylesheet" href="../_static/theme.css " type="text/css" />
@@ -26,8 +26,8 @@
     
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Command line interface" href="cli.html" />
-  <link rel="prev" title="Installation" href="install.html" /> 
+  <link rel="next" title="External resources" href="../external.html" />
+  <link rel="prev" title="reacnetgenerator package" href="reacnetgenerator.html" /> 
   </head>
 
   <body>
@@ -44,8 +44,8 @@
 
   
     <div class="nav-item">
-      <a href="index.html#guides"
-         class="nav-link  router-link-active">
+      <a href="../guide/index.html#guides"
+         class="nav-link ">
          Guides
       </a>
     </div>
@@ -111,8 +111,8 @@
 
   
     <div class="nav-item">
-      <a href="index.html#guides"
-         class="nav-link  router-link-active">
+      <a href="../guide/index.html#guides"
+         class="nav-link ">
          Guides
       </a>
     </div>
@@ -180,41 +180,13 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="index.html#guides">Guides</a></span>
+        <span class="caption-text"><a href="../guide/index.html#guides">Guides</a></span>
       </p>
-      <ul class="current">
+      <ul class="">
         
           <li class="toctree-l1 ">
             
-              <a href="install.html" class="reference internal ">Installation</a>
-            
-
-            
-          </li>
-
-        
-          <li class="toctree-l1 current">
-            
-              <a href="#" class="reference internal current">Build ReacNetGenerator</a>
-            
-
-            
-              <ul>
-                
-                  <li class="toctree-l2"><a href="#building-a-conda-package" class="reference internal">Building a conda package</a></li>
-                
-                  <li class="toctree-l2"><a href="#building-a-docker-image" class="reference internal">Building a Docker Image</a></li>
-                
-                  <li class="toctree-l2"><a href="#installing-via-pip" class="reference internal">Installing via pip</a></li>
-                
-              </ul>
-            
-          </li>
-
-        
-          <li class="toctree-l1 ">
-            
-              <a href="cli.html" class="reference internal ">Command line interface</a>
+              <a href="../guide/install.html" class="reference internal ">Installation</a>
             
 
             
@@ -223,7 +195,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="hmm.html" class="reference internal ">Enable HMM filter</a>
+              <a href="../guide/build.html" class="reference internal ">Build ReacNetGenerator</a>
             
 
             
@@ -232,7 +204,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="gui.html" class="reference internal ">GUI version</a>
+              <a href="../guide/cli.html" class="reference internal ">Command line interface</a>
             
 
             
@@ -241,7 +213,25 @@
         
           <li class="toctree-l1 ">
             
-              <a href="python.html" class="reference internal ">Python interface</a>
+              <a href="../guide/hmm.html" class="reference internal ">Enable HMM filter</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../guide/gui.html" class="reference internal ">GUI version</a>
+            
+
+            
+          </li>
+
+        
+          <li class="toctree-l1 ">
+            
+              <a href="../guide/python.html" class="reference internal ">Python interface</a>
             
 
             
@@ -286,7 +276,7 @@
         
           <li class="toctree-l1 ">
             
-              <a href="../api/api.html" class="reference internal ">Python API</a>
+              <a href="api.html" class="reference internal ">Python API</a>
             
 
             
@@ -341,20 +331,24 @@
   <ul class="breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
     
-      <li><a href="index.html">Guides</a> &raquo;</li>
+      <li><a href="../develop.html">Developing</a> &raquo;</li>
     
-    <li>Build ReacNetGenerator</li>
+      <li><a href="api.html">Python API</a> &raquo;</li>
+    
+      <li><a href="reacnetgenerator.html">reacnetgenerator package</a> &raquo;</li>
+    
+    <li>reacnetgenerator.test package</li>
   </ul>
   
 
   <ul class="page-nav">
   <li class="prev">
-    <a href="install.html"
-       title="previous chapter">← Installation</a>
+    <a href="reacnetgenerator.html"
+       title="previous chapter">← reacnetgenerator package</a>
   </li>
   <li class="next">
-    <a href="cli.html"
-       title="next chapter">Command line interface →</a>
+    <a href="../external.html"
+       title="next chapter">External resources →</a>
   </li>
 </ul>
   
@@ -362,42 +356,14 @@
 <hr>
           <div class="content" role="main" v-pre>
             
-  <section id="build-reacnetgenerator">
-<h1>Build ReacNetGenerator<a class="headerlink" href="#build-reacnetgenerator" title="Permalink to this heading">¶</a></h1>
-<p>To build ReacNetGenerator by yourself, first, you need to download the source code from <a class="reference external" href="https://github.com/tongzhugroup/reacnetgenerator/releases">the Releases page</a>. Then install ReacNetGenerator with one of the following guides:</p>
-<section id="building-a-conda-package">
-<h2>Building a conda package<a class="headerlink" href="#building-a-conda-package" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p><a class="reference external" href="https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html">Install Anaconda or Miniconda</a> to obtain conda.</p></li>
-<li><p>Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
-conda build conda/recipe
-conda install reacnetgenerator --use-local
-reacnetgenerator -h
-</pre></div>
-</div>
+  <section id="module-reacnetgenerator.test">
+<span id="reacnetgenerator-test-package"></span><h1>reacnetgenerator.test package<a class="headerlink" href="#module-reacnetgenerator.test" title="Permalink to this heading">¶</a></h1>
+<p>Test.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
 </section>
-<section id="building-a-docker-image">
-<h2>Building a Docker Image<a class="headerlink" href="#building-a-docker-image" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p><a class="reference external" href="https://docs.docker.com/install/">Install Docker</a>.</p></li>
-<li><p>Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . -t njzjz/reacnetgenerator
-docker run njzjz/reacnetgenerator reacnetgenerator -h
-</pre></div>
-</div>
-</section>
-<section id="installing-via-pip">
-<h2>Installing via pip<a class="headerlink" href="#installing-via-pip" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Install <a class="reference external" href="https://github.com/yarnpkg/yarn">Yarn</a>.</p></li>
-<li><p>Decompress reacnetgenerator.zip and use <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install .
-</pre></div>
-</div>
+<section id="reacnetgenerator-test-test-reacnetgen-module">
+<h2>reacnetgenerator.test.test_reacnetgen module<a class="headerlink" href="#reacnetgenerator-test-test-reacnetgen-module" title="Permalink to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -406,12 +372,12 @@ docker run njzjz/reacnetgenerator reacnetgenerator -h
           <div class="page-nav">
             <div class="inner"><ul class="page-nav">
   <li class="prev">
-    <a href="install.html"
-       title="previous chapter">← Installation</a>
+    <a href="reacnetgenerator.html"
+       title="previous chapter">← reacnetgenerator package</a>
   </li>
   <li class="next">
-    <a href="cli.html"
-       title="next chapter">Command line interface →</a>
+    <a href="../external.html"
+       title="next chapter">External resources →</a>
   </li>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2019-2022, East China Normal University.

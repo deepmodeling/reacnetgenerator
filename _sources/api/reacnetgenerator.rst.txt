@@ -1,0 +1,66 @@
+reacnetgenerator package
+========================
+
+.. automodule:: reacnetgenerator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   reacnetgenerator.test
+
+Submodules
+----------
+
+reacnetgenerator.commandline module
+-----------------------------------
+
+.. automodule:: reacnetgenerator.commandline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reacnetgenerator.dps module
+---------------------------
+
+.. automodule:: reacnetgenerator.dps
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reacnetgenerator.gui module
+---------------------------
+
+.. automodule:: reacnetgenerator.gui
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reacnetgenerator.reacnetgen module
+----------------------------------
+
+.. automodule:: reacnetgenerator.reacnetgen
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reacnetgenerator.utils module
+-----------------------------
+
+.. automodule:: reacnetgenerator.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reacnetgenerator.utils\_np module
+---------------------------------
+
+.. automodule:: reacnetgenerator.utils_np
+   :members:
+   :undoc-members:
+   :show-inheritance:

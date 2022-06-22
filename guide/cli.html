@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
     <link rel="icon" href="../_static/reacnetgen.svg" type="image/svg+xml">
 
-      <title>Build ReacNetGenerator</title>
+      <title>Command line interface</title>
     
           <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
           <link rel="stylesheet" href="../_static/theme.css " type="text/css" />
@@ -26,8 +26,8 @@
     
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="Command line interface" href="cli.html" />
-  <link rel="prev" title="Installation" href="install.html" /> 
+  <link rel="next" title="Enable HMM filter" href="hmm.html" />
+  <link rel="prev" title="Build ReacNetGenerator" href="build.html" /> 
   </head>
 
   <body>
@@ -193,30 +193,26 @@
           </li>
 
         
+          <li class="toctree-l1 ">
+            
+              <a href="build.html" class="reference internal ">Build ReacNetGenerator</a>
+            
+
+            
+          </li>
+
+        
           <li class="toctree-l1 current">
             
-              <a href="#" class="reference internal current">Build ReacNetGenerator</a>
+              <a href="#" class="reference internal current">Command line interface</a>
             
 
             
               <ul>
                 
-                  <li class="toctree-l2"><a href="#building-a-conda-package" class="reference internal">Building a conda package</a></li>
-                
-                  <li class="toctree-l2"><a href="#building-a-docker-image" class="reference internal">Building a Docker Image</a></li>
-                
-                  <li class="toctree-l2"><a href="#installing-via-pip" class="reference internal">Installing via pip</a></li>
+                  <li class="toctree-l2"><a href="#Named Arguments" class="reference internal">Named Arguments</a></li>
                 
               </ul>
-            
-          </li>
-
-        
-          <li class="toctree-l1 ">
-            
-              <a href="cli.html" class="reference internal ">Command line interface</a>
-            
-
             
           </li>
 
@@ -343,18 +339,18 @@
     
       <li><a href="index.html">Guides</a> &raquo;</li>
     
-    <li>Build ReacNetGenerator</li>
+    <li>Command line interface</li>
   </ul>
   
 
   <ul class="page-nav">
   <li class="prev">
-    <a href="install.html"
-       title="previous chapter">← Installation</a>
+    <a href="build.html"
+       title="previous chapter">← Build ReacNetGenerator</a>
   </li>
   <li class="next">
-    <a href="cli.html"
-       title="next chapter">Command line interface →</a>
+    <a href="hmm.html"
+       title="next chapter">Enable HMM filter →</a>
   </li>
 </ul>
   
@@ -362,42 +358,97 @@
 <hr>
           <div class="content" role="main" v-pre>
             
-  <section id="build-reacnetgenerator">
-<h1>Build ReacNetGenerator<a class="headerlink" href="#build-reacnetgenerator" title="Permalink to this heading">¶</a></h1>
-<p>To build ReacNetGenerator by yourself, first, you need to download the source code from <a class="reference external" href="https://github.com/tongzhugroup/reacnetgenerator/releases">the Releases page</a>. Then install ReacNetGenerator with one of the following guides:</p>
-<section id="building-a-conda-package">
-<h2>Building a conda package<a class="headerlink" href="#building-a-conda-package" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p><a class="reference external" href="https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html">Install Anaconda or Miniconda</a> to obtain conda.</p></li>
-<li><p>Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
-conda build conda/recipe
-conda install reacnetgenerator --use-local
-reacnetgenerator -h
+  <section id="command-line-interface">
+<h1>Command line interface<a class="headerlink" href="#command-line-interface" title="Permalink to this heading">¶</a></h1>
+<p>ReacNetGenerator can process any kind of trajectory files containing atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1 all custom 100 dump.reaxc id type x y z” in LAMMPS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>reacnetgenerator --type lammpsdumpfile -i dump.reaxc -a C H O --nohmm
 </pre></div>
 </div>
-</section>
-<section id="building-a-docker-image">
-<h2>Building a Docker Image<a class="headerlink" href="#building-a-docker-image" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p><a class="reference external" href="https://docs.docker.com/install/">Install Docker</a>.</p></li>
-<li><p>Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . -t njzjz/reacnetgenerator
-docker run njzjz/reacnetgenerator reacnetgenerator -h
+<p>where C, H, and O are atomic names in the input file. <a href="/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json" target="_blank">Analysis report</a> will be generated automatically.</p>
+<p>Also, ReacNetGenerator can process files containing bond information, e.g. LAMMPS bond file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>reacnetgenerator --type lammpsbondfile -i bonds.reaxc -a C H O --nohmm
 </pre></div>
 </div>
-</section>
-<section id="installing-via-pip">
-<h2>Installing via pip<a class="headerlink" href="#installing-via-pip" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Install <a class="reference external" href="https://github.com/yarnpkg/yarn">Yarn</a>.</p></li>
-<li><p>Decompress reacnetgenerator.zip and use <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.</p></li>
-</ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install .
+<p>You can running the following script for help:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>reacnetgenerator -h
 </pre></div>
 </div>
+<p><p>ReacNetGenerator 0.1.dev1+g3ec9556</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">reacnetgenerator</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">i</span> <span class="p">[</span><span class="n">INPUTFILENAME</span> <span class="p">[</span><span class="n">INPUTFILENAME</span> <span class="o">...</span><span class="p">]]</span> <span class="o">-</span><span class="n">a</span>
+                        <span class="p">[</span><span class="n">ATOMNAME</span> <span class="p">[</span><span class="n">ATOMNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">nohmm</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">miso</span> <span class="n">MISO</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">dump</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">type</span> <span class="n">TYPE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nopbc</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">cell</span> <span class="n">CELL</span> <span class="p">[</span><span class="n">CELL</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">NPROC</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="p">[</span><span class="n">SELECTATOMS</span> <span class="p">[</span><span class="n">SELECTATOMS</span> <span class="o">...</span><span class="p">]]]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">stepinterval</span> <span class="n">STEPINTERVAL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">split</span> <span class="n">SPLIT</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">maxspecies</span> <span class="n">MAXSPECIES</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">matrixa</span> <span class="n">MATRIXA</span> <span class="n">MATRIXA</span> <span class="n">MATRIXA</span> <span class="n">MATRIXA</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">matrixb</span> <span class="n">MATRIXB</span> <span class="n">MATRIXB</span> <span class="n">MATRIXB</span> <span class="n">MATRIXB</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">urls</span> <span class="n">URLS</span> <span class="n">URLS</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="Named Arguments">
+<h2>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading">¶</a></h2>
+<dl class="option-list">
+<dt><kbd>-i, --inputfilename</kbd></dt>
+<dd><p>Input trajectory file, e.g. bonds.reaxc</p>
+</dd>
+<dt><kbd>-a, --atomname</kbd></dt>
+<dd><p>Atomic names in the trajectory, e.g. C H O</p>
+</dd>
+<dt><kbd>--nohmm</kbd></dt>
+<dd><p>Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly read the related section in the paper</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--miso</kbd></dt>
+<dd><p>Merge the isomers</p>
+<p>Default: 0</p>
+</dd>
+<dt><kbd>--dump</kbd></dt>
+<dd><p>Process the LAMMPS dump file</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--type, -t</kbd></dt>
+<dd><p>Input file type</p>
+<p>Default: “lammpsbondfile”</p>
+</dd>
+<dt><kbd>--nopbc</kbd></dt>
+<dd><p>Disable PBC.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--cell, -c</kbd></dt>
+<dd><p>Cell</p>
+</dd>
+<dt><kbd>-n, -np, --nproc</kbd></dt>
+<dd><p>Number of processes</p>
+</dd>
+<dt><kbd>-s, --selectatoms</kbd></dt>
+<dd><p>Select atoms in the reaction network, e.g. C</p>
+</dd>
+<dt><kbd>--stepinterval</kbd></dt>
+<dd><p>Step interval</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--split</kbd></dt>
+<dd><p>Split number for the time axis</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--maxspecies</kbd></dt>
+<dd><p>Max number of nodes (species) in the network</p>
+<p>Default: 20</p>
+</dd>
+<dt><kbd>--matrixa</kbd></dt>
+<dd><p>Matrix A of HMM parameters</p>
+<p>Default: [0.999, 0.001, 0.001, 0.999]</p>
+</dd>
+<dt><kbd>--matrixb</kbd></dt>
+<dd><p>Matrix B of HMM parameters</p>
+<p>Default: [0.6, 0.4, 0.4, 0.6]</p>
+</dd>
+<dt><kbd>--urls</kbd></dt>
+<dd><p>Download files</p>
+</dd>
+</dl>
 </section>
 </section>
 
@@ -406,12 +457,12 @@ docker run njzjz/reacnetgenerator reacnetgenerator -h
           <div class="page-nav">
             <div class="inner"><ul class="page-nav">
   <li class="prev">
-    <a href="install.html"
-       title="previous chapter">← Installation</a>
+    <a href="build.html"
+       title="previous chapter">← Build ReacNetGenerator</a>
   </li>
   <li class="next">
-    <a href="cli.html"
-       title="next chapter">Command line interface →</a>
+    <a href="hmm.html"
+       title="next chapter">Enable HMM filter →</a>
   </li>
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2019-2022, East China Normal University.
