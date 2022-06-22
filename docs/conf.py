@@ -101,19 +101,20 @@ def run_apidoc(_):
     module = os.path.join(cur_dir, "..", "reacnetgenerator")
     main(['-M', '--tocfile', 'api', '-H', 'Python API', '-o', os.path.join(cur_dir, "api"), module, '--force'])
 
-def copy_report(_):
+def copy_report(app):
     import subprocess as sp
     import os
-    import shutil
+    from sphinx.util.fileutil import copy_asset_file
 
     cur_dir = os.path.abspath(os.path.dirname(__file__))
     webpack = os.path.join(cur_dir, "..", "reacnetgenerator", "static", "webpack")
+    staticdir = os.path.join(app.builder.outdir, '_static')
     sp.check_output(["yarn"], cwd=webpack)
     sp.check_output(["yarn", "start"], cwd=webpack, env={**os.environ, "REACNETGENERATOR_BUILDWEB": "1"})
-    shutil.copy(os.path.join(webpack, "bundle.html"), os.path.join(cur_dir, "report.html"))
-    shutil.copy(os.path.join(webpack, "bundle.js"), os.path.join(cur_dir, "bundle.js"))
-    shutil.copy(os.path.join(webpack, "bundle.css"), os.path.join(cur_dir, "bundle.css"))
-    shutil.copy(os.path.join(webpack, "fire.png"), os.path.join(cur_dir, "fire.png"))
+    copy_asset_file(os.path.join(webpack, "bundle.html"), os.path.join(staticdir, "report.html"))
+    copy_asset_file(os.path.join(webpack, "bundle.js"), os.path.join(staticdir, "bundle.js"))
+    copy_asset_file(os.path.join(webpack, "bundle.css"), os.path.join(staticdir, "bundle.css"))
+    copy_asset_file(os.path.join(webpack, "fire.png"), os.path.join(staticdir, "fire.png"))
 
 
 def setup(app):
