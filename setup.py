@@ -136,7 +136,12 @@ if __name__ == '__main__':
           tests_require=tests_require,
           extras_require={
               "test": tests_require,
-              "docs": ['sphinx'],
+              "docs": [
+                'sphinx',
+                'sphinx-press-theme',
+                'numpydoc',
+                'sphinx-argparse',
+              ],
           },
           use_scm_version=os.path.exists(os.path.join(this_directory, ".git")),
           setup_requires=[

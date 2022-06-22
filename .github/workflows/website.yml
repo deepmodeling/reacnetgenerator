@@ -14,7 +14,7 @@ jobs:
     - uses: actions/checkout@master
     - uses: actions/setup-node@v3
       with:
-        node-version: 14
+        node-version: 16
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
@@ -38,22 +38,16 @@ jobs:
           ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    - run: yarn install
-    - run: yarn build
     - run: pip install tox
     - run: tox
       env:
         TOXENV: docs
-    - run: yarn semantic-release
-      if: github.ref == 'refs/heads/master'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@releases/v4
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: gh-pages
-        folder: docs/.vuepress/dist
+        folder: docs/_build/html
         base_branch: master
         clean: true

@@ -3,7 +3,14 @@
 import argparse
 from . import __version__
 
-def _commandline():
+def main_parser() -> argparse.ArgumentParser:
+    """Returns main parser.
+    
+    Returns
+    -------
+    argparse.ArgumentParser
+        reacnetgenerator cli parser
+    """
     parser = argparse.ArgumentParser(
         description=f'ReacNetGenerator {__version__}')
     parser.add_argument(
@@ -41,6 +48,11 @@ def _commandline():
     parser.add_argument(
         '--matrixb', help='Matrix B of HMM parameters', type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
     parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
+    return parser
+
+
+def _commandline():
+    parser = main_parser()
     args = parser.parse_args()
     from .reacnetgen import ReacNetGenerator
     import numpy as np

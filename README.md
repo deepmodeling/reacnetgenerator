@@ -1,4 +1,4 @@
-# <img src=docs/.vuepress/public/reacnetgen.svg height=40/>  ReacNetGenerator
+# <img src=docs/_static/reacnetgen.svg height=40/>  ReacNetGenerator
 
 [![DOI:10.1039/C9CP05091D](https://img.shields.io/badge/DOI-10.1039%2FC9CP05091D-blue)](https://doi.org/10.1039/C9CP05091D)
 [![Citations](https://citations.njzjz.win/10.1039/C9CP05091D)](https://doi.org/10.1039/C9CP05091D)
@@ -27,7 +27,7 @@ conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 
-See [the guide](https://reacnetgenerator.njzjz.win/guide/) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](https://reacnetgenerator.njzjz.win/tutorial/) to help you learn ReacNetGenerator.
+See [the guide](https://reacnetgenerator.njzjz.win/#table-of-contents) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](https://reacnetgenerator.njzjz.win/#table-of-contents) to help you learn ReacNetGenerator.
 
 ## Awards
 * The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
