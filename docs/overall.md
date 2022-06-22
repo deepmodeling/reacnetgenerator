@@ -6,7 +6,7 @@
 
 An automatic reaction network generator for reactive molecular dynamics simulation
 
-<a href="/guide/" class="nav-link action-button">Get Started</a>
+<a href="/guide/install.html" class="nav-link action-button">Get Started</a>
 </header>
 
 <div class="features">
@@ -54,7 +54,7 @@ conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 
-See [the guide](index#table-of-contents) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](index#table-of-contents) to help you learn ReacNetGenerator.
+See {ref}`the guide <Table of contents>` to learn how to install and use ReacNetGenerattor. We also provide {ref}`a series of tutorials <Table of contents>` to help you learn ReacNetGenerator.
 
 # Awards
 * The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
