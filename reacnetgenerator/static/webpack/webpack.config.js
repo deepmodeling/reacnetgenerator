@@ -31,7 +31,7 @@ module.exports = {
         {
           loader:'css-loader',
           options:{
-            url: false,
+            url: !buildweb,
           }
         },
         {
@@ -65,7 +65,7 @@ module.exports = {
       },
       {
         test: /\.(jpg|png)$/,
-        loader: 'url-loader',
+        type: 'asset/inline',
       },
       {
         test: /\.js$/,
