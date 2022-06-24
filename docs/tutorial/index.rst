@@ -5,4 +5,5 @@ Tutorials
    :maxdepth: 2
    :caption: Tutorials
 
+   methane
    cl20
