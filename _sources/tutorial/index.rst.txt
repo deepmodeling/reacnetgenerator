@@ -1,8 +1,9 @@
-Tutorials
-=========
+Tutorials and Applications
+==========================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Tutorials
+   :caption: Tutorials and Applications
 
+   methane
    cl20

@@ -27,7 +27,7 @@
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
   <link rel="next" title="Developing" href="../develop.html" />
-  <link rel="prev" title="Tutorials" href="index.html" /> 
+  <link rel="prev" title="Simulation of the oxidation of methane" href="methane.html" /> 
   </head>
 
   <body>
@@ -51,9 +51,9 @@
     </div>
   
     <div class="nav-item">
-      <a href="index.html#tutorials"
+      <a href="index.html#tutorials-and-applications"
          class="nav-link  router-link-active">
-         Tutorials
+         Tutorials and Applications
       </a>
     </div>
   
@@ -118,9 +118,9 @@
     </div>
   
     <div class="nav-item">
-      <a href="index.html#tutorials"
+      <a href="index.html#tutorials-and-applications"
          class="nav-link  router-link-active">
-         Tutorials
+         Tutorials and Applications
       </a>
     </div>
   
@@ -252,9 +252,18 @@
   
     <div class="sidebar-group">
       <p class="caption">
-        <span class="caption-text"><a href="index.html#tutorials">Tutorials</a></span>
+        <span class="caption-text"><a href="index.html#tutorials-and-applications">Tutorials and Applications</a></span>
       </p>
       <ul class="current">
+        
+          <li class="toctree-l1 ">
+            
+              <a href="methane.html" class="reference internal ">Simulation of the oxidation of methane</a>
+            
+
+            
+          </li>
+
         
           <li class="toctree-l1 current">
             
@@ -345,7 +354,7 @@
   <ul class="breadcrumbs">
     <li><a href="../index.html">Docs</a> &raquo;</li>
     
-      <li><a href="index.html">Tutorials</a> &raquo;</li>
+      <li><a href="index.html">Tutorials and Applications</a> &raquo;</li>
     
     <li>The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</li>
   </ul>
@@ -353,8 +362,8 @@
 
   <ul class="page-nav">
   <li class="prev">
-    <a href="index.html"
-       title="previous chapter">← Tutorials</a>
+    <a href="methane.html"
+       title="previous chapter">← Simulation of the oxidation of methane</a>
   </li>
   <li class="next">
     <a href="../develop.html"
@@ -369,9 +378,11 @@
   <section id="the-thermal-decomposition-of-cl-20-c-sub-6-sub-h-sub-6-sub-n-sub-12-sub-o-sub-12-sub">
 <h1>The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)<a class="headerlink" href="#the-thermal-decomposition-of-cl-20-c-sub-6-sub-h-sub-6-sub-n-sub-12-sub-o-sub-12-sub" title="Permalink to this heading">¶</a></h1>
 <p>This tutorial is proposed to develop a Deep Potential for the thermal decomposition of CL-20, perform MD simulations, and then use the ReacNetGenerator to analyze reactions.</p>
+<p>This tutorial introduces the following research article:
+Liqun Cao, Jinzhe Zeng, Bo Wang, Tong Zhu, John Z.H. Zhang, Ab Initio Neural Network MD Simulation of Thermal Decomposition of High Energy Material CL-20/TNT, Physical Chemistry Chemical Physics, 2022, 24, 11801–11811. DOI: <a class="reference external" href="https://doi.org/10.1039/D2CP00710J">10.1039/D2CP00710J</a></p>
 <section id="reference-dataset">
 <h2>Reference dataset<a class="headerlink" href="#reference-dataset" title="Permalink to this heading">¶</a></h2>
-<p>In this study, a workflow was developed for making reference datasets with DP-GEN program. <!-- The details of each module in the workflow are given in paper(...) -->
+<p>In this study, a workflow was developed for making reference datasets with DP-GEN program. The details of each module in the workflow are given in <a class="reference external" href="https://doi.org/10.1039/D2CP00710J">this paper</a>.
 You can install DP-GEN program with the tutorial in <a class="reference external" href="https://github.com/deepmodeling/dpgen">DP-GEN</a>. In this example, the input files for DP-GEN program are provided <a class="reference external" href="https://github.com/tongzhugroup/NNREAX/blob/cbb5cbf3eb3b89919ee555147427e071c012f37a/cl20/cl20_v1.yaml">here</a>.</p>
 </section>
 <section id="qm-calculation">
@@ -402,8 +413,8 @@ You can install DeePMD-kit program with the tutorial in <a class="reference exte
           <div class="page-nav">
             <div class="inner"><ul class="page-nav">
   <li class="prev">
-    <a href="index.html"
-       title="previous chapter">← Tutorials</a>
+    <a href="methane.html"
+       title="previous chapter">← Simulation of the oxidation of methane</a>
   </li>
   <li class="next">
     <a href="../develop.html"
