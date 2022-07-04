@@ -68,20 +68,6 @@ def readme():
 if __name__ == '__main__':
     this_directory = os.path.abspath(os.path.dirname(__file__))
     encrypted_python_files = [
-        "reacnetgenerator._detect",
-        "reacnetgenerator._draw",
-        "reacnetgenerator._hmmfilter",
-        "reacnetgenerator._logging",
-        "reacnetgenerator._matrix",
-        "reacnetgenerator._path",
-        "reacnetgenerator._reachtml",
-        "reacnetgenerator._version",
-        "reacnetgenerator.gui",
-        "reacnetgenerator.reacnetgen",
-        "reacnetgenerator._reaction",
-        "reacnetgenerator.commandline",
-        "reacnetgenerator.utils",
-        "reacnetgenerator._download",
     ]
 
     define_macros = []
