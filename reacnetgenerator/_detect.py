@@ -309,7 +309,7 @@ class _DetectLAMMPSdump(_DetectCrd):
                     atomtype = np.zeros(N, dtype=int)
                 elif linecontent == self.LineType.ATOMS:
                     s = line.split()
-                    atomtype[int(s[0])-1] = int(s[1])-1
+                    atomtype[int(s[self.id_idx])-1] = int(s[self.tidx])-1
         else:
             steplinenum = index + 1
         self.N = N
