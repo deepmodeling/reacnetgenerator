@@ -37,6 +37,7 @@ class TestDetect:
             inputfiletype=reacnetgen_param[0],
             inputfilename=reacnetgen_param[1],
             atomname=["H", "O"],
+            pbc=False,
         )
         yield rngclass
 
@@ -44,4 +45,4 @@ class TestDetect:
         """Test main process of ReacNetGen."""
         _Detect.gettype(reacnetgen).detect()
         assert reacnetgen.N == 3
-        assert reacnetgen.atomtype == np.array([0, 0, 1], dtype=int)
+        np.testing.assert_array_equal(reacnetgen.atomtype, np.array([0, 0, 1], dtype=int))
