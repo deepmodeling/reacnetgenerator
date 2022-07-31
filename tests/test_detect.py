@@ -6,7 +6,7 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 
-p_inputs = Path("inputs")
+p_inputs = Path(__file__).parent / 'inputs'
 
 
 class TestDetect:
