@@ -142,7 +142,6 @@ if __name__ == '__main__':
           package_data={
               'reacnetgenerator': ['static/webpack/bundle.html',
                                    'static/img-title.png',
-                                   'test/test.json',
                                    ],
           },
           long_description=readme(),

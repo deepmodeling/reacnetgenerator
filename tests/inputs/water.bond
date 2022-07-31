@@ -1,0 +1,11 @@
+# Timestep 0 
+# 
+# Number of particles 3 
+# 
+# Max number of bonds per atom 1 with coarse bond order cutoff 0.300 
+# Particle connection table and bond orders 
+# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q 
+ 1 1 1 3 0         0.950         0.950         2.004        -0.043
+ 2 1 1 3 0         0.950         0.950         2.004        -0.046
+ 3 2 2 1 2 0         0.948 0.948         0.948         0.000         0.075
+#
