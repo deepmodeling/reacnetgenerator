@@ -17,13 +17,9 @@ import os
 from collections import defaultdict
 import pkg_resources
 
-try:
-    from openbabel import openbabel
-except ImportError:  # pragma: no cover
-    import openbabel
 import scour.scour
 
-from .utils import SCOUROPTIONS, run_mp, SharedRNGData
+from .utils import SCOUROPTIONS, SharedRNGData
 
 
 class _HTMLResult(SharedRNGData):
@@ -99,21 +95,6 @@ class _HTMLResult(SharedRNGData):
                         self._svgspecs.add(spec)
         return reactionsabcd
 
-    def _convertsvg(self, smiles):
-        obConversion = openbabel.OBConversion()
-        obConversion.SetInAndOutFormats("smi", "svg")
-        obConversion.AddOption('x')
-        mol = openbabel.OBMol()
-        obConversion.ReadString(mol, smiles)
-        svgdata = obConversion.WriteString(mol)
-        svgdata = scour.scour.scourString(svgdata, SCOUROPTIONS)
-        svgdata = re.sub(r"\d+(\.\d+)?px", "100%", svgdata, count=2)
-        svgdata = re.sub(
-            r"""<rect("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-        svgdata = re.sub(
-            r"""<\?xml("[^"]*"|'[^']*'|[^'">])*>""", '', svgdata)
-        return smiles, svgdata
-
     def _readspecies(self, reaction, timeaxis=None):
         specs = []
         for reac in reaction:
@@ -134,7 +115,6 @@ class _HTMLResult(SharedRNGData):
                 reaction = self._readreaction(timeaxis=i)
                 self._reaction.append(reaction)
                 self._specs.append(self._readspecies(reaction, timeaxis=i))
-        self._svgfiles = self._generatesvgs()
 
     def _generateresult(self):
         network = [self._generatenetwork()]
@@ -142,7 +122,6 @@ class _HTMLResult(SharedRNGData):
             for i in range(self.split):
                 network.append(self._generatenetwork(timeaxis=i))
         self._templatedict["network"] = network
-        self._templatedict["speciessvg"] = self._svgfiles
         self._templatedict["species"] = self._specs
         self._templatedict["reactions"] = self._reaction
         self._templatedict["reactionsabcd"] = self._reactionsabcd
@@ -168,10 +147,3 @@ class _HTMLResult(SharedRNGData):
             svgdata = svgdata.replace(
                 r"""<style type="text/css">*{""", r"""<style type="text/css">#network svg *{""")
         return scour.scour.scourString(svgdata, SCOUROPTIONS)
-
-    def _generatesvgs(self):
-        _svgfiles = {}
-        results = run_mp(self.nproc, func=self._convertsvg, l=self._svgspecs)
-        for spec, svgfile in results:
-            _svgfiles[spec] = svgfile
-        return _svgfiles

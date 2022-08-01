@@ -2621,6 +2621,11 @@ shebang-regex@^3.0.0:
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-3.0.0.tgz#ae16f1644d873ecad843b0307b143362d4c42172"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
+smiles-drawer@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/smiles-drawer/-/smiles-drawer-2.0.3.tgz#757c569c6f6e4795309f6285daf23e0197b8ac03"
+  integrity sha512-G95FIAqeVyZOj5LlAE5QR0ERfGL5cOvx+LQfEGmtqVLQ8LypKRZ9TCo2Ne2lgqhFrdXQpftKf+79o6C0ItDMNg==
+
 source-list-map@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/source-list-map/-/source-list-map-2.0.1.tgz#3993bd873bfc48479cca9ea3a547835c7c154b34"

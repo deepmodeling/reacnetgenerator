@@ -1,6 +1,8 @@
 .spec {
     height: 100px;
     width: 100px;
+    text-align: center;
+    margin: 10px auto;
 }
 
 .content-table {
