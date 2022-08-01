@@ -21,6 +21,7 @@ require('jsrender');
 require('paginationjs');
 require("magnific-popup");
 require("bootstrap-select");
+require("smiles-drawer");
 /// #if !process.env.REACNETGENERATOR_BUILDWEB
 require('startbootstrap-creative/dist/js/scripts');
 /// #endif
@@ -58,7 +59,7 @@ function drawcanvas() {
             "title"(d) { return d.label; },
             "xlink:href"(d) {
                 var circle = '<circle cx="50" cy="50" r="45" stroke="#00f" stroke-width="2" fill="#fff" />';
-                return "data:image/svg+xml;base64," + window.btoa('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + getSpecSvg(d.node) + '</svg>');
+                return "data:image/svg+xml;base64," + window.btoa(unescape(encodeURIComponent('<svg class="spec" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + circle + getSpecSvg(d.node) + '</svg>')));
             },
             "ondblclick"(d) {
                 return `clearTimeout(timer1);G.removeNode('${d.node}');`;
@@ -113,9 +114,30 @@ function loadrngdata() {
     }
 }
 
-const getSpecSvg = (smi) => {
-    return rngdata['speciessvg'][smi];
-};
+// convert smiles to SVG
+let smilesDrawer = new SmilesDrawer.SvgDrawer({
+    height: 500,
+    width: 500,
+    bondThickness: 1,
+    explicitHydrogens: true,
+});
+let svgs = {};
+
+const getSpecSvg = (smi) => svgs[smi];
+
+const loadAllSpec = () => {
+    $('.smiles[data-smiles]').each(function(){
+        if (!$(obj).data("smiles-loaded")) {
+            var obj = this;
+            var spec = $(obj).data("smiles");
+            storeSVG(spec, () => {
+                var base64img = "data:image/svg+xml;base64," + window.btoa(unescape(encodeURIComponent(getSpecSvg(spec))));
+                $(obj).html("<img src='" + base64img + "'/>");
+                $(obj).data("smiles-loaded", true);
+            });
+        }
+   });
+}
 
 function handlejsondata(text) {
     try {
@@ -185,18 +207,8 @@ function showresult(data, size, tmpl, result, pager) {
         dataSource: data,
         pageSize: size,
         callback: function (data, pagination) {
-            data.forEach(dd => {
-                const smiles = [];
-                ['s', 'l', 'r'].map(pp => dd[pp]).filter(Boolean).forEach(smi => {
-                    if (typeof (smi) == "string") {
-                        smiles.push(smi);
-                    } else {
-                        smiles.push(...smi);
-                    }
-                });
-                dd["svg"] = Object.assign({}, ...smiles.map(smi => ({ [smi]: getSpecSvg(smi) })));
-            });
             $(result).html($.templates(tmpl).render(data));
+            loadAllSpec(); 
             $(".popup-modal").magnificPopup({
                 "type": "inline",
                 "preloader": false,
@@ -239,13 +251,34 @@ function showresults(time) {
 * add nodes for the specified species
 */
 function addnode(spec) {
-    G.addNode(spec);
+    addSingleNode(spec);
     if (spec in rngdata['linkreac']) {
         rngdata['linkreac'][spec].forEach(rightspec => {
-            G.addNode(rightspec);
+            addSingleNode(rightspec);
             G.addEdge(rightspec, spec);
         });
     }
+}
+
+function storeSVG(spec, callback) {
+    // load smiles svg
+    if (spec in svgs) {
+        callback();
+    } else {
+        SmilesDrawer.parse(spec, function (tree) {
+            smilesDrawer.draw(tree, 'tmpsvg', 'light', false);
+            svgs[spec] = $('#tmpsvgdiv').html();
+            callback();
+        }, function (err) {
+            console.log(err);
+        });
+    }
+}
+
+function addSingleNode(spec) {
+    storeSVG(spec, () => {
+        G.addNode(spec);
+    });
 }
 
 function savesvg() {
