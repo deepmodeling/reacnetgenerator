@@ -146,7 +146,7 @@ module.exports = {
           { name: "d3", path: "d3.min.js" },
           { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
           { name: "animejs", path: "lib/anime.min.js", var: "anime" },
-          { name: "smiles-drawer", path: "dist/smiles-drawer.min.js"},
+          { name: "smiles-drawer", path: "dist/smiles-drawer.min.js", var: "smilesdrawer"},
         ],
         prodUrl: '//unpkg.com/:name@:version/:path',
       })
