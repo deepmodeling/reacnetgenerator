@@ -913,6 +913,41 @@ process the information from the given trajectory, including:</p>
 
 </section>
 </section>
+<section id="module-reacnetgenerator.tools">
+<span id="reacnetgenerator-tools-module"></span><h2>reacnetgenerator.tools module<a class="headerlink" href="#module-reacnetgenerator.tools" title="Permalink to this heading">¶</a></h2>
+<p>Useful methods to futhur process ReacNetGenerator results.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="reacnetgenerator.tools.read_species">
+<span class="sig-prename descclassname"><span class="pre">reacnetgenerator.tools.</span></span><span class="sig-name descname"><span class="pre">read_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/reacnetgenerator/tools.html#read_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#reacnetgenerator.tools.read_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read species from the species file (ends with .species).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>specfile</strong><span class="classifier">str</span></dt><dd><p>The species file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>step_idx</strong><span class="classifier">np.ndarray</span></dt><dd><p>The index of the step.</p>
+</dd>
+<dt><strong>n_species</strong><span class="classifier">Dict[str, np.ndarray]</span></dt><dd><p>The number of species in each step. The dict key is the species SMILES.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Plot the number of methane in each step.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">reacnetgenerator.tools</span> <span class="kn">import</span> <span class="n">read_species</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">step_idx</span><span class="p">,</span> <span class="n">n_species</span> <span class="o">=</span> <span class="n">read_species</span><span class="p">(</span><span class="s1">&#39;methane.species&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">step_idx</span><span class="p">,</span> <span class="n">n_species</span><span class="p">[</span><span class="s1">&#39;[H]C([H])([H])[H]&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;methane.svg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="module-reacnetgenerator.utils">
 <span id="reacnetgenerator-utils-module"></span><h2>reacnetgenerator.utils module<a class="headerlink" href="#module-reacnetgenerator.utils" title="Permalink to this heading">¶</a></h2>
 <p>Provide utils for ReacNetGenerator.</p>

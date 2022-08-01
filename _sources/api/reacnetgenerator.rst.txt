@@ -41,6 +41,14 @@ reacnetgenerator.reacnetgen module
    :undoc-members:
    :show-inheritance:
 
+reacnetgenerator.tools module
+-----------------------------
+
+.. automodule:: reacnetgenerator.tools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reacnetgenerator.utils module
 -----------------------------
 
