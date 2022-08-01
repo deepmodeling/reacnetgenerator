@@ -1,0 +1,8 @@
+Timestep 0: [H]C([H])([H])[H] 99 [H]C([H])[H] 1 [HH] 1 O=O 199 O 2
+Timestep 1000: [H]C([H])([H])[H] 100 O=O 195 OO 5
+Timestep 2000: [H]C([H])([H])[H] 100 O=O 140 OO 60
+Timestep 3000: [H]C([H])([H])[H] 99 O=O 86 OO 113 [H]C([H])[H] 1 [H]OO 1
+Timestep 4000: [H]C([H])([H])[H] 99 O=O 67 OO 132 [H]C([H])[H] 1 [H]OO 1
+Timestep 5000: [H]C([H])([H])[H] 99 O=O 64 OO 135 [H]C([H])[H] 1 [H]OO 1
+Timestep 6000: [H]C([H])([H])[H] 99 O=O 77 OO 122 [H]C([H])[H] 1 [H]OO 1
+Timestep 7000: [H]C([H])([H])[H] 99 O=O 90 OO 109 [H]OO 1 [H]C([H])[H] 1
