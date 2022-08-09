@@ -94,12 +94,12 @@ Copyright 2018-2019 East China Normal University
     </section>
 
     <script id="svgTmpl" type="text/x-jsrender">
-        <div class="spec"><a class="popup-modal" href="#canvassec" onclick="addnode('{{:#view.data}}');" title="{{:#view.data}}">
+        <div class="spec col-lg-auto"><a class="popup-modal" href="#canvassec" onclick="addnode('{{:#view.data}}');" title="{{:#view.data}}">
         <div class='smiles' data-smiles="{{:#view.data}}" data-smiles-loaded=false>
         </div></a></div>
     </script>
     <script id="specTmpl" type="text/x-jsrender">
-        <div class="mx-auto">
+        <div class="col-lg-auto mx-auto">
             {{include s tmpl="#svgTmpl"/}}
             <div>{{:i}}</div>
         </div>
@@ -107,15 +107,15 @@ Copyright 2018-2019 East China Normal University
     <script id="rsideTmpl" type="text/x-jsrender">
         {{for}}
             {{if #getIndex()>0}}
-                <div class="plus">+</div>
+                <div class="plus col-lg-auto">+</div>
             {{/if}}
             {{include tmpl="#svgTmpl"/}}
         {{/for}}
     </script>
     <script id="rTmpl" type="text/x-jsrender">
-        <div class="reacid">{{:i}}</div>
+        <div class="reacid col-lg-auto">{{:i}}</div>
         {{include l tmpl="#rsideTmpl"/}}
-        <div>
+        <div class="col-lg-auto">
             <div class="reacnum">{{:n}}</div>
             <div><svg width="25" height="14.33">
                 <path class="narrow" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z" font-size="39.506" font-weight="400"/>
@@ -124,12 +124,12 @@ Copyright 2018-2019 East China Normal University
         {{include r tmpl="#rsideTmpl"/}}
     </script>
     <script id="reacTmpl" type="text/x-jsrender">
-        <div class="row mx-auto">
+        <div class="col-lg-auto row mx-auto">
             {{include tmpl="#rTmpl"/}}
         </div>
     </script>
     <script id="reacabcdTmpl" type="text/x-jsrender">
-        <div class="row mx-auto col-sm-5">
+        <div class="col-lg-auto row mx-auto col-sm-5">
             {{include tmpl="#rTmpl"/}}
         </div>
     </script>
@@ -137,7 +137,7 @@ Copyright 2018-2019 East China Normal University
     <section id="species" class='page-section bg-white mx-auto' style="display:none;">
         <div class="container">
             <div class="row">
-                <div class="mx-auto text-center">
+                <div class="col-lg-auto mx-auto text-center">
                     <h2 class='text-center'>Species</h2>
                     <div class="row justify-content-center">
                         <select id="speciesselect" class="selectpicker" multiple data-live-search="true"></select>
@@ -157,7 +157,7 @@ Copyright 2018-2019 East China Normal University
     <section id="reactions" class='page-section bg-white mx-auto' style="display:none;">
         <div class="container">
             <div class="row">
-                <div class="mx-auto text-center">
+                <div class="col-lg-auto mx-auto text-center">
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(sorted by frequency)</h4>
                     <div class="row justify-content-center">
@@ -175,7 +175,7 @@ Copyright 2018-2019 East China Normal University
     <section id="reactionsabcd" class='page-section bg-white mx-auto d-none' style="display:none;">
         <div class="container">
             <div class="row">
-                <div class="mx-auto text-center">
+                <div class="col-lg-auto mx-auto text-center">
                     <h2 class='text-center'>Reactions</h2>
                     <h4 class='text-center'>(A+B->C+D)</h4>
                     <div class="row justify-content-center">

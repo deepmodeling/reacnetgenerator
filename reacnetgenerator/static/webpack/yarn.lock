@@ -469,15 +469,15 @@ bootstrap-select@1.13.18:
   resolved "https://registry.yarnpkg.com/bootstrap-select/-/bootstrap-select-1.13.18.tgz#4557119d58dc1159189977161c803962220e4dda"
   integrity sha512-V1IzK4rxBq5FrJtkzSH6RmFLFBsjx50byFbfAf8jYyXROWs7ZpprGjdHeoyq2HSsHyjJhMMwjsQhRoYAfxCGow==
 
-bootstrap@4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.6.0.tgz#97b9f29ac98f98dfa43bf7468262d84392552fd7"
-  integrity sha512-Io55IuQY3kydzHtbGvQya3H+KorS/M9rSNyfCGCg9WZ4pyT/lCxIlpJgG1GXW/PswzC84Tr2fBYi+7+jFVQQBw==
-
 bootstrap@4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.6.2.tgz#8e0cd61611728a5bf65a3a2b8d6ff6c77d5d7479"
   integrity sha512-51Bbp/Uxr9aTuy6ca/8FbFloBUJZLHwnhTcnjIeRn2suQWsWzcuJhGjKDB5eppVte/8oCdOL3VuwxvZDUggwGQ==
+
+bootstrap@5.1.3:
+  version "5.1.3"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-5.1.3.tgz#ba081b0c130f810fa70900acbc1c6d3c28fa8f34"
+  integrity sha512-fcQztozJ8jToQWXxVuEyXWW+dSo8AiXWKwiSSrKWsRB/Qt+Ewwza+JWoLKiTuQLaEPhdNAJ7+Dosc9DOIqNy7Q==
 
 braces@~3.0.2:
   version "3.0.2"
@@ -2699,12 +2699,12 @@ stable@^0.1.8:
   resolved "https://registry.yarnpkg.com/stable/-/stable-0.1.8.tgz#836eb3c8382fe2936feaf544631017ce7d47a3cf"
   integrity sha512-ji9qxRnOVfcuLDySj9qzhGSEFVobyt1kIOSkj1qZzYLzq7Tos/oUUWvotUPQLlrsidqsK6tBH89Bc9kL5zHA6w==
 
-startbootstrap-creative@6.0.5:
-  version "6.0.5"
-  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-6.0.5.tgz#5d034eb961aeebaca3bb8e4c9eda672294801ab6"
-  integrity sha512-mP9aVLQAUrHhxPapwGztAD9Fe2nRBr1oSfRklt53VKlvB04m3c7ZE5xAMW/d7WDqmHQuAN5L0LAMpj2YUvAQ3A==
+startbootstrap-creative@7.0.6:
+  version "7.0.6"
+  resolved "https://registry.yarnpkg.com/startbootstrap-creative/-/startbootstrap-creative-7.0.6.tgz#24b47523bad98051c15757315ec53fd01456659b"
+  integrity sha512-jOe3JI2Wj+IgZQUT+ZSzutIoCkV4h1NdDhroM8noLZ87hnWQCNJ4olk/owgMAI9A9h6+MxRKhioLpJW0isRboQ==
   dependencies:
-    bootstrap "4.6.0"
+    bootstrap "5.1.3"
 
 strict-uri-encode@^2.0.0:
   version "2.0.0"
