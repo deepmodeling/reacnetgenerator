@@ -311,6 +311,9 @@ function addloadbutton() {
     });
 }
 
+// placeholder for SimpleLightbox
+function SimpleLightbox(config){};
+
 //define global
 window.$ = $;
 window.addnode = addnode;
@@ -320,3 +323,4 @@ window.G = G;
 window.timer1 = null;
 window.timer2 = null;
 window.isdrag = false;
+window.SimpleLightbox = SimpleLightbox;
