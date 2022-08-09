@@ -353,7 +353,12 @@
 <span></span><span class="c1"># cython: language_level=3</span>
 <span class="c1"># cython: linetrace=True</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">.reacnetgen</span> <span class="kn">import</span> <span class="n">ReacNetGenerator</span>
+<span class="kn">from</span> <span class="nn">.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
+
 
 <div class="viewcode-block" id="main_parser"><a class="viewcode-back" href="../../api/reacnetgenerator.html#reacnetgenerator.commandline.main_parser">[docs]</a><span class="k">def</span> <span class="nf">main_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Returns main parser.</span>
@@ -401,30 +406,41 @@
         <span class="s1">&#39;--matrixb&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Matrix B of HMM parameters&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">])</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--urls&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;append&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Download files&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--version&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s1">&#39;ReacNetGenerator v</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">__version__</span><span class="p">)</span>
+    <span class="c1"># subparsers</span>
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Valid subcommands&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;command&quot;</span><span class="p">)</span>
+    <span class="n">parser_frz</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">&quot;gui&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Open ReacNetGenerator GUI&quot;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentDefaultsHelpFormatter</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">parser</span></div>
 
 
 <span class="k">def</span> <span class="nf">_commandline</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">main_parser</span><span class="p">()</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-    <span class="kn">from</span> <span class="nn">.reacnetgen</span> <span class="kn">import</span> <span class="n">ReacNetGenerator</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-    <span class="n">ReacNetGenerator</span><span class="p">(</span>
-        <span class="n">inputfilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">inputfilename</span><span class="p">,</span> <span class="n">atomname</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">atomname</span><span class="p">,</span>
-        <span class="n">miso</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">miso</span><span class="p">,</span>
-        <span class="n">runHMM</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">nohmm</span><span class="p">,</span>
-        <span class="n">inputfiletype</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lammpsdumpfile&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">dump</span> <span class="k">else</span> <span class="n">args</span><span class="o">.</span><span class="n">type</span><span class="p">),</span>
-        <span class="n">nproc</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">nproc</span><span class="p">,</span> <span class="n">selectatoms</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">selectatoms</span><span class="p">,</span>
-        <span class="n">stepinterval</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">stepinterval</span><span class="p">,</span>
-        <span class="n">split</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">,</span>
-        <span class="n">maxspecies</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">maxspecies</span><span class="p">,</span>
-        <span class="n">urls</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
-              <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">urls</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">urls</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">matrixa</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
-        <span class="n">b</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">matrixb</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
-        <span class="n">pbc</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">nopbc</span><span class="p">,</span>
-        <span class="n">cell</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">runanddraw</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ReacNetGenerator</span><span class="p">(</span>
+            <span class="n">inputfilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">inputfilename</span><span class="p">,</span> <span class="n">atomname</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">atomname</span><span class="p">,</span>
+            <span class="n">miso</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">miso</span><span class="p">,</span>
+            <span class="n">runHMM</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">nohmm</span><span class="p">,</span>
+            <span class="n">inputfiletype</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;lammpsdumpfile&#39;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">dump</span> <span class="k">else</span> <span class="n">args</span><span class="o">.</span><span class="n">type</span><span class="p">),</span>
+            <span class="n">nproc</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">nproc</span><span class="p">,</span> <span class="n">selectatoms</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">selectatoms</span><span class="p">,</span>
+            <span class="n">stepinterval</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">stepinterval</span><span class="p">,</span>
+            <span class="n">split</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">split</span><span class="p">,</span>
+            <span class="n">maxspecies</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">maxspecies</span><span class="p">,</span>
+            <span class="n">urls</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="n">url</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">urls</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">urls</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">matrixa</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="n">b</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">matrixb</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="n">pbc</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">nopbc</span><span class="p">,</span>
+            <span class="n">cell</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">cell</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">runanddraw</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">&quot;gui&quot;</span><span class="p">:</span>
+        <span class="n">GUI</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown command </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">command</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="parm2cmd"><a class="viewcode-back" href="../../api/reacnetgenerator.html#reacnetgenerator.commandline.parm2cmd">[docs]</a><span class="k">def</span> <span class="nf">parm2cmd</span><span class="p">(</span><span class="n">pp</span><span class="p">):</span>
