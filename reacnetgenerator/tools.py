@@ -117,7 +117,6 @@ def calculate_rate(specfile: str, reacfile: str, cell: np.ndarray, timestep: flo
     for occ, reacts, reactions in occs:
         # k = occ_tot / ( V * time_tot * c_tot )
         # c_tot = N_tot / (V * NA)
-        print(n_species)
         n_react = np.array([n_species[kk] for kk in reacts.keys()])
         nu = np.array(list(reacts.values()))
         c_po = np.power(n_react / volume_times_na, np.repeat(nu, n_react.shape[1]).reshape(n_react.shape))
