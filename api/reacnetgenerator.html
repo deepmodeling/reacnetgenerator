@@ -917,9 +917,66 @@ process the information from the given trajectory, including:</p>
 <span id="reacnetgenerator-tools-module"></span><h2>reacnetgenerator.tools module<a class="headerlink" href="#module-reacnetgenerator.tools" title="Permalink to this heading">¶</a></h2>
 <p>Useful methods to futhur process ReacNetGenerator results.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="reacnetgenerator.tools.calculate_rate">
+<span class="sig-prename descclassname"><span class="pre">reacnetgenerator.tools.</span></span><span class="sig-name descname"><span class="pre">calculate_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reacfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><span class="pre">ndarray</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/reacnetgenerator/tools.html#calculate_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#reacnetgenerator.tools.calculate_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the rate constant of each reaction.</p>
+<p>The rate constants are calculated by the method developed in [1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>specfile</strong><span class="classifier">str</span></dt><dd><p>The species file.</p>
+</dd>
+<dt><strong>reacfile</strong><span class="classifier">str</span></dt><dd><p>The reactions file.</p>
+</dd>
+<dt><strong>cell</strong><span class="classifier">np.ndarray</span></dt><dd><p>The cell with the shape (3, 3). Unit: Angstrom.</p>
+</dd>
+<dt><strong>timestep</strong><span class="classifier">float</span></dt><dd><p>The time step. Unit: femtosecond.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>rates</strong><span class="classifier">Dict[str, float]</span></dt><dd><p>The rate of each reaction. The dict key is the reaction SMILES.
+The value is in unit of [(cm^3/mol)s^(-1)].</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<div role="list" class="citation-list">
+<div class="citation" id="r6acec8fb3b05-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>J Comput Chem 40, 16, 1586-1592.</p>
+</div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="reacnetgenerator.tools.read_reactions">
+<span class="sig-prename descclassname"><span class="pre">reacnetgenerator.tools.</span></span><span class="sig-name descname"><span class="pre">read_reactions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reacfile</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.html#collections.Counter" title="(in Python v3.10)"><span class="pre">Counter</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/reacnetgenerator/tools.html#read_reactions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#reacnetgenerator.tools.read_reactions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read reactions from the reactions file (ends with .reactionsabcd).</p>
+<p>For accuracy, HMM filter should be disabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>reacfile</strong><span class="classifier">str</span></dt><dd><p>The reactions file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>occs</strong><span class="classifier">List[Tuple[int, Counter, str]]</span></dt><dd><p>The number of occurences of each reaction. The tuple is (occurence, counter_reactants, reaction).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="reacnetgenerator.tools.read_species">
 <span class="sig-prename descclassname"><span class="pre">reacnetgenerator.tools.</span></span><span class="sig-name descname"><span class="pre">read_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">specfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.10)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/reacnetgenerator/tools.html#read_species"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#reacnetgenerator.tools.read_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read species from the species file (ends with .species).</p>
+<p>For accuracy, HMM filter should be disabled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
