@@ -48,6 +48,7 @@ def main_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--matrixb', help='Matrix B of HMM parameters', type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
     parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
+    parser.add_argument('--version', action='version', version='ReacNetGenerator v%s' % __version__)
     return parser
 
 

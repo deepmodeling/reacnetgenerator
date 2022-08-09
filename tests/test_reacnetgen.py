@@ -88,6 +88,10 @@ class TestReacNetGen:
         ret = script_runner.run('reacnetgenerator', '-h')
         assert ret.success
 
+    def test_commandline_version(self, script_runner):
+        ret = script_runner.run('reacnetgenerator', '--version')
+        assert ret.success
+
     def test_commandline_run(self, script_runner, reacnetgen_param):
         ret = script_runner.run(*parm2cmd(reacnetgen_param['rngparams']))
         assert ret.success
