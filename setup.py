@@ -118,7 +118,6 @@ if __name__ == '__main__':
               'reacnetgeneratorgui=reacnetgenerator.gui:gui'
           ]
           },
-          test_suite='reacnetgenerator.test',
           tests_require=tests_require,
           extras_require={
               "test": tests_require,
@@ -131,7 +130,7 @@ if __name__ == '__main__':
                 'sphinx-favicon',
               ],
           },
-          use_scm_version=os.path.exists(os.path.join(this_directory, ".git")),
+          use_scm_version=True,
           setup_requires=[
               'setuptools>=18.0',
               'setuptools_scm',
@@ -165,5 +164,4 @@ if __name__ == '__main__':
               "build_py": BuildPyCommand,
               "build_ext": BuildExtCommand,
           },
-          version="1.0.0",
           )
