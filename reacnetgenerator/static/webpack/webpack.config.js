@@ -143,7 +143,7 @@ module.exports = {
             path: "dist/js/scripts.js",
             style: "dist/css/styles.css"
           },
-          { name: "d3", path: "d3.min.js" },
+          { name: "d3", path: "dist/d3.min.js" },
           { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
           { name: "animejs", path: "lib/anime.min.js", var: "anime" },
           { name: "smiles-drawer", path: "dist/smiles-drawer.min.js", var: "SmilesDrawer"},
