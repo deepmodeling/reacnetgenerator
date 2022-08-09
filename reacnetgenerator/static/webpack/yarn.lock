@@ -2626,6 +2626,11 @@ shebang-regex@^3.0.0:
   resolved "https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-3.0.0.tgz#ae16f1644d873ecad843b0307b143362d4c42172"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
+simplelightbox@2.10.3:
+  version "2.10.3"
+  resolved "https://registry.yarnpkg.com/simplelightbox/-/simplelightbox-2.10.3.tgz#122dd5044279b95596b82103351ddba40dae8917"
+  integrity sha512-EvBmxVG5YQGKsaYijyky5J22h4OsOKnv8kWJxUZR9fxWTpxkTj0rbbflZiFJ61F+OEb6cPUFzxUjLoOZF8W2gg==
+
 smiles-drawer@2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/smiles-drawer/-/smiles-drawer-2.0.3.tgz#757c569c6f6e4795309f6285daf23e0197b8ac03"

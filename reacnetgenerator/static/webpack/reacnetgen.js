@@ -24,6 +24,7 @@ require("bootstrap-select");
 require("smiles-drawer");
 /// #if !process.env.REACNETGENERATOR_BUILDWEB
 require('startbootstrap-creative/dist/js/scripts');
+require('simplelightbox');
 /// #endif
 var jsnx = require("@njzjz/jsnetworkx");
 var jsnx = jsnx.default || jsnx;

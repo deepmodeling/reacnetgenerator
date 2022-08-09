@@ -147,6 +147,7 @@ module.exports = {
           { name: "@njzjz/jsnetworkx", path: "jsnetworkx.js", var: "jsnx" },
           { name: "animejs", path: "lib/anime.min.js", var: "anime" },
           { name: "smiles-drawer", path: "dist/smiles-drawer.min.js", var: "SmilesDrawer"},
+          { name: "simplelightbox", path: "simpleLightbox.min.js", style: "simpleLightbox.min.css" },
         ],
         prodUrl: '//unpkg.com/:name@:version/:path',
       })
