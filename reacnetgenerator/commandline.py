@@ -1,12 +1,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 import argparse
-
-import numpy as np
 from . import __version__
-from .reacnetgen import ReacNetGenerator
-from .gui import GUI
-
 
 def main_parser() -> argparse.ArgumentParser:
     """Returns main parser.
@@ -54,41 +49,30 @@ def main_parser() -> argparse.ArgumentParser:
         '--matrixb', help='Matrix B of HMM parameters', type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
     parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
     parser.add_argument('--version', action='version', version='ReacNetGenerator v%s' % __version__)
-    # subparsers
-    subparsers = parser.add_subparsers(title="Valid subcommands", dest="command")
-    parser_frz = subparsers.add_parser(
-        "gui",
-        help="Open ReacNetGenerator GUI",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
     return parser
 
 
 def _commandline():
     parser = main_parser()
     args = parser.parse_args()
-
-    if args.command is None:
-        ReacNetGenerator(
-            inputfilename=args.inputfilename, atomname=args.atomname,
-            miso=args.miso,
-            runHMM=not args.nohmm,
-            inputfiletype=('lammpsdumpfile' if args.dump else args.type),
-            nproc=args.nproc, selectatoms=args.selectatoms,
-            stepinterval=args.stepinterval,
-            split=args.split,
-            maxspecies=args.maxspecies,
-            urls=[{"fn": url[0], "url": url[1]}
-                for url in args.urls] if args.urls else None,
-            a=np.array(args.matrixa).reshape((2, 2)),
-            b=np.array(args.matrixb).reshape((2, 2)),
-            pbc=not args.nopbc,
-            cell=args.cell,
-        ).runanddraw()
-    elif args.command == "gui":
-        GUI()
-    else:
-        raise RuntimeError(f"unknown command {args.command}")
+    from .reacnetgen import ReacNetGenerator
+    import numpy as np
+    ReacNetGenerator(
+        inputfilename=args.inputfilename, atomname=args.atomname,
+        miso=args.miso,
+        runHMM=not args.nohmm,
+        inputfiletype=('lammpsdumpfile' if args.dump else args.type),
+        nproc=args.nproc, selectatoms=args.selectatoms,
+        stepinterval=args.stepinterval,
+        split=args.split,
+        maxspecies=args.maxspecies,
+        urls=[{"fn": url[0], "url": url[1]}
+              for url in args.urls] if args.urls else None,
+        a=np.array(args.matrixa).reshape((2, 2)),
+        b=np.array(args.matrixb).reshape((2, 2)),
+        pbc=not args.nopbc,
+        cell=args.cell,
+    ).runanddraw()
 
 
 def parm2cmd(pp):
