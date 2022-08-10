@@ -2,5 +2,5 @@
 requires = ["setuptools>=40.8.0", "wheel", "oldest-supported-numpy"] 
 build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
-write_to = "reacnetgenerator/_version.py"
+write_to = "reacnetgenerator/_version2.py"
 fallback_version = "Unknown"

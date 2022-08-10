@@ -196,3 +196,4 @@ bundle.*
 pip-wheel-metadata/
 
 _build/
+reacnetgenerator/_version2.py
