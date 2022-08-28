@@ -16,6 +16,7 @@ import './reacnetgen.scss'
 global.$ = global.jQuery = require('jquery');
 global.regeneratorRuntime = require("regenerator-runtime");
 require('bootstrap');
+require('@popper.js/core');
 global.anime = window.anime = require('animejs');
 require('jsrender');
 require('paginationjs');
