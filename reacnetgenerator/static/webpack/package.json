@@ -16,7 +16,7 @@
     "@popperjs/core": "2.11.6",
     "animejs": "3.2.1",
     "bootstrap": "5.2.0",
-    "bootstrap-select": "1.13.18",
+    "bootstrap-select": "1.14.0-beta3",
     "d3": "3.5.17",
     "jquery": "3.6.0",
     "jsrender": "1.0.11",
