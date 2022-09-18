@@ -2,6 +2,7 @@
 # cython: linetrace=True
 import argparse
 from . import __version__
+from ._detect import _Detect 
 
 def main_parser() -> argparse.ArgumentParser:
     """Returns main parser.
@@ -25,9 +26,10 @@ def main_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--miso', help='Merge the isomers',type=int, default=0)
     parser.add_argument(
-        '--dump', help='Process the LAMMPS dump file', action="store_true")
+        '--dump', help='(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.', action="store_true")
     parser.add_argument(
-        '--type', '-t', help='Input file type', default='lammpsbondfile')
+        '--type', '-t', help='Input file type', choices=list(_Detect.subclasses.keys()),
+        default='lammpsbondfile')
     parser.add_argument(
         '--nopbc', help='Disable PBC.', action="store_true")
     parser.add_argument(
