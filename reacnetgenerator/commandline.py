@@ -28,7 +28,8 @@ def main_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--dump', help='(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.', action="store_true")
     parser.add_argument(
-        '--type', '-t', help='Input file type', choice=list(_Detect.subclasses.keys()), default='lammpsbondfile')
+        '--type', '-t', help='Input file type', choices=list(_Detect.subclasses.keys()),
+        default='lammpsbondfile')
     parser.add_argument(
         '--nopbc', help='Disable PBC.', action="store_true")
     parser.add_argument(
