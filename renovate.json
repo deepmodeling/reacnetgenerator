@@ -3,5 +3,10 @@
     "config:base",
     "github>njzjz/renovate-config",
     ":semanticCommitTypeAll(chore)"
-  ]
+  ],
+  "docker-compose": {
+    "digest": {
+      "enabled": false
+    }
+  }
 }
