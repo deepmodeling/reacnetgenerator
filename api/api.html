@@ -17,6 +17,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script src="https://unpkg.com/bilitube@0/dist/bilitube.min.js"></script>
 
       
@@ -376,18 +377,111 @@
 <li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#notes">Notes</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.commandline">reacnetgenerator.commandline module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.dps">reacnetgenerator.dps module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.gui">reacnetgenerator.gui module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.reacnetgen">reacnetgenerator.reacnetgen module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#features">Features</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#simple-example">Simple example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.DETECT"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.DETECT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.DOWNLOAD"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.DOWNLOAD</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.HMM"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.HMM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.INIT"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.INIT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.MATRIX"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.MATRIX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.MISO"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.MISO</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.NETWORK"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.NETWORK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.PATH"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.PATH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status.REPORT"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status.REPORT</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.tools">reacnetgenerator.tools module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.utils">reacnetgenerator.utils module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#module-reacnetgenerator.utils_np">reacnetgenerator.utils_np module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.draw"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.draw()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.report"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.report()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.run"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.runanddraw"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.runanddraw()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-commandline-module">reacnetgenerator.commandline module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.commandline.main_parser"><code class="docutils literal notranslate"><span class="pre">main_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.commandline.parm2cmd"><code class="docutils literal notranslate"><span class="pre">parm2cmd()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-dps-module">reacnetgenerator.dps module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.dps.dps"><code class="docutils literal notranslate"><span class="pre">dps()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.dps.dps_reaction"><code class="docutils literal notranslate"><span class="pre">dps_reaction()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-gui-module">reacnetgenerator.gui module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.gui.GUI"><code class="docutils literal notranslate"><span class="pre">GUI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.gui.GUI.gui"><code class="docutils literal notranslate"><span class="pre">GUI.gui()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.gui.GUI.root"><code class="docutils literal notranslate"><span class="pre">GUI.root</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.gui.gui"><code class="docutils literal notranslate"><span class="pre">gui()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-reacnetgen-module">reacnetgenerator.reacnetgen module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#features">Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#simple-example">Simple example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.reacnetgen.ReacNetGenerator"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.reacnetgen.ReacNetGenerator.Status"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.Status</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.reacnetgen.ReacNetGenerator.draw"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.draw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.reacnetgen.ReacNetGenerator.report"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.report()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.reacnetgen.ReacNetGenerator.run"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.reacnetgen.ReacNetGenerator.runanddraw"><code class="docutils literal notranslate"><span class="pre">ReacNetGenerator.runanddraw()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-tools-module">reacnetgenerator.tools module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.tools.calculate_rate"><code class="docutils literal notranslate"><span class="pre">calculate_rate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.tools.read_reactions"><code class="docutils literal notranslate"><span class="pre">read_reactions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.tools.read_species"><code class="docutils literal notranslate"><span class="pre">read_species()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-utils-module">reacnetgenerator.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.enable_viewboxing"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.enable_viewboxing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.newlines"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.newlines</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.remove_descriptions"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.remove_descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.remove_descriptive_elements"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.remove_descriptive_elements</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.remove_metadata"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.remove_metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.remove_titles"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.remove_titles</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.shorten_ids"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.shorten_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.strip_comments"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.strip_comments</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.strip_ids"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.strip_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.strip_xml_prolog"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.strip_xml_prolog</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS.strip_xml_space_attribute"><code class="docutils literal notranslate"><span class="pre">SCOUROPTIONS.strip_xml_space_attribute</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SharedRNGData"><code class="docutils literal notranslate"><span class="pre">SharedRNGData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.SharedRNGData.returnkeys"><code class="docutils literal notranslate"><span class="pre">SharedRNGData.returnkeys()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer"><code class="docutils literal notranslate"><span class="pre">WriteBuffer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.append"><code class="docutils literal notranslate"><span class="pre">WriteBuffer.append()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.check"><code class="docutils literal notranslate"><span class="pre">WriteBuffer.check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.extend"><code class="docutils literal notranslate"><span class="pre">WriteBuffer.extend()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.flush"><code class="docutils literal notranslate"><span class="pre">WriteBuffer.flush()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.appendIfNotNone"><code class="docutils literal notranslate"><span class="pre">appendIfNotNone()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.bytestolist"><code class="docutils literal notranslate"><span class="pre">bytestolist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.checksha256"><code class="docutils literal notranslate"><span class="pre">checksha256()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.compress"><code class="docutils literal notranslate"><span class="pre">compress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.decompress"><code class="docutils literal notranslate"><span class="pre">decompress()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.download_file"><code class="docutils literal notranslate"><span class="pre">download_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.download_multifiles"><code class="docutils literal notranslate"><span class="pre">download_multifiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.gather_download_files"><code class="docutils literal notranslate"><span class="pre">gather_download_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.listtobytes"><code class="docutils literal notranslate"><span class="pre">listtobytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.listtostirng"><code class="docutils literal notranslate"><span class="pre">listtostirng()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.multiopen"><code class="docutils literal notranslate"><span class="pre">multiopen()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.must_be_list"><code class="docutils literal notranslate"><span class="pre">must_be_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.produce"><code class="docutils literal notranslate"><span class="pre">produce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils.run_mp"><code class="docutils literal notranslate"><span class="pre">run_mp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator-utils-np-module">reacnetgenerator.utils_np module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils_np.check_zero_signal"><code class="docutils literal notranslate"><span class="pre">check_zero_signal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reacnetgenerator.html#reacnetgenerator.utils_np.idx_to_signal"><code class="docutils literal notranslate"><span class="pre">idx_to_signal()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -409,7 +503,7 @@
 </ul><div class="footer" role="contentinfo">
       &#169; Copyright 2019-2022, East China Normal University.
     <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
+    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.1 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
 </div>
             </div>
           </div>
