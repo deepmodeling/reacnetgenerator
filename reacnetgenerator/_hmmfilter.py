@@ -22,7 +22,11 @@ import tempfile
 from contextlib import ExitStack
 
 import numpy as np
-from hmmlearn import hmm
+try:
+    # hmmlearn v0.2.8 renamed MultinomialHMM to CategoricalHMM
+    from hmmlearn.hmm import CategoricalHMM as MultinomialHMM
+except:
+    from hmmlearn.hmm import MultinomialHMM
 
 from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, run_mp, SharedRNGData
 from .utils_np import idx_to_signal, check_zero_signal
@@ -48,7 +52,8 @@ class _HMMFilter(SharedRNGData):
         self.returnkeys()
 
     def _initHMM(self):
-        self._model = hmm.MultinomialHMM(n_components=2, algorithm="viterbi")
+        
+        self._model = MultinomialHMM(n_components=2, algorithm="viterbi")
         self._model.startprob_ = self.p
         self._model.transmat_ = self.a
         self._model.emissionprob_ = self.b
