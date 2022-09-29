@@ -25,7 +25,7 @@ import numpy as np
 try:
     # hmmlearn v0.2.8 renamed MultinomialHMM to CategoricalHMM
     from hmmlearn.hmm import CategoricalHMM as MultinomialHMM
-except:
+except ImportError:
     from hmmlearn.hmm import MultinomialHMM
 
 from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, run_mp, SharedRNGData
