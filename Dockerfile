@@ -1,4 +1,4 @@
-FROM nikolaik/python-nodejs:python3.10-nodejs16
+FROM python:3.10
 COPY . /reacnetgenerator
 RUN pip install --no-cache-dir /reacnetgenerator && \
     reacnetgenerator -h

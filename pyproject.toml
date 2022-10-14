@@ -1,5 +1,11 @@
 [build-system]
-requires = ["setuptools>=40.8.0", "wheel", "oldest-supported-numpy"] 
+requires = [
+    "setuptools>=61",
+    "wheel",
+    "oldest-supported-numpy",
+    "nodejs-bin",
+    "pyyaml",
+] 
 build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 write_to = "reacnetgenerator/_version2.py"

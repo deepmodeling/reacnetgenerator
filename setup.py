@@ -1,14 +1,13 @@
 """Welcome to install ReacNetGenerator.
 
 Just use `pip install .` to install.
-Note you should install Yarn, OpenBabel, and RDkit first:
-conda install python=3 yarn openbabel rdkit compilers -c conda-forge
 """
-import subprocess as sp
 import os
-import shutil
+from pathlib import Path
 import fnmatch
 
+import yaml
+from nodejs import node
 from distutils import log
 from distutils.file_util import copy_file
 from setuptools import setup, find_packages, Extension
@@ -21,18 +20,15 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
     def run(self):
         log.info(__doc__)
         log.info('Prepare JavaScript files with webpack...')
-        yarn = shutil.which('yarn')
-        if yarn is None:
-            raise RuntimeError(
-                "Yarn is not installed. Plase install it by `conda install yarn`.")
+        this_directory = Path(__file__).parent
+        webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
+        with open(webpack_dir / ".yarnrc.yml") as f:
+            yarn_path = Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"])
+        node.call([yarn_path], cwd=webpack_dir)
+        node.call([yarn_path, "start"], cwd=webpack_dir)
         try:
-            sp.run(yarn, check=True, cwd=os.path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            sp.run([yarn, 'start'], check=True, cwd=os.path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack'))
-            assert os.path.exists(os.path.join(
-                this_directory, 'reacnetgenerator', 'static', 'webpack', 'bundle.html'))
-        except (sp.CalledProcessError, AssertionError):
+            assert (webpack_dir / "bundle.html").exists()
+        except AssertionError:
             raise RuntimeError(
                 "Fail to build bundle.html with Yarn, please retry.")
         # copy files
@@ -61,12 +57,12 @@ class BuildPyCommand(setuptools.command.build_py.build_py):
 
 
 def readme():
+    this_directory = Path(__file__).parent
     with open(os.path.join(this_directory, 'README.md'), encoding="utf8") as f:
         return f.read()
 
 
 if __name__ == '__main__':
-    this_directory = os.path.abspath(os.path.dirname(__file__))
     encrypted_python_files = [
     ]
 
