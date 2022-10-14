@@ -86,7 +86,7 @@ if __name__ == '__main__':
             language="c", define_macros=define_macros,
         ) for encrypted_python_file in encrypted_python_files])
 
-    tests_require = ['pytest-sugar', 'pytest-cov<4', 'cython',
+    tests_require = ['pytest-sugar', 'pytest-cov<5', 'cython',
                      'pytest-xvfb', "codecov>=1.4.0", "pytest-console-scripts",
                      "pytest-mock", "pytest-benchmark",
                     ],
