@@ -81,6 +81,8 @@ docs = [
     'sphinx-argparse',
     'myst_parser',
     'sphinx-favicon',
+    "nodejs-bin~=16.15.1a4",
+    "pyyaml",
 ]
 
 [tool.setuptools.packages.find]

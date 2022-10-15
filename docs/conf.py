@@ -102,15 +102,20 @@ def run_apidoc(_):
     main(['-M', '--tocfile', 'api', '-H', 'Python API', '-o', os.path.join(cur_dir, "api"), module, '--force'])
 
 def copy_report(app):
-    import subprocess as sp
     import os
-    from sphinx.util.fileutil import copy_asset_file
+    from pathlib import Path
 
-    cur_dir = os.path.abspath(os.path.dirname(__file__))
-    webpack = os.path.join(cur_dir, "..", "reacnetgenerator", "static", "webpack")
+    import yaml
+    from sphinx.util.fileutil import copy_asset_file
+    from nodejs import node
+
+    cur_dir = Path(__file__).parent.absolute()
+    webpack = Path(cur_dir) / ".." / "reacnetgenerator" / "static" / "webpack"
+    with open(webpack / ".yarnrc.yml") as f:
+        yarn_path = Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"])
+    node.call([yarn_path], cwd=webpack)
+    node.call([yarn_path, "start"], cwd=webpack, env={**os.environ, "REACNETGENERATOR_BUILDWEB": "1"})
     outdir = app.builder.outdir
-    sp.check_output(["yarn"], cwd=webpack)
-    sp.check_output(["yarn", "start"], cwd=webpack, env={**os.environ, "REACNETGENERATOR_BUILDWEB": "1"})
     # first create the directory..
     os.makedirs(outdir, exist_ok=True)
     copy_asset_file(os.path.join(webpack, "bundle.html"), os.path.join(outdir, "report.html"))
