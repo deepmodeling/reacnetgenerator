@@ -98,4 +98,5 @@ fallback_version = "Unknown"
 
 [tool.cibuildwheel]
 test-command = "reacnetgenerator -h"
+build = ["cp37-*", "cp38-*", "cp39-*", "cp310-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
