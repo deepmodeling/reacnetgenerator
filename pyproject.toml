@@ -48,7 +48,7 @@ dependencies = [
     "openbabel-wheel",
     "rdkit",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 readme = "README.md"
 keywords = ["reaction network"]
 
@@ -95,3 +95,7 @@ reacnetgenerator = [
 [tool.setuptools_scm]
 write_to = "reacnetgenerator/_version2.py"
 fallback_version = "Unknown"
+
+[tool.cibuildwheel]
+test-command = "reacnetgenerator -h"
+skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
