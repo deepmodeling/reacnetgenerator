@@ -11,7 +11,6 @@ network which starts from it.
 """
 
 import json
-import logging
 import re
 import os
 from collections import defaultdict
@@ -20,6 +19,7 @@ import pkg_resources
 import scour.scour
 
 from .utils import SCOUROPTIONS, SharedRNGData
+from ._logging import logger
 
 
 class _HTMLResult(SharedRNGData):
@@ -39,7 +39,7 @@ class _HTMLResult(SharedRNGData):
         """Generate a web page to show the result."""
         self._readdata()
         self._generateresult()
-        logging.info(
+        logger.info(
             f"Report is generated. Please see {self.resultfilename} for more details.")
 
     def _re(self, smi):
