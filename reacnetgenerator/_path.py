@@ -197,7 +197,8 @@ class _CollectMolPaths(_CollectPaths):
                 except ValueError:
                     # when RDKit error: Maximum BFS search size exceeded
                     # fallback to the name of the molecule
-                    self._smiles = self.name + f" (unknown SMILES {self.cmp.n_unknown})"
+                    # blank should be avoided
+                    self._smiles = self.name + f"_unknownSMILES_{self.cmp.n_unknown}"
                     self.cmp.n_unknown += 1
             return self._smiles
 
