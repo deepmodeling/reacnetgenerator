@@ -41,7 +41,6 @@ $ reacnetgenerator -h
 
 
 import gc
-import logging
 import os
 import time
 import itertools
@@ -50,7 +49,8 @@ from multiprocessing import cpu_count
 
 import numpy as np
 
-from . import __version__, __date__, __update__
+from . import __version__, __date__
+from ._logging import logger
 from ._detect import _Detect
 from ._draw import _DrawNetwork
 from ._mergeiso import _mergeISO 
@@ -119,8 +119,8 @@ class ReacNetGenerator:
 
     def __init__(self, **kwargs):
         """Init ReacNetGenerator."""
-        logging.info(__doc__)
-        logging.info(
+        logger.info(__doc__)
+        logger.info(
             f"Version: {__version__}  Creation date: {__date__}")
         
         # process kwargs
@@ -292,7 +292,7 @@ class ReacNetGenerator:
             # garbage collect
             gc.collect()
             timearray.append(time.perf_counter())
-            logging.info(
+            logger.info(
                 f"Step {i}: Done! Time consumed (s): {timearray[-1]-timearray[-2]:.3f} ({runstep})")
 
         # delete tempfile
@@ -304,5 +304,5 @@ class ReacNetGenerator:
                 except OSError:
                     pass
         # Summary
-        logging.info("====== Summary ======")
-        logging.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
+        logger.info("====== Summary ======")
+        logger.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
