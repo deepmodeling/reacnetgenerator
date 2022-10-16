@@ -109,7 +109,7 @@ class GUI:
                     webbrowser.open_new(os.path.abspath(
                         reacnetgenerator.resultfilename))
             except Exception as e:
-                logger.error(e)
+                logger.exception(e)
                 tkmb.showerror("Error", e)
         else:
             logger.error("File not exsit.")
