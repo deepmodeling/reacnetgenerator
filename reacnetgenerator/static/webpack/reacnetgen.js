@@ -272,6 +272,8 @@ function storeSVG(spec, callback) {
             callback();
         }, function (err) {
             console.log(err);
+            svgs[spec] = spec;
+            callback();
         });
     }
 }
