@@ -272,6 +272,8 @@ function storeSVG(spec, callback) {
             callback();
         }, function (err) {
             console.log(err);
+            svgs[spec] = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><text x="0" y="50">${spec}</text></svg>`;
+            callback();
         });
     }
 }

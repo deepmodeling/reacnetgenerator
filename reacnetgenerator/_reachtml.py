@@ -59,6 +59,9 @@ class _HTMLResult(SharedRNGData):
         >>> self._re('[H]c(Cl)C([H])Cl')
         [H][c]([Cl])[C]([H])[Cl]
         """
+        if "_unknownSMILES" in smi:
+            # not SMILES
+            return smi
         Satom = sorted(self.atomname, key = lambda i:len(i), reverse=True)
         elements = "|".join([((an.upper() + "|" + an.lower()) if len(an)==1 else an) for an in Satom if an != 'H'])
         smi = re.sub(r'(?<!\[)(' + elements + r')(?!H)', r'[\1]', smi)

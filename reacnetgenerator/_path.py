@@ -19,7 +19,6 @@ and Machine Intelligence 2004, 26, 1367-1372.
 import itertools
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
-from re import S
 
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -42,8 +41,8 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Get a class for different methods.
 
         Following methonds are used to identify isomers:
-        * SMILES (default)
-        * VF2
+        * SMILES
+        * VF2 (default)
         """
         if rng.SMILES:
             return _CollectSMILESPaths(rng)
@@ -119,7 +118,13 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         return allmoleculeroute
 
     def convertSMILES(self, atoms, bonds):
-        """Convert atoms and bonds information to SMILES."""
+        """Convert atoms and bonds information to SMILES.
+        
+        Raises
+        ------
+        ValueError
+            (RDKit error) Maximum BFS search size exceeded.
+        """
         m = Chem.RWMol(Chem.MolFromSmiles(''))
         d = {}
         for name, number in zip(self.atomnames[atoms], atoms):
@@ -140,12 +145,19 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
 
 class _CollectMolPaths(_CollectPaths):
+    """VF2 is used to identify isomers.
+    
+    If SMILES is failed to generate, fallback to the name like CxHyOz.
+    """
     def _printmoleculename(self):
         mname = []
         d = defaultdict(list)
         em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
+        # idx for unknown SMILES
+        self.n_unknown = 0
         with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
-            for line in itertools.zip_longest(*[ft] * 3):
+            for line in tqdm(itertools.zip_longest(*[ft] * 3),
+                            total=self.hmmit, desc="Indentify isomers", unit="molecule"):
                 atoms, bonds = self._getatomsandbonds(line)
                 molecule = self._molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
@@ -161,6 +173,7 @@ class _CollectMolPaths(_CollectPaths):
 
     class _molecule:
         def __init__(self, cmp, atoms, bonds):
+            self.cmp = cmp
             self.atoms = atoms
             self.bonds = bonds
             self._atomtypes = cmp.atomtype[atoms]
@@ -179,7 +192,14 @@ class _CollectMolPaths(_CollectPaths):
         def smiles(self):
             """Return SMILES of a molecule."""
             if self._smiles is None:
-                self._smiles = self._convertSMILES(self.atoms, self.bonds)
+                try:
+                    self._smiles = self._convertSMILES(self.atoms, self.bonds)
+                except ValueError:
+                    # when RDKit error: Maximum BFS search size exceeded
+                    # fallback to the name of the molecule
+                    # blank should be avoided
+                    self._smiles = self.name + f"_unknownSMILES_{self.cmp.n_unknown}"
+                    self.cmp.n_unknown += 1
             return self._smiles
 
         @smiles.setter
