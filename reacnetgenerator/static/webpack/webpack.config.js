@@ -51,7 +51,6 @@ module.exports = {
               plugins: function () {
                 return [
                   require('postcss-import'),
-                  require('precss'),
                   require('cssnano')({
                     preset: 'advanced',
                   }),
