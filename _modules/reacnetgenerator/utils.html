@@ -359,7 +359,6 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">asyncio</span>
@@ -371,6 +370,8 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">requests.adapters</span> <span class="kn">import</span> <span class="n">HTTPAdapter</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">._logging</span> <span class="kn">import</span> <span class="n">logger</span>
 
 
 <div class="viewcode-block" id="WriteBuffer"><a class="viewcode-back" href="../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer">[docs]</a><span class="k">class</span> <span class="nc">WriteBuffer</span><span class="p">:</span>
@@ -708,11 +709,11 @@
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">readinto</span><span class="p">(</span><span class="n">mv</span><span class="p">),</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mv</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
     <span class="n">sha256</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SHA256 of </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">sha256</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SHA256 of </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">sha256</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">sha256</span> <span class="ow">in</span> <span class="n">must_be_list</span><span class="p">(</span><span class="n">sha256_check</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;SHA256 is not correct.&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;SHA256 is not correct.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
     <span class="k">return</span> <span class="kc">False</span></div>
 
 
@@ -742,13 +743,13 @@
 
     <span class="c1"># from https://stackoverflow.com/questions/16694907</span>
     <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">must_be_list</span><span class="p">(</span><span class="n">urls</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Try to download </span><span class="si">{</span><span class="n">pathfilename</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Try to download </span><span class="si">{</span><span class="n">pathfilename</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">pathfilename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">raw</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
                 <span class="k">break</span>
             <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request </span><span class="si">{</span><span class="n">pathfilename</span><span class="si">}</span><span class="s2"> Error.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request </span><span class="si">{</span><span class="n">pathfilename</span><span class="si">}</span><span class="s2"> Error.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot download </span><span class="si">{</span><span class="n">pathfilename</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
@@ -794,7 +795,7 @@
             <span class="k">yield</span> <span class="n">item</span>
             <span class="n">semaphore</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;run_mp failed&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;run_mp failed&quot;</span><span class="p">)</span>
         <span class="n">pool</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
         <span class="k">raise</span>
     <span class="k">else</span><span class="p">:</span>
