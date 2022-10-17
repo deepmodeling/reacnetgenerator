@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+name: Test js
+defaults:
+  run:
+    working-directory: reacnetgenerator/static/webpack
+jobs:
+  testjs:
+    name: Test js
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'yarn'
+        cache-dependency-path: reacnetgenerator/static/webpack/yarn.lock
+    - run: yarn install
+    - run: yarn test
+    - run: yarn coverage
+    - uses: codecov/codecov-action@v3

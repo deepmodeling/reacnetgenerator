@@ -4,6 +4,7 @@
  */
 
 const { searchspecies, searchreaction } = require("./select.js");
+const { getFormula } = require("./formula.js");
 
 //CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
@@ -229,6 +230,8 @@ function showresults(time) {
     showresult(reactionsdata, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
     showresult(reactionsabcddata, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     // select
+    // render formula to show formula in the select
+    specdata.forEach(dd => { dd['formula'] = getFormula(dd['s']); });
     $("#speciesselect").html($.templates("#optionTmpl").render(specdata));
     $("#reactionsselect").html($.templates("#optionTmpl").render(specdata));
     $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata));
