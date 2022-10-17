@@ -26,7 +26,7 @@ function getFormula(smi){
     for (const atom in conut) {
         formula += atom;
         if (conut[atom] > 1) {
-            formula += conut[atom];
+            formula += `<sub>${conut[atom]}</sub>`;
         }
     }
     return formula;
