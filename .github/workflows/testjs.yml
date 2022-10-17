@@ -4,6 +4,9 @@ on:
       - master
   pull_request:
 name: Test js
+defaults:
+  run:
+    working-directory: reacnetgenerator/static/webpack
 jobs:
   testjs:
     name: Test js
@@ -14,10 +17,8 @@ jobs:
       with:
         node-version: 16
         cache: 'yarn'
+        cache-dependency-path: reacnetgenerator/static/webpack/yarn.lock
     - run: yarn install
-      working-directory: reacnetgenerator/static/webpack
     - run: yarn test
-      working-directory: reacnetgenerator/static/webpack
     - run: yarn coverage
-      working-directory: reacnetgenerator/static/webpack
     - uses: codecov/codecov-action@v3
