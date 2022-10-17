@@ -41,8 +41,8 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Get a class for different methods.
 
         Following methonds are used to identify isomers:
-        * SMILES
-        * VF2 (default)
+        * SMILES (default)
+        * VF2
         """
         if rng.SMILES:
             return _CollectSMILESPaths(rng)
@@ -159,7 +159,7 @@ class _CollectMolPaths(_CollectPaths):
             for line in tqdm(itertools.zip_longest(*[ft] * 3),
                             total=self.hmmit, desc="Indentify isomers", unit="molecule"):
                 atoms, bonds = self._getatomsandbonds(line)
-                molecule = self._molecule(self, atoms, bonds)
+                molecule = Molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
                     if isomer.isomorphic(molecule, em):
                         molecule.smiles = isomer.smiles
@@ -171,61 +171,31 @@ class _CollectMolPaths(_CollectPaths):
                     (molecule.smiles, atoms, bonds), sep=(' ', ';', ',')))
         self.mname = np.array(mname)
 
-    class _molecule:
-        def __init__(self, cmp, atoms, bonds):
-            self.cmp = cmp
-            self.atoms = atoms
-            self.bonds = bonds
-            self._atomtypes = cmp.atomtype[atoms]
-            self._atomnames = cmp.atomnames[atoms]
-            self.graph = self._makemoleculegraph()
-            counter = Counter(self._atomnames)
-            self.name = "".join(map(lambda atomname: f"{atomname}{counter[atomname]}",
-                                    cmp.atomname))
-            self._smiles = None
-            self._convertSMILES = cmp.convertSMILES
-
-        def __str__(self):
-            return self.name
-
-        @property
-        def smiles(self):
-            """Return SMILES of a molecule."""
-            if self._smiles is None:
-                try:
-                    self._smiles = self._convertSMILES(self.atoms, self.bonds)
-                except ValueError:
-                    # when RDKit error: Maximum BFS search size exceeded
-                    # fallback to the name of the molecule
-                    # blank should be avoided
-                    self._smiles = self.name + f"_unknownSMILES_{self.cmp.n_unknown}"
-                    self.cmp.n_unknown += 1
-            return self._smiles
-
-        @smiles.setter
-        def smiles(self, value):
-            self._smiles = value
-
-        def _makemoleculegraph(self):
-            graph = nx.Graph()
-            for line in self.bonds:
-                graph.add_edge(line[0], line[1], level=line[2])
-            for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
-                graph.add_node(atomnumber, atom=atomtype)
-            return graph
-
-        def isomorphic(self, mol, em):
-            """Return whether two molecules are isomorphic."""
-            return nx.is_isomorphic(self.graph, mol.graph, em)
-
 
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
+        d = defaultdict(list)
+        em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
+        self.n_unknown = 0
         with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
             results = run_mp(self.nproc, func=self._calmoleculeSMILESname, l=ft, unordered=False,
                                 nlines=3, total=self.hmmit, desc="Indentify isomers", unit="molecule")
             for name, atoms, bonds in results:
+                if name is None:
+                    # SMILES failed, fallback to VF2 identify isomers
+                    molecule = Molecule(self, atoms, bonds)
+                    # directly raise ValueError to save time
+                    def _raise_anyway(*args, **kwargs):
+                        raise ValueError("Maximum BFS search size exceeded.")
+                    molecule._convertSMILES = _raise_anyway
+                    for isomer in d[str(molecule)]:
+                        if isomer.isomorphic(molecule, em):
+                            molecule.smiles = isomer.smiles
+                            break
+                    else:
+                        d[str(molecule)].append(molecule)
+                    name = molecule.smiles
                 mname.append(name)
                 fm.append(listtostirng(
                     (name, atoms, bonds), sep=(' ', ';', ',')))
@@ -234,5 +204,58 @@ class _CollectSMILESPaths(_CollectPaths):
     def _calmoleculeSMILESname(self, item):
         line = item
         atoms, bonds = self._getatomsandbonds(line)
-        name = self.convertSMILES(atoms, bonds)
+        try:
+            name = self.convertSMILES(atoms, bonds)
+        except ValueError:
+            # fallback to VF2
+            name = None
         return name, atoms, bonds
+
+
+class Molecule:
+    """A molecule class for isomer identification."""
+    def __init__(self, cmp, atoms, bonds):
+        self.cmp = cmp
+        self.atoms = atoms
+        self.bonds = bonds
+        self._atomtypes = cmp.atomtype[atoms]
+        self._atomnames = cmp.atomnames[atoms]
+        self.graph = self._makemoleculegraph()
+        counter = Counter(self._atomnames)
+        self.name = "".join(map(lambda atomname: f"{atomname}{counter[atomname]}",
+                                cmp.atomname))
+        self._smiles = None
+        self._convertSMILES = cmp.convertSMILES
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def smiles(self):
+        """Return SMILES of a molecule."""
+        if self._smiles is None:
+            try:
+                self._smiles = self._convertSMILES(self.atoms, self.bonds)
+            except ValueError:
+                # when RDKit error: Maximum BFS search size exceeded
+                # fallback to the name of the molecule
+                # blank should be avoided
+                self._smiles = self.name + f"_unknownSMILES_{self.cmp.n_unknown}"
+                self.cmp.n_unknown += 1
+        return self._smiles
+
+    @smiles.setter
+    def smiles(self, value):
+        self._smiles = value
+
+    def _makemoleculegraph(self):
+        graph = nx.Graph()
+        for line in self.bonds:
+            graph.add_edge(line[0], line[1], level=line[2])
+        for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
+            graph.add_node(atomnumber, atom=atomtype)
+        return graph
+
+    def isomorphic(self, mol, em):
+        """Return whether two molecules are isomorphic."""
+        return nx.is_isomorphic(self.graph, mol.graph, em)
