@@ -1,0 +1,20 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+name: Test and release
+jobs:
+  yarnInstall:
+    name: yarn install
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'yarn'
+    - run: yarn install
+    - run: yarn test
+    - run: yarn coverage
+    - uses: codecov/codecov-action@v3

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "JavaScript files for reacnetgenerator.",
   "scripts": {
-    "start": "webpack"
+    "start": "webpack",
+    "test": "yarn dlx -p nyc -p mocha nyc mocha",
+    "coverage": "yarn dlx nyc report --reporter=text-lcov > coverage.lcov"
   },
   "keywords": [
     "reacnetgenerator",
