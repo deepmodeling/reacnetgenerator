@@ -229,6 +229,8 @@ function showresults(time) {
     showresult(reactionsdata, reactionsshownum, "#reacTmpl", "#reactionsresult", "#reactionspager");
     showresult(reactionsabcddata, reactionsshownum, "#reacabcdTmpl", "#reactionsabcdresult", "#reactionsabcdpager");
     // select
+    // render formula to show formula in the select
+    specdata.forEach(dd => { dd['formula'] = getFormula(dd['s']); });
     $("#speciesselect").html($.templates("#optionTmpl").render(specdata));
     $("#reactionsselect").html($.templates("#optionTmpl").render(specdata));
     $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata));
@@ -313,6 +315,40 @@ function addloadbutton() {
         reader.readAsText(f);
     });
 }
+
+// https://stackoverflow.com/a/1026087/9567349
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/**
+ * 
+ * @param {string} smi smiles
+ * @returns {string} formula
+ */
+function getFormula(smi){
+    // consider [Ca] [C] [c]
+    const reg = /\[([a-zA-Z][a-z]?)\]/;
+    const atom_types = smi.matchAll(reg).map(m => capitalizeFirstLetter(m[1]));
+    atom_types.sort();
+    const conut = {};
+    atom_types.forEach(atom => {
+        if (atom in conut) {
+            conut[atom] += 1;
+        } else {
+            conut[atom] = 1;
+        }
+    });
+    let formula = '';
+    for (const atom in conut) {
+        formula += atom;
+        if (conut[atom] > 1) {
+            formula += conut[atom];
+        }
+    }
+    return formula;
+}
+
 
 // placeholder for SimpleLightbox
 function SimpleLightbox(config){};
