@@ -202,11 +202,11 @@
             
               <ul>
                 
+                  <li class="toctree-l2"><a href="#installing-via-pip" class="reference internal">Installing via pip</a></li>
+                
                   <li class="toctree-l2"><a href="#building-a-conda-package" class="reference internal">Building a conda package</a></li>
                 
                   <li class="toctree-l2"><a href="#building-a-docker-image" class="reference internal">Building a Docker Image</a></li>
-                
-                  <li class="toctree-l2"><a href="#installing-via-pip" class="reference internal">Installing via pip</a></li>
                 
               </ul>
             
@@ -374,13 +374,26 @@
             
   <section id="build-reacnetgenerator">
 <h1>Build ReacNetGenerator<a class="headerlink" href="#build-reacnetgenerator" title="Permalink to this heading">¶</a></h1>
-<p>To build ReacNetGenerator by yourself, first, you need to download the source code from <a class="reference external" href="https://github.com/tongzhugroup/reacnetgenerator/releases">the Releases page</a>. Then install ReacNetGenerator with one of the following guides:</p>
+<p>To build ReacNetGenerator by yourself, first, you need to download the source code from <a class="reference external" href="https://github.com/tongzhugroup/reacnetgenerator/releases">the Releases page</a> or use <code class="docutils literal notranslate"><span class="pre">git</span></code> to clone the latest code:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/tongzhugroup/reacnetgenerator
+<span class="nb">cd</span> reacnetgenerator
+</pre></div>
+</div>
+<p>Then build ReacNetGenerator with one of the following guides:</p>
+<section id="installing-via-pip">
+<h2>Installing via pip<a class="headerlink" href="#installing-via-pip" title="Permalink to this heading">¶</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install .
+</pre></div>
+</div>
+<p>Test installation by</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>reacnetgenerator -h
+</pre></div>
+</div>
+</section>
 <section id="building-a-conda-package">
 <h2>Building a conda package<a class="headerlink" href="#building-a-conda-package" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p><a class="reference external" href="https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html">Install Anaconda or Miniconda</a> to obtain conda.</p></li>
-<li><p>Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:</p></li>
-</ol>
+<p><a class="reference external" href="https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html">Install Anaconda or Miniconda</a> to obtain conda and build in the main directory of ReacNetGenerator:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
 conda build conda/recipe
 conda install reacnetgenerator --use-local
@@ -390,19 +403,9 @@ reacnetgenerator -h
 </section>
 <section id="building-a-docker-image">
 <h2>Building a Docker Image<a class="headerlink" href="#building-a-docker-image" title="Permalink to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p><a class="reference external" href="https://docs.docker.com/install/">Install Docker</a>.</p></li>
-<li><p>Decompress reacnetgenerator.zip and build in the main directory of ReacNetGenerator:</p></li>
-</ol>
+<p><a class="reference external" href="https://docs.docker.com/install/">Install Docker</a> and build in the main directory of ReacNetGenerator:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build . -t njzjz/reacnetgenerator
 docker run njzjz/reacnetgenerator reacnetgenerator -h
-</pre></div>
-</div>
-</section>
-<section id="installing-via-pip">
-<h2>Installing via pip<a class="headerlink" href="#installing-via-pip" title="Permalink to this heading">¶</a></h2>
-<p>Decompress reacnetgenerator.zip and use <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install .
 </pre></div>
 </div>
 </section>
