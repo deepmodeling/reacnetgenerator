@@ -3,10 +3,13 @@ on:
     branches:
       - master
   pull_request:
-name: Test and release
+name: Test js
+defaults:
+  run:
+    working-directory: reacnetgenerator/static/webpack
 jobs:
-  yarnInstall:
-    name: yarn install
+  testjs:
+    name: Test js
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
