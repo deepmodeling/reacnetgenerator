@@ -328,7 +328,7 @@ function capitalizeFirstLetter(string) {
  */
 function getFormula(smi){
     // consider [Ca] [C] [c]
-    const reg = /\[([a-zA-Z][a-z]?)\]/;
+    const reg = /\[([a-zA-Z][a-z]?)\]/g;
     const atom_types = smi.matchAll(reg).map(m => capitalizeFirstLetter(m[1]));
     atom_types.sort();
     const conut = {};
