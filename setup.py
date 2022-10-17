@@ -6,11 +6,17 @@ import os
 from pathlib import Path
 
 import yaml
-from nodejs import node
 from distutils import log
 from distutils.file_util import copy_file
 from setuptools import setup, Extension
 import setuptools.command.build_ext
+try:
+    from nodejs.node import call as node_call
+except ModuleNotFoundError:
+    log.info("nodejs-bin is not installed, try system node")
+    import subprocess
+    def node_call(args, **kwargs):
+        return subprocess.call(['node', *args], **kwargs)
 
 
 class BuildExtCommand(setuptools.command.build_ext.build_ext):
@@ -22,8 +28,8 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
         with open(webpack_dir / ".yarnrc.yml") as f:
             yarn_path = Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"])
-        node.call([yarn_path], cwd=webpack_dir)
-        node.call([yarn_path, "start"], cwd=webpack_dir)
+        node_call([yarn_path], cwd=webpack_dir)
+        node_call([yarn_path, "start"], cwd=webpack_dir)
         try:
             assert (webpack_dir / "bundle.html").exists()
         except AssertionError:
