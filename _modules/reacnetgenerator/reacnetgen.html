@@ -1,679 +1,310 @@
-<!DOCTYPE html>
-<html  lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-      <title>reacnetgenerator.reacnetgen</title>
-    
-          <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-          <link rel="stylesheet" href="../../_static/theme.css " type="text/css" />
-          <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
-      
-      <!-- sphinx script_files -->
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
-        <script src="https://unpkg.com/bilitube@0/dist/bilitube.min.js"></script>
+<!DOCTYPE html><html lang=en> <head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>reacnetgenerator.reacnetgen</title><link rel=stylesheet href=../../_static/pygments.css type=text/css><link rel=stylesheet href="../../_static/theme.css " type=text/css><link rel=stylesheet href=../../_static/css/custom.css type=text/css><!-- sphinx script_files --><script data-url_root=../../ id=documentation_options src=../../_static/documentation_options.js></script><script src=../../_static/jquery.js></script><script src=../../_static/underscore.js></script><script src=../../_static/_sphinx_javascript_frameworks_compat.js></script><script src=../../_static/doctools.js></script><script src=../../_static/sphinx_highlight.js></script><script src=https://unpkg.com/bilitube@0/dist/bilitube.min.js></script><!-- bundled in js (rollup iife) --><!-- <script src="../../_static/theme-vendors.js"></script> --><script src=../../_static/theme.js defer></script><link rel=index title=Index href=../../genindex.html><link rel=search title=Search href=../../search.html></head> <body> <div id=app> <div class=theme-container :class=pageClasses><navbar @toggle-sidebar=toggleSidebar> <router-link to=../../index.html class=home-link> <span class=site-name>ReacNetGenerator</span> </router-link> <div class=links> <navlinks class=can-hide> <div class=nav-item> <a href=../../guide/index.html#guides class="nav-link "> Guides </a> </div> <div class=nav-item> <a href=../../tutorial/index.html#tutorials-and-applications class="nav-link "> Tutorials and Applications </a> </div> <div class=nav-item> <a href=../../develop.html#developing class="nav-link "> Developing </a> </div> <div class=nav-item> <a href=../../external.html#external-resources class="nav-link "> External resources </a> </div> <div class=nav-item> <a href=https://doi.org/10.1039/C9CP05091D class="nav-link external"> Paper <outboundlink></outboundlink> </a> </div> <div class=nav-item> <a href=https://computchem.cn class="nav-link external"> Group <outboundlink></outboundlink> </a> </div> <div class=nav-item> <a href=https://github.com/tongzhugroup/reacnetgenerator class="nav-link external"> GitHub <outboundlink></outboundlink> </a> </div> </navlinks> </div> </navbar> <div class=sidebar-mask @click=toggleSidebar(false)> </div> <sidebar @toggle-sidebar=toggleSidebar> <navlinks> <div class=nav-item> <a href=../../guide/index.html#guides class="nav-link "> Guides </a> </div> <div class=nav-item> <a href=../../tutorial/index.html#tutorials-and-applications class="nav-link "> Tutorials and Applications </a> </div> <div class=nav-item> <a href=../../develop.html#developing class="nav-link "> Developing </a> </div> <div class=nav-item> <a href=../../external.html#external-resources class="nav-link "> External resources </a> </div> <div class=nav-item> <a href=https://doi.org/10.1039/C9CP05091D class="nav-link external"> Paper <outboundlink></outboundlink> </a> </div> <div class=nav-item> <a href=https://computchem.cn class="nav-link external"> Group <outboundlink></outboundlink> </a> </div> <div class=nav-item> <a href=https://github.com/tongzhugroup/reacnetgenerator class="nav-link external"> GitHub <outboundlink></outboundlink> </a> </div> </navlinks><div id=searchbox class=searchbox role=search> <div class=caption><span class=caption-text>Quick search</span> <div class=searchformwrapper> <form class=search action=../../search.html method=get> <input type=text name=q> <input type=submit value=Search> <input type=hidden name=check_keywords value=yes> <input type=hidden name=area value=default> </form> </div> </div> </div><div class=sidebar-links role=navigation aria-label="main navigation"> <div class=sidebar-group> <p class=caption> <span class=caption-text><a href=../../guide/index.html#guides>Guides</a></span> </p> <ul class> <li class="toctree-l1 "> <a href=../../guide/install.html class="reference internal ">Installation</a> </li> <li class="toctree-l1 "> <a href=../../guide/build.html class="reference internal ">Build ReacNetGenerator</a> </li> <li class="toctree-l1 "> <a href=../../guide/cli.html class="reference internal ">Command line interface</a> </li> <li class="toctree-l1 "> <a href=../../guide/hmm.html class="reference internal ">Enable HMM filter</a> </li> <li class="toctree-l1 "> <a href=../../guide/gui.html class="reference internal ">GUI version</a> </li> <li class="toctree-l1 "> <a href=../../guide/python.html class="reference internal ">Python interface</a> </li> <li class="toctree-l1 "> <a href=/report.html#https:// class=reference>Online report loader <outboundlink></outboundlink></a> </li> </ul> </div> <div class=sidebar-group> <p class=caption> <span class=caption-text><a href=../../tutorial/index.html#tutorials-and-applications>Tutorials and Applications</a></span> </p> <ul class> <li class="toctree-l1 "> <a href=../../tutorial/methane.html class="reference internal ">Simulation of the oxidation of methane</a> </li> <li class="toctree-l1 "> <a href=../../tutorial/cl20.html class="reference internal ">The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</a> </li> </ul> </div> <div class=sidebar-group> <p class=caption> <span class=caption-text><a href=../../develop.html#developing>Developing</a></span> </p> <ul class> <li class="toctree-l1 "> <a href=../../api/api.html class="reference internal ">Python API</a> </li> </ul> </div> <div class=sidebar-group> <p class=caption> <span class=caption-text><a href=../../external.html#external-resources>External resources</a></span> </p> <ul class> <li class="toctree-l1 "> <a href=https://doi.org/10.1039/C9CP05091D class=reference>ReacNetGenerator paper <outboundlink></outboundlink></a> </li> <li class="toctree-l1 "> <a href="https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&filePid=13678734780004646&download=true" class=reference>Accepted manuscript <outboundlink></outboundlink></a> </li> <li class="toctree-l1 "> <a href=https://github.com/tongzhugroup/reacnetgenerator class=reference>GitHub <outboundlink></outboundlink></a> </li> </ul> </div> </div> </sidebar> <page> <div class=body-header role=navigation aria-label=navigation> <ul class=breadcrumbs> <li><a href=../../index.html>Docs</a> &raquo;</li> <li><a href=../index.html>Module code</a> &raquo;</li> <li>reacnetgenerator.reacnetgen</li> </ul> <ul class=page-nav> </ul> </div> <hr> <div class=content role=main v-pre> <h1>Source code for reacnetgenerator.reacnetgen</h1><div class=highlight><pre>
+<span></span><span class=ch>#!/usr/bin/env python3</span>
+<span class=c1># -*- coding: UTF-8 -*-</span>
+<span class=c1># cython: language_level=3</span>
+<span class=c1># cython: linetrace=True</span>
+<span class=sd>&quot;&quot;&quot;ReacNetGenerator: an automatic reaction network generator for reactive</span>
+<span class=sd>molecular dynamics simulation.</span>
 
-      
-      <!-- bundled in js (rollup iife) -->
-      <!-- <script src="../../_static/theme-vendors.js"></script> -->
-      <script src="../../_static/theme.js" defer></script>
-    
-  <link rel="index" title="Index" href="../../genindex.html" />
-  <link rel="search" title="Search" href="../../search.html" /> 
-  </head>
+<span class=sd>Please cite: ReacNetGenerator: an automatic reaction network generator</span>
+<span class=sd>for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,</span>
+<span class=sd>2020, 22 (2): 683–691, doi: 10.1039/C9CP05091D</span>
 
-  <body>
-    <div id="app">
-    <div class="theme-container" :class="pageClasses"><navbar @toggle-sidebar="toggleSidebar">
-  <router-link to="../../index.html" class="home-link">
-    
-      <span class="site-name">ReacNetGenerator</span>
-    
-  </router-link>
+<span class=sd>Jinzhe Zeng (jinzhe.zeng@rutgers.edu), Tong Zhu (tzhu@lps.ecnu.edu.cn)</span>
 
-  <div class="links">
-    <navlinks class="can-hide">
+<span class=sd>==================</span>
+<span class=sd>Features</span>
+<span class=sd>==================</span>
+<span class=sd>* Processing of MD trajectory containing atomic coordinates or bond orders</span>
+<span class=sd>* Hidden Markov Model (HMM) based noise filtering</span>
+<span class=sd>* Isomers identifying accoarding to SMILES</span>
+<span class=sd>* Generation of reaction network for visualization using force-directed</span>
+<span class=sd>  algorithm</span>
+<span class=sd>* Parallel computing</span>
 
-  
-    <div class="nav-item">
-      <a href="../../guide/index.html#guides"
-         class="nav-link ">
-         Guides
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="../../tutorial/index.html#tutorials-and-applications"
-         class="nav-link ">
-         Tutorials and Applications
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="../../develop.html#developing"
-         class="nav-link ">
-         Developing
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="../../external.html#external-resources"
-         class="nav-link ">
-         External resources
-      </a>
-    </div>
-  
+<span class=sd>==================</span>
+<span class=sd>Simple example</span>
+<span class=sd>==================</span>
+<span class=sd>ReacNetGenerator can process any kind of trajectory files containing </span>
+<span class=sd>atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1</span>
+<span class=sd>all custom 100 dump.reaxc id type x y z” in LAMMPS:</span>
+<span class=sd>$ reacnetgenerator --type dump -i dump.reaxc -a C H O</span>
+<span class=sd>where C, H, and O are atomic names in the input file. Analysis report</span>
+<span class=sd>will be generated automatically.</span>
+
+<span class=sd>Also, ReacNetGenerator can process files containing bond information, </span>
+<span class=sd>e.g. LAMMPS bond file:</span>
+<span class=sd>$ reacnetgenerator --type bond -i bonds.reaxc -a C H O</span>
+
+<span class=sd>You can running the following script for help:</span>
+<span class=sd>$ reacnetgenerator -h</span>
+<span class=sd>&quot;&quot;&quot;</span>
 
 
+<span class=kn>import</span> <span class=nn>gc</span>
+<span class=kn>import</span> <span class=nn>os</span>
+<span class=kn>import</span> <span class=nn>time</span>
+<span class=kn>import</span> <span class=nn>itertools</span>
+<span class=kn>from</span> <span class=nn>enum</span> <span class=kn>import</span> <span class=n>Enum</span>
+<span class=kn>from</span> <span class=nn>multiprocessing</span> <span class=kn>import</span> <span class=n>cpu_count</span>
 
-  
-    <div class="nav-item">
-      <a href="https://doi.org/10.1039/C9CP05091D"
-        class="nav-link external">
-          Paper <outboundlink></outboundlink>
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="https://computchem.cn"
-        class="nav-link external">
-          Group <outboundlink></outboundlink>
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="https://github.com/tongzhugroup/reacnetgenerator"
-        class="nav-link external">
-          GitHub <outboundlink></outboundlink>
-      </a>
-    </div>
-  
+<span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
 
-    </navlinks>
-  </div>
-</navbar>
-
-      
-      <div class="sidebar-mask" @click="toggleSidebar(false)">
-      </div>
-        <sidebar @toggle-sidebar="toggleSidebar">
-          
-          <navlinks>
-            
-
-  
-    <div class="nav-item">
-      <a href="../../guide/index.html#guides"
-         class="nav-link ">
-         Guides
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="../../tutorial/index.html#tutorials-and-applications"
-         class="nav-link ">
-         Tutorials and Applications
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="../../develop.html#developing"
-         class="nav-link ">
-         Developing
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="../../external.html#external-resources"
-         class="nav-link ">
-         External resources
-      </a>
-    </div>
-  
+<span class=kn>from</span> <span class=nn>.</span> <span class=kn>import</span> <span class=n>__version__</span><span class=p>,</span> <span class=n>__date__</span>
+<span class=kn>from</span> <span class=nn>._logging</span> <span class=kn>import</span> <span class=n>logger</span>
+<span class=kn>from</span> <span class=nn>._detect</span> <span class=kn>import</span> <span class=n>_Detect</span>
+<span class=kn>from</span> <span class=nn>._draw</span> <span class=kn>import</span> <span class=n>_DrawNetwork</span>
+<span class=kn>from</span> <span class=nn>._mergeiso</span> <span class=kn>import</span> <span class=n>_mergeISO</span> 
+<span class=kn>from</span> <span class=nn>._hmmfilter</span> <span class=kn>import</span> <span class=n>_HMMFilter</span>
+<span class=kn>from</span> <span class=nn>._matrix</span> <span class=kn>import</span> <span class=n>_GenerateMatrix</span>
+<span class=kn>from</span> <span class=nn>._path</span> <span class=kn>import</span> <span class=n>_CollectPaths</span>
+<span class=kn>from</span> <span class=nn>._reachtml</span> <span class=kn>import</span> <span class=n>_HTMLResult</span>
+<span class=kn>from</span> <span class=nn>._download</span> <span class=kn>import</span> <span class=n>DownloadData</span>
+<span class=kn>from</span> <span class=nn>.utils</span> <span class=kn>import</span> <span class=n>must_be_list</span>
 
 
+<div class=viewcode-block id=ReacNetGenerator><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator>[docs]</a><span class=k>class</span> <span class=nc>ReacNetGenerator</span><span class=p>:</span>
+    <span class=sd>&quot;&quot;&quot;Use ReacNetGenerator for trajectory analysis.</span>
+<span class=sd>    </span>
+<span class=sd>    Parameters</span>
+<span class=sd>    ----------</span>
+<span class=sd>    inputfiletype: str</span>
+<span class=sd>        The type of the input file. The following type is allowed:</span>
+<span class=sd>            - dump: LAMMPS dump file, which can be outputed by</span>
+<span class=sd>              using `dump 1 all custom 100 dump.reaxc id type x y z`. See</span>
+<span class=sd>              https://lammps.sandia.gov/doc/dump.html for details.</span>
+<span class=sd>            - bond: LAMMPS ReaxFF bond file. See https://lammps.sandia.gov/doc/fix_reaxc_bonds.html</span>
+<span class=sd>              for details.</span>
+<span class=sd>            - xyz: XYZ file, which can also be outputed by LAMMPS using dump.</span>
+<span class=sd>    inputfilename: str or list of strs</span>
+<span class=sd>        The filename(s) of the input file, which can be either relative path or absolute path. If</span>
+<span class=sd>        it is a list, the files will be read in order.</span>
+<span class=sd>    atomname: tuple of strs</span>
+<span class=sd>        The list of the atomic names in the input file, such as `(&#39;C&#39;, &#39;H&#39;, &#39;O&#39;)`. It should match</span>
+<span class=sd>        the order of that in the input file.</span>
+<span class=sd>    runHMM: bool, optional, default: True</span>
+<span class=sd>        Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species</span>
+<span class=sd>        are filtered, they can turn off this option.</span>
+<span class=sd>    miso: int, optional, default: 0</span>
+<span class=sd>        Merge the isomers and the highest frequency is used as the representative. 0, off </span>
+<span class=sd>        two available levels:</span>
+<span class=sd>        1, merge the isomers with same atoms and same bond-network but different bond levels;</span>
+<span class=sd>        2, merge the isomers with same atoms with different bond-network.</span>
+<span class=sd>    pbc: bool, optional, default: True</span>
+<span class=sd>        Use periodic boundary conditions (PBC) or not.</span>
+<span class=sd>    cell: (3,3) array_like or (3,) array_like or (9,) array_like, optional, default: None</span>
+<span class=sd>        The cell (box size) of the system. If None (default), the cell will be read from the input</span>
+<span class=sd>        file. If the input file doesn&#39;t have cell information, this parameter will be necessary.</span>
+<span class=sd>    nproc: int, optional, default: None</span>
+<span class=sd>        The number of processors used for analysis. If None (default), the program will try to use</span>
+<span class=sd>        all processors.</span>
+<span class=sd>    selectatoms: str, optional, default: None</span>
+<span class=sd>        Select an element from the atomic names, such as `C`, and only show species with this</span>
+<span class=sd>        element in the reaction network. If None (default), the network will show all elements.</span>
+<span class=sd>    split: int, optional, default: None</span>
+<span class=sd>        Split number for the time axis. For example, if set to 10, the whole trajectroy will</span>
+<span class=sd>        be divided into 10 parts and reactions of each part will be shown.</span>
+<span class=sd>    a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]</span>
+<span class=sd>        Transition matrix A of HMM parameters. It is recommended for users to choose their own</span>
+<span class=sd>        parameters. See the paper for details.</span>
+<span class=sd>    b: (2,2) array_like, optional, default: [[0.6, 0.4], [0.4, 0.6]]</span>
+<span class=sd>        Emission matrix B of HMM parameters. It is recommended for users to choose their own</span>
+<span class=sd>        parameters. See the paper for details.</span>
+<span class=sd>    </span>
+<span class=sd>    Examples</span>
+<span class=sd>    --------</span>
+<span class=sd>    &gt;&gt;&gt; from reacnetgenerator import ReacNetGenerator</span>
+<span class=sd>    &gt;&gt;&gt; rng=ReacNetGenerator(inputfiletype=&quot;dump&quot;, inputfilename=&quot;dump.ch4&quot;, atomname=[&#39;C&#39;, &#39;H&#39;, &#39;O&#39;])</span>
+<span class=sd>    &gt;&gt;&gt; rng.runanddraw()</span>
+<span class=sd>    &quot;&quot;&quot;</span>
 
-  
-    <div class="nav-item">
-      <a href="https://doi.org/10.1039/C9CP05091D"
-        class="nav-link external">
-          Paper <outboundlink></outboundlink>
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="https://computchem.cn"
-        class="nav-link external">
-          Group <outboundlink></outboundlink>
-      </a>
-    </div>
-  
-    <div class="nav-item">
-      <a href="https://github.com/tongzhugroup/reacnetgenerator"
-        class="nav-link external">
-          GitHub <outboundlink></outboundlink>
-      </a>
-    </div>
-  
-
-            
-          </navlinks><div id="searchbox" class="searchbox" role="search">
-  <div class="caption"><span class="caption-text">Quick search</span>
-    <div class="searchformwrapper">
-      <form class="search" action="../../search.html" method="get">
-        <input type="text" name="q" />
-        <input type="submit" value="Search" />
-        <input type="hidden" name="check_keywords" value="yes" />
-        <input type="hidden" name="area" value="default" />
-      </form>
-    </div>
-  </div>
-</div><div class="sidebar-links" role="navigation" aria-label="main navigation">
-  
-    <div class="sidebar-group">
-      <p class="caption">
-        <span class="caption-text"><a href="../../guide/index.html#guides">Guides</a></span>
-      </p>
-      <ul class="">
+    <span class=k>def</span> <span class=fm>__init__</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;Init ReacNetGenerator.&quot;&quot;&quot;</span>
+        <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=vm>__doc__</span><span class=p>)</span>
+        <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span>
+            <span class=sa>f</span><span class=s2>&quot;Version: </span><span class=si>{</span><span class=n>__version__</span><span class=si>}</span><span class=s2>  Creation date: </span><span class=si>{</span><span class=n>__date__</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
         
-          <li class="toctree-l1 ">
-            
-              <a href="../../guide/install.html" class="reference internal ">Installation</a>
-            
+        <span class=c1># process kwargs</span>
+        <span class=n>necessary_key</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;inputfiletype&#39;</span><span class=p>,</span> <span class=s1>&#39;inputfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;atomname&#39;</span><span class=p>]</span>
+        <span class=n>default_value</span> <span class=o>=</span> <span class=p>{</span><span class=s2>&quot;node_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>78</span><span class=o>/</span><span class=mi>256</span><span class=p>,</span> <span class=mi>196</span><span class=o>/</span><span class=mi>256</span><span class=p>,</span> <span class=mi>238</span><span class=o>/</span><span class=mi>256</span><span class=p>],</span> <span class=s2>&quot;p&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mf>0.5</span><span class=p>,</span> <span class=mf>0.5</span><span class=p>],</span>
+                            <span class=s2>&quot;a&quot;</span><span class=p>:</span> <span class=p>[[</span><span class=mf>0.999</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>],</span> <span class=p>[</span><span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.999</span><span class=p>]],</span> <span class=s2>&quot;b&quot;</span><span class=p>:</span> <span class=p>[[</span><span class=mf>0.6</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>],</span> <span class=p>[</span><span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.6</span><span class=p>]],</span>
+                            <span class=s2>&quot;speciesfilter&quot;</span><span class=p>:</span> <span class=p>[],</span> <span class=s2>&quot;start_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>],</span> <span class=s2>&quot;end_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>1</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>],</span>
+                            <span class=s2>&quot;nproc&quot;</span><span class=p>:</span> <span class=n>cpu_count</span><span class=p>(),</span> <span class=s2>&quot;pos&quot;</span><span class=p>:</span> <span class=p>{},</span> <span class=s2>&quot;pbc&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;split&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span> <span class=s2>&quot;n_searchspecies&quot;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
+                            <span class=s2>&quot;node_size&quot;</span><span class=p>:</span> <span class=mi>200</span><span class=p>,</span> <span class=s2>&quot;font_size&quot;</span><span class=p>:</span> <span class=mi>6</span><span class=p>,</span> <span class=s2>&quot;widthcoefficient&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span> <span class=s2>&quot;maxspecies&quot;</span><span class=p>:</span> <span class=mi>20</span><span class=p>,</span> <span class=s2>&quot;stepinterval&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+                            <span class=s2>&quot;nolabel&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span>  <span class=s2>&quot;printfiltersignal&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span> <span class=s2>&quot;showid&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;runHMM&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;SMILES&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
+                            <span class=s2>&quot;miso&quot;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+                            <span class=s2>&quot;getoriginfile&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span> <span class=s2>&quot;needprintspecies&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;urls&quot;</span><span class=p>:</span> <span class=p>[],</span>
+                            <span class=s2>&quot;matrix_size&quot;</span><span class=p>:</span><span class=mi>100</span><span class=p>,</span>
+                            <span class=p>}</span>
+        <span class=n>none_key</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;selectatoms&#39;</span><span class=p>,</span> <span class=s1>&#39;species&#39;</span><span class=p>,</span> <span class=s1>&#39;pos&#39;</span><span class=p>,</span> <span class=s1>&#39;k&#39;</span><span class=p>,</span> <span class=s1>&#39;speciescenter&#39;</span><span class=p>,</span> <span class=s1>&#39;cell&#39;</span><span class=p>]</span>
+        <span class=n>accept_keys</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;atomtype&#39;</span><span class=p>,</span> <span class=s1>&#39;step&#39;</span><span class=p>,</span> <span class=s1>&#39;hmmit&#39;</span><span class=p>,</span> <span class=s1>&#39;timestep&#39;</span><span class=p>,</span> <span class=s1>&#39;steplinenum&#39;</span><span class=p>,</span> <span class=s1>&#39;N&#39;</span><span class=p>,</span>
+            <span class=s1>&#39;temp1it&#39;</span><span class=p>,</span> <span class=s1>&#39;originfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;hmmfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;moleculetempfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;moleculetemp2filename&#39;</span><span class=p>,</span>
+            <span class=s1>&#39;allmoleculeroute&#39;</span><span class=p>,</span> <span class=s1>&#39;splitmoleculeroute&#39;</span><span class=p>]</span>
+        <span class=n>nparray_key</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;atomname&quot;</span><span class=p>,</span> <span class=s2>&quot;p&quot;</span><span class=p>,</span> <span class=s2>&quot;a&quot;</span><span class=p>,</span> <span class=s2>&quot;b&quot;</span><span class=p>,</span>
+                        <span class=s2>&quot;node_color&quot;</span><span class=p>,</span> <span class=s2>&quot;start_color&quot;</span><span class=p>,</span> <span class=s2>&quot;end_color&quot;</span><span class=p>]</span>
+        <span class=n>file_key</span> <span class=o>=</span> <span class=p>{</span><span class=s2>&quot;moleculefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;moname&quot;</span><span class=p>,</span> <span class=s2>&quot;atomroutefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;route&quot;</span><span class=p>,</span> <span class=s2>&quot;reactionfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;reaction&quot;</span><span class=p>,</span>
+                    <span class=s2>&quot;tablefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;table&quot;</span><span class=p>,</span> <span class=s2>&quot;imagefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;svg&quot;</span><span class=p>,</span> <span class=s2>&quot;speciesfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;species&quot;</span><span class=p>,</span> <span class=s2>&quot;resultfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;html&quot;</span><span class=p>,</span>
+                    <span class=s2>&quot;jsonfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;json&quot;</span><span class=p>,</span> <span class=s2>&quot;reactionabcdfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;reactionabcd&quot;</span><span class=p>}</span>
+        <span class=k>assert</span> <span class=nb>set</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span><span class=o>.</span><span class=n>issubset</span><span class=p>(</span>
+            <span class=nb>set</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)),</span> <span class=s2>&quot;Must give neccessary key: </span><span class=si>%s</span><span class=s2>&quot;</span> <span class=o>%</span> <span class=s2>&quot;, &quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span>
+        <span class=k>assert</span> <span class=nb>set</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)</span><span class=o>.</span><span class=n>issubset</span><span class=p>(</span>
+            <span class=nb>set</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>default_value</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>none_key</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>file_key</span><span class=p>)),</span> <span class=s2>&quot;Unsupported key&quot;</span>
+        <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;inputfilename&quot;</span><span class=p>]</span> <span class=o>=</span> <span class=n>must_be_list</span><span class=p>(</span><span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;inputfilename&quot;</span><span class=p>])</span>
+        <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>default_value</span><span class=p>:</span>
+            <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=n>kk</span><span class=p>,</span> <span class=n>default_value</span><span class=p>[</span><span class=n>kk</span><span class=p>])</span>
+            <span class=k>if</span> <span class=n>kwargs</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+                <span class=n>kwargs</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span> <span class=o>=</span> <span class=n>default_value</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span>
+        <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>itertools</span><span class=o>.</span><span class=n>chain</span><span class=p>(</span><span class=n>none_key</span><span class=p>,</span> <span class=n>accept_keys</span><span class=p>):</span>
+            <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=n>kk</span><span class=p>,</span> <span class=kc>None</span><span class=p>)</span>
+        <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>file_key</span><span class=p>:</span>
+            <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span>
+                <span class=n>kk</span><span class=p>,</span> <span class=sa>f</span><span class=s2>&quot;</span><span class=si>{</span><span class=n>kwargs</span><span class=p>[</span><span class=s1>&#39;inputfilename&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>]</span><span class=si>}</span><span class=s2>.</span><span class=si>{</span><span class=n>file_key</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
+        <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>nparray_key</span><span class=p>:</span>
+            <span class=n>kwargs</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=n>kwargs</span><span class=p>[</span><span class=n>kk</span><span class=p>])</span>
+        <span class=k>if</span> <span class=ow>not</span> <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;runHMM&quot;</span><span class=p>]:</span>
+            <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;getoriginfile&quot;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>True</span>
+        <span class=k>if</span> <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;selectatoms&quot;</span><span class=p>]</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+            <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;selectatoms&quot;</span><span class=p>]</span> <span class=o>=</span> <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;atomname&quot;</span><span class=p>]</span>
+        <span class=bp>self</span><span class=o>.</span><span class=vm>__dict__</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)</span>
+        <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>cell</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span> <span class=ow>and</span> <span class=nb>len</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span> <span class=o>==</span> <span class=mi>9</span><span class=p>:</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>cell</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span><span class=o>.</span><span class=n>reshape</span><span class=p>((</span><span class=mi>3</span><span class=p>,</span><span class=mi>3</span><span class=p>))</span>
 
-            
-          </li>
+<div class=viewcode-block id=ReacNetGenerator.runanddraw><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.runanddraw>[docs]</a>    <span class=k>def</span> <span class=nf>runanddraw</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>run</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>draw</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>report</span><span class=o>=</span><span class=kc>True</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;Analyze the trajectory from MD simulation.</span>
+<span class=sd>        </span>
+<span class=sd>        Parameters</span>
+<span class=sd>        ----------</span>
+<span class=sd>        run: bool, optional, default: True</span>
+<span class=sd>            Process the trajectory or not, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</span>
+<span class=sd>        draw: bool, optional, default: True</span>
+<span class=sd>            Draw the reaction network or not, i.e. NETWORK step.</span>
+<span class=sd>        report: bool, optional, default: True</span>
+<span class=sd>            Generate the analysis report, i.e. NETWORK step.</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=n>processthing</span> <span class=o>=</span> <span class=p>[]</span>
+        <span class=k>if</span> <span class=n>run</span><span class=p>:</span>
+            <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>urls</span><span class=p>:</span>
+                <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DOWNLOAD</span><span class=p>)</span>
+            <span class=n>processthing</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>,</span>
+            <span class=p>))</span>
+        <span class=k>if</span> <span class=n>draw</span><span class=p>:</span>
+            <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>NETWORK</span><span class=p>)</span>
+        <span class=k>if</span> <span class=n>report</span><span class=p>:</span>
+            <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>REPORT</span><span class=p>)</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>(</span><span class=n>processthing</span><span class=p>)</span></div>
 
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../guide/build.html" class="reference internal ">Build ReacNetGenerator</a>
-            
+<div class=viewcode-block id=ReacNetGenerator.run><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.run>[docs]</a>    <span class=k>def</span> <span class=nf>run</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</span>
+<span class=sd>        </span>
+<span class=sd>        Parameters</span>
+<span class=sd>        ----------</span>
+<span class=sd>        None</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=n>processthing</span> <span class=o>=</span> <span class=p>[]</span>
+        <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>urls</span><span class=p>:</span>
+            <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DOWNLOAD</span><span class=p>)</span>
+        <span class=n>processthing</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>,</span>
+        <span class=p>))</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>(</span><span class=n>processthing</span><span class=p>)</span></div>
 
-            
-          </li>
+<div class=viewcode-block id=ReacNetGenerator.draw><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.draw>[docs]</a>    <span class=k>def</span> <span class=nf>draw</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;Draw the reaction network, i.e. NETWORK step.</span>
+<span class=sd>        </span>
+<span class=sd>        Parameters</span>
+<span class=sd>        ----------</span>
+<span class=sd>        None</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>((</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>NETWORK</span><span class=p>,))</span></div>
 
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../guide/cli.html" class="reference internal ">Command line interface</a>
-            
+<div class=viewcode-block id=ReacNetGenerator.report><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.report>[docs]</a>    <span class=k>def</span> <span class=nf>report</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;Generate the analysis report, i.e. REPORT step.</span>
+<span class=sd>        </span>
+<span class=sd>        Parameters</span>
+<span class=sd>        ----------</span>
+<span class=sd>        None</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>((</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>REPORT</span><span class=p>,))</span></div>
 
-            
-          </li>
+<div class=viewcode-block id=ReacNetGenerator.Status><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.Status>[docs]</a>    <span class=k>class</span> <span class=nc>Status</span><span class=p>(</span><span class=n>Enum</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;ReacNetGenerator status.</span>
 
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../guide/hmm.html" class="reference internal ">Enable HMM filter</a>
-            
+<span class=sd>        The ReacNetGenerator consists of several modules and algorithms to</span>
+<span class=sd>        process the information from the given trajectory, including:</span>
+<span class=sd>            - DOWNLOAD: Download trajectory from urls</span>
+<span class=sd>            - DETECT: Read bond information and detect molecules</span>
+<span class=sd>            - HMM: HMM filter</span>
+<span class=sd>            - MISO: Merge isomers</span>
+<span class=sd>            - PATH: Indentify isomers and collect reaction paths</span>
+<span class=sd>            - MATRIX: Reaction matrix generation</span>
+<span class=sd>            - NETWORK: Draw reaction network</span>
+<span class=sd>            - REPORT: Generate analysis report</span>
+<span class=sd>        &quot;&quot;&quot;</span>
 
-            
-          </li>
+        <span class=n>INIT</span> <span class=o>=</span> <span class=s2>&quot;Init&quot;</span>
+        <span class=n>DETECT</span> <span class=o>=</span> <span class=s2>&quot;Read bond information and detect molecules&quot;</span>
+        <span class=n>MISO</span> <span class=o>=</span> <span class=s2>&quot;Merge isomers&quot;</span>
+        <span class=n>HMM</span> <span class=o>=</span> <span class=s2>&quot;HMM filter&quot;</span>
+        <span class=n>PATH</span> <span class=o>=</span> <span class=s2>&quot;Indentify isomers and collect reaction paths&quot;</span>
+        <span class=n>MATRIX</span> <span class=o>=</span> <span class=s2>&quot;Reaction matrix generation&quot;</span>
+        <span class=n>NETWORK</span> <span class=o>=</span> <span class=s2>&quot;Draw reaction network&quot;</span>
+        <span class=n>REPORT</span> <span class=o>=</span> <span class=s2>&quot;Generate analysis report&quot;</span>
+        <span class=n>DOWNLOAD</span> <span class=o>=</span> <span class=s2>&quot;Download trajectory&quot;</span>
 
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../guide/gui.html" class="reference internal ">GUI version</a>
-            
+        <span class=k>def</span> <span class=fm>__str__</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+            <span class=sd>&quot;&quot;&quot;Return describtion of the status.&quot;&quot;&quot;</span>
+            <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>value</span></div>
 
-            
-          </li>
+    <span class=k>def</span> <span class=nf>_process</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>steps</span><span class=p>):</span>
+        <span class=sd>&quot;&quot;&quot;Process steps in order.</span>
 
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../guide/python.html" class="reference internal ">Python interface</a>
-            
+<span class=sd>        Parameters</span>
+<span class=sd>        ----------</span>
+<span class=sd>        steps: tuple of ReacNetGenerator.Status</span>
+<span class=sd>            The process that needs to be processed.</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=n>timearray</span> <span class=o>=</span> <span class=p>[</span><span class=n>time</span><span class=o>.</span><span class=n>perf_counter</span><span class=p>()]</span>
+        <span class=k>for</span> <span class=n>i</span><span class=p>,</span> <span class=n>runstep</span> <span class=ow>in</span> <span class=nb>enumerate</span><span class=p>(</span><span class=n>steps</span><span class=p>,</span> <span class=mi>1</span><span class=p>):</span>
+            <span class=k>if</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>:</span>
+                <span class=n>_Detect</span><span class=o>.</span><span class=n>gettype</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>detect</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>:</span>  
+                <span class=n>_mergeISO</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>merge</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>:</span>
+                <span class=n>_HMMFilter</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>filter</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>:</span>
+                <span class=n>_CollectPaths</span><span class=o>.</span><span class=n>getstype</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>collect</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>:</span>
+                <span class=n>_GenerateMatrix</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>generate</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>NETWORK</span><span class=p>:</span>
+                <span class=n>_DrawNetwork</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>draw</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>REPORT</span><span class=p>:</span>
+                <span class=n>_HTMLResult</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>report</span><span class=p>()</span>
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DOWNLOAD</span><span class=p>:</span>
+                <span class=n>DownloadData</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>download_files</span><span class=p>()</span>
+            <span class=c1># garbage collect</span>
+            <span class=n>gc</span><span class=o>.</span><span class=n>collect</span><span class=p>()</span>
+            <span class=n>timearray</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>time</span><span class=o>.</span><span class=n>perf_counter</span><span class=p>())</span>
+            <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span>
+                <span class=sa>f</span><span class=s2>&quot;Step </span><span class=si>{</span><span class=n>i</span><span class=si>}</span><span class=s2>: Done! Time consumed (s): </span><span class=si>{</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span><span class=o>-</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>2</span><span class=p>]</span><span class=si>:</span><span class=s2>.3f</span><span class=si>}</span><span class=s2> (</span><span class=si>{</span><span class=n>runstep</span><span class=si>}</span><span class=s2>)&quot;</span><span class=p>)</span>
 
-            
-          </li>
-
-        
-          <li class="toctree-l1 ">
-            
-              <a href="/report.html#https://" class="reference">Online report loader <outboundlink></outboundlink></a>
-            
-
-            
-          </li>
-
-        
-      </ul>
-    </div>
-  
-    <div class="sidebar-group">
-      <p class="caption">
-        <span class="caption-text"><a href="../../tutorial/index.html#tutorials-and-applications">Tutorials and Applications</a></span>
-      </p>
-      <ul class="">
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../tutorial/methane.html" class="reference internal ">Simulation of the oxidation of methane</a>
-            
-
-            
-          </li>
-
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../tutorial/cl20.html" class="reference internal ">The thermal decomposition of CL-20 (C<sub>6</sub>H<sub>6</sub>N<sub>12</sub>O<sub>12</sub>)</a>
-            
-
-            
-          </li>
-
-        
-      </ul>
-    </div>
-  
-    <div class="sidebar-group">
-      <p class="caption">
-        <span class="caption-text"><a href="../../develop.html#developing">Developing</a></span>
-      </p>
-      <ul class="">
-        
-          <li class="toctree-l1 ">
-            
-              <a href="../../api/api.html" class="reference internal ">Python API</a>
-            
-
-            
-          </li>
-
-        
-      </ul>
-    </div>
-  
-    <div class="sidebar-group">
-      <p class="caption">
-        <span class="caption-text"><a href="../../external.html#external-resources">External resources</a></span>
-      </p>
-      <ul class="">
-        
-          <li class="toctree-l1 ">
-            
-              <a href="https://doi.org/10.1039/C9CP05091D" class="reference">ReacNetGenerator paper <outboundlink></outboundlink></a>
-            
-
-            
-          </li>
-
-        
-          <li class="toctree-l1 ">
-            
-              <a href="https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&filePid=13678734780004646&download=true" class="reference">Accepted manuscript <outboundlink></outboundlink></a>
-            
-
-            
-          </li>
-
-        
-          <li class="toctree-l1 ">
-            
-              <a href="https://github.com/tongzhugroup/reacnetgenerator" class="reference">GitHub <outboundlink></outboundlink></a>
-            
-
-            
-          </li>
-
-        
-      </ul>
-    </div>
-  
-</div>
-        </sidebar>
-
-      <page>
-          <div class="body-header" role="navigation" aria-label="navigation">
-  
-  <ul class="breadcrumbs">
-    <li><a href="../../index.html">Docs</a> &raquo;</li>
-    
-      <li><a href="../index.html">Module code</a> &raquo;</li>
-    
-    <li>reacnetgenerator.reacnetgen</li>
-  </ul>
-  
-
-  <ul class="page-nav">
-</ul>
-  
-</div>
-<hr>
-          <div class="content" role="main" v-pre>
-            
-  <h1>Source code for reacnetgenerator.reacnetgen</h1><div class="highlight"><pre>
-<span></span><span class="ch">#!/usr/bin/env python3</span>
-<span class="c1"># -*- coding: UTF-8 -*-</span>
-<span class="c1"># cython: language_level=3</span>
-<span class="c1"># cython: linetrace=True</span>
-<span class="sd">&quot;&quot;&quot;ReacNetGenerator: an automatic reaction network generator for reactive</span>
-<span class="sd">molecular dynamics simulation.</span>
-
-<span class="sd">Please cite: ReacNetGenerator: an automatic reaction network generator</span>
-<span class="sd">for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,</span>
-<span class="sd">2020, 22 (2): 683–691, doi: 10.1039/C9CP05091D</span>
-
-<span class="sd">Jinzhe Zeng (jinzhe.zeng@rutgers.edu), Tong Zhu (tzhu@lps.ecnu.edu.cn)</span>
-
-<span class="sd">==================</span>
-<span class="sd">Features</span>
-<span class="sd">==================</span>
-<span class="sd">* Processing of MD trajectory containing atomic coordinates or bond orders</span>
-<span class="sd">* Hidden Markov Model (HMM) based noise filtering</span>
-<span class="sd">* Isomers identifying accoarding to SMILES</span>
-<span class="sd">* Generation of reaction network for visualization using force-directed</span>
-<span class="sd">  algorithm</span>
-<span class="sd">* Parallel computing</span>
-
-<span class="sd">==================</span>
-<span class="sd">Simple example</span>
-<span class="sd">==================</span>
-<span class="sd">ReacNetGenerator can process any kind of trajectory files containing </span>
-<span class="sd">atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1</span>
-<span class="sd">all custom 100 dump.reaxc id type x y z” in LAMMPS:</span>
-<span class="sd">$ reacnetgenerator --type dump -i dump.reaxc -a C H O</span>
-<span class="sd">where C, H, and O are atomic names in the input file. Analysis report</span>
-<span class="sd">will be generated automatically.</span>
-
-<span class="sd">Also, ReacNetGenerator can process files containing bond information, </span>
-<span class="sd">e.g. LAMMPS bond file:</span>
-<span class="sd">$ reacnetgenerator --type bond -i bonds.reaxc -a C H O</span>
-
-<span class="sd">You can running the following script for help:</span>
-<span class="sd">$ reacnetgenerator -h</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-
-<span class="kn">import</span> <span class="nn">gc</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">cpu_count</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">__version__</span><span class="p">,</span> <span class="n">__date__</span>
-<span class="kn">from</span> <span class="nn">._logging</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">._detect</span> <span class="kn">import</span> <span class="n">_Detect</span>
-<span class="kn">from</span> <span class="nn">._draw</span> <span class="kn">import</span> <span class="n">_DrawNetwork</span>
-<span class="kn">from</span> <span class="nn">._mergeiso</span> <span class="kn">import</span> <span class="n">_mergeISO</span> 
-<span class="kn">from</span> <span class="nn">._hmmfilter</span> <span class="kn">import</span> <span class="n">_HMMFilter</span>
-<span class="kn">from</span> <span class="nn">._matrix</span> <span class="kn">import</span> <span class="n">_GenerateMatrix</span>
-<span class="kn">from</span> <span class="nn">._path</span> <span class="kn">import</span> <span class="n">_CollectPaths</span>
-<span class="kn">from</span> <span class="nn">._reachtml</span> <span class="kn">import</span> <span class="n">_HTMLResult</span>
-<span class="kn">from</span> <span class="nn">._download</span> <span class="kn">import</span> <span class="n">DownloadData</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">must_be_list</span>
-
-
-<div class="viewcode-block" id="ReacNetGenerator"><a class="viewcode-back" href="../../guide/python.html#reacnetgenerator.ReacNetGenerator">[docs]</a><span class="k">class</span> <span class="nc">ReacNetGenerator</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Use ReacNetGenerator for trajectory analysis.</span>
-<span class="sd">    </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    inputfiletype: str</span>
-<span class="sd">        The type of the input file. The following type is allowed:</span>
-<span class="sd">            - dump: LAMMPS dump file, which can be outputed by</span>
-<span class="sd">              using `dump 1 all custom 100 dump.reaxc id type x y z`. See</span>
-<span class="sd">              https://lammps.sandia.gov/doc/dump.html for details.</span>
-<span class="sd">            - bond: LAMMPS ReaxFF bond file. See https://lammps.sandia.gov/doc/fix_reaxc_bonds.html</span>
-<span class="sd">              for details.</span>
-<span class="sd">            - xyz: XYZ file, which can also be outputed by LAMMPS using dump.</span>
-<span class="sd">    inputfilename: str or list of strs</span>
-<span class="sd">        The filename(s) of the input file, which can be either relative path or absolute path. If</span>
-<span class="sd">        it is a list, the files will be read in order.</span>
-<span class="sd">    atomname: tuple of strs</span>
-<span class="sd">        The list of the atomic names in the input file, such as `(&#39;C&#39;, &#39;H&#39;, &#39;O&#39;)`. It should match</span>
-<span class="sd">        the order of that in the input file.</span>
-<span class="sd">    runHMM: bool, optional, default: True</span>
-<span class="sd">        Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species</span>
-<span class="sd">        are filtered, they can turn off this option.</span>
-<span class="sd">    miso: int, optional, default: 0</span>
-<span class="sd">        Merge the isomers and the highest frequency is used as the representative. 0, off </span>
-<span class="sd">        two available levels:</span>
-<span class="sd">        1, merge the isomers with same atoms and same bond-network but different bond levels;</span>
-<span class="sd">        2, merge the isomers with same atoms with different bond-network.</span>
-<span class="sd">    pbc: bool, optional, default: True</span>
-<span class="sd">        Use periodic boundary conditions (PBC) or not.</span>
-<span class="sd">    cell: (3,3) array_like or (3,) array_like or (9,) array_like, optional, default: None</span>
-<span class="sd">        The cell (box size) of the system. If None (default), the cell will be read from the input</span>
-<span class="sd">        file. If the input file doesn&#39;t have cell information, this parameter will be necessary.</span>
-<span class="sd">    nproc: int, optional, default: None</span>
-<span class="sd">        The number of processors used for analysis. If None (default), the program will try to use</span>
-<span class="sd">        all processors.</span>
-<span class="sd">    selectatoms: str, optional, default: None</span>
-<span class="sd">        Select an element from the atomic names, such as `C`, and only show species with this</span>
-<span class="sd">        element in the reaction network. If None (default), the network will show all elements.</span>
-<span class="sd">    split: int, optional, default: None</span>
-<span class="sd">        Split number for the time axis. For example, if set to 10, the whole trajectroy will</span>
-<span class="sd">        be divided into 10 parts and reactions of each part will be shown.</span>
-<span class="sd">    a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]</span>
-<span class="sd">        Transition matrix A of HMM parameters. It is recommended for users to choose their own</span>
-<span class="sd">        parameters. See the paper for details.</span>
-<span class="sd">    b: (2,2) array_like, optional, default: [[0.6, 0.4], [0.4, 0.6]]</span>
-<span class="sd">        Emission matrix B of HMM parameters. It is recommended for users to choose their own</span>
-<span class="sd">        parameters. See the paper for details.</span>
-<span class="sd">    </span>
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; from reacnetgenerator import ReacNetGenerator</span>
-<span class="sd">    &gt;&gt;&gt; rng=ReacNetGenerator(inputfiletype=&quot;dump&quot;, inputfilename=&quot;dump.ch4&quot;, atomname=[&#39;C&#39;, &#39;H&#39;, &#39;O&#39;])</span>
-<span class="sd">    &gt;&gt;&gt; rng.runanddraw()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Init ReacNetGenerator.&quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="vm">__doc__</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Version: </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">  Creation date: </span><span class="si">{</span><span class="n">__date__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># process kwargs</span>
-        <span class="n">necessary_key</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;inputfiletype&#39;</span><span class="p">,</span> <span class="s1">&#39;inputfilename&#39;</span><span class="p">,</span> <span class="s1">&#39;atomname&#39;</span><span class="p">]</span>
-        <span class="n">default_value</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;node_color&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">78</span><span class="o">/</span><span class="mi">256</span><span class="p">,</span> <span class="mi">196</span><span class="o">/</span><span class="mi">256</span><span class="p">,</span> <span class="mi">238</span><span class="o">/</span><span class="mi">256</span><span class="p">],</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
-                            <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mf">0.999</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">]],</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">]],</span>
-                            <span class="s2">&quot;speciesfilter&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;start_color&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;end_color&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                            <span class="s2">&quot;nproc&quot;</span><span class="p">:</span> <span class="n">cpu_count</span><span class="p">(),</span> <span class="s2">&quot;pos&quot;</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">&quot;pbc&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;split&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;n_searchspecies&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-                            <span class="s2">&quot;node_size&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="s2">&quot;font_size&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;widthcoefficient&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;maxspecies&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;stepinterval&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                            <span class="s2">&quot;nolabel&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>  <span class="s2">&quot;printfiltersignal&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;showid&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;runHMM&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;SMILES&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                            <span class="s2">&quot;miso&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                            <span class="s2">&quot;getoriginfile&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;needprintspecies&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;urls&quot;</span><span class="p">:</span> <span class="p">[],</span>
-                            <span class="s2">&quot;matrix_size&quot;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span>
-                            <span class="p">}</span>
-        <span class="n">none_key</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;selectatoms&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;speciescenter&#39;</span><span class="p">,</span> <span class="s1">&#39;cell&#39;</span><span class="p">]</span>
-        <span class="n">accept_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;atomtype&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="s1">&#39;hmmit&#39;</span><span class="p">,</span> <span class="s1">&#39;timestep&#39;</span><span class="p">,</span> <span class="s1">&#39;steplinenum&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;temp1it&#39;</span><span class="p">,</span> <span class="s1">&#39;originfilename&#39;</span><span class="p">,</span> <span class="s1">&#39;hmmfilename&#39;</span><span class="p">,</span> <span class="s1">&#39;moleculetempfilename&#39;</span><span class="p">,</span> <span class="s1">&#39;moleculetemp2filename&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;allmoleculeroute&#39;</span><span class="p">,</span> <span class="s1">&#39;splitmoleculeroute&#39;</span><span class="p">]</span>
-        <span class="n">nparray_key</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;atomname&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;node_color&quot;</span><span class="p">,</span> <span class="s2">&quot;start_color&quot;</span><span class="p">,</span> <span class="s2">&quot;end_color&quot;</span><span class="p">]</span>
-        <span class="n">file_key</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;moleculefilename&quot;</span><span class="p">:</span> <span class="s2">&quot;moname&quot;</span><span class="p">,</span> <span class="s2">&quot;atomroutefilename&quot;</span><span class="p">:</span> <span class="s2">&quot;route&quot;</span><span class="p">,</span> <span class="s2">&quot;reactionfilename&quot;</span><span class="p">:</span> <span class="s2">&quot;reaction&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;tablefilename&quot;</span><span class="p">:</span> <span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="s2">&quot;imagefilename&quot;</span><span class="p">:</span> <span class="s2">&quot;svg&quot;</span><span class="p">,</span> <span class="s2">&quot;speciesfilename&quot;</span><span class="p">:</span> <span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="s2">&quot;resultfilename&quot;</span><span class="p">:</span> <span class="s2">&quot;html&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;jsonfilename&quot;</span><span class="p">:</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="s2">&quot;reactionabcdfilename&quot;</span><span class="p">:</span> <span class="s2">&quot;reactionabcd&quot;</span><span class="p">}</span>
-        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">necessary_key</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span>
-            <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)),</span> <span class="s2">&quot;Must give neccessary key: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">necessary_key</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span>
-            <span class="nb">set</span><span class="p">(</span><span class="n">necessary_key</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">default_value</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">none_key</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">file_key</span><span class="p">)),</span> <span class="s2">&quot;Unsupported key&quot;</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;inputfilename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">must_be_list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;inputfilename&quot;</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">default_value</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">kk</span><span class="p">,</span> <span class="n">default_value</span><span class="p">[</span><span class="n">kk</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_value</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">none_key</span><span class="p">,</span> <span class="n">accept_keys</span><span class="p">):</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">kk</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">file_key</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
-                <span class="n">kk</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;inputfilename&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">file_key</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="n">nparray_key</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">kk</span><span class="p">])</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;runHMM&quot;</span><span class="p">]:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;getoriginfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;selectatoms&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;selectatoms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;atomname&quot;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-
-<div class="viewcode-block" id="ReacNetGenerator.runanddraw"><a class="viewcode-back" href="../../guide/python.html#reacnetgenerator.ReacNetGenerator.runanddraw">[docs]</a>    <span class="k">def</span> <span class="nf">runanddraw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">draw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Analyze the trajectory from MD simulation.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        run: bool, optional, default: True</span>
-<span class="sd">            Process the trajectory or not, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</span>
-<span class="sd">        draw: bool, optional, default: True</span>
-<span class="sd">            Draw the reaction network or not, i.e. NETWORK step.</span>
-<span class="sd">        report: bool, optional, default: True</span>
-<span class="sd">            Generate the analysis report, i.e. NETWORK step.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">processthing</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">run</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">urls</span><span class="p">:</span>
-                <span class="n">processthing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">DOWNLOAD</span><span class="p">)</span>
-            <span class="n">processthing</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">DETECT</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">MISO</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">HMM</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">PATH</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">MATRIX</span><span class="p">,</span>
-            <span class="p">))</span>
-        <span class="k">if</span> <span class="n">draw</span><span class="p">:</span>
-            <span class="n">processthing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">NETWORK</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">report</span><span class="p">:</span>
-            <span class="n">processthing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">REPORT</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span><span class="n">processthing</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="ReacNetGenerator.run"><a class="viewcode-back" href="../../guide/python.html#reacnetgenerator.ReacNetGenerator.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">processthing</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">urls</span><span class="p">:</span>
-            <span class="n">processthing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">DOWNLOAD</span><span class="p">)</span>
-        <span class="n">processthing</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">DETECT</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">MISO</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">HMM</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">PATH</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">MATRIX</span><span class="p">,</span>
-        <span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span><span class="n">processthing</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="ReacNetGenerator.draw"><a class="viewcode-back" href="../../guide/python.html#reacnetgenerator.ReacNetGenerator.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Draw the reaction network, i.e. NETWORK step.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">NETWORK</span><span class="p">,))</span></div>
-
-<div class="viewcode-block" id="ReacNetGenerator.report"><a class="viewcode-back" href="../../guide/python.html#reacnetgenerator.ReacNetGenerator.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate the analysis report, i.e. REPORT step.</span>
-<span class="sd">        </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">REPORT</span><span class="p">,))</span></div>
-
-<div class="viewcode-block" id="ReacNetGenerator.Status"><a class="viewcode-back" href="../../guide/python.html#reacnetgenerator.ReacNetGenerator.Status">[docs]</a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;ReacNetGenerator status.</span>
-
-<span class="sd">        The ReacNetGenerator consists of several modules and algorithms to</span>
-<span class="sd">        process the information from the given trajectory, including:</span>
-<span class="sd">            - DOWNLOAD: Download trajectory from urls</span>
-<span class="sd">            - DETECT: Read bond information and detect molecules</span>
-<span class="sd">            - HMM: HMM filter</span>
-<span class="sd">            - MISO: Merge isomers</span>
-<span class="sd">            - PATH: Indentify isomers and collect reaction paths</span>
-<span class="sd">            - MATRIX: Reaction matrix generation</span>
-<span class="sd">            - NETWORK: Draw reaction network</span>
-<span class="sd">            - REPORT: Generate analysis report</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">INIT</span> <span class="o">=</span> <span class="s2">&quot;Init&quot;</span>
-        <span class="n">DETECT</span> <span class="o">=</span> <span class="s2">&quot;Read bond information and detect molecules&quot;</span>
-        <span class="n">MISO</span> <span class="o">=</span> <span class="s2">&quot;Merge isomers&quot;</span>
-        <span class="n">HMM</span> <span class="o">=</span> <span class="s2">&quot;HMM filter&quot;</span>
-        <span class="n">PATH</span> <span class="o">=</span> <span class="s2">&quot;Indentify isomers and collect reaction paths&quot;</span>
-        <span class="n">MATRIX</span> <span class="o">=</span> <span class="s2">&quot;Reaction matrix generation&quot;</span>
-        <span class="n">NETWORK</span> <span class="o">=</span> <span class="s2">&quot;Draw reaction network&quot;</span>
-        <span class="n">REPORT</span> <span class="o">=</span> <span class="s2">&quot;Generate analysis report&quot;</span>
-        <span class="n">DOWNLOAD</span> <span class="o">=</span> <span class="s2">&quot;Download trajectory&quot;</span>
-
-        <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;Return describtion of the status.&quot;&quot;&quot;</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
-
-    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Process steps in order.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        steps: tuple of ReacNetGenerator.Status</span>
-<span class="sd">            The process that needs to be processed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">timearray</span> <span class="o">=</span> <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">runstep</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">DETECT</span><span class="p">:</span>
-                <span class="n">_Detect</span><span class="o">.</span><span class="n">gettype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">detect</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">MISO</span><span class="p">:</span>  
-                <span class="n">_mergeISO</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">HMM</span><span class="p">:</span>
-                <span class="n">_HMMFilter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">PATH</span><span class="p">:</span>
-                <span class="n">_CollectPaths</span><span class="o">.</span><span class="n">getstype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">MATRIX</span><span class="p">:</span>
-                <span class="n">_GenerateMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">NETWORK</span><span class="p">:</span>
-                <span class="n">_DrawNetwork</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">REPORT</span><span class="p">:</span>
-                <span class="n">_HTMLResult</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">report</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">runstep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Status</span><span class="o">.</span><span class="n">DOWNLOAD</span><span class="p">:</span>
-                <span class="n">DownloadData</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">download_files</span><span class="p">()</span>
-            <span class="c1"># garbage collect</span>
-            <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
-            <span class="n">timearray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">())</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Step </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Done! Time consumed (s): </span><span class="si">{</span><span class="n">timearray</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">timearray</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">runstep</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-
-        <span class="c1"># delete tempfile</span>
-        <span class="k">for</span> <span class="n">tempfilename</span> <span class="ow">in</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">moleculetempfilename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moleculetemp2filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">originfilename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hmmfilename</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">tempfilename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tempfilename</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-                    <span class="k">pass</span>
-        <span class="c1"># Summary</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;====== Summary ======&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total time(s): </span><span class="si">{</span><span class="n">timearray</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">timearray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span></div>
-</pre></div>
-
-          </div>
-          <div class="page-nav">
-            <div class="inner"><ul class="page-nav">
-</ul><div class="footer" role="contentinfo">
-      &#169; Copyright 2019-2022, East China Normal University.
-    <br>
-    Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0 with <a href="https://github.com/schettino72/sphinx_press_theme">Press Theme</a> 0.8.0.
-</div>
-            </div>
-          </div>
-      </page>
-    </div></div>
-    
-    
-  </body>
-</html>
+        <span class=c1># delete tempfile</span>
+        <span class=k>for</span> <span class=n>tempfilename</span> <span class=ow>in</span> <span class=p>(</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>moleculetempfilename</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>moleculetemp2filename</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>originfilename</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>hmmfilename</span><span class=p>):</span>
+            <span class=k>if</span> <span class=n>tempfilename</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
+                <span class=k>try</span><span class=p>:</span>
+                    <span class=n>os</span><span class=o>.</span><span class=n>remove</span><span class=p>(</span><span class=n>tempfilename</span><span class=p>)</span>
+                <span class=k>except</span> <span class=ne>OSError</span><span class=p>:</span>
+                    <span class=k>pass</span>
+        <span class=c1># Summary</span>
+        <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=s2>&quot;====== Summary ======&quot;</span><span class=p>)</span>
+        <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=sa>f</span><span class=s2>&quot;Total time(s): </span><span class=si>{</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span><span class=o>-</span><span class=n>timearray</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span><span class=si>:</span><span class=s2>.3f</span><span class=si>}</span><span class=s2> s&quot;</span><span class=p>)</span></div>
+</pre></div> </div> <div class=page-nav> <div class=inner><ul class=page-nav> </ul><div class=footer role=contentinfo> &#169; Copyright 2019-2022, East China Normal University. <br> Created using <a href=http://sphinx-doc.org/ >Sphinx</a> 5.3.0 with <a href=https://github.com/schettino72/sphinx_press_theme>Press Theme</a> 0.8.0. </div> </div> </div> </page> </div></div> </body> </html>
