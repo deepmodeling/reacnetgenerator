@@ -27,7 +27,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         this_directory = Path(__file__).parent
         webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
         with open(webpack_dir / ".yarnrc.yml") as f:
-            yarn_path = Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"])
+            yarn_path = str(Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"]))
         node_call([yarn_path], cwd=webpack_dir)
         node_call([yarn_path, "start"], cwd=webpack_dir)
         try:
