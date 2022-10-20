@@ -91,6 +91,7 @@ docs = [
     'sphinx-favicon',
     "nodejs-bin~=16.15.1a4",
     "pyyaml",
+    "deepmodeling_sphinx @ git+https://github.com/deepmodeling/deepmodeling_sphinx",
 ]
 
 [tool.setuptools.packages.find]

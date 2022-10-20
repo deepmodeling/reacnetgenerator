@@ -40,6 +40,7 @@ extensions = [
     'myst_parser',
     'numpydoc',
     'sphinx-favicon',
+    'deepmodeling_sphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -80,6 +81,8 @@ favicons = [
         "type": "image/svg+xml",
     },
 ]
+
+enable_deepmodeling = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
