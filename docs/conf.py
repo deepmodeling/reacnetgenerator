@@ -66,11 +66,8 @@ html_extra_path = ['report.html', 'fire.png', 'bundle.js', 'bundle.css']
 
 html_theme_options = {
     "use_edit_page_button": True,
-    "show_nav_level": 2,
-    "external_links": [
-        {"name": "Paper", "url": "https://doi.org/10.1039/C9CP05091D"},
-        {"name": "Accepted Manuscript", "url": "https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&filePid=13678734780004646&download=true"},
-        {"name": "Research Group", "url": "https://computchem.cn"},
+    "icon_links": [
+        {"name": "Paper", "url": "https://doi.org/10.1039/C9CP05091D", "icon": "fa-solid fa-book-open", "type": "fontawesome"},
     ],
     "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
 }

@@ -6,10 +6,7 @@
 
 An automatic reaction network generator for reactive molecular dynamics simulation
 
-```{button-link} ./guide/install.html
-:color: primary
-Get Started
-```
+<a href="/guide/install.html" class="nav-link action-button">Get Started</a>
 
 </header>
 
