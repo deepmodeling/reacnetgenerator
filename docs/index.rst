@@ -5,6 +5,7 @@ Table of contents
 =================
 .. toctree::
    :maxdepth: 2
+
    guide/index
    tutorial/index
    develop
