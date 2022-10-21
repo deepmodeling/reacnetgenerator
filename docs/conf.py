@@ -76,8 +76,8 @@ html_theme_options = {
 }
 
 html_context = {
-    "github_user": "deepmodeling",
-    "github_repo": "deepmd-kit",
+    "github_user": "tongzhugroup",
+    "github_repo": "reacnetgenerator",
     "github_version": "master",
     "doc_path": "docs",
 }
