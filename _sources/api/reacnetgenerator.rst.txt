@@ -25,6 +25,14 @@ reacnetgenerator.dps module
    :undoc-members:
    :show-inheritance:
 
+reacnetgenerator.dps module
+---------------------------
+
+.. automodule:: reacnetgenerator.dps
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 reacnetgenerator.gui module
 ---------------------------
 
@@ -53,6 +61,14 @@ reacnetgenerator.utils module
 -----------------------------
 
 .. automodule:: reacnetgenerator.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+reacnetgenerator.utils\_np module
+---------------------------------
+
+.. automodule:: reacnetgenerator.utils_np
    :members:
    :undoc-members:
    :show-inheritance:
