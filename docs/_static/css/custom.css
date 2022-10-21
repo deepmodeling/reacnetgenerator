@@ -1,6 +1,6 @@
 .bilitube iframe {
-    width: 512px;
-    height: 397.6px;
+    width: 100%;
+    aspect-ratio: 1.2877;
 }
 
 .hero {
@@ -16,6 +16,7 @@
     max-height: 280px;
     display: block;
     margin: 3rem auto 1.5rem;
+    background: none!important;
 }
 
 .hero p {
