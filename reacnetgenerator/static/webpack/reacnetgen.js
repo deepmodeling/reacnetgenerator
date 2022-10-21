@@ -232,9 +232,12 @@ function showresults(time) {
     // select
     // render formula to show formula in the select
     specdata.forEach(dd => { dd['formula'] = getFormula(dd['s']); });
-    $("#speciesselect").html($.templates("#optionTmpl").render(specdata));
-    $("#reactionsselect").html($.templates("#optionTmpl").render(specdata));
-    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata));
+    // limit size of options to 65536
+    // workaround to fix https://github.com/snapappointments/bootstrap-select/issues/2793
+    const specdata_minify = specdata.slice(0, 65536);
+    $("#speciesselect").html($.templates("#optionTmpl").render(specdata_minify));
+    $("#reactionsselect").html($.templates("#optionTmpl").render(specdata_minify));
+    $("#reactionsabcdselect").html($.templates("#optionTmpl").render(specdata_minify));
     $("select#speciesselect").on("change", function () {
         const speciessearch = searchspecies($(this).val(), specdata);
         showresult(speciessearch, speciesshownum, "#specTmpl", "#speciesresult", "#speciespager");
