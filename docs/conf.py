@@ -57,7 +57,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_book_theme'
+html_theme = 'pydata-sphinx-theme'
 html_logo = '_static/reacnetgen.svg'
 html_static_path = ['_static']
 html_js_files = ['https://unpkg.com/bilitube@0/dist/bilitube.min.js']
@@ -65,13 +65,21 @@ html_css_files = ['css/custom.css']
 html_extra_path = ['report.html', 'fire.png', 'bundle.js', 'bundle.css']
 
 html_theme_options = {
-    "repository_url": "https://github.com/tongzhugroup/reacnetgenerator",
-    "use_repository_button": True,
-    "use_issues_button": True,
     "use_edit_page_button": True,
-    "home_page_in_toc": True,
-    "use_download_button": True,
-    "path_to_docs": "docs",
+    "show_nav_level": 2,
+    "external_links": [
+        {"name": "Paper", "url": "https://doi.org/10.1039/C9CP05091D"},
+        {"name": "Accepted Manuscript", "url": "https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&filePid=13678734780004646&download=true"},
+        {"name": "Research Group", "url": "https://computchem.cn"},
+    ],
+    "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
+}
+
+html_context = {
+    "github_user": "deepmodeling",
+    "github_repo": "deepmd-kit",
+    "github_version": "master",
+    "doc_path": "docs",
 }
 
 myst_heading_anchors = 3
