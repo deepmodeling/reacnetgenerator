@@ -57,7 +57,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'pydata-sphinx-theme'
+html_theme = 'pydata_sphinx_theme'
 html_logo = '_static/reacnetgen.svg'
 html_static_path = ['_static']
 html_js_files = ['https://unpkg.com/bilitube@0/dist/bilitube.min.js']
