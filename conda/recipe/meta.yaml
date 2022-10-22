@@ -32,7 +32,6 @@ requirements:
     - openbabel
     - rdkit >=2018.09
     - numpy
-    - scipy >=0.20.1
     - pandas
     - networkx
     - matplotlib

@@ -30,15 +30,18 @@ from enum import Enum, auto
 
 import numpy as np
 try:
-    from openbabel import openbabel
+    from openbabel import openbabel, __version__ as obversion
 except ImportError:  # pragma: no cover
-    import openbabel
-from scipy.spatial import cKDTree
+    raise ImportError("Open Babel 3.1.0 is required.")
 from ase import Atom, Atoms
+from packaging import version
 
 from .dps import dps
 from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
 
+
+if version.parse(obversion) < version.parse("3.1.0"):  # pragma: no cover
+    raise ImportError("Open Babel 3.1.0 is required.")
 
 openbabel.obErrorLog.StopLogging()
 
@@ -215,18 +218,6 @@ class _DetectLAMMPSbond(_Detect):
 class _DetectCrd(_Detect):
     def _getbondfromcrd(self, step_atoms, cell):
         atomnumber = len(step_atoms)
-        if self.pbc:
-            # Apply period boundry conditions
-            step_atoms.set_pbc(True)
-            step_atoms.set_cell(cell)
-            # add ghost atoms
-            repeated_atoms = step_atoms.repeat(2)[atomnumber:]
-            tree = cKDTree(step_atoms.get_positions())
-            d = tree.query(repeated_atoms.get_positions(), k=1)[0]
-            nearest = d < 5
-            ghost_atoms = repeated_atoms[nearest]
-            realnumber = np.where(nearest)[0] % atomnumber
-            step_atoms += ghost_atoms
         # Use openbabel to connect atoms
         mol = openbabel.OBMol()
         mol.BeginModify()
@@ -234,6 +225,17 @@ class _DetectCrd(_Detect):
             a = mol.NewAtom(idx)
             a.SetAtomicNum(int(num))
             a.SetVector(*position)
+        # Apply period boundry conditions
+        # openbabel#1853, supported in v3.1.0
+        if self.pbc:
+            uc = openbabel.OBUnitCell()
+            uc.setData(
+                openbabel.vector3(cell[0][0], cell[0][1], cell[0][2]),
+                openbabel.vector3(cell[1][0], cell[1][1], cell[1][2]),
+                openbabel.vector3(cell[2][0], cell[2][1], cell[2][2]),
+            )
+            mol.CloneData(uc)
+            mol.SetPeriodicMol()
         mol.ConnectTheDots()
         mol.PerceiveBondOrders()
         mol.EndModify()
@@ -242,13 +244,6 @@ class _DetectCrd(_Detect):
         for b in openbabel.OBMolBondIter(mol):
             s1 = b.GetBeginAtom().GetId()
             s2 = b.GetEndAtom().GetId()
-            if s1 >= atomnumber and s2 >= atomnumber:
-                # duplicated
-                continue
-            elif s1 >= atomnumber:
-                s1 = realnumber[s1-atomnumber]
-            elif s2 >= atomnumber:
-                s2 = realnumber[s2-atomnumber]
             level = b.GetBondOrder()
             if level == 5:
                 # aromatic, 5 in openbabel but 12 in rdkit
