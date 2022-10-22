@@ -165,8 +165,13 @@ class ReacNetGenerator:
         if kwargs["selectatoms"] is None:
             kwargs["selectatoms"] = kwargs["atomname"]
         self.__dict__.update(kwargs)
-        if self.cell is not None and len(self.cell) == 9:
-            self.cell = np.array(self.cell).reshape((3,3))
+        if self.cell is not None:
+            if len(self.cell) == 9:
+                self.cell = np.array(self.cell).reshape((3,3))
+            elif len(self.cell) == 3:
+                self.cell = np.diag(self.cell)
+            else:
+                raise RuntimeError("cell must be (3,3) array_like or (3,) array_like or (9,) array_like")
 
     def runanddraw(self, run=True, draw=True, report=True):
         """Analyze the trajectory from MD simulation.

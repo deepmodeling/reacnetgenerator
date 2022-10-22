@@ -229,7 +229,7 @@ class _DetectCrd(_Detect):
         # openbabel#1853, supported in v3.1.0
         if self.pbc:
             uc = openbabel.OBUnitCell()
-            uc.setData(
+            uc.SetData(
                 openbabel.vector3(cell[0][0], cell[0][1], cell[0][2]),
                 openbabel.vector3(cell[1][0], cell[1][1], cell[1][2]),
                 openbabel.vector3(cell[2][0], cell[2][1], cell[2][2]),
