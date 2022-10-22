@@ -51,7 +51,7 @@ def read_species(specfile: str) -> Tuple[List[int], Dict[str, np.ndarray]]:
 
 
 def read_reactions(reacfile) -> List[Tuple[int, Counter, str]]:
-    """Read reactions from the reactions file (ends with .reactionsabcd).
+    """Read reactions from the reactions file (ends with .reaction or .reactionsabcd).
 
     For accuracy, HMM filter should be disabled.
     

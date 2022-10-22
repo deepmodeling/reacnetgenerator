@@ -17,4 +17,22 @@ conda install reacnetgenerator -c conda-forge
 pip install reacnetgenerator
 ```
 
+## Docker images
+
+If you have [installed Docker](https://docs.docker.com/install/), an official Docker image is provided: 
+
+```bash
+docker run ghcr.io/tongzhugroup/reacnetgenerator reacnetgenerator -h
+```
+
+When analyzing trajectories, you need to [monut](https://docs.docker.com/storage/bind-mounts/) the local directory into the container.
+
+If your HPC node has installed [Singularity](https://sylabs.io/docs/), you can also used it:
+
+```bash
+singularity run docker://ghcr.io/tongzhugroup/reacnetgenerator reacnetgenerator -h
+```
+
+:::{note}
 See [the build guide](build.md) if you want to build ReacNetGenerator from source. 
+:::
