@@ -1,5 +1,5 @@
-External resources
-==================
+More
+====
 
 .. toctree::
    :maxdepth: 2

@@ -57,7 +57,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_book_theme'
+html_theme = 'pydata_sphinx_theme'
 html_logo = '_static/reacnetgen.svg'
 html_static_path = ['_static']
 html_js_files = ['https://unpkg.com/bilitube@0/dist/bilitube.min.js']
@@ -65,13 +65,21 @@ html_css_files = ['css/custom.css']
 html_extra_path = ['report.html', 'fire.png', 'bundle.js', 'bundle.css']
 
 html_theme_options = {
-    "repository_url": "https://github.com/tongzhugroup/reacnetgenerator",
-    "use_repository_button": True,
-    "use_issues_button": True,
     "use_edit_page_button": True,
-    "home_page_in_toc": True,
-    "use_download_button": True,
-    "path_to_docs": "docs",
+    "icon_links": [
+        {"name": "Paper", "url": "https://doi.org/10.1039/C9CP05091D", "icon": "fa-solid fa-book-open", "type": "fontawesome"},
+    ],
+    "external_links": [
+        {"name": "Report Loader", "url": "/report.html"}
+    ],
+    "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
+}
+
+html_context = {
+    "github_user": "tongzhugroup",
+    "github_repo": "reacnetgenerator",
+    "github_version": "master",
+    "doc_path": "docs",
 }
 
 myst_heading_anchors = 3
