@@ -27,7 +27,14 @@ from rdkit import Chem
 from tqdm import tqdm
 
 from ._reaction import ReactionsFinder
-from .utils import WriteBuffer, bytestolist, listtostirng, run_mp, SharedRNGData
+from .utils import (
+    WriteBuffer,
+    bytestolist,
+    listtostirng,
+    run_mp,
+    SharedRNGData,
+    read_compressed_block,
+)
 
 
 class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
@@ -69,8 +76,9 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Values in atomeach starts from 1."""
         atomeach = np.zeros((self.N, self.step), dtype=int)
         conflict = np.zeros((self.N, self.step), dtype=int)
-        with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, open(self.moleculetemp2filename, 'rb') as ft:
-            for i, (linehz, linetz) in enumerate(tqdm(zip(fh, itertools.zip_longest(*[ft] * 3)),
+        with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, \
+             open(self.moleculetemp2filename, 'rb') as ft:
+            for i, (linehz, linetz) in enumerate(tqdm(zip(read_compressed_block(fh), itertools.zip_longest(*[read_compressed_block(ft)] * 4)),
                                                       total=self.hmmit, desc="Analyze atoms", unit="molecule"), start=1):
                 lineh = bytestolist(linehz)
                 atom = np.array(bytestolist(linetz[0]))
@@ -136,10 +144,8 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _getatomsandbonds(self, line):
         atoms = np.array(bytestolist(line[0]), dtype=int)
-        # bonds = bytestolist(line[1])
-        s = line[1].split()
-        pairs = bytestolist(s[0])
-        levels = bytestolist(s[1])
+        pairs = bytestolist(line[1])
+        levels = bytestolist(line[2])
         bonds = [[*pair, level] for pair, level in zip(pairs, levels)]
         return atoms, bonds
 
@@ -155,8 +161,9 @@ class _CollectMolPaths(_CollectPaths):
         em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
         # idx for unknown SMILES
         self.n_unknown = 0
-        with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
-            for line in tqdm(itertools.zip_longest(*[ft] * 3),
+        with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, \
+             open(self.moleculetemp2filename, 'rb') as ft:
+            for line in tqdm(itertools.zip_longest(*[read_compressed_block(ft)] * 4),
                             total=self.hmmit, desc="Indentify isomers", unit="molecule"):
                 atoms, bonds = self._getatomsandbonds(line)
                 molecule = Molecule(self, atoms, bonds)
@@ -178,9 +185,10 @@ class _CollectSMILESPaths(_CollectPaths):
         d = defaultdict(list)
         em = iso.numerical_edge_match(['atom', 'level'], ["None", 1])
         self.n_unknown = 0
-        with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, open(self.moleculetemp2filename, 'rb') as ft:
-            results = run_mp(self.nproc, func=self._calmoleculeSMILESname, l=ft, unordered=False,
-                                nlines=3, total=self.hmmit, desc="Indentify isomers", unit="molecule")
+        with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, \
+             open(self.moleculetemp2filename, 'rb') as ft:
+            results = run_mp(self.nproc, func=self._calmoleculeSMILESname, l=read_compressed_block(ft), unordered=False,
+                                nlines=4, total=self.hmmit, desc="Indentify isomers", unit="molecule")
             for name, atoms, bonds in results:
                 if name is None:
                     # SMILES failed, fallback to VF2 identify isomers

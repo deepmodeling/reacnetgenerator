@@ -49,7 +49,6 @@ dependencies = [
     'tqdm',
     'coloredlogs',
     'pandas',
-    'pybase64',
     'lz4',
     'requests',
     "openbabel-wheel",

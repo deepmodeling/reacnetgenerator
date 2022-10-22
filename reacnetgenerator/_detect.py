@@ -152,7 +152,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         # which cause the different bytes results from same bond-network.
         return list([b''.join((listtobytes(mol),
                                listtobytes([(int(i[0]), int(i[1]))
-                                           for i in bondlist]).replace(b'\n', b'\t'),
+                                           for i in bondlist]),
                                listtobytes([int(i[2]) for i in bondlist])
                                )) for mol, bondlist in zip(*dps(bond, level))])
 
