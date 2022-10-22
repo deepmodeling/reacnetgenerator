@@ -9,7 +9,7 @@ suffix: `.html`
 The web page including analysis.
 <a href="/report.html?jdata=https%3A%2F%2Fgist.githubusercontent.com%2Fnjzjz%2Fe9a4b42ceb7d2c3c7ada189f38708bf3%2Fraw%2F83d01b9ab1780b0ad2d1e7f934e61fa113cb0f9f%2Fmethane.json" target="_blank">Here</a> is an example.
 You can open it using a modern browser.
-Note that $A + B \to C + D$ information may be not accurate when [HMM](hmm.md) is enabled.
+Note that $\ce{A + B -> C + D}$ information may be not accurate when [HMM](hmm.md) is enabled.
 
 ## Data file
 
@@ -46,9 +46,9 @@ It shows which species an atom is inside thorugh the whole trajectory.
 
 suffix: `.reaction`, `.reactionabcd`
 
-`.reaction` shows the frequency of the reaction $A \to B$ while `.reactionabcd` shows the frequency of the reaction $A + B \to C + D$.
+`.reaction` shows the frequency of the reaction $\ce{A -> B}$ while `.reactionabcd` shows the frequency of the reaction $\ce{A + B -> C + D}$.
 One can read this file thorugh the Python method {meth}`reacnetgenerator.tools.read_reactions <reacnetgenerator.tools.read_reactions>`.
-Note that $A + B \to C + D$ information may be not accurate when [HMM](hmm.md) is enabled.
+Note that $\ce{A + B -> C + D}$ information may be not accurate when [HMM](hmm.md) is enabled.
 
 ## Reaction matrix file
 

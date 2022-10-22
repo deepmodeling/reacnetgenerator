@@ -103,6 +103,10 @@ mathjax_options = {
     'integrity': 'sha512-6FaAxxHuKuzaGHWnV00ftWqP3luSBRSopnNAA2RvQH1fOfnF/A1wOfiUWF7cLIOFcfb1dEhXwo5VG3DAisocRw==',
     'crossorigin': 'anonymous',
 }
+mathjax3_config = {
+    "loader": {"load": ['[tex]/mhchem']},
+    "tex": {"packages": {'[+]': ['mhchem']}},
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
