@@ -101,6 +101,7 @@ myst_enable_extensions = [
 mathjax_path = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"
 mathjax_options = {
     'integrity': 'sha512-6FaAxxHuKuzaGHWnV00ftWqP3luSBRSopnNAA2RvQH1fOfnF/A1wOfiUWF7cLIOFcfb1dEhXwo5VG3DAisocRw==',
+    'crossorigin': 'anonymous',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
