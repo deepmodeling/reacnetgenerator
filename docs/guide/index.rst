@@ -9,6 +9,7 @@ User Guide
    install
    format
    run
+   report
    gui
    faq
 
@@ -18,6 +19,5 @@ User Guide
 
    build
    hmm
-   report
    cli
    python
