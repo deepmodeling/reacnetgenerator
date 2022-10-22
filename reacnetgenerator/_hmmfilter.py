@@ -28,7 +28,15 @@ try:
 except ImportError:
     from hmmlearn.hmm import MultinomialHMM
 
-from .utils import WriteBuffer, appendIfNotNone, bytestolist, listtobytes, run_mp, SharedRNGData
+from .utils import (
+    WriteBuffer,
+    appendIfNotNone,
+    bytestolist,
+    listtobytes,
+    run_mp,
+    SharedRNGData,
+    read_compressed_block,
+)
 from .utils_np import idx_to_signal, check_zero_signal
 
 
@@ -72,12 +80,15 @@ class _HMMFilter(SharedRNGData):
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
-        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.getoriginfile or not self.runHMM else ExitStack() as fo, WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.runHMM else ExitStack() as fh, open(self.moleculetempfilename, 'rb') as ft, WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
+        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.getoriginfile or not self.runHMM else ExitStack() as fo, \
+                WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.runHMM else ExitStack() as fh, \
+                open(self.moleculetempfilename, 'rb') as ft, \
+                WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
             self.moleculetemp2filename = ft2.name
             self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
             self.hmmfilename = fh.name if self.runHMM else None
-            results = run_mp(self.nproc, func=self._getoriginandhmm, l=ft,
-                                nlines=3, total=self.temp1it, desc="HMM filter", unit="molecule")
+            results = run_mp(self.nproc, func=self._getoriginandhmm, l=read_compressed_block(ft),
+                                nlines=4, total=self.temp1it, desc="HMM filter", unit="molecule")
             hmmit = 0
             for originbytes, hmmbytes, line_c in results:
                 if originbytes is not None or hmmbytes is not None:

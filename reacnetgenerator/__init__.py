@@ -24,7 +24,6 @@ import matplotlib as mpl
 mpl.use("svg")  # noqa
 import networkx  # avoid qhull library error
 
-from . import _logging
 from ._version import __version__
 from .reacnetgen import ReacNetGenerator
 

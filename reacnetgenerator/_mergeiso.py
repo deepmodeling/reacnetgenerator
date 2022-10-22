@@ -1,7 +1,14 @@
+import itertools
+
 from tqdm import tqdm
 import numpy as np
 
-from .utils import bytestolist, listtobytes,  SharedRNGData
+from .utils import (
+    bytestolist,
+    listtobytes,
+    SharedRNGData,
+    read_compressed_block,
+)
 
 
 class _mergeISO(SharedRNGData):
@@ -15,29 +22,29 @@ class _mergeISO(SharedRNGData):
         self.returnkeys()
 
     def _mergeISO(self):
+        items = []
         with open(self.moleculetempfilename, 'rb') as ft:
-            items = ft.readlines()
-        items = [[items[i], items[i+1], items[i+2]]
-                 for i in range(0, len(items), 3)]
+            for item in itertools.zip_longest(*[read_compressed_block(ft)]*4):
+                items.append(item)
         new_items = []
         _oldbitem = b''
         _oldbbond = b'0'
         _oldindex = []
         _oldfreq = 0
-        for _bitem, _bbond, _bindex in tqdm(sorted(items, key=lambda x: (x[0], x[1].split()[0])), desc='Merge isomers:'):
+        for _bitem, _bbond0, _bbond1, _bindex in tqdm(sorted(items, key=lambda x: (x[0], x[1])), desc='Merge isomers:'):
             _index = bytestolist(_bindex)
             _freq = len(_index)
-            if (_bitem == _oldbitem) and ((_bbond.split()[0] == _oldbbond.split()[0]) or (self.miso > 1)):
+            if (_bitem == _oldbitem) and ((_bbond0 == _oldbbond[0]) or (self.miso > 1)):
                 _oldindex = np.hstack((_oldindex, _index))
             else:
                 if _oldbitem:
                     new_items.append(
-                        [_oldbitem, _oldbbond, listtobytes(_oldindex)])
+                        [_oldbitem, *_oldbbond, listtobytes(_oldindex)])
                 _oldbitem = _bitem
                 _oldindex = _index
                 if _freq > _oldfreq:
-                    _oldbbond = _bbond
-        new_items.append([_oldbitem, _oldbbond, listtobytes(_oldindex)])
+                    _oldbbond = (_bbond0, _bbond1)
+        new_items.append([_oldbitem, *_oldbbond, listtobytes(_oldindex)])
         new_items.sort(key=lambda x: len(x[0]))
         self.temp1it = len(new_items)
         with open(self.moleculetempfilename, 'wb') as ft:

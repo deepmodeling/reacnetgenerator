@@ -41,7 +41,6 @@ requirements:
     - tqdm
     - coloredlogs
     - lz4
-    - pybase64
     - requests
     - packaging
 

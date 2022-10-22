@@ -19,7 +19,6 @@ placement. Software: Practice and experince. 1991, 21(11),1129-1164.
 """
 
 import math
-import traceback
 from io import StringIO
 from itertools import permutations
 

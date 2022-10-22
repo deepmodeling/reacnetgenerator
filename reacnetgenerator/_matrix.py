@@ -14,7 +14,12 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from .utils import WriteBuffer, bytestolist, SharedRNGData
+from .utils import (
+    WriteBuffer,
+    bytestolist,
+    SharedRNGData,
+    read_compressed_block,
+)
 
 
 class _GenerateMatrix(SharedRNGData):
@@ -106,9 +111,10 @@ class _GenerateMatrix(SharedRNGData):
         return searchedspecies
 
     def _printspecies(self):
-        with open(self.moleculetemp2filename, 'rb') as ft, WriteBuffer(open(self.speciesfilename, 'w')) as fw:
+        with open(self.moleculetemp2filename, 'rb') as ft, \
+             WriteBuffer(open(self.speciesfilename, 'w')) as fw:
             d = [Counter() for i in range(len(self.timestep))]
-            for name, line in zip(self.mname, itertools.zip_longest(*[ft] * 3)):
+            for name, line in zip(self.mname, itertools.zip_longest(*[read_compressed_block(ft)] * 4)):
                 for t in bytestolist(line[-1]).tolist():
                     d[t][name] += 1
             for t in range(len(self.timestep)):
