@@ -1,10 +1,9 @@
-======
-Guides
-======
+==========
+User Guide
+==========
 
 .. toctree::
    :maxdepth: 2
-   :caption: Guides
 
    install
    build
@@ -12,4 +11,3 @@ Guides
    hmm
    gui
    python
-   Online report loader </report.html#https://>

@@ -7,6 +7,7 @@
 An automatic reaction network generator for reactive molecular dynamics simulation
 
 <a href="/guide/install.html" class="nav-link action-button">Get Started</a>
+
 </header>
 
 <div class="features">

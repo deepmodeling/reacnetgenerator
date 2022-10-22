@@ -1,8 +1,8 @@
-Developing
-==========
+Development
+===========
 
 .. toctree::
    :maxdepth: 2
-   :caption: Developing
+   :caption: API
 
    api/api
