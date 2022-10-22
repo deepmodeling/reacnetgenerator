@@ -41,6 +41,7 @@ extensions = [
     'numpydoc',
     'sphinx-favicon',
     'deepmodeling_sphinx',
+    'sphinx-js',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -107,6 +108,8 @@ mathjax3_config = {
     "loader": {"load": ['[tex]/mhchem']},
     "tex": {"packages": {'[+]': ['mhchem']}},
 }
+
+js_source_path = "../reacnetgenerator/static/webpack"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
