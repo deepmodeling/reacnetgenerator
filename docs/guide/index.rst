@@ -11,4 +11,3 @@ User Guide
    hmm
    gui
    python
-   Online report loader </report.html#https://>

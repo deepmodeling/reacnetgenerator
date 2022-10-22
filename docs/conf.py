@@ -69,6 +69,9 @@ html_theme_options = {
     "icon_links": [
         {"name": "Paper", "url": "https://doi.org/10.1039/C9CP05091D", "icon": "fa-solid fa-book-open", "type": "fontawesome"},
     ],
+    "external_links": [
+        {"name": "Report Loader", "url": "/report.html"}
+    ],
     "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
 }
 
