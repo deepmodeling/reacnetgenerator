@@ -41,7 +41,6 @@ classifiers = [
 ]
 dependencies = [
     'numpy',
-    'scipy>=0.20.1',
     'networkx',
     'matplotlib',
     'hmmlearn>=0.2.1',
@@ -55,6 +54,7 @@ dependencies = [
     'requests',
     "openbabel-wheel",
     "rdkit",
+    "packaging",
 ]
 requires-python = ">=3.7"
 readme = "README.md"
