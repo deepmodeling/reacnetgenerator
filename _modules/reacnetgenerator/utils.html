@@ -14,10 +14,10 @@
 <span class=kn>import</span> <span class=nn>hashlib</span>
 <span class=kn>import</span> <span class=nn>asyncio</span>
 <span class=kn>from</span> <span class=nn>multiprocessing</span> <span class=kn>import</span> <span class=n>Pool</span><span class=p>,</span> <span class=n>Semaphore</span>
+<span class=kn>from</span> <span class=nn>typing</span> <span class=kn>import</span> <span class=n>BinaryIO</span><span class=p>,</span> <span class=n>Union</span>
 
 <span class=kn>import</span> <span class=nn>lz4.frame</span>
 <span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
-<span class=kn>import</span> <span class=nn>pybase64</span>
 <span class=kn>import</span> <span class=nn>requests</span>
 <span class=kn>from</span> <span class=nn>requests.adapters</span> <span class=kn>import</span> <span class=n>HTTPAdapter</span>
 <span class=kn>from</span> <span class=nn>tqdm</span> <span class=kn>import</span> <span class=n>tqdm</span>
@@ -131,28 +131,31 @@
         <span class=k>yield</span> <span class=n>item</span></div>
 
 
-<div class=viewcode-block id=compress><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.compress>[docs]</a><span class=k>def</span> <span class=nf>compress</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=n>isbytes</span><span class=o>=</span><span class=kc>False</span><span class=p>):</span>
+<div class=viewcode-block id=compress><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.compress>[docs]</a><span class=k>def</span> <span class=nf>compress</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>bytes</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=nb>bytes</span><span class=p>:</span>
     <span class=sd>&quot;&quot;&quot;Compress the line.</span>
 
 <span class=sd>    This function reduces IO overhead to speed up the program. The functions will</span>
-<span class=sd>    use lz4 to compress and base64 to encode, since lz4 has better performance</span>
+<span class=sd>    use lz4 to compress, since lz4 has better performance</span>
 <span class=sd>    that any others.</span>
+
+<span class=sd>    The compressed format is size + data + size + data + ..., where size is a 64-bit</span>
+<span class=sd>    little-endian integer.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    x: str or bytes</span>
 <span class=sd>        The line to compress.</span>
-<span class=sd>    isbytes: bool, optional, default: False</span>
-<span class=sd>        If `x` is bytes. If not, `x` will be converted to bytes first.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    bytes</span>
 <span class=sd>        The compressed line, with a linebreak in the end.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=k>if</span> <span class=n>isbytes</span><span class=p>:</span>
-        <span class=k>return</span> <span class=n>pybase64</span><span class=o>.</span><span class=n>b64encode</span><span class=p>(</span><span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>compress</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=n>compression_level</span><span class=o>=</span><span class=mi>0</span><span class=p>))</span><span class=o>+</span><span class=sa>b</span><span class=s1>&#39;</span><span class=se>\n</span><span class=s1>&#39;</span>
-    <span class=k>return</span> <span class=n>pybase64</span><span class=o>.</span><span class=n>b64encode</span><span class=p>(</span><span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>compress</span><span class=p>(</span><span class=n>x</span><span class=o>.</span><span class=n>encode</span><span class=p>(),</span> <span class=n>compression_level</span><span class=o>=-</span><span class=mi>1</span><span class=p>))</span><span class=o>+</span><span class=sa>b</span><span class=s1>&#39;</span><span class=se>\n</span><span class=s1>&#39;</span></div>
+    <span class=k>if</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=nb>str</span><span class=p>):</span>
+        <span class=n>x</span> <span class=o>=</span> <span class=n>x</span><span class=o>.</span><span class=n>encode</span><span class=p>()</span>
+    <span class=n>compress_block</span> <span class=o>=</span> <span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>compress</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=n>compression_level</span><span class=o>=</span><span class=mi>0</span><span class=p>)</span>
+    <span class=n>length_bytes</span> <span class=o>=</span> <span class=nb>len</span><span class=p>(</span><span class=n>compress_block</span><span class=p>)</span><span class=o>.</span><span class=n>to_bytes</span><span class=p>(</span><span class=mi>64</span><span class=p>,</span> <span class=n>byteorder</span><span class=o>=</span><span class=s1>&#39;little&#39;</span><span class=p>)</span>
+    <span class=k>return</span> <span class=n>length_bytes</span> <span class=o>+</span> <span class=n>compress_block</span></div>
 
 
 <div class=viewcode-block id=decompress><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.decompress>[docs]</a><span class=k>def</span> <span class=nf>decompress</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=n>isbytes</span><span class=o>=</span><span class=kc>False</span><span class=p>):</span>
@@ -170,9 +173,10 @@
 <span class=sd>    str or bytes</span>
 <span class=sd>        The decompressed line.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
+    <span class=n>x</span> <span class=o>=</span> <span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>decompress</span><span class=p>(</span><span class=n>x</span><span class=p>[</span><span class=mi>64</span><span class=p>:])</span>
     <span class=k>if</span> <span class=n>isbytes</span><span class=p>:</span>
-        <span class=k>return</span> <span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>decompress</span><span class=p>(</span><span class=n>pybase64</span><span class=o>.</span><span class=n>b64decode</span><span class=p>(</span><span class=n>x</span><span class=o>.</span><span class=n>strip</span><span class=p>(),</span> <span class=n>validate</span><span class=o>=</span><span class=kc>True</span><span class=p>))</span>
-    <span class=k>return</span> <span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>decompress</span><span class=p>(</span><span class=n>pybase64</span><span class=o>.</span><span class=n>b64decode</span><span class=p>(</span><span class=n>x</span><span class=o>.</span><span class=n>strip</span><span class=p>(),</span> <span class=n>validate</span><span class=o>=</span><span class=kc>True</span><span class=p>))</span><span class=o>.</span><span class=n>decode</span><span class=p>()</span></div>
+        <span class=k>return</span> <span class=n>x</span>
+    <span class=k>return</span> <span class=n>x</span><span class=o>.</span><span class=n>decode</span><span class=p>()</span></div>
 
 
 <div class=viewcode-block id=listtobytes><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.listtobytes>[docs]</a><span class=k>def</span> <span class=nf>listtobytes</span><span class=p>(</span><span class=n>x</span><span class=p>):</span>
@@ -188,7 +192,28 @@
 <span class=sd>    bytes</span>
 <span class=sd>        The compressed line.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=k>return</span> <span class=n>compress</span><span class=p>(</span><span class=n>pickle</span><span class=o>.</span><span class=n>dumps</span><span class=p>(</span><span class=n>x</span><span class=p>),</span> <span class=n>isbytes</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span></div>
+    <span class=k>return</span> <span class=n>compress</span><span class=p>(</span><span class=n>pickle</span><span class=o>.</span><span class=n>dumps</span><span class=p>(</span><span class=n>x</span><span class=p>))</span></div>
+
+
+<div class=viewcode-block id=read_compressed_block><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.read_compressed_block>[docs]</a><span class=k>def</span> <span class=nf>read_compressed_block</span><span class=p>(</span><span class=n>f</span><span class=p>:</span> <span class=n>BinaryIO</span><span class=p>):</span>
+    <span class=sd>&quot;&quot;&quot;Read compressed binary file, assuming the format is size + data + size + data + ...</span>
+<span class=sd>    </span>
+<span class=sd>    Parameters</span>
+<span class=sd>    ----------</span>
+<span class=sd>    f: fileObject</span>
+<span class=sd>        The file object to read.</span>
+
+<span class=sd>    Yield</span>
+<span class=sd>    -----</span>
+<span class=sd>    data: bytes</span>
+<span class=sd>        The compressed block.</span>
+<span class=sd>    &quot;&quot;&quot;</span>
+    <span class=k>while</span> <span class=kc>True</span><span class=p>:</span>
+        <span class=n>sizeb</span> <span class=o>=</span> <span class=n>f</span><span class=o>.</span><span class=n>read</span><span class=p>(</span><span class=mi>64</span><span class=p>)</span>
+        <span class=k>if</span> <span class=ow>not</span> <span class=n>sizeb</span><span class=p>:</span>
+            <span class=k>break</span>
+        <span class=n>size</span> <span class=o>=</span> <span class=nb>int</span><span class=o>.</span><span class=n>from_bytes</span><span class=p>(</span><span class=n>sizeb</span><span class=p>,</span> <span class=n>byteorder</span><span class=o>=</span><span class=s1>&#39;little&#39;</span><span class=p>)</span>
+        <span class=k>yield</span> <span class=n>sizeb</span> <span class=o>+</span> <span class=n>f</span><span class=o>.</span><span class=n>read</span><span class=p>(</span><span class=n>size</span><span class=p>)</span></div>
 
 
 <div class=viewcode-block id=bytestolist><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.bytestolist>[docs]</a><span class=k>def</span> <span class=nf>bytestolist</span><span class=p>(</span><span class=n>x</span><span class=p>):</span>
