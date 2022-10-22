@@ -43,6 +43,7 @@ requirements:
     - lz4
     - pybase64
     - requests
+    - packaging
 
 test:
   imports:

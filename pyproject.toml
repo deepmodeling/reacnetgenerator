@@ -54,6 +54,7 @@ dependencies = [
     'requests',
     "openbabel-wheel",
     "rdkit",
+    "packaging",
 ]
 requires-python = ">=3.7"
 readme = "README.md"
