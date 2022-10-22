@@ -10,7 +10,20 @@ import pickle
 import hashlib
 import asyncio
 from multiprocessing import Pool, Semaphore
-from typing import BinaryIO, Union
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    IO,
+    AnyStr,
+    Generator,
+    Union,
+    TYPE_CHECKING,
+)
 
 import lz4.frame
 import numpy as np
@@ -19,6 +32,11 @@ from requests.adapters import HTTPAdapter
 from tqdm import tqdm
 
 from ._logging import logger
+
+if TYPE_CHECKING:
+    import multiprocessing.pool
+    import multiprocessing.synchronize
+    import reacnetgenerator
 
 
 class WriteBuffer:
@@ -36,7 +54,7 @@ class WriteBuffer:
     sep: str or bytes, default: None
         The separator for contents. If None (default), there will be no separator.
     """
-    def __init__(self, f, linenumber=1200, sep=None):
+    def __init__(self, f: IO, linenumber: int = 1200, sep: Optional[AnyStr] = None) -> None:
         self.f = f
         if sep is not None:
             self.sep = sep
@@ -50,29 +68,29 @@ class WriteBuffer:
         self.buff = []
         self.name = self.f.name
 
-    def append(self, text):
+    def append(self, text: AnyStr) -> None:
         """Append a text.
         
         Parameters
         ----------
-        text: str
+        text: str or bytes
             The text to be appended.
         """
         self.buff.append(text)
         self.check()
 
-    def extend(self, text):
+    def extend(self, text: Iterable[AnyStr]) -> None:
         """Extend texts.
 
         Paramenters
         -----------
-        text: list of strs
+        text: list of strs or bytes
             Texts to be extended.
         """
         self.buff.extend(text)
         self.check()
 
-    def check(self):
+    def check(self) -> None:
         """Check if the number of stored contents exceeds.
         
         If so, the buffer will be flushed.
@@ -80,13 +98,13 @@ class WriteBuffer:
         if len(self.buff) > self.linenumber:
             self.flush()
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush the buffer."""
         if self.buff:
             self.f.writelines([self.sep.join(self.buff), self.sep])
             self.buff[:] = []
 
-    def __enter__(self):
+    def __enter__(self) -> "WriteBuffer":
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -94,12 +112,23 @@ class WriteBuffer:
         self.f.__exit__(exc_type, exc_value, traceback)
 
 
-def appendIfNotNone(f, wbytes):
+def appendIfNotNone(f: WriteBuffer, wbytes: AnyStr) -> None:
+    """Append a line to a file if the line is not None.
+    
+    Parameters
+    ----------
+    f: WriteBuffer
+        The file to write.
+    wbytes: str or bytes
+        The line to write.
+    """
     if wbytes is not None:
         f.append(wbytes)
 
 
-def produce(semaphore, plist, parameter):
+def produce(semaphore: "multiprocessing.synchronize.Semaphore",
+            plist: Iterable[Any],
+            parameter: Any) -> Generator[Tuple[Any, Any], None, None]:
     """Item producer with a semaphore.
     
     Prevent large memory usage due to slow IO.
@@ -113,8 +142,8 @@ def produce(semaphore, plist, parameter):
     parameter: object
         The parameter yielded with each item.
 
-    Yield
-    -----
+    Yields
+    ------
     item: object
         The item to be yielded.
     parameter: object
@@ -154,7 +183,7 @@ def compress(x: Union[str, bytes]) -> bytes:
     return length_bytes + compress_block
 
 
-def decompress(x, isbytes=False):
+def decompress(x: bytes, isbytes: bool = False) -> Union[str, bytes]:
     """Decompress the line.
     
     Parameters
@@ -175,7 +204,7 @@ def decompress(x, isbytes=False):
     return x.decode()
 
 
-def listtobytes(x):
+def listtobytes(x: Any) -> bytes:
     """Convert an object to a compressed line.
     
     Parameters
@@ -191,7 +220,7 @@ def listtobytes(x):
     return compress(pickle.dumps(x))
 
 
-def read_compressed_block(f: BinaryIO):
+def read_compressed_block(f: BinaryIO) -> Generator[bytes, None, None]:
     """Read compressed binary file, assuming the format is size + data + size + data + ...
     
     Parameters
@@ -199,8 +228,8 @@ def read_compressed_block(f: BinaryIO):
     f: fileObject
         The file object to read.
 
-    Yield
-    -----
+    Yields
+    ------
     data: bytes
         The compressed block.
     """
@@ -212,7 +241,7 @@ def read_compressed_block(f: BinaryIO):
         yield sizeb + f.read(size)
 
 
-def bytestolist(x):
+def bytestolist(x: bytes) -> Any:
     """Convert a compressed line to an object.
     
     Parameters
@@ -225,15 +254,17 @@ def bytestolist(x):
     object
         The decompressed object.
     """
-    return pickle.loads(decompress(x, isbytes=True))
+    data = decompress(x, isbytes=True)
+    assert isinstance(data, bytes)
+    return pickle.loads(data)
 
 
-def listtostirng(l, sep):
+def listtostirng(l: Union[str, list, tuple, np.ndarray], sep: Union[List[str], Tuple[str, ...]]) -> str:
     """Convert a list to string, that is easier to store.
 
     Parameters
     ----------
-    l: list of strs or lists
+    l: str or array-like
         The list to convert, which can contain any number of dimensions.
     sep: list of strs
         The seperators for each dimension.
@@ -250,7 +281,20 @@ def listtostirng(l, sep):
     return str(l)
 
 
-def multiopen(pool, func, l, semaphore=None, nlines=None, unordered=True, return_num=False, start=0, extra=None, interval=None, bar=True, desc=None, unit="it", total=None):
+def multiopen(pool: "multiprocessing.pool.Pool",
+              func: Callable,
+              l: IO,
+              semaphore: Optional["multiprocessing.synchronize.Semaphore"] = None,
+              nlines: Optional[int] = None,
+              unordered: bool = True,
+              return_num: bool = False,
+              start: int = 0,
+              extra: Optional[Any] = None,
+              interval: Optional[int] = None,
+              bar: bool = True,
+              desc: Optional[str] = None,
+              unit: str = "it",
+              total: Optional[int] = None) -> Iterable:
     """Returns an interated object for process a file with multiple processors.
 
     Parameters
@@ -275,7 +319,7 @@ def multiopen(pool, func, l, semaphore=None, nlines=None, unordered=True, return
         The start number of the counter.
     extra: object, optional, default: None
         The extra object passed to the item.
-    interval: obj, optional, default: None
+    interval: int, optional, default: None
         The interval of items that will be passed to the function. For example,
         if set to 10, a item will be passed once every 10 items and others will
         be dropped.
@@ -327,7 +371,7 @@ class SCOUROPTIONS:
 
 
 class SharedRNGData:
-    """Share ReacNetGenerator data with a submodule.
+    """Share ReacNetGenerator data with a class of the submodule.
 
     Parameters
     ----------
@@ -340,7 +384,11 @@ class SharedRNGData:
     extraNoneKeys: list of strs, optional, default: None
         Set keys to None, which will be used in the submodule.
     """
-    def __init__(self, rng, usedRNGKeys, returnedRNGKeys, extraNoneKeys = None):
+    def __init__(self,
+                rng: "reacnetgenerator.ReacNetGenerator",
+                usedRNGKeys: List[str],
+                returnedRNGKeys: List[str],
+                extraNoneKeys: Optional[List[str]] = None) -> None:
         self.rng = rng
         self.returnedRNGKeys = returnedRNGKeys
         for key in usedRNGKeys:
@@ -351,13 +399,13 @@ class SharedRNGData:
             for key in extraNoneKeys:
                 setattr(self, key, None)
 
-    def returnkeys(self):
+    def returnkeys(self) -> None:
         """Return back keys to ReacNetGenerator class."""
         for key in self.returnedRNGKeys:
             setattr(self.rng, key, getattr(self, key))
 
 
-def checksha256(filename, sha256_check):
+def checksha256(filename: str, sha256_check: Union[str, List[str]]):
     """Check sha256 of a file is correct.
     
     Parameters
@@ -389,7 +437,9 @@ def checksha256(filename, sha256_check):
     return False
 
 
-async def download_file(urls, pathfilename, sha256):
+async def download_file(urls: Union[str, List[str]],
+                        pathfilename: str,
+                        sha256: str) -> str:
     """Download files from remote urls if not exists.
     
     Parameters
@@ -428,12 +478,12 @@ async def download_file(urls, pathfilename, sha256):
     return pathfilename
 
 
-async def gather_download_files(urls):
+async def gather_download_files(urls: List[dict]) -> None:
     """See download_multifiles function for details."""
     await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
 
 
-def download_multifiles(urls):
+def download_multifiles(urls: List[dict]) -> None:
     """Download multiple files from dicts.
 
     Parameters
@@ -450,14 +500,23 @@ def download_multifiles(urls):
     asyncio.run(gather_download_files(urls))
 
 
-def run_mp(nproc, **arg):
+def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
     """Process a file with multiple processors.
 
     Parameters
     ----------
     nproc: int
         The number of processors to be used.
-    Other parameters can be found in the `multiopen` function.
+    Other parameters can be found in the `multiopen` method.
+
+    Yields
+    ------
+    object
+        The yielded object from the `multiopen` method.
+
+    See Also
+    --------
+    multiopen
     """
     pool = Pool(nproc, maxtasksperchild=1000)
     semaphore = Semaphore(nproc*150)
@@ -476,7 +535,7 @@ def run_mp(nproc, **arg):
         pool.join()
 
 
-def must_be_list(obj):
+def must_be_list(obj: Union[Any, List[Any]]) -> List[Any]:
     """Convert a object to a list if the object is not a list.
     
     Parameters

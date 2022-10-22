@@ -15,6 +15,11 @@ class ReactionsFinder(SharedRNGData):
     CONFLICT = -1
     EMPTY = 0
 
+    step: int
+    mname: np.ndarray
+    reactionabcdfilename: str
+    nproc: int
+
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ["step", "mname",
                                            "reactionabcdfilename", "nproc"], [])

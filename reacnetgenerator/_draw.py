@@ -33,6 +33,24 @@ from ._logging import logger
 
 
 class _DrawNetwork(SharedRNGData):
+    atomname: np.ndarray
+    tablefilename: str
+    imagefilename: str
+    maxspecies: int
+    species: list
+    speciesfilter: list
+    start_color: np.ndarray
+    end_color: np.ndarray
+    node_size: int
+    node_color: str
+    font_size: int
+    widthcoefficient: float
+    k: float
+    pos: dict
+    nolabel: bool
+    showid: bool
+    split: int
+
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ['atomname', 'tablefilename', 'imagefilename', 'maxspecies', 'species', 'speciesfilter',
                                   'start_color', 'end_color', 'node_size', 'node_color', 'font_size', 'widthcoefficient', 'k', 'pos', 'nolabel',

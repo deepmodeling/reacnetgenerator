@@ -46,6 +46,7 @@ import time
 import itertools
 from enum import Enum
 from multiprocessing import cpu_count
+from typing import Any
 
 import numpy as np
 
@@ -116,6 +117,13 @@ class ReacNetGenerator:
     >>> rng=ReacNetGenerator(inputfiletype="dump", inputfilename="dump.ch4", atomname=['C', 'H', 'O'])
     >>> rng.runanddraw()
     """
+
+    urls: dict
+    moleculetempfilename: str
+    moleculetemp2filename: str
+    originfilename: str
+    hmmfilename: str
+    resultfilename: str
 
     def __init__(self, **kwargs):
         """Init ReacNetGenerator."""

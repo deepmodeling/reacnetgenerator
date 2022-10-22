@@ -14,20 +14,31 @@ import json
 import re
 import os
 from collections import defaultdict
+from typing import Dict, Union
 import pkg_resources
 
 import scour.scour
+import numpy as np
 
 from .utils import SCOUROPTIONS, SharedRNGData
 from ._logging import logger
 
 
 class _HTMLResult(SharedRNGData):
+    reactionfilename: str
+    resultfilename: str
+    imagefilename: str
+    reactionabcdfilename: str
+    jsonfilename: str
+    nproc: int
+    split: int
+    atomname: np.ndarray
+
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ['reactionfilename', 'resultfilename', 'imagefilename', 'reactionabcdfilename',
                                            'jsonfilename', 'nproc', 'split', 'atomname'], [],
                                ['_specs', '_reaction', '_reactionsabcd', '_svgfiles'])
-        self._templatedict = {
+        self._templatedict: Dict[str, Union[str, int, list, dict]] = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
         }

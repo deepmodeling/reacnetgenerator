@@ -41,6 +41,17 @@ from .utils_np import idx_to_signal, check_zero_signal
 
 
 class _HMMFilter(SharedRNGData):
+    runHMM: bool
+    getoriginfile: bool
+    printfiltersignal: bool
+    moleculetempfilename: str
+    nproc: int
+    temp1it: int
+    p: np.ndarray
+    a: np.ndarray
+    b: np.ndarray
+    step: int
+
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ['runHMM', 'getoriginfile', 'printfiltersignal',
                                            'moleculetempfilename', 'nproc', 'temp1it', 'p', 'a', 'b', 'step'],
@@ -85,13 +96,23 @@ class _HMMFilter(SharedRNGData):
                 open(self.moleculetempfilename, 'rb') as ft, \
                 WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
             self.moleculetemp2filename = ft2.name
-            self.originfilename = fo.name if self.getoriginfile or not self.runHMM else None
-            self.hmmfilename = fh.name if self.runHMM else None
+            if self.getoriginfile or not self.runHMM:
+                assert(isinstance(fo, WriteBuffer))
+                self.originfilename = fo.name
+            else:
+                self.originfilename = None
+            if self.runHMM:
+                assert(isinstance(fh, WriteBuffer))
+                self.hmmfilename = fh.name
+            else:
+                self.hmmfilename = None
             results = run_mp(self.nproc, func=self._getoriginandhmm, l=read_compressed_block(ft),
                                 nlines=4, total=self.temp1it, desc="HMM filter", unit="molecule")
             hmmit = 0
             for originbytes, hmmbytes, line_c in results:
                 if originbytes is not None or hmmbytes is not None:
+                    assert(isinstance(fo, WriteBuffer))
+                    assert(isinstance(fh, WriteBuffer))
                     appendIfNotNone(fo, originbytes)
                     appendIfNotNone(fh, hmmbytes)
                     hmmit += 1

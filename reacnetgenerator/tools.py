@@ -1,20 +1,21 @@
 """Useful methods to futhur process ReacNetGenerator results."""
 from collections import defaultdict
-from typing import Tuple, Dict, List
+from pathlib import Path
+from typing import Tuple, Dict, List, Union
 from collections import Counter
 
 import numpy as np
 import ase
 
 
-def read_species(specfile: str) -> Tuple[List[int], Dict[str, np.ndarray]]:
+def read_species(specfile: Union[str, Path]) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
     """Read species from the species file (ends with .species).
 
     For accuracy, HMM filter should be disabled.
 
     Parameters
     ----------
-    specfile : str
+    specfile : str or Path
         The species file.
 
     Returns
@@ -37,6 +38,7 @@ def read_species(specfile: str) -> Tuple[List[int], Dict[str, np.ndarray]]:
     step_idx = []
     n_species = defaultdict(lambda: defaultdict(int))
     with open(specfile) as f:
+        ii = -1
         for ii, line in enumerate(f):
             s = line.split()
             step_idx.append(int(s[1].strip(':')))
@@ -50,14 +52,14 @@ def read_species(specfile: str) -> Tuple[List[int], Dict[str, np.ndarray]]:
     return np.array(step_idx, dtype=int), n_species2
 
 
-def read_reactions(reacfile) -> List[Tuple[int, Counter, str]]:
+def read_reactions(reacfile: Union[str, Path]) -> List[Tuple[int, Counter, str]]:
     """Read reactions from the reactions file (ends with .reaction or .reactionsabcd).
 
     For accuracy, HMM filter should be disabled.
     
     Parameters
     ----------
-    reacfile : str
+    reacfile : str or Path
         The reactions file.
 
     Returns
@@ -73,7 +75,7 @@ def read_reactions(reacfile) -> List[Tuple[int, Counter, str]]:
     return occs
 
 
-def calculate_rate(specfile: str, reacfile: str, cell: np.ndarray, timestep: float) -> Dict[str, float]:
+def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell: np.ndarray, timestep: float) -> Dict[str, float]:
     """Calculate the rate constant of each reaction.
 
     The rate constants are calculated by the method developed in [1].
@@ -99,7 +101,7 @@ def calculate_rate(specfile: str, reacfile: str, cell: np.ndarray, timestep: flo
     ----------
     .. [1] J Comput Chem 40, 16, 1586-1592.
     """
-    cell = ase.geometry.Cell(cell)
+    ase_cell = ase.geometry.Cell(cell)
     
     timestep *= 10**-15 # fs to s
     #N, step_tot =read_species(specfile)
@@ -109,7 +111,7 @@ def calculate_rate(specfile: str, reacfile: str, cell: np.ndarray, timestep: flo
     # total time during simulation
     time_tot = (step_idx[-1] - step_idx[0]) * timestep
     # volume of the cell
-    volume = cell.volume
+    volume = ase_cell.volume
     volume *= 10**-24 # Ang^3 to cm^3
     volume_times_na = volume * ase.units.mol # V * NA
     

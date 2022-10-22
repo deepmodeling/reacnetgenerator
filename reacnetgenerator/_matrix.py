@@ -10,6 +10,7 @@ generated.
 import itertools
 import operator
 from collections import Counter
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -23,6 +24,19 @@ from .utils import (
 
 
 class _GenerateMatrix(SharedRNGData):
+    tablefilename: str
+    speciesfilename: str
+    reactionfilename: str
+    moleculetemp2filename: str
+    n_searchspecies: int
+    needprintspecies: bool
+    allmoleculeroute: np.ndarray
+    speciescenter: str
+    matrix_size: int
+    mname: np.ndarray
+    timestep: np.ndarray
+    splitmoleculeroute: List[np.ndarray]
+
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ["tablefilename", "speciesfilename", "reactionfilename", "moleculetemp2filename", "n_searchspecies",
                                            "needprintspecies", "allmoleculeroute", "speciescenter", "mname", "timestep", 'splitmoleculeroute',

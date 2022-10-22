@@ -44,7 +44,7 @@ class GUI:
                 pkg_resources.resource_string(
                     __name__, 'static/img-title.png')).decode())
         self._titlelb = tk.Label(self._top, image=titleimage)
-        self._titlelb.image = titleimage
+        #self._titlelb.image = titleimage
         self._filenamelb = tk.Label(self._top, text="Trajectory File")
         self._filenameet = tk.Entry(self._top, width=45)
         self._openbtn = tk.Button(
@@ -66,7 +66,7 @@ class GUI:
         self._runbtn = tk.Button(self._top, text="Analyze", command=self._run)
         self._nproclb = tk.Label(self._top, text="Processor Number")
         self._nprocet = tk.Entry(self._top, width=4)
-        self._nprocet.insert(0, cpu_count())
+        self._nprocet.insert(0, str(cpu_count()))
 
         self._titlelb.grid(row=0, column=0, columnspan=8, padx=20, pady=20)
         self._filenamelb.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
@@ -110,7 +110,7 @@ class GUI:
                         reacnetgenerator.resultfilename))
             except Exception as e:
                 logger.exception(e)
-                tkmb.showerror("Error", e)
+                tkmb.showerror("Error", str(e))
         else:
             logger.error("File not exsit.")
             tkmb.showerror("Error", "File not exsit.")

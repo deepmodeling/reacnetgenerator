@@ -116,3 +116,7 @@ test-skip = "*-win_amd64 cp311-*"
 [tool.cibuildwheel.linux]
 environment-pass = ["CIBW_BUILD"]
 
+[tool.pyright]
+include = [
+     "reacnetgenerator",
+]
