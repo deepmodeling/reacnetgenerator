@@ -66,7 +66,7 @@
 <span class=kn>from</span> <span class=nn>.utils</span> <span class=kn>import</span> <span class=n>must_be_list</span>
 
 
-<div class=viewcode-block id=ReacNetGenerator><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator>[docs]</a><span class=k>class</span> <span class=nc>ReacNetGenerator</span><span class=p>:</span>
+<div class=viewcode-block id=ReacNetGenerator><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator>[docs]</a><span class=k>class</span> <span class=nc>ReacNetGenerator</span><span class=p>:</span>
     <span class=sd>&quot;&quot;&quot;Use ReacNetGenerator for trajectory analysis.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
@@ -177,7 +177,7 @@
             <span class=k>else</span><span class=p>:</span>
                 <span class=k>raise</span> <span class=ne>RuntimeError</span><span class=p>(</span><span class=s2>&quot;cell must be (3,3) array_like or (3,) array_like or (9,) array_like&quot;</span><span class=p>)</span>
 
-<div class=viewcode-block id=ReacNetGenerator.runanddraw><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.runanddraw>[docs]</a>    <span class=k>def</span> <span class=nf>runanddraw</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>run</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>draw</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>report</span><span class=o>=</span><span class=kc>True</span><span class=p>):</span>
+<div class=viewcode-block id=ReacNetGenerator.runanddraw><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.runanddraw>[docs]</a>    <span class=k>def</span> <span class=nf>runanddraw</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>run</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>draw</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span> <span class=n>report</span><span class=o>=</span><span class=kc>True</span><span class=p>):</span>
         <span class=sd>&quot;&quot;&quot;Analyze the trajectory from MD simulation.</span>
 <span class=sd>        </span>
 <span class=sd>        Parameters</span>
@@ -206,7 +206,7 @@
             <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>REPORT</span><span class=p>)</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>(</span><span class=n>processthing</span><span class=p>)</span></div>
 
-<div class=viewcode-block id=ReacNetGenerator.run><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.run>[docs]</a>    <span class=k>def</span> <span class=nf>run</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+<div class=viewcode-block id=ReacNetGenerator.run><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.run>[docs]</a>    <span class=k>def</span> <span class=nf>run</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
         <span class=sd>&quot;&quot;&quot;Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</span>
 <span class=sd>        </span>
 <span class=sd>        Parameters</span>
@@ -225,7 +225,7 @@
         <span class=p>))</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>(</span><span class=n>processthing</span><span class=p>)</span></div>
 
-<div class=viewcode-block id=ReacNetGenerator.draw><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.draw>[docs]</a>    <span class=k>def</span> <span class=nf>draw</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+<div class=viewcode-block id=ReacNetGenerator.draw><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.draw>[docs]</a>    <span class=k>def</span> <span class=nf>draw</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
         <span class=sd>&quot;&quot;&quot;Draw the reaction network, i.e. NETWORK step.</span>
 <span class=sd>        </span>
 <span class=sd>        Parameters</span>
@@ -234,7 +234,7 @@
 <span class=sd>        &quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>((</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>NETWORK</span><span class=p>,))</span></div>
 
-<div class=viewcode-block id=ReacNetGenerator.report><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.report>[docs]</a>    <span class=k>def</span> <span class=nf>report</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+<div class=viewcode-block id=ReacNetGenerator.report><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.report>[docs]</a>    <span class=k>def</span> <span class=nf>report</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
         <span class=sd>&quot;&quot;&quot;Generate the analysis report, i.e. REPORT step.</span>
 <span class=sd>        </span>
 <span class=sd>        Parameters</span>
@@ -243,7 +243,7 @@
 <span class=sd>        &quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>((</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>REPORT</span><span class=p>,))</span></div>
 
-<div class=viewcode-block id=ReacNetGenerator.Status><a class=viewcode-back href=../../guide/python.html#reacnetgenerator.ReacNetGenerator.Status>[docs]</a>    <span class=k>class</span> <span class=nc>Status</span><span class=p>(</span><span class=n>Enum</span><span class=p>):</span>
+<div class=viewcode-block id=ReacNetGenerator.Status><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status>[docs]</a>    <span class=k>class</span> <span class=nc>Status</span><span class=p>(</span><span class=n>Enum</span><span class=p>):</span>
         <span class=sd>&quot;&quot;&quot;ReacNetGenerator status.</span>
 
 <span class=sd>        The ReacNetGenerator consists of several modules and algorithms to</span>
