@@ -6,3 +6,4 @@ Development
    :caption: API
 
    api/api
+   jsapi
