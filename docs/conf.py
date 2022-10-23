@@ -73,6 +73,10 @@ html_theme_options = {
         {"name": "Report Loader", "url": "/report.html"}
     ],
     "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
+    "logo": {
+        "text": "ReacNetGenerator",
+        "alt_text": "ReacNetGenerator",
+    },
 }
 
 html_context = {
