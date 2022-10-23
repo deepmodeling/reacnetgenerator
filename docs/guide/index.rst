@@ -4,10 +4,20 @@ User Guide
 
 .. toctree::
    :maxdepth: 2
+   :caption: Getted Started
 
    install
-   build
-   cli
-   hmm
+   format
+   run
+   report
    gui
+   faq
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Advanced
+
+   build
+   hmm
+   cli
    python
