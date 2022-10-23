@@ -97,12 +97,12 @@ class _HMMFilter(SharedRNGData):
                 WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
             self.moleculetemp2filename = ft2.name
             if self.getoriginfile or not self.runHMM:
-                assert(isinstance(fo, WriteBuffer))
+                assert not isinstance(fo, ExitStack)
                 self.originfilename = fo.name
             else:
                 self.originfilename = None
             if self.runHMM:
-                assert(isinstance(fh, WriteBuffer))
+                assert not isinstance(fh, ExitStack)
                 self.hmmfilename = fh.name
             else:
                 self.hmmfilename = None
@@ -111,8 +111,8 @@ class _HMMFilter(SharedRNGData):
             hmmit = 0
             for originbytes, hmmbytes, line_c in results:
                 if originbytes is not None or hmmbytes is not None:
-                    assert(isinstance(fo, WriteBuffer))
-                    assert(isinstance(fh, WriteBuffer))
+                    assert not isinstance(fo, ExitStack)
+                    assert not isinstance(fh, ExitStack)
                     appendIfNotNone(fo, originbytes)
                     appendIfNotNone(fh, hmmbytes)
                     hmmit += 1
