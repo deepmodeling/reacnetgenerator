@@ -3,6 +3,7 @@
 """Provide utils for ReacNetGenerator."""
 
 
+from contextlib import ExitStack
 import os
 import shutil
 import itertools
@@ -112,7 +113,7 @@ class WriteBuffer:
         self.f.__exit__(exc_type, exc_value, traceback)
 
 
-def appendIfNotNone(f: WriteBuffer, wbytes: AnyStr) -> None:
+def appendIfNotNone(f: Union[WriteBuffer, ExitStack], wbytes: Optional[AnyStr]) -> None:
     """Append a line to a file if the line is not None.
     
     Parameters
@@ -123,6 +124,7 @@ def appendIfNotNone(f: WriteBuffer, wbytes: AnyStr) -> None:
         The line to write.
     """
     if wbytes is not None:
+        assert not isinstance(f, ExitStack)
         f.append(wbytes)
 
 

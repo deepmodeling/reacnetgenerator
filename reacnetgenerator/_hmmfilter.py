@@ -111,8 +111,6 @@ class _HMMFilter(SharedRNGData):
             hmmit = 0
             for originbytes, hmmbytes, line_c in results:
                 if originbytes is not None or hmmbytes is not None:
-                    assert not isinstance(fo, ExitStack)
-                    assert not isinstance(fh, ExitStack)
                     appendIfNotNone(fo, originbytes)
                     appendIfNotNone(fh, hmmbytes)
                     hmmit += 1
