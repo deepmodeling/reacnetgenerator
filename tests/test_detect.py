@@ -25,6 +25,7 @@ class TestDetect:
     @pytest.fixture(params=[
         # inputfiletype, inputfilename
         ("lammpsdumpfile", p_inputs / "water.dump"),
+        ("dump", p_inputs / "water_pbc.dump"),
         ("lammpsbondfile", p_inputs / "water.bond"),
         ("xyz", p_inputs / "water.xyz"),
     ])
@@ -46,3 +47,5 @@ class TestDetect:
         _Detect.gettype(reacnetgen).detect()
         assert reacnetgen.N == 3
         np.testing.assert_array_equal(reacnetgen.atomtype, np.array([0, 0, 1], dtype=int))
+        # assert this is a single molecule
+        assert reacnetgen.temp1it == 1
