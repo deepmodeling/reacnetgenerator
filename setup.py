@@ -22,6 +22,7 @@ except ModuleNotFoundError:
 class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
     def run(self):
+        assert __doc__ is not None
         log.info(__doc__)
         log.info('Prepare JavaScript files with webpack...')
         this_directory = Path(__file__).parent

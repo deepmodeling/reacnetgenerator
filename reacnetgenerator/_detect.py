@@ -27,6 +27,7 @@ import operator
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
+from typing import Optional, Tuple
 
 import numpy as np
 try:
@@ -55,6 +56,15 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         The ReacNetGenerator class.
     """
     subclasses = {}
+
+    # type hints
+    # TODO: we need a better way to communicate with parameters
+    inputfilename: list
+    atomname: np.ndarray
+    stepinterval: int
+    nproc: int
+    pbc: bool
+    cell: np.ndarray
 
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ['inputfilename', 'atomname', 'stepinterval', 'nproc', 'pbc',
@@ -150,11 +160,12 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         #                        listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
         # int() because sometimes, the elements in bondlist are type numpy.int64 sometimes are int
         # which cause the different bytes results from same bond-network.
+        mols, bondlists = dps(bond, level)
         return list([b''.join((listtobytes(mol),
                                listtobytes([(int(i[0]), int(i[1]))
                                            for i in bondlist]),
                                listtobytes([int(i[2]) for i in bondlist])
-                               )) for mol, bondlist in zip(*dps(bond, level))])
+                               )) for mol, bondlist in zip(mols, bondlists)])
 
     def _writemoleculetempfile(self, d):
         with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as f:
@@ -168,10 +179,15 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 class _DetectLAMMPSbond(_Detect):
     def _readNfunc(self, f):
         iscompleted = False
+        N = None
+        atomtype = None
+        stepaindex = None
+        index = -1
         for index, line in enumerate(f):
             if line[0] == '#':
                 if line.startswith("# Number of particles"):
                     if iscompleted:
+                        assert stepaindex is not None
                         steplinenum = index-stepaindex
                         break
                     else:
@@ -181,17 +197,20 @@ class _DetectLAMMPSbond(_Detect):
                     atomtype = np.zeros(N, dtype=int)
             else:
                 s = line.split()
+                assert atomtype is not None
                 atomtype[int(s[0])-1] = int(s[1])-1
         else:
             steplinenum = index + 1
+        assert N is not None and atomtype is not None
         self.N = N
         self.atomtype = atomtype
         return steplinenum
 
     def _readstepfunc(self, item):
         step, lines = item
-        bond = [None]*self.N
-        level = [None]*self.N
+        bond: list[Optional[Tuple[int]]] = [None]*self.N
+        level: list[Optional[Tuple[int]]] = [None]*self.N
+        timestep = None
         for line in lines:
             if line:
                 if line[0] == "#":
@@ -201,9 +220,10 @@ class _DetectLAMMPSbond(_Detect):
                     s = line.split()
                     s0 = int(s[0])-1
                     s2 = int(s[2])
-                    bond[s0] = map(self._get_idx, s[3:3+s2])
-                    level[s0] = map(self._get_bo, s[4+s2:4+2*s2])
+                    bond[s0] = tuple(map(self._get_idx, s[3:3+s2]))
+                    level[s0] = tuple(map(self._get_bo, s[4+s2:4+2*s2]))
         molecules = self._connectmolecule(bond, level)
+        assert timestep is not None
         return molecules, (step, timestep)
 
     @staticmethod
@@ -282,6 +302,11 @@ class _DetectLAMMPSdump(_DetectCrd):
 
     def _readNfunc(self, f):
         iscompleted = False
+        N = None
+        linecontent = None
+        atomtype = None
+        index = -1
+        stepaindex = None
         for index, line in enumerate(f):
             if line.startswith("ITEM:"):
                 linecontent = self.LineType.linecontent(line)
@@ -293,8 +318,11 @@ class _DetectLAMMPSdump(_DetectCrd):
                     self.yidx = keys.index('y') - 2
                     self.zidx = keys.index('z') - 2
             else:
+                assert linecontent is not None
                 if linecontent == self.LineType.NUMBER:
                     if iscompleted:
+                        if stepaindex is None:
+                            raise
                         steplinenum = index-stepaindex
                         break
                     else:
@@ -304,9 +332,11 @@ class _DetectLAMMPSdump(_DetectCrd):
                     atomtype = np.zeros(N, dtype=int)
                 elif linecontent == self.LineType.ATOMS:
                     s = line.split()
+                    assert atomtype is not None
                     atomtype[int(s[self.id_idx])-1] = int(s[self.tidx])-1
         else:
             steplinenum = index + 1
+        assert N is not None and atomtype is not None
         self.N = N
         self.atomtype = atomtype
         return steplinenum
@@ -315,12 +345,16 @@ class _DetectLAMMPSdump(_DetectCrd):
         step, lines = item
         step_atoms = []
         ss = []
+        linecontent = None
+        timestep = None
         for line in lines:
             if line:
                 if line.startswith("ITEM:"):
                     linecontent = self.LineType.linecontent(line)
                 else:
-                    if linecontent == self.LineType.ATOMS:
+                    if linecontent is None:
+                        raise ValueError("LAMMPS dump file format error")
+                    elif linecontent == self.LineType.ATOMS:
                         s = line.split()
                         step_atoms.append(
                             (int(s[self.id_idx]),
@@ -332,6 +366,7 @@ class _DetectLAMMPSdump(_DetectCrd):
                     elif linecontent == self.LineType.BOX:
                         s = line.split()
                         ss.append(list(map(float, s)))
+        assert timestep is not None
         ss = np.array(ss)
         if ss.shape[1] > 2:
             xy = ss[0][2]
@@ -362,15 +397,21 @@ class _Detectxyz(_DetectCrd):
     def _readNfunc(self, f):
         atomname_dict = dict(
             zip(self.atomname.tolist(), range(self.atomname.size)))
+        N = None
+        atomtype = None
         for index, line in enumerate(f):
             s = line.split()
             if index == 0:
                 N = int(line.strip())
                 atomtype = np.zeros(N, dtype=int)
+            elif N is None:
+                assert N is not None  # pragma: no cover
             elif index > N+1:
                 break
             elif index > 1:
+                assert atomtype is not None
                 atomtype[index-2] = atomname_dict[s[0]]
+        assert N is not None and atomtype is not None
         self.N = N
         self.atomtype = atomtype
         steplinenum = N + 2

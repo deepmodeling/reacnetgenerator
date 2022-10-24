@@ -38,6 +38,22 @@ from .utils import (
 
 
 class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
+    runHMM: bool
+    N: int
+    step: int
+    atomname: np.ndarray
+    originfilename: str
+    hmmfilename: str
+    moleculefilename: str
+    moleculetemp2filename: str
+    atomroutefilename: str
+    nproc: int
+    hmmit: int
+    atomtype: np.ndarray
+    selectatoms: list
+    split: int
+    mname: np.ndarray
+
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ["runHMM", "N", "step", "atomname", "originfilename", "hmmfilename", "moleculefilename",
                                            "moleculetemp2filename", "atomroutefilename", "nproc", "hmmit", "atomtype",
@@ -91,7 +107,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     def _getatomroute(self, item):
         i, (atomeachi, atomtypei) = item
         atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
-        route = atomeachi[np.concatenate([[0], np.nonzero(np.diff(atomeachi))[
+        route = atomeachi[np.concatenate([np.zeros((1,), dtype=int), np.nonzero(np.diff(atomeachi))[
                                          0]+1])] if atomeachi.size else np.zeros(0, dtype=int)
         moleculeroute = np.dstack((route[:-1], route[1:]))[
             0] if self.atomname[atomtypei] in self.selectatoms else np.zeros((0, 2), dtype=int)
@@ -106,6 +122,8 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             allmoleculeroute = []
             if not self.runHMM:
                 have_added = {}
+            else:
+                have_added = None
             results = run_mp(self.nproc, func=self._getatomroute, l=zip(atomeach, self.atomtype), return_num=True, start=1, unordered=False,
                                 total=self.N, desc="Collect reaction paths" if timeaxis is None else f"Collect reaction paths {timeaxis}", unit="atom")
             for ii, (moleculeroute, routestr) in enumerate(results):
@@ -115,6 +133,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                         # check whether repeated or not if analyzing without HMM
                         for rr in moleculeroute:
                             tpr = tuple(rr)
+                            assert have_added is not None
                             if have_added.get(tpr, atomeach.shape[0]) >= ii:
                                 have_added[tpr] = ii
                                 allmoleculeroute.append(rr.reshape(1,2))

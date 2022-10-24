@@ -12,6 +12,10 @@ from .utils import (
 
 
 class _mergeISO(SharedRNGData):
+    miso: int
+    moleculetempfilename: str
+    temp1it: int
+
     def __init__(self, rng):
         SharedRNGData.__init__(
             self, rng, ['miso', 'moleculetempfilename'], ['temp1it'])
