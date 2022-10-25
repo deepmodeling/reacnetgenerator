@@ -114,7 +114,7 @@ mathjax3_config = {
 }
 
 nbsphinx_prolog = r"""
-{% set docname = 'doc/' + env.doc2path(env.docname, base=None) %}
+{% set docname = 'docs/' + env.doc2path(env.docname, base=None) %}
 .. raw:: html
     <div class="admonition note">
       This page was generated from
@@ -134,10 +134,6 @@ nbsphinx_prolog = r"""
         }
       </script>
     </div>
-.. raw:: latex
-    \nbsphinxstartnotebook{\scriptsize\noindent\strut
-    \textcolor{gray}{The following section was generated from
-    \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
 """
 
 # Add any paths that contain custom static files (such as style sheets) here,
