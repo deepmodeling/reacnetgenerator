@@ -321,8 +321,7 @@ class _DetectLAMMPSdump(_DetectCrd):
                 assert linecontent is not None
                 if linecontent == self.LineType.NUMBER:
                     if iscompleted:
-                        if stepaindex is None:
-                            raise
+                        assert stepaindex is not None
                         steplinenum = index-stepaindex
                         break
                     else:
