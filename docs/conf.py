@@ -41,7 +41,7 @@ extensions = [
     'numpydoc',
     'sphinx-favicon',
     'deepmodeling_sphinx',
-    'myst-nb',
+    'myst_nb',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
