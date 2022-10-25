@@ -37,11 +37,10 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
     'sphinxarg.ext',
-    'myst_parser',
+    'myst_nb',
     'numpydoc',
     'sphinx-favicon',
     'deepmodeling_sphinx',
-    'myst_nb',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
