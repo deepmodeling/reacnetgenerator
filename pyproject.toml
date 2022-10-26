@@ -86,7 +86,7 @@ docs = [
     'pydata-sphinx-theme',
     'numpydoc',
     'sphinx-argparse',
-    'myst_parser',
+    'myst-nb',
     'sphinx-favicon',
     "nodejs-bin~=16.15.1a4",
     "pyyaml",
