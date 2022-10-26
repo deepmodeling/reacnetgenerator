@@ -481,7 +481,14 @@ async def download_file(urls: Union[str, List[str]],
 
 
 async def gather_download_files(urls: List[dict]) -> None:
-    """See download_multifiles function for details."""
+    """Asynchronously download files from remote urls if not exists.
+    
+    See download_multifiles function for details.
+    
+    See Also
+    --------
+    download_multifiles
+    """
     await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
 
 

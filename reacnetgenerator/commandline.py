@@ -1,6 +1,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 import argparse
+from typing import List
 from . import __version__
 from ._detect import _Detect 
 
@@ -77,7 +78,19 @@ def _commandline():
     ).runanddraw()
 
 
-def parm2cmd(pp):
+def parm2cmd(pp: dict) -> List[str]:
+    """Converts a parameter dictionary to command line arguments.
+    
+    Parameters
+    ----------
+    pp : dict
+        Parameter dictionary
+
+    Returns
+    -------
+    List[str]
+        Command line arguments
+    """
     commands = ['reacnetgenerator', '-i',
                 pp['inputfilename'], '-a', *pp['atomname']]
     if not pp.get('runHMM', True):

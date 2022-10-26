@@ -2,12 +2,13 @@
 # -*- coding: UTF-8 -*-
 # cython: language_level=3
 # cython: linetrace=True
-"""ReacNetGenerator: an automatic reaction network generator for reactive
+"""The main module of ReacNetGenerator."""
+doc_run = """ReacNetGenerator: an automatic reaction network generator for reactive
 molecular dynamics simulation.
 
 Please cite: ReacNetGenerator: an automatic reaction network generator
 for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys.,
-2020, 22 (2): 683–691, doi: 10.1039/C9CP05091D
+2020, 22 (2): 683-691, doi: 10.1039/C9CP05091D
 
 Jinzhe Zeng (jinzhe.zeng@rutgers.edu), Tong Zhu (tzhu@lps.ecnu.edu.cn)
 
@@ -46,7 +47,7 @@ import time
 import itertools
 from enum import Enum
 from multiprocessing import cpu_count
-from typing import Any
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 
@@ -125,9 +126,9 @@ class ReacNetGenerator:
     hmmfilename: str
     resultfilename: str
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Init ReacNetGenerator."""
-        logger.info(__doc__)
+        logger.info(doc_run)
         logger.info(
             f"Version: {__version__}  Creation date: {__date__}")
         
@@ -181,7 +182,10 @@ class ReacNetGenerator:
             else:
                 raise RuntimeError("cell must be (3,3) array_like or (3,) array_like or (9,) array_like")
 
-    def runanddraw(self, run=True, draw=True, report=True):
+    def runanddraw(self,
+                   run: bool = True,
+                   draw: bool = True,
+                   report: bool = True) -> None:
         """Analyze the trajectory from MD simulation.
         
         Parameters
@@ -210,12 +214,8 @@ class ReacNetGenerator:
             processthing.append(self.Status.REPORT)
         self._process(processthing)
 
-    def run(self):
+    def run(self) -> None:
         """Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.
-        
-        Parameters
-        ----------
-        None
         """
         processthing = []
         if self.urls:
@@ -229,16 +229,12 @@ class ReacNetGenerator:
         ))
         self._process(processthing)
 
-    def draw(self):
+    def draw(self) -> None:
         """Draw the reaction network, i.e. NETWORK step.
-        
-        Parameters
-        ----------
-        None
         """
         self._process((self.Status.NETWORK,))
 
-    def report(self):
+    def report(self) -> None:
         """Generate the analysis report, i.e. REPORT step.
         
         Parameters
@@ -276,7 +272,7 @@ class ReacNetGenerator:
             """Return describtion of the status."""
             return self.value
 
-    def _process(self, steps):
+    def _process(self, steps: Union[List[Status], Tuple[Status, ...]]) -> None:
         """Process steps in order.
 
         Parameters
