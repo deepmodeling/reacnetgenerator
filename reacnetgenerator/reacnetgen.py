@@ -315,3 +315,6 @@ class ReacNetGenerator:
         # Summary
         logger.info("====== Summary ======")
         logger.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
+
+# Please import ReacNetGenerator class from reacnetgenerator instead of reacnetgenerator.reacnetgen
+__all__ = []

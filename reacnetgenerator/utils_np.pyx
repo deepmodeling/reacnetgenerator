@@ -34,8 +34,8 @@ cpdef idx_to_signal(DTYPE_t[:] idx, int step):
     This method uses Cython to speed up the computation.
 
     Benchmark for 1,000,000 loops (step=250000):
-        Cython: 18.61 s
-        Python: 31.30 s
+        - Cython: 18.61 s
+        - Python: 31.30 s
     """
     signal = np.zeros((step, 1), dtype=DTYPE8, order='F')
     cdef int n = idx.size
@@ -67,8 +67,8 @@ cpdef check_zero_signal(DTYPE8_t[:] signal):
     This method uses Cython to speed up the computation.
 
     Benchmark for 1,000,000 loops (1000/2000):
-        Cython: 1.45 s
-        Python: 3.67 s
+        - Cython: 1.45 s
+        - Python: 3.67 s
     """
     cdef int n = signal.size
     cdef int i
