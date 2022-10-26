@@ -236,10 +236,6 @@ class ReacNetGenerator:
 
     def report(self) -> None:
         """Generate the analysis report, i.e. REPORT step.
-        
-        Parameters
-        ----------
-        None
         """
         self._process((self.Status.REPORT,))
 
@@ -248,14 +244,15 @@ class ReacNetGenerator:
 
         The ReacNetGenerator consists of several modules and algorithms to
         process the information from the given trajectory, including:
-            - DOWNLOAD: Download trajectory from urls
-            - DETECT: Read bond information and detect molecules
-            - HMM: HMM filter
-            - MISO: Merge isomers
-            - PATH: Indentify isomers and collect reaction paths
-            - MATRIX: Reaction matrix generation
-            - NETWORK: Draw reaction network
-            - REPORT: Generate analysis report
+
+        - DOWNLOAD: Download trajectory from urls
+        - DETECT: Read bond information and detect molecules
+        - HMM: HMM filter
+        - MISO: Merge isomers
+        - PATH: Indentify isomers and collect reaction paths
+        - MATRIX: Reaction matrix generation
+        - NETWORK: Draw reaction network
+        - REPORT: Generate analysis report
         """
 
         INIT = "Init"

@@ -83,8 +83,8 @@ class WriteBuffer:
     def extend(self, text: Iterable[AnyStr]) -> None:
         """Extend texts.
 
-        Paramenters
-        -----------
+        Parameters
+        ----------
         text: list of strs or bytes
             Texts to be extended.
         """
@@ -516,7 +516,8 @@ def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
     ----------
     nproc: int
         The number of processors to be used.
-    Other parameters can be found in the `multiopen` method.
+    **kwargs : dict, optional
+        Other parameters can be found in the `multiopen` method.
 
     Yields
     ------

@@ -113,6 +113,7 @@ mathjax3_config = {
 }
 
 execution_mode = "off"
+numpydoc_show_class_members = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
