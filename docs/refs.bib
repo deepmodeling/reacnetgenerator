@@ -1,0 +1,119 @@
+@Article{Cao_PhysChemChemPhys_2022_v24_p11801,
+    author =   {Liqun Cao and Jinzhe Zeng and Bo Wang and Tong Zhu and John Z H Zhang},
+    title =    {{Ab initio neural network MD simulation of thermal decomposition
+             of a high energy material CL-20/TNT}},
+    journal =  {Phys. Chem. Chem. Phys.},
+    year =     2022,
+    volume =   24,
+    issue =    19,
+    pages =    {11801--11811},
+    annote =   {CL-20 (2,4,6,8,10,12-hexanitro-2,4,6,8,10,12-hexaazaisowurtzitane,
+             also known as HNIW) is one of the most powerful energetic materials.
+             However, its high sensitivity to environmental stimuli greatly reduces
+             its safety and severely limits its application. In this work, ab
+             initio based neural network potential (NNP) energy surfaces for both
+             {\ensuremath{\beta}}-CL-20 and CL-20/TNT co-crystals were constructed.
+             To accurately simulate the thermal decomposition processes of these
+             two crystal systems, reactive molecular dynamics simulations based on
+             the NNPs were performed. Many important intermediate species and their
+             associated reaction paths during the decomposition had been identified
+             in the simulations and the direct results on detonation temperatures
+             of both systems were provided. The simulations also showed clearly
+             that 2,4,6-trinitrotoluene (TNT) molecules in the co-crystal act as a
+             buffer to slow down the chain reactions triggered by nitrogen dioxide
+             and this effect is more significant at lower temperatures.
+             Specifically, the addition of TNT molecules in the CL-20/TNT co-
+             crystal introduces intermolecular hydrogen bonds between CL-20 and TNT
+             molecules in the system, thereby increasing the thermal stability of
+             the co-crystal. The current reactive molecular dynamics simulation is
+             performed based on the NNP which helps in accelerating the speed of ab
+             initio molecular dynamics (AIMD) simulation by more than 3 orders of
+             magnitude while preserving the accuracy of density functional theory
+             (DFT) calculations. This enabled us to perform longer-time simulations
+             at more realistic temperatures that traditional AIMD methods cannot
+             achieve. With the advantage of the NNP in its powerful fitting ability
+             and transferability, the NNP-based MD simulation can be widely applied
+             to energetic material systems.},
+    PMCID =    {PMC9173692},
+    doi =      {10.1039/D2CP00710J},
+}
+
+@Article{Zeng_NatCommun_2020_v11_p5713,
+    author =   {Jinzhe Zeng and Liqun Cao and Mingyuan Xu and Tong Zhu and John Z H
+             Zhang},
+    title =    {{Complex reaction processes in combustion unraveled by neural network-
+             based molecular dynamics simulation}},
+    journal =  {Nat. Commun.},
+    year =     2020,
+    volume =   11,
+    issue =    1,
+    pages =    5713,
+    annote =   {Combustion is a complex chemical system which involves thousands of
+             chemical reactions and generates hundreds of molecular species and
+             radicals during the process. In this work, a neural network-based
+             molecular dynamics (MD) simulation is carried out to simulate the
+             benchmark combustion of methane. During MD simulation, detailed
+             reaction processes leading to the creation of specific molecular
+             species including various intermediate radicals and the products are
+             intimately revealed and characterized. Overall, a total of 798
+             different chemical reactions were recorded and some new chemical
+             reaction pathways were discovered. We believe that the present work
+             heralds the dawn of a new era in which neural network-based reactive
+             MD simulation can be practically applied to simulating important
+             complex reaction systems at ab initio level, which provides atomic-
+             level understanding of chemical reaction processes as well as
+             discovery of new reaction pathways at an unprecedented level of detail
+             beyond what laboratory experiments could accomplish.},
+    PMCID =    {PMC7658983},
+    doi =      {10.1038/s41467-020-19497-z},
+}
+
+
+@Article{Zeng_PhysChemChemPhys_2020_v22_p683,
+  author =   {Jinzhe Zeng and Liqun Cao and Chih-Hao Chin and Haisheng Ren and John Z. H. Zhang and Tong Zhu},
+  title =    {{ReacNetGenerator: an automatic reaction network
+              generator for reactive molecular dynamics
+              simulations}},
+  journal =  {Physical Chemistry Chemical Physics},
+  year =     2020,
+  volume =   22,
+  number =   2,
+  pages =    {683--691},
+  abstract =     {Reactive molecular dynamics (MD) simulation makes
+              it possible to study the reaction mechanism of complex
+              reaction systems at the atomic level. However, the
+          analysis of MD trajectories which contain thousands of
+          species and reaction pathways has become a major
+          obstacle to the application of reactive MD simulation
+          in large-scale systems. Here, we report the development
+          and application of the Reaction Network Generator
+          (ReacNetGenerator) method. It can automatically extract
+          the reaction network from the reaction trajectory
+          without any predefined reaction coordinates and
+          elementary reaction steps. Molecular species can be
+          automatically identified from the cartesian coordinates
+          of atoms and the hidden Markov model is used to filter
+          the trajectory noises which makes the analysis process
+          easier and more accurate. The ReacNetGenerator has been
+          successfully used to analyze the reactive MD
+          trajectories of the combustion of methane and
+          4-component surrogate fuel for rocket propellant 3
+          (RP-3), and it has great advantages in terms of
+          efficiency and accuracy compared to traditional manual
+          analysis.},
+  doi =      {10.1039/C9CP05091D},
+}
+
+@incollection{Zeng_2022_Chapter,
+  title = {Chapter 12 - Neural network potentials},
+  editor = {Pavlo O. Dral},
+  booktitle = {Quantum Chemistry in the Age of Machine Learning},
+  publisher = {Elsevier},
+  pages = {279-294},
+  year = {2023},
+  isbn = {978-0-323-90049-2},
+  doi = {10.1016/B978-0-323-90049-2.00001-9},
+  author = {Jinzhe Zeng and Liqun Cao and Tong Zhu*},
+  keywords = {Neural network, Potential energy surface, Molecular dynamic simulation, Chemical reaction},
+  abstract = {Recently, artificial neural network-based methods for the construction of potential energy surfaces and molecular dynamics (MD) simulations based on them have been increasingly used in the field of theoretical chemistry. The neural network potentials (NNP) strike a good balance between accuracy and computational efficiency relative to quantum chemical calculations and MD simulations based on classical force fields. Thus, NNP is becoming a powerful tool for studying the structure and function of molecules. In this chapter, we introduce the basic theory of NNP. The construction steps and the usage of NNP are also introduced in detail with the MD simulation of methane combustion as an example. We hope that this chapter can help those readers who are new but interested in entering this field.},
+}

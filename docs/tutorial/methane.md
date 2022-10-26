@@ -2,7 +2,16 @@
 
 Jinzhe Zeng, Liqun Cao, and Tong Zhu
 
-This tutorial was adapted from: Jinzhe Zeng, Liqun Cao, Tong Zhu (2022), Neural network potentials, Pavlo O. Dral (Eds.), _Quantum Chemistry in the Age of Machine Learning_, Elsevier. Please cite the above chapter if you follow the tutorial.
+This tutorial was adapted from:
+
+```{bibliography}
+---
+filter: False
+---
+Zeng_2022_Chapter
+```
+
+Please cite the above chapter if you follow the tutorial.
 
 ----
 
@@ -10,7 +19,7 @@ In this tutorial, we will take the simulation of methane combustion as an exampl
 
 ## Step 1: Preparing the reference dataset
 
-In the reference dataset preparation process, one also has to consider the expect accuracy of the final model, or at what QM level one should label the data. In [this paper](https://doi.org/10.1038/s41467-020-19497-z), the [Gaussian](https://gaussian.com) software was used to calculate the potential energy and atomic forces of the reference data at the MN15/6-31G\*\* level. The MN15 functional was employed because it has good accuracy for both multi-reference and single-reference systems, which is essential for our system as we have to deal with a lot of radicals and their reactions. Here we assume that the dataset is prepared in advance, which can be downloaded from [tongzhugroup/Chapter13-tutorial](https://github.com/tongzhugroup/Chapter13-tutorial). 
+In the reference dataset preparation process, one also has to consider the expect accuracy of the final model, or at what QM level one should label the data. In {cite:t}`Zeng_NatCommun_2020_v11_p5713`, the [Gaussian](https://gaussian.com) software was used to calculate the potential energy and atomic forces of the reference data at the MN15/6-31G\*\* level. The MN15 functional was employed because it has good accuracy for both multi-reference and single-reference systems, which is essential for our system as we have to deal with a lot of radicals and their reactions. Here we assume that the dataset is prepared in advance, which can be downloaded from [tongzhugroup/Chapter13-tutorial](https://github.com/tongzhugroup/Chapter13-tutorial). 
 
 ## Step 2. Training the Deep Potential (DP)
 
@@ -39,11 +48,14 @@ $deepmd_root/bin/dp compress -i graph.pb -o graph_compressed.pb -t methane_param
 ## Step 4: Running MD simulation based on the DP
 
 The frozen model can be used to run reactive MD simulations to explore the detailed reaction mechanism of methane combustion. The MD engine is provided by the [LAMMPS](https://github.com/lammps/lammps) software. Here we use the same system from [our previous work](https://doi.org/10.1038/s41467-020-19497-z), which contains 100 methane and 200 oxygen molecules. The MD will be performed under the NVT ensemble at 3000 K for 1 ns. The LAMMPS program can be invoked by the following command:
+
 ```sh
 $deepmd_root/bin/lmp -i input.lammps 
 ```
+
 The `input.lammps` is the input file that controls the MD simulation in detail, technique details can be found in [the manual of LAMMPS](https://docs.lammps.org/). To use the DP, the pair_style option in this input should be specified as follows:
-```
+
+```lammps
 pair_style deepmd graph_compressed.pb 
 pair_coeff * * 
 ```
@@ -51,6 +63,7 @@ pair_coeff * *
 ## Step 5: Analysis of the trajectory
 
 After the simulation is done, we can use the ReacNetGenerator software which was developed in our previous study to extract the reaction network from the trajectory. All species and reactions in the trajectory will be put on an interactive web page where we can analyze them by mouse clicks. Eventually we should be able to obtain reaction networks that consistent with the following figure.
+
 ```sh
 reacnetgenerator -i methane.lammpstrj -a C H O --dump
 ```
