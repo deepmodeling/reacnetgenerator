@@ -127,6 +127,8 @@ intersphinx_mapping = {
     "ase": ("https://wiki.fysik.dtu.dk/ase/", None),
 }
 
+bibtex_bibfiles = ['refs.bib']
+
 def run_apidoc(_):
     from sphinx.ext.apidoc import main
     import os
