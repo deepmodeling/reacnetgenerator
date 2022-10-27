@@ -102,6 +102,12 @@ def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell:
     .. [1] Yanze Wu, Huai Sun, Liang Wu, Joshua D. Deetz, Extracting the mechanisms
        and kinetic models of complex reactions from atomistic simulation data, J.
        Comput. Chem. 40, 16, 1586-1592.
+
+    Examples
+    --------
+    >>> cell = np.eye(3) * 3.7601e1 # in unit Angstrom
+    >>> timestep = 0.1 # in unit fs
+    >>> rates = calculate_rate('methane.species', 'methane.reactionabcd', cell, timestep)
     """
     ase_cell = ase.geometry.Cell(cell)
     
