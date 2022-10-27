@@ -1,4 +1,4 @@
-## Analysis
+# Analysis
 
 After a [trajectory file](format.md) is prepared, you can process the file using the command line:
 

@@ -87,8 +87,8 @@
 <div class=viewcode-block id=WriteBuffer.extend><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.extend>[docs]</a>    <span class=k>def</span> <span class=nf>extend</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>text</span><span class=p>:</span> <span class=n>Iterable</span><span class=p>[</span><span class=n>AnyStr</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
         <span class=sd>&quot;&quot;&quot;Extend texts.</span>
 
-<span class=sd>        Paramenters</span>
-<span class=sd>        -----------</span>
+<span class=sd>        Parameters</span>
+<span class=sd>        ----------</span>
 <span class=sd>        text: list of strs or bytes</span>
 <span class=sd>            Texts to be extended.</span>
 <span class=sd>        &quot;&quot;&quot;</span>
@@ -485,7 +485,14 @@
 
 
 <div class=viewcode-block id=gather_download_files><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.gather_download_files>[docs]</a><span class=k>async</span> <span class=k>def</span> <span class=nf>gather_download_files</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>dict</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;See download_multifiles function for details.&quot;&quot;&quot;</span>
+    <span class=sd>&quot;&quot;&quot;Asynchronously download files from remote urls if not exists.</span>
+<span class=sd>    </span>
+<span class=sd>    See download_multifiles function for details.</span>
+<span class=sd>    </span>
+<span class=sd>    See Also</span>
+<span class=sd>    --------</span>
+<span class=sd>    download_multifiles</span>
+<span class=sd>    &quot;&quot;&quot;</span>
     <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span><span class=o>*</span><span class=p>[</span><span class=n>download_file</span><span class=p>(</span><span class=n>jdata</span><span class=p>[</span><span class=s2>&quot;url&quot;</span><span class=p>],</span> <span class=n>jdata</span><span class=p>[</span><span class=s2>&quot;fn&quot;</span><span class=p>],</span> <span class=n>jdata</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;sha256&quot;</span><span class=p>,</span> <span class=kc>None</span><span class=p>))</span> <span class=k>for</span> <span class=n>jdata</span> <span class=ow>in</span> <span class=n>urls</span><span class=p>])</span></div>
 
 
@@ -513,7 +520,8 @@
 <span class=sd>    ----------</span>
 <span class=sd>    nproc: int</span>
 <span class=sd>        The number of processors to be used.</span>
-<span class=sd>    Other parameters can be found in the `multiopen` method.</span>
+<span class=sd>    **kwargs : dict, optional</span>
+<span class=sd>        Other parameters can be found in the `multiopen` method.</span>
 
 <span class=sd>    Yields</span>
 <span class=sd>    ------</span>

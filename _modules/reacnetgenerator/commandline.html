@@ -5,6 +5,7 @@
 <span></span><span class=c1># cython: language_level=3</span>
 <span class=c1># cython: linetrace=True</span>
 <span class=kn>import</span> <span class=nn>argparse</span>
+<span class=kn>from</span> <span class=nn>typing</span> <span class=kn>import</span> <span class=n>List</span>
 <span class=kn>from</span> <span class=nn>.</span> <span class=kn>import</span> <span class=n>__version__</span>
 <span class=kn>from</span> <span class=nn>._detect</span> <span class=kn>import</span> <span class=n>_Detect</span> 
 
@@ -81,7 +82,19 @@
     <span class=p>)</span><span class=o>.</span><span class=n>runanddraw</span><span class=p>()</span>
 
 
-<div class=viewcode-block id=parm2cmd><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.commandline.parm2cmd>[docs]</a><span class=k>def</span> <span class=nf>parm2cmd</span><span class=p>(</span><span class=n>pp</span><span class=p>):</span>
+<div class=viewcode-block id=parm2cmd><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.commandline.parm2cmd>[docs]</a><span class=k>def</span> <span class=nf>parm2cmd</span><span class=p>(</span><span class=n>pp</span><span class=p>:</span> <span class=nb>dict</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]:</span>
+    <span class=sd>&quot;&quot;&quot;Converts a parameter dictionary to command line arguments.</span>
+<span class=sd>    </span>
+<span class=sd>    Parameters</span>
+<span class=sd>    ----------</span>
+<span class=sd>    pp : dict</span>
+<span class=sd>        Parameter dictionary</span>
+
+<span class=sd>    Returns</span>
+<span class=sd>    -------</span>
+<span class=sd>    List[str]</span>
+<span class=sd>        Command line arguments</span>
+<span class=sd>    &quot;&quot;&quot;</span>
     <span class=n>commands</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;reacnetgenerator&#39;</span><span class=p>,</span> <span class=s1>&#39;-i&#39;</span><span class=p>,</span>
                 <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;inputfilename&#39;</span><span class=p>],</span> <span class=s1>&#39;-a&#39;</span><span class=p>,</span> <span class=o>*</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;atomname&#39;</span><span class=p>]]</span>
     <span class=k>if</span> <span class=ow>not</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;runHMM&#39;</span><span class=p>,</span> <span class=kc>True</span><span class=p>):</span>
