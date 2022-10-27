@@ -99,7 +99,9 @@ def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell:
 
     References
     ----------
-    .. [1] J Comput Chem 40, 16, 1586-1592.
+    .. [1] Yanze Wu, Huai Sun, Liang Wu, Joshua D. Deetz, Extracting the mechanisms
+       and kinetic models of complex reactions from atomistic simulation data, J.
+       Comput. Chem. 40, 16, 1586-1592.
     """
     ase_cell = ase.geometry.Cell(cell)
     

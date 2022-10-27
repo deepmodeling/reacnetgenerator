@@ -2,23 +2,24 @@
 # cython: linetrace=True
 """Detect molecules.
 
-There are two types of input files that could be imported by ReacNetGen,
+There are two types of input files that could be imported by ReacNetGenerator,
 the first part of necessary is the trajectory from reactive MD, the second
 part can be the bond information normally given by simulation using ReaxFF.
 In fact, atomic coordinates can be converted to the bond information with
-the Open Babel software. As a results, ReacNetGen can both processes ReaxFF
+the Open Babel software.[1]_ As a results, ReacNetGenerator can both processes ReaxFF
 trajectories, AIMD trajectories, and other kinds of reactive trajectories.
 With the bond information, molecules can be detected from atoms by Depth-first
-search at every timestep. By using this way, all molecules in a given
+search at every timestep.[2]_ By using this way, all molecules in a given
 trajectory can be acquired. Molecules consisting of same atoms and bonds can
 be considered as the same molecule.
 
-Reference:
-[1] O’Boyle, N. M.; Banck, M.; James, C. A.; Morley, C.; Vandermeersch, T.;
-Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
-33-47.
-[2] Tarjan, R. Depth-first search and linear graph algorithms. SIAM J. Comput.
-1972, 1 (2), 146-160.
+References
+----------
+.. [1] O'Boyle, N. M.; Banck, M.; James, C. A.; Morley, C.; Vandermeersch, T.;
+   Hutchison, G. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3(1),
+   33-47.
+.. [2] Tarjan, R. Depth-first search and linear graph algorithms. SIAM J. Comput.
+   1972, 1 (2), 146-160.
 """
 
 import tempfile

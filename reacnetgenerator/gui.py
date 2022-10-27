@@ -3,9 +3,6 @@
 # cython: language_level=3
 # cython: linetrace=True
 """GUI version of ReacNetGenerator.
-
-====  Usage  ====
-$ reacnetgeneratorgui
 """
 import os
 import tkinter as tk

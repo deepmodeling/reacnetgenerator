@@ -5,15 +5,16 @@
 To produce a reaction network, every molecule (species) should be treated as a
 node in the network. Therefore, all detected species are indexed by canonical
 SMILES to guarantee its uniqueness. Isomers are also identified according to
-SMILES codes. The VF2 algorithm can be also used to identify isomers, which is
-an option in ReacNetGen. After filtering out noise, the reaction path of atoms
+SMILES codes._[1] The VF2 algorithm can be also used to identify isomers, which is
+an option in ReacNetGenerator._[2] After filtering out noise, the reaction path of atoms
 and the number of intermolecular reactions can be calculated.
 
-Reference:
-[1] Landrum, G. RDKit: Open-Source Cheminformatics Software 2016.
-[2] Cordella, L. P.; Foggia, P.; Sansone, C.; Vento, M. A (Sub)Graph
-Isomorphism Algorith for Matching Large Graphs. IEEE Trans. Pattern Analysis
-and Machine Intelligence 2004, 26, 1367-1372.
+References
+----------
+.. [1] Landrum, G. RDKit: Open-Source Cheminformatics Software 2016.
+.. [2] Cordella, L. P.; Foggia, P.; Sansone, C.; Vento, M. A (Sub)Graph
+   Isomorphism Algorith for Matching Large Graphs. IEEE Trans. Pattern Analysis
+   and Machine Intelligence 2004, 26, 1367-1372.
 """
 
 import itertools

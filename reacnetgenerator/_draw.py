@@ -3,19 +3,20 @@
 """Draw reaction network.
 
 With the reaction matrix, a reaction network can be drawn. Here the NetworkX
-package is used to make a graph which indicates reactions between species.
+package is used to make a graph which indicates reactions between species.[1]_
 Fruchterman-Reingold force-directed algorithm is used to make layout of nodes
 relate to reaction quantity and different colors and widths of lines are drawn
-depending on reaction quantity. The distance of two species in the network,
+depending on reaction quantity.[2]_ The distance of two species in the network,
 the color and thickness of the line between them are determined by the number
 of their reactions, making the reaction network more intuitive.
 
-Reference:
-[1] Hagberg, A.; Swart, P.; Daniel, S. C. Exploring network structure,
-dynamics, and function using NetworkX; Los Alamos National Lab. (LANL), Los
-Alamos, NM (United States): 2008.
-[2] Fruchterman, T. M.; Reingold, E. M. Graph drawing by force-directed
-placement. Software: Practice and experince. 1991, 21(11),1129-1164.
+References
+----------
+.. [1] Hagberg, A.; Swart, P.; Daniel, S. C. Exploring network structure,
+   dynamics, and function using NetworkX; Los Alamos National Lab. (LANL), Los
+   Alamos, NM (United States): 2008.
+.. [2] Fruchterman, T. M.; Reingold, E. M. Graph drawing by force-directed
+   placement. Software: Practice and experince. 1991, 21(11),1129-1164.
 """
 
 import math

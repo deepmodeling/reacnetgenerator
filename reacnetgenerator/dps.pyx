@@ -13,6 +13,22 @@ cdef extern from 'c_stack.h':
         int pop();
 
 def dps(bonds, levels):
+    """Connect molecule with Depth-First Search.
+
+    Parameters
+    ----------
+    bonds : list of list
+        The bonds of molecule.
+    levels : list of int
+        The levels of atoms.
+
+    Returns
+    -------
+    list of list
+        The connected atoms in each molecule.
+    list of list
+        The connected bonds in each molecule.
+    """
     molecule = []
     bondlist = []
     cdef int _N = len(bonds)
@@ -49,7 +65,19 @@ def dps(bonds, levels):
     return molecule, bondlist
 
 def dps_reaction(reactdict):
-    """A+B->C+D"""
+    """Find A+B->C+D reactions.
+    
+    Parameters
+    ----------
+    reactdict : list of dict of list
+        Two dictionaries of reactions.
+
+    Returns
+    -------
+    list of list of list
+        List of reactions. The secons axis matches
+        the position of species (left or right).
+    """
     # left in index 0 and right in index 1
     reactions = []
     cdef set visited_left = set()

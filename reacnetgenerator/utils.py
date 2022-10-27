@@ -83,8 +83,8 @@ class WriteBuffer:
     def extend(self, text: Iterable[AnyStr]) -> None:
         """Extend texts.
 
-        Paramenters
-        -----------
+        Parameters
+        ----------
         text: list of strs or bytes
             Texts to be extended.
         """
@@ -481,7 +481,14 @@ async def download_file(urls: Union[str, List[str]],
 
 
 async def gather_download_files(urls: List[dict]) -> None:
-    """See download_multifiles function for details."""
+    """Asynchronously download files from remote urls if not exists.
+    
+    See download_multifiles function for details.
+    
+    See Also
+    --------
+    download_multifiles
+    """
     await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
 
 
@@ -509,7 +516,8 @@ def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
     ----------
     nproc: int
         The number of processors to be used.
-    Other parameters can be found in the `multiopen` method.
+    **kwargs : dict, optional
+        Other parameters can be found in the `multiopen` method.
 
     Yields
     ------
