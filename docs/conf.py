@@ -41,6 +41,7 @@ extensions = [
     'numpydoc',
     'sphinx-favicon',
     'deepmodeling_sphinx',
+    "sphinxcontrib.bibtex",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -125,6 +126,8 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "ase": ("https://wiki.fysik.dtu.dk/ase/", None),
 }
+
+bibtex_bibfiles = ['refs.bib']
 
 def run_apidoc(_):
     from sphinx.ext.apidoc import main

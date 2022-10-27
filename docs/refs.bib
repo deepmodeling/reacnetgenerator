@@ -1,0 +1,264 @@
+@Article{Cao_PhysChemChemPhys_2022_v24_p11801,
+    author =   {Liqun Cao and Jinzhe Zeng and Bo Wang and Tong Zhu and John Z H Zhang},
+    title =    {{Ab initio neural network MD simulation of thermal decomposition
+             of a high energy material CL-20/TNT}},
+    journal =  {Phys. Chem. Chem. Phys.},
+    year =     2022,
+    volume =   24,
+    issue =    19,
+    pages =    {11801--11811},
+    annote =   {CL-20 (2,4,6,8,10,12-hexanitro-2,4,6,8,10,12-hexaazaisowurtzitane,
+             also known as HNIW) is one of the most powerful energetic materials.
+             However, its high sensitivity to environmental stimuli greatly reduces
+             its safety and severely limits its application. In this work, ab
+             initio based neural network potential (NNP) energy surfaces for both
+             {\ensuremath{\beta}}-CL-20 and CL-20/TNT co-crystals were constructed.
+             To accurately simulate the thermal decomposition processes of these
+             two crystal systems, reactive molecular dynamics simulations based on
+             the NNPs were performed. Many important intermediate species and their
+             associated reaction paths during the decomposition had been identified
+             in the simulations and the direct results on detonation temperatures
+             of both systems were provided. The simulations also showed clearly
+             that 2,4,6-trinitrotoluene (TNT) molecules in the co-crystal act as a
+             buffer to slow down the chain reactions triggered by nitrogen dioxide
+             and this effect is more significant at lower temperatures.
+             Specifically, the addition of TNT molecules in the CL-20/TNT co-
+             crystal introduces intermolecular hydrogen bonds between CL-20 and TNT
+             molecules in the system, thereby increasing the thermal stability of
+             the co-crystal. The current reactive molecular dynamics simulation is
+             performed based on the NNP which helps in accelerating the speed of ab
+             initio molecular dynamics (AIMD) simulation by more than 3 orders of
+             magnitude while preserving the accuracy of density functional theory
+             (DFT) calculations. This enabled us to perform longer-time simulations
+             at more realistic temperatures that traditional AIMD methods cannot
+             achieve. With the advantage of the NNP in its powerful fitting ability
+             and transferability, the NNP-based MD simulation can be widely applied
+             to energetic material systems.},
+    PMCID =    {PMC9173692},
+    doi =      {10.1039/D2CP00710J},
+}
+
+@Article{Zeng_NatCommun_2020_v11_p5713,
+    author =   {Jinzhe Zeng and Liqun Cao and Mingyuan Xu and Tong Zhu and John Z H
+             Zhang},
+    title =    {{Complex reaction processes in combustion unraveled by neural network-
+             based molecular dynamics simulation}},
+    journal =  {Nat. Commun.},
+    year =     2020,
+    volume =   11,
+    issue =    1,
+    pages =    5713,
+    annote =   {Combustion is a complex chemical system which involves thousands of
+             chemical reactions and generates hundreds of molecular species and
+             radicals during the process. In this work, a neural network-based
+             molecular dynamics (MD) simulation is carried out to simulate the
+             benchmark combustion of methane. During MD simulation, detailed
+             reaction processes leading to the creation of specific molecular
+             species including various intermediate radicals and the products are
+             intimately revealed and characterized. Overall, a total of 798
+             different chemical reactions were recorded and some new chemical
+             reaction pathways were discovered. We believe that the present work
+             heralds the dawn of a new era in which neural network-based reactive
+             MD simulation can be practically applied to simulating important
+             complex reaction systems at ab initio level, which provides atomic-
+             level understanding of chemical reaction processes as well as
+             discovery of new reaction pathways at an unprecedented level of detail
+             beyond what laboratory experiments could accomplish.},
+    PMCID =    {PMC7658983},
+    doi =      {10.1038/s41467-020-19497-z},
+}
+
+
+@Article{Zeng_PhysChemChemPhys_2020_v22_p683,
+  author =   {Jinzhe Zeng and Liqun Cao and Chih-Hao Chin and Haisheng Ren and John Z. H. Zhang and Tong Zhu},
+  title =    {{ReacNetGenerator: an automatic reaction network
+              generator for reactive molecular dynamics
+              simulations}},
+  journal =  {Phys. Chem. Chem. Phys.},
+  year =     2020,
+  volume =   22,
+  number =   2,
+  pages =    {683--691},
+  abstract =     {Reactive molecular dynamics (MD) simulation makes
+              it possible to study the reaction mechanism of complex
+              reaction systems at the atomic level. However, the
+          analysis of MD trajectories which contain thousands of
+          species and reaction pathways has become a major
+          obstacle to the application of reactive MD simulation
+          in large-scale systems. Here, we report the development
+          and application of the Reaction Network Generator
+          (ReacNetGenerator) method. It can automatically extract
+          the reaction network from the reaction trajectory
+          without any predefined reaction coordinates and
+          elementary reaction steps. Molecular species can be
+          automatically identified from the cartesian coordinates
+          of atoms and the hidden Markov model is used to filter
+          the trajectory noises which makes the analysis process
+          easier and more accurate. The ReacNetGenerator has been
+          successfully used to analyze the reactive MD
+          trajectories of the combustion of methane and
+          4-component surrogate fuel for rocket propellant 3
+          (RP-3), and it has great advantages in terms of
+          efficiency and accuracy compared to traditional manual
+          analysis.},
+  doi =      {10.1039/C9CP05091D},
+}
+
+@incollection{Zeng_2022_Chapter,
+  title = {Chapter 12 - Neural network potentials},
+  editor = {Pavlo O. Dral},
+  booktitle = {Quantum Chemistry in the Age of Machine Learning},
+  publisher = {Elsevier},
+  pages = {279-294},
+  year = {2023},
+  isbn = {978-0-323-90049-2},
+  doi = {10.1016/B978-0-323-90049-2.00001-9},
+  author = {Jinzhe Zeng and Liqun Cao and Tong Zhu*},
+  keywords = {Neural network, Potential energy surface, Molecular dynamic simulation, Chemical reaction},
+  abstract = {Recently, artificial neural network-based methods for the construction of potential energy surfaces and molecular dynamics (MD) simulations based on them have been increasingly used in the field of theoretical chemistry. The neural network potentials (NNP) strike a good balance between accuracy and computational efficiency relative to quantum chemical calculations and MD simulations based on classical force fields. Thus, NNP is becoming a powerful tool for studying the structure and function of molecules. In this chapter, we introduce the basic theory of NNP. The construction steps and the usage of NNP are also introduced in detail with the MD simulation of methane combustion as an example. We hope that this chapter can help those readers who are new but interested in entering this field.},
+}
+
+@misc{g16,
+author={M. J. Frisch and G. W. Trucks and H. B. Schlegel and G. E. Scuseria and M. A. Robb and J. R. Cheeseman and G. Scalmani and V. Barone and G. A. Petersson and H. Nakatsuji and X. Li and M. Caricato and A. V. Marenich and J. Bloino and B. G. Janesko and R. Gomperts and B. Mennucci and H. P. Hratchian and J. V. Ortiz and A. F. Izmaylov and J. L. Sonnenberg and D. Williams-Young and F. Ding and F. Lipparini and F. Egidi and J. Goings and B. Peng and A. Petrone and T. Henderson and D. Ranasinghe and V. G. Zakrzewski and J. Gao and N. Rega and G. Zheng and W. Liang and M. Hada and M. Ehara and K. Toyota and R. Fukuda and J. Hasegawa and M. Ishida and T. Nakajima and Y. Honda and O. Kitao and H. Nakai and T. Vreven and K. Throssell and Montgomery, {Jr.}, J. A. and J. E. Peralta and F. Ogliaro and M. J. Bearpark and J. J. Heyd and E. N. Brothers and K. N. Kudin and V. N. Staroverov and T. A. Keith and R. Kobayashi and J. Normand and K. Raghavachari and A. P. Rendell and J. C. Burant and S. S. Iyengar and J. Tomasi and M. Cossi and J. M. Millam and M. Klene and C. Adamo and R. Cammi and J. W. Ochterski and R. L. Martin and K. Morokuma and O. Farkas and J. B. Foresman and D. J. Fox},
+title={Gaussian~16 {R}evision {A}.03},
+year={2016},
+note={Gaussian Inc. Wallingford CT}
+}
+
+@Article{Thompson_ComputPhysCommun_2022_v271_p108171,
+    author =   {Aidan P. Thompson and H. Metin Aktulga and Richard Berger and Dan S.
+             Bolintineanu and W. Michael Brown and Paul S. Crozier and Pieter J.
+             {in 't Veld} and Axel Kohlmeyer and Stan G. Moore and Trung Dac Nguyen
+             and Ray Shan and Mark J. Stevens and Julien Tranchida and Christian
+             Trott and Steven J. Plimpton},
+    title =    {{LAMMPS - a flexible simulation tool for particle-based materials
+             modeling at the atomic, meso, and continuum scales}},
+    journal =  {Comput. Phys. Commun.},
+    year =     2022,
+    volume =   271,
+    pages =    108171,
+    doi =      {10.1016/j.cpc.2021.108171},
+}
+
+@Article{Lu_JChemTheoryComput_2022_v18_p5559,
+    author =   {Denghui Lu and Wanrun Jiang and Yixiao Chen and Linfeng Zhang and
+             Weile Jia and Han Wang and Mohan Chen},
+    title =    {{DP Compress: A Model Compression Scheme for Generating Efficient Deep
+             Potential Models}},
+    journal =  {J. Chem. Theory Comput.},
+    year =     2022,
+    volume =   18,
+    issue =    9,
+    pages =    {5559--5567},
+    annote =   {Machine-learning-based interatomic potential energy surface (PES)
+             models are revolutionizing the field of molecular modeling. However,
+             although much faster than electronic structure schemes, these models
+             suffer from costly computations via deep neural networks to predict
+             the energy and atomic forces, resulting in lower running efficiency as
+             compared to the typical empirical force fields. Herein, we report a
+             model compression scheme for boosting the performance of the Deep
+             Potential (DP) model, a deep learning-based PES model. This scheme, we
+             call DP Compress, is an efficient postprocessing step after the
+             training of DP models (DP Train). DP Compress combines several DP-
+             specific compression techniques, which typically speed up DP-based
+             molecular dynamics simulations by an order of magnitude faster and
+             consume an order of magnitude less memory. We demonstrate that DP
+             Compress is sufficiently accurate by testing a variety of physical
+             properties of Cu, H2O, and Al-Cu-Mg systems. DP Compress applies to
+             both CPU and GPU machines and is publicly available online.},
+    doi =      {10.1021/acs.jctc.2c00102},
+}
+
+@Article{Wang_ComputPhysCommun_2018_v228_p178,
+    author =   {Han Wang and Linfeng Zhang and Jiequn Han and Weinan E},
+    title =    {{DeePMD-kit: A deep learning package for many-body potential energy
+             representation and molecular dynamics}},
+    journal =  {Comput. Phys. Commun.},
+    year =     2018,
+    volume =   228,
+    pages =    {178--184},
+    doi =      {10.1016/j.cpc.2018.03.016},
+}
+
+@Article{Zhang_ComputPhysCommun_2020_v253_p107206,
+    author =   {Yuzhi Zhang and Haidi Wang and Weijie Chen and Jinzhe Zeng and Linfeng
+             Zhang and Han Wang and Weinan E},
+    title =    {{DP-GEN: A concurrent learning platform for the generation of reliable
+             deep learning based potential energy models}},
+    journal =  {Comput. Phys. Commun.},
+    year =     2020,
+    volume =   253,
+    pages =    107206,
+    doi =      {10.1016/j.cpc.2020.107206},
+}
+
+@Article{Aktulga_ParallelComputing_2012_v38_p245,
+    author =   {H.M. Aktulga and J.C. Fogarty and S.A. Pandit and A.Y. Grama},
+    title =    {{Parallel reactive molecular dynamics: Numerical methods and
+             algorithmic techniques}},
+    journal =  {Parallel Computing},
+    year =     2012,
+    volume =   38,
+    issue =    {4-5},
+    pages =    {245--259},
+    doi =      {10.1016/j.parco.2011.08.005},
+}
+
+@Article{O'Boyle_JCheminform_2011_v3_p33,
+    author =   {Noel M O'Boyle and Michael Banck and Craig A James and Chris Morley
+             and Tim Vandermeersch and Geoffrey R Hutchison},
+    title =    {{Open Babel: An open chemical toolbox}},
+    journal =  {J. Cheminform.},
+    year =     2011,
+    volume =   3,
+    issue =    1,
+    pages =    33,
+    annote =   {A frequent problem in computational modeling is the interconversion of
+             chemical structures between different formats. While standard
+             interchange formats exist (for example, Chemical Markup Language) and
+             de facto standards have arisen (for example, SMILES format), the need
+             to interconvert formats is a continuing problem due to the multitude
+             of different application areas for chemistry data, differences in the
+             data stored by different formats (0D versus 3D, for example), and
+             competition between software along with a lack of vendor-neutral
+             formats.},
+    PMCID =    {PMC3198950},
+    doi =      {10.1186/1758-2946-3-33},
+}
+
+@Article{Kuhne_JChemPhys_2020_v152_p194103,
+    author =   {Thomas D K{\"u}hne and Marcella Iannuzzi and Mauro {Del Ben} and
+             Vladimir V Rybkin and Patrick Seewald and Frederick Stein and Teodoro
+             Laino and Rustam Z Khaliullin and Ole Sch{\"u}tt and Florian
+             Schiffmann and Dorothea Golze and Jan Wilhelm and Sergey Chulkov and
+             Mohammad Hossein Bani-Hashemian and Val{\'e}ry Weber and Urban
+             Bor{\v{s}}tnik and Mathieu Taillefumier and Alice Shoshana Jakobovits
+             and Alfio Lazzaro and Hans Pabst and Tiziano M{\"u}ller and Robert
+             Schade and Manuel Guidon and Samuel Andermatt and Nico Holmberg and
+             Gregory K Schenter and Anna Hehn and Augustin Bussy and Fabian
+             Belleflamme and Gloria Tabacchi and Andreas Gl{\"o}{\ss} and Michael
+             Lass and Iain Bethune and Christopher J Mundy and Christian Plessl and
+             Matt Watkins and Joost VandeVondele and Matthias Krack and J{\"u}rg
+             Hutter},
+    title =    {{CP2K: An electronic structure and molecular dynamics software package
+             - Quickstep: Efficient and accurate electronic structure calculations}},
+    journal =  {J. Chem. Phys.},
+    year =     2020,
+    volume =   152,
+    issue =    19,
+    pages =    194103,
+    annote =   {CP2K is an open source electronic structure and molecular dynamics
+             software package to perform atomistic simulations of solid-state,
+             liquid, molecular, and biological systems. It is especially aimed at
+             massively parallel and linear-scaling electronic structure methods and
+             state-of-the-art ab initio molecular dynamics simulations. Excellent
+             performance for electronic structure calculations is achieved using
+             novel algorithms implemented for modern high-performance computing
+             systems. This review revisits the main capabilities of CP2K to perform
+             efficient and accurate electronic structure simulations. The emphasis
+             is put on density functional theory and multiple post-Hartree-Fock
+             methods using the Gaussian and plane wave approach and its augmented
+             all-electron extension.},
+    doi =      {10.1063/5.0007045},
+}
+
