@@ -42,7 +42,12 @@ Parallel computing and performance optimization
 
 # Citation and contact
 
-ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
+```{bibliography}
+---
+filter: False
+---
+Zeng_PhysChemChemPhys_2020_v22_p683
+```
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 

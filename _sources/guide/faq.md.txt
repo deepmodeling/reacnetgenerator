@@ -4,11 +4,11 @@
 
 Generally ReacNetGenerator has no limitation on any specific elements.
 
-When perceiving bond orders from atomic coordinates, ReacNetGenerator will call [Open Babel][openbabel] which reads [element parameters](https://github.com/openbabel/openbabel/blob/2f34bda337d7ddefa8f2bebfc23931a63e45241f/src/elementtable.h).
+When perceiving bond orders from atomic coordinates, ReacNetGenerator will call [Open Babel][openbabel] which reads [element parameters](https://github.com/openbabel/openbabel/blob/2f34bda337d7ddefa8f2bebfc23931a63e45241f/src/elementtable.h).{cite:p}`O'Boyle_JCheminform_2011_v3_p33`
 The parameters may not fit the system.
 If you have new ideas about parameters, you can report to [Open Babel][openbabel] and recompile Open Babel from the new source code.
 
-When processing a ReaxFF bond file, bond orders are directly provided by ReaxFF with decimal rounding.
+When processing a ReaxFF bond file, bond orders are directly provided by ReaxFF with decimal rounding.{cite:p}`Aktulga_ParallelComputing_2012_v38_p245`
 The accuracy of the bond orders depends on the accuracy of the force field.
 
 ## Out of memory (OOM)
