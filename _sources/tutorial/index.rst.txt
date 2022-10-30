@@ -13,3 +13,9 @@ Examples
 
    methane
    cl20
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Publications
+
+   Publications driven by ReacNetGenerator <http://njzjz.win/reacnetgenerator/>
