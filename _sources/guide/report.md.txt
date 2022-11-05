@@ -40,7 +40,11 @@ The last column shows all the bonds in the molecule.
 suffix: `.route`
 
 This file contains the route of each atom.
-It shows which species an atom is inside thorugh the whole trajectory.
+It shows which species an atom is inside thorugh the whole trajectory in the following format:
+
+```
+Atom {idx}: {time} {SMILES} -> {time} {SMILES} -> ...
+```
 
 ## Reaction files
 
