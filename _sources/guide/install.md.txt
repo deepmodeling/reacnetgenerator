@@ -1,5 +1,9 @@
 # Installation
 
+:::{note}
+The latest version requires Python 3.7 or later.
+:::
+
 ## Install via conda
 
 You can [install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda, and install ReacNetGenerator easily with conda:
@@ -11,6 +15,8 @@ conda install reacnetgenerator -c conda-forge
 ## Install via pip
 
 ```bash
+# upgrade pip as old pip may not be supported
+pip install -U pip
 pip install reacnetgenerator
 ```
 
