@@ -13,9 +13,9 @@ The accuracy of the bond orders depends on the accuracy of the force field.
 
 ## Out of memory (OOM)
 
-When processing a large trajectory, you may get different OOM errors such as `Memory Error`, or subprocesses are directly killed by the system.
+When processing a large trajectory, you may get different OOM errors such as `Memory Error`, or subprocesses are directly killed by the system with `broken pipe` thrown.
 If you have a machine that has more memory, just use it.
-Otherwise, try to reduce the size of the trajectory or split the trajectory into multiple files.
+Otherwise, try to reduce the size of the trajectory or split the trajectory into multiple files or increase the number given by `--stepinterval`.
 It is also helpful to recuding the number of processes. 
 
 If you are using a Windows OS, it's known that the program may consume large memory through multiprocessing.
