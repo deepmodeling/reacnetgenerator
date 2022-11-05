@@ -6,6 +6,7 @@ Examples
    :caption: Tutorials
 
    install.ipynb
+   analysis.ipynb
 
 .. toctree::
    :maxdepth: 2
