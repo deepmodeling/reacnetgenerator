@@ -28,13 +28,13 @@ Simple example
 ReacNetGenerator can process any kind of trajectory files containing 
 atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1
 all custom 100 dump.reaxc id type x y z” in LAMMPS:
-$ reacnetgenerator --type dump -i dump.reaxc -a C H O
+$ reacnetgenerator --type dump -i dump.reaxc -a C H O --nohmm
 where C, H, and O are atomic names in the input file. Analysis report
 will be generated automatically.
 
 Also, ReacNetGenerator can process files containing bond information, 
 e.g. LAMMPS bond file:
-$ reacnetgenerator --type bond -i bonds.reaxc -a C H O
+$ reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm
 
 You can running the following script for help:
 $ reacnetgenerator -h

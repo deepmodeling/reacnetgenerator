@@ -1,6 +1,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 import argparse
+import textwrap
 from typing import List
 from . import __version__
 from ._detect import _Detect 
@@ -14,43 +15,70 @@ def main_parser() -> argparse.ArgumentParser:
         reacnetgenerator cli parser
     """
     parser = argparse.ArgumentParser(
-        description=f'ReacNetGenerator {__version__}')
+        description='ReacNetGenerator is an automatic reaction network generator for reactive molecular dynamics simulation.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=textwrap.dedent("""\
+        Examples:
+            reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm
+        """))
     parser.add_argument(
         '-i', '--inputfilename', nargs='*',
-        help='Input trajectory file, e.g. bonds.reaxc', required=True)
-    parser.add_argument('-a', '--atomname',
-                        help='Atomic names in the trajectory, e.g. C H O',
-                        nargs='*', required=True)
+        help='Input trajectory file(s), e.g. bonds.reaxc; If multiple file are given, they are concatenated.',
+        required=True)
     parser.add_argument(
-        '--nohmm', help='Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly read the related section in the paper',
+        '-a', '--atomname',
+        help='Atomic names in the trajectory, e.g. C H O',
+        nargs='*', required=True)
+    parser.add_argument(
+        '--nohmm',
+        help=('Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly '
+              'read the related section in the paper'),
         action="store_true")
     parser.add_argument(
         '--miso', help='Merge the isomers',type=int, default=0)
     parser.add_argument(
-        '--dump', help='(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.', action="store_true")
+        '--dump',
+        help='(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.',
+        action="store_true")
     parser.add_argument(
-        '--type', '-t', help='Input file type', choices=list(_Detect.subclasses.keys()),
+        '--type', '-t',
+        help='Input file type',
+        choices=list(_Detect.subclasses.keys()),
         default='lammpsbondfile')
     parser.add_argument(
-        '--nopbc', help='Disable PBC.', action="store_true")
+        '--nopbc',
+        help='Disable PBC.',
+        action="store_true")
     parser.add_argument(
-        '--cell', '-c', nargs='+', type=float, help='Cell')
+        '--cell', '-c', nargs='+', type=float,
+        help=('Cell information if PBC is enabled and the input file does not contain cell information. '
+              'The cell information should be in 3x3 matrix format.'))
     parser.add_argument(
-        '-n', '-np', '--nproc', help='Number of processes', type=int)
+        '-n', '-np', '--nproc', help='Number of processes, by default using all processes', type=int)
     parser.add_argument(
         '-s', '--selectatoms',
-        help='Select atoms in the reaction network, e.g. C', nargs='*')
+        help='Select element(s) in the reaction network, e.g. C', nargs='*')
     parser.add_argument(
-        '--stepinterval', help='Step interval', type=int, default=1)
+        '--stepinterval',
+        help='Step interval, i.e. read every N step from the trajectory',
+        type=int, default=1)
     parser.add_argument(
-        '--split', help='Split number for the time axis', type=int, default=1)
+        '--split',
+        help='Split number for the time axis; the whole trajectroy will be splited into N parts for analysis',
+        type=int, default=1)
     parser.add_argument(
         '--maxspecies', help='Max number of nodes (species) in the network', type=int, default=20)
     parser.add_argument(
-        '--matrixa', help='Matrix A of HMM parameters', type=float, nargs=4, default=[0.999, 0.001, 0.001, 0.999])
+        '--matrixa',
+        help='Transition matrix A of HMM parameters',
+        type=float, nargs=4, default=[0.999, 0.001, 0.001, 0.999])
     parser.add_argument(
-        '--matrixb', help='Matrix B of HMM parameters', type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
-    parser.add_argument('--urls', action='append', nargs=2, type=str, help='Download files')
+        '--matrixb',
+        help='Emission matrix B of HMM parameters',
+        type=float, nargs=4, default=[0.6, 0.4, 0.4, 0.6])
+    parser.add_argument(
+        '--urls', action='append', nargs=2, type=str,
+        help='Download files before analysis, in the format of `--urls filename url`')
     parser.add_argument('--version', action='version', version='ReacNetGenerator v%s' % __version__)
     return parser
 
