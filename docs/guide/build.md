@@ -13,6 +13,8 @@ Then build ReacNetGenerator with one of the following guides:
 
 Use `pip` to install in the main directory of ReacNetGenerator. Note that a C/C++ compiler must be installed.
 ```bash
+# upgrade pip as old pip may not be supported
+pip install -U pip
 pip install .
 ```
 
