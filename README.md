@@ -20,6 +20,7 @@ jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 ## Guide and Tutorial
 
+The latest version requires Python 3.7 or later.
 You can install ReacNetGenerator with `conda`:
 
 ```sh
