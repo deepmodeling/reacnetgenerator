@@ -35,7 +35,7 @@ jobs:
           # macos-x86-64
           - os: macos-latest
             python: 37
-            platform_id: macosx_universal2
+            platform_id: macosx_x86_64
           - os: macos-latest
             python: 38
             platform_id: macosx_universal2
