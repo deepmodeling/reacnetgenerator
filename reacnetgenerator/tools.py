@@ -78,7 +78,8 @@ def read_reactions(reacfile: Union[str, Path]) -> List[Tuple[int, Counter, str]]
 def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell: np.ndarray, timestep: float) -> Dict[str, float]:
     """Calculate the rate constant of each reaction.
 
-    The rate constants are calculated by the method developed in [1].
+    The rate constants are calculated by the method developed in [1]_.
+    The time interval of the trajectory is assumed to be uniform.
 
     Parameters
     ----------
@@ -95,7 +96,7 @@ def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell:
     -------
     rates : Dict[str, float]
         The rate of each reaction. The dict key is the reaction SMILES.
-        The value is in unit of [(cm^3/mol)s^(-1)].
+        The value is in unit of [(cm^3/mol)^(n-1)s^(-1)], where n is the reaction order.
 
     References
     ----------
@@ -116,8 +117,8 @@ def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell:
     step_idx, n_species = read_species(specfile)
     occs = read_reactions(reacfile)
 
-    # total time during simulation
-    time_tot = (step_idx[-1] - step_idx[0]) * timestep
+    # time interval between two frames
+    time_int = (step_idx[1] - step_idx[0]) * timestep
     # volume of the cell
     volume = ase_cell.volume
     volume *= 10**-24 # Ang^3 to cm^3
@@ -131,6 +132,6 @@ def calculate_rate(specfile: Union[str, Path], reacfile: Union[str, Path], cell:
         nu = np.array(list(reacts.values()))
         c_po = np.power(n_react / volume_times_na, np.repeat(nu, n_react.shape[1]).reshape(n_react.shape))
         c_tot = np.sum(np.prod(c_po, axis=0))
-        k = occ / (volume_times_na * time_tot * c_tot)
+        k = occ / (volume_times_na * time_int * c_tot)
         rates[reactions] = k
     return rates
