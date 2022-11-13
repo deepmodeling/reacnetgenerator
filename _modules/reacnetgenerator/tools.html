@@ -82,7 +82,8 @@
 <div class=viewcode-block id=calculate_rate><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.tools.calculate_rate>[docs]</a><span class=k>def</span> <span class=nf>calculate_rate</span><span class=p>(</span><span class=n>specfile</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>Path</span><span class=p>],</span> <span class=n>reacfile</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>Path</span><span class=p>],</span> <span class=n>cell</span><span class=p>:</span> <span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>,</span> <span class=n>timestep</span><span class=p>:</span> <span class=nb>float</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Dict</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>float</span><span class=p>]:</span>
     <span class=sd>&quot;&quot;&quot;Calculate the rate constant of each reaction.</span>
 
-<span class=sd>    The rate constants are calculated by the method developed in [1].</span>
+<span class=sd>    The rate constants are calculated by the method developed in [1]_.</span>
+<span class=sd>    The time interval of the trajectory is assumed to be uniform.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -99,7 +100,7 @@
 <span class=sd>    -------</span>
 <span class=sd>    rates : Dict[str, float]</span>
 <span class=sd>        The rate of each reaction. The dict key is the reaction SMILES.</span>
-<span class=sd>        The value is in unit of [(cm^3/mol)s^(-1)].</span>
+<span class=sd>        The value is in unit of [(cm^3/mol)^(n-1)s^(-1)], where n is the reaction order.</span>
 
 <span class=sd>    References</span>
 <span class=sd>    ----------</span>
@@ -120,8 +121,8 @@
     <span class=n>step_idx</span><span class=p>,</span> <span class=n>n_species</span> <span class=o>=</span> <span class=n>read_species</span><span class=p>(</span><span class=n>specfile</span><span class=p>)</span>
     <span class=n>occs</span> <span class=o>=</span> <span class=n>read_reactions</span><span class=p>(</span><span class=n>reacfile</span><span class=p>)</span>
 
-    <span class=c1># total time during simulation</span>
-    <span class=n>time_tot</span> <span class=o>=</span> <span class=p>(</span><span class=n>step_idx</span><span class=p>[</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span> <span class=o>-</span> <span class=n>step_idx</span><span class=p>[</span><span class=mi>0</span><span class=p>])</span> <span class=o>*</span> <span class=n>timestep</span>
+    <span class=c1># time interval between two frames</span>
+    <span class=n>time_int</span> <span class=o>=</span> <span class=p>(</span><span class=n>step_idx</span><span class=p>[</span><span class=mi>1</span><span class=p>]</span> <span class=o>-</span> <span class=n>step_idx</span><span class=p>[</span><span class=mi>0</span><span class=p>])</span> <span class=o>*</span> <span class=n>timestep</span>
     <span class=c1># volume of the cell</span>
     <span class=n>volume</span> <span class=o>=</span> <span class=n>ase_cell</span><span class=o>.</span><span class=n>volume</span>
     <span class=n>volume</span> <span class=o>*=</span> <span class=mi>10</span><span class=o>**-</span><span class=mi>24</span> <span class=c1># Ang^3 to cm^3</span>
@@ -135,7 +136,7 @@
         <span class=n>nu</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=nb>list</span><span class=p>(</span><span class=n>reacts</span><span class=o>.</span><span class=n>values</span><span class=p>()))</span>
         <span class=n>c_po</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>power</span><span class=p>(</span><span class=n>n_react</span> <span class=o>/</span> <span class=n>volume_times_na</span><span class=p>,</span> <span class=n>np</span><span class=o>.</span><span class=n>repeat</span><span class=p>(</span><span class=n>nu</span><span class=p>,</span> <span class=n>n_react</span><span class=o>.</span><span class=n>shape</span><span class=p>[</span><span class=mi>1</span><span class=p>])</span><span class=o>.</span><span class=n>reshape</span><span class=p>(</span><span class=n>n_react</span><span class=o>.</span><span class=n>shape</span><span class=p>))</span>
         <span class=n>c_tot</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>sum</span><span class=p>(</span><span class=n>np</span><span class=o>.</span><span class=n>prod</span><span class=p>(</span><span class=n>c_po</span><span class=p>,</span> <span class=n>axis</span><span class=o>=</span><span class=mi>0</span><span class=p>))</span>
-        <span class=n>k</span> <span class=o>=</span> <span class=n>occ</span> <span class=o>/</span> <span class=p>(</span><span class=n>volume_times_na</span> <span class=o>*</span> <span class=n>time_tot</span> <span class=o>*</span> <span class=n>c_tot</span><span class=p>)</span>
+        <span class=n>k</span> <span class=o>=</span> <span class=n>occ</span> <span class=o>/</span> <span class=p>(</span><span class=n>volume_times_na</span> <span class=o>*</span> <span class=n>time_int</span> <span class=o>*</span> <span class=n>c_tot</span><span class=p>)</span>
         <span class=n>rates</span><span class=p>[</span><span class=n>reactions</span><span class=p>]</span> <span class=o>=</span> <span class=n>k</span>
     <span class=k>return</span> <span class=n>rates</span></div>
 </pre></div> </article> <footer class=bd-footer-article> <!-- Previous / next buttons --> <div class=prev-next-area> </div> </footer> </div> <div class="bd-sidebar-secondary bd-toc"> <div class=toc-item> <div id=searchbox></div> </div> <div class=toc-item> </div> <div class=toc-item> </div> </div> </div> <footer class=bd-footer-content> <div class=bd-footer-content__inner> </div> </footer> </main> </div> </div> <!-- Scripts loaded after <body> so the DOM is not blocked --> <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1e1de1a1873e13ef5536"></script> <footer class=bd-footer><div class="bd-footer__inner container"> <div class=footer-item> <p class=copyright> &copy; Copyright 2019-2022, East China Normal University.<br> </p> </div> <div class=footer-item> <p class=sphinx-version> Created using <a href=http://sphinx-doc.org/ >Sphinx</a> 5.3.0.<br> </p> </div> </div> </footer> </body> </html>
