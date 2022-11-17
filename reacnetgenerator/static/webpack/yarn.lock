@@ -3484,7 +3484,7 @@ __metadata:
     postcss-import: 15.0.0
     postcss-loader: 7.0.1
     query-string: 7.1.1
-    regenerator-runtime: 0.13.10
+    regenerator-runtime: 0.13.11
     sass: 1.56.1
     sass-loader: 13.2.0
     script-ext-html-webpack-plugin: 2.1.5
@@ -3538,10 +3538,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"regenerator-runtime@npm:0.13.10":
-  version: 0.13.10
-  resolution: "regenerator-runtime@npm:0.13.10"
-  checksum: 09893f5a9e82932642d9a999716b6c626dc53ef2a01307c952ebbf8e011802360163a37c304c18a6c358548be5a72b448e37209954a18696f21e438c81cbb4b9
+"regenerator-runtime@npm:0.13.11":
+  version: 0.13.11
+  resolution: "regenerator-runtime@npm:0.13.11"
+  checksum: 27481628d22a1c4e3ff551096a683b424242a216fee44685467307f14d58020af1e19660bf2e26064de946bad7eff28950eae9f8209d55723e2d9351e632bbb4
   languageName: node
   linkType: hard
 
