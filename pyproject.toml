@@ -46,7 +46,7 @@ dependencies = [
     'hmmlearn>=0.2.1',
     'ase',
     'scour',
-    'tqdm',
+    'tqdm>=4.9.0',
     'coloredlogs',
     'pandas',
     'lz4',
