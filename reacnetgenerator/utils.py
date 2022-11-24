@@ -30,7 +30,7 @@ import lz4.frame
 import numpy as np
 import requests
 from requests.adapters import HTTPAdapter
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from ._logging import logger
 
@@ -353,7 +353,7 @@ def multiopen(pool: "multiprocessing.pool.Pool",
     else:
         obj = pool.imap(func, obj, 100)
     if bar:
-        obj = tqdm(obj, desc=desc, unit=unit, total=total)
+        obj = tqdm(obj, desc=desc, unit=unit, total=total, disable=None)
     return obj
 
 

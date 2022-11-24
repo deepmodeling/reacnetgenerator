@@ -25,7 +25,7 @@ import networkx as nx
 import networkx.algorithms.isomorphism as iso
 import numpy as np
 from rdkit import Chem
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from ._reaction import ReactionsFinder
 from .utils import (
@@ -95,8 +95,14 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         conflict = np.zeros((self.N, self.step), dtype=int)
         with open(self.hmmfilename if self.runHMM else self.originfilename, 'rb') as fh, \
              open(self.moleculetemp2filename, 'rb') as ft:
-            for i, (linehz, linetz) in enumerate(tqdm(zip(read_compressed_block(fh), itertools.zip_longest(*[read_compressed_block(ft)] * 4)),
-                                                      total=self.hmmit, desc="Analyze atoms", unit="molecule"), start=1):
+            for i, (linehz, linetz) in enumerate(
+                    tqdm(zip(read_compressed_block(fh),
+                    itertools.zip_longest(*[read_compressed_block(ft)] * 4)),
+                    total=self.hmmit,
+                    desc="Analyze atoms",
+                    unit="molecule",
+                    disable=None,
+                    ), start=1):
                 lineh = bytestolist(linehz)
                 atom = np.array(bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
@@ -191,8 +197,13 @@ class _CollectMolPaths(_CollectPaths):
         self.n_unknown = 0
         with WriteBuffer(open(self.moleculefilename, 'w'), sep='\n') as fm, \
              open(self.moleculetemp2filename, 'rb') as ft:
-            for line in tqdm(itertools.zip_longest(*[read_compressed_block(ft)] * 4),
-                            total=self.hmmit, desc="Indentify isomers", unit="molecule"):
+            for line in tqdm(
+                    itertools.zip_longest(*[read_compressed_block(ft)] * 4),
+                    total=self.hmmit,
+                    desc="Indentify isomers",
+                    unit="molecule",
+                    disable=None,
+                    ):
                 atoms, bonds = self._getatomsandbonds(line)
                 molecule = Molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
