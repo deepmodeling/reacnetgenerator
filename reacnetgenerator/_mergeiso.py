@@ -1,6 +1,6 @@
 import itertools
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import numpy as np
 
 from .utils import (
@@ -35,7 +35,10 @@ class _mergeISO(SharedRNGData):
         _oldbbond = b'0'
         _oldindex = []
         _oldfreq = 0
-        for _bitem, _bbond0, _bbond1, _bindex in tqdm(sorted(items, key=lambda x: (x[0], x[1])), desc='Merge isomers:'):
+        for _bitem, _bbond0, _bbond1, _bindex in tqdm(
+                sorted(items, key=lambda x: (x[0], x[1])),
+                desc='Merge isomers:',
+                disable=None):
             _index = bytestolist(_bindex)
             _freq = len(_index)
             if (_bitem == _oldbitem) and ((_bbond0 == _oldbbond[0]) or (self.miso > 1)):
