@@ -34,7 +34,7 @@
 <span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
 <span class=kn>import</span> <span class=nn>requests</span>
 <span class=kn>from</span> <span class=nn>requests.adapters</span> <span class=kn>import</span> <span class=n>HTTPAdapter</span>
-<span class=kn>from</span> <span class=nn>tqdm</span> <span class=kn>import</span> <span class=n>tqdm</span>
+<span class=kn>from</span> <span class=nn>tqdm.auto</span> <span class=kn>import</span> <span class=n>tqdm</span>
 
 <span class=kn>from</span> <span class=nn>._logging</span> <span class=kn>import</span> <span class=n>logger</span>
 
@@ -357,7 +357,7 @@
     <span class=k>else</span><span class=p>:</span>
         <span class=n>obj</span> <span class=o>=</span> <span class=n>pool</span><span class=o>.</span><span class=n>imap</span><span class=p>(</span><span class=n>func</span><span class=p>,</span> <span class=n>obj</span><span class=p>,</span> <span class=mi>100</span><span class=p>)</span>
     <span class=k>if</span> <span class=n>bar</span><span class=p>:</span>
-        <span class=n>obj</span> <span class=o>=</span> <span class=n>tqdm</span><span class=p>(</span><span class=n>obj</span><span class=p>,</span> <span class=n>desc</span><span class=o>=</span><span class=n>desc</span><span class=p>,</span> <span class=n>unit</span><span class=o>=</span><span class=n>unit</span><span class=p>,</span> <span class=n>total</span><span class=o>=</span><span class=n>total</span><span class=p>)</span>
+        <span class=n>obj</span> <span class=o>=</span> <span class=n>tqdm</span><span class=p>(</span><span class=n>obj</span><span class=p>,</span> <span class=n>desc</span><span class=o>=</span><span class=n>desc</span><span class=p>,</span> <span class=n>unit</span><span class=o>=</span><span class=n>unit</span><span class=p>,</span> <span class=n>total</span><span class=o>=</span><span class=n>total</span><span class=p>,</span> <span class=n>disable</span><span class=o>=</span><span class=kc>None</span><span class=p>)</span>
     <span class=k>return</span> <span class=n>obj</span></div>
 
 
