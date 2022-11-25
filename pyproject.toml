@@ -128,5 +128,5 @@ include = [
 plugins = ["Cython.Coverage"]
 
 [tool.coverage.report]
-show_missing = True
+show_missing = true
 omit = ["*test*"]
