@@ -22,4 +22,4 @@ jobs:
 #      if: github.ref == 'refs/heads/master'
     - uses: codecov/codecov-action@v3
       with:
-        files: ./.tox/coverage.xml
+        files: ./.tox/py310/coverage.xml
