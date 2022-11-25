@@ -17,9 +17,10 @@ jobs:
         python-version: '3.10'
         architecture: 'x64'
     - run: pip install tox tox-gh-actions
+    - name: Download codecov
+      run: |
+        curl -o /usr/bin/codecov -Os https://uploader.codecov.io/v0.1.0_4653/linux/codecov
+        chmod +x /usr/bin/codecov
     - run: tox
 #    - run: conda build conda/recipe -c conda-forge --output-folder conda
 #      if: github.ref == 'refs/heads/master'
-    - uses: codecov/codecov-action@v3
-      with:
-        files: ./.tox/py310/coverage.xml
