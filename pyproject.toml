@@ -76,7 +76,6 @@ test = [
     'pytest-cov<4',
     'cython',
     'pytest-xvfb',
-    "codecov>=1.4.0",
     "pytest-console-scripts",
     "pytest-mock",
     "pytest-benchmark",
