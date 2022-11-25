@@ -125,7 +125,7 @@ include = [
 ]
 
 [tool.coverage.run]
-plugins = "Cython.Coverage"
+plugins = ["Cython.Coverage"]
 
 [tool.coverage.report]
 show_missing = "true"
