@@ -123,3 +123,10 @@ environment-pass = ["CIBW_BUILD"]
 include = [
      "reacnetgenerator",
 ]
+
+[tool.coverage.run]
+plugins = "Cython.Coverage"
+
+[tool.coverage.report]
+show_missing = "true"
+omit = "*test*"
