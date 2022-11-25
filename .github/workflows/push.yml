@@ -19,7 +19,7 @@ jobs:
     - run: pip install tox tox-gh-actions
     - name: Download codecov
       run: |
-        curl -o /usr/bin/codecov -Os https://uploader.codecov.io/v0.1.0_4653/linux/codecov
+        curl -o /usr/bin/codecov -s https://uploader.codecov.io/v0.1.0_4653/linux/codecov
         chmod +x /usr/bin/codecov
     - run: tox
 #    - run: conda build conda/recipe -c conda-forge --output-folder conda
