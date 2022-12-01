@@ -380,7 +380,7 @@ class _DetectLAMMPSdump(_DetectCrd):
         yhi = ss[1][1] - max(0., yz)
         zlo = ss[2][0]
         zhi = ss[2][1]
-        boxsize = np.array([[xhi-xlo, 0., 0.], # typing: ignore
+        boxsize = np.array([[xhi-xlo, 0., 0.], # type: ignore
                             [xy, yhi-ylo, 0.],
                             [xz, yz, zhi-zlo]])
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
