@@ -2821,10 +2821,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"paginationjs@npm:2.1.5":
-  version: 2.1.5
-  resolution: "paginationjs@npm:2.1.5"
-  checksum: d8e47ee5b8e9b06e3f43b75faa2b988e19fc3722e9bbb5c3ea656930236bcae2b2b88fdddcf61aba2893343ca84893e6082ab41428d97a0f5103983f4dfd220e
+"paginationjs@npm:2.3.0":
+  version: 2.3.0
+  resolution: "paginationjs@npm:2.3.0"
+  checksum: 1c0a412551a22848f8f5ecad2da5b77a9534e39f918ab453595010e6d6646c283c4599639e9d2b46e04a2294d2fa33c27967c94ee660f8f8c091150c2a8b63c7
   languageName: node
   linkType: hard
 
@@ -3485,7 +3485,7 @@ __metadata:
     jsrender: 1.0.12
     magnific-popup: 1.1.0
     mini-css-extract-plugin: 2.7.1
-    paginationjs: 2.1.5
+    paginationjs: 2.3.0
     popper.js: 1.16.1
     postcss: 8.4.19
     postcss-import: 15.0.1
