@@ -11,6 +11,8 @@ If you have new ideas about parameters, you can report to [Open Babel][openbabel
 When processing a ReaxFF bond file, bond orders are directly provided by ReaxFF with decimal rounding.{cite:p}`Aktulga_ParallelComputing_2012_v38_p245`
 The accuracy of the bond orders depends on the accuracy of the force field.
 
+You can refer the list of [publications driven by ReacNetGenerator](https://njzjz.win/reacnetgenerator/) to see other researchers' applications.
+
 ## Out of memory (OOM)
 
 When processing a large trajectory, you may get different OOM errors such as `Memory Error`, or subprocesses are directly killed by the system with `broken pipe` thrown.
