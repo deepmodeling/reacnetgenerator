@@ -2231,10 +2231,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery@npm:3.6.1":
-  version: 3.6.1
-  resolution: "jquery@npm:3.6.1"
-  checksum: 6177d866a74f1137cad800f142c7cdbd5ab19cd4282546f8bdb4890c9f933b1d542ab96f2aa15d007e43c98de7315b0513e849ec5359d3ac5640f720892fe547
+"jquery@npm:3.6.2":
+  version: 3.6.2
+  resolution: "jquery@npm:3.6.2"
+  checksum: b8ca408b9447e67e614204dbc4b2e71c6ea76eff281942d233769d969eed97fe28ffa34976e9ad9d3faad9b0a0d947d7e326ed272243679a9f5812a586c84168
   languageName: node
   linkType: hard
 
@@ -3490,7 +3490,7 @@ __metadata:
     html-inline-css-webpack-plugin: 1.11.1
     html-webpack-plugin: 5.5.0
     ifdef-loader: 2.3.2
-    jquery: 3.6.1
+    jquery: 3.6.2
     jsrender: 1.0.12
     magnific-popup: 1.1.0
     mini-css-extract-plugin: 2.7.2
