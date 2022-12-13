@@ -959,13 +959,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chroma-js@npm:^2.4.2":
-  version: 2.4.2
-  resolution: "chroma-js@npm:2.4.2"
-  checksum: cf9884c02d406286e4370599bcd1afbf089384407df46b3a69edfedcba7bb99e8f959a5cfdbfec750b305c441c06ca40cd1f70ba3a6c2ce739ac09a92520ddae
-  languageName: node
-  linkType: hard
-
 "chrome-trace-event@npm:^1.0.2":
   version: 1.0.3
   resolution: "chrome-trace-event@npm:1.0.3"
@@ -3511,7 +3504,7 @@ __metadata:
     sass: 1.56.2
     sass-loader: 13.2.0
     script-ext-html-webpack-plugin: 2.1.5
-    smiles-drawer: 2.1.2
+    smiles-drawer: 2.0.3
     startbootstrap-creative: 7.0.6
     string-replace-webpack-plugin: 0.1.3
     style-loader: 3.3.1
@@ -3843,12 +3836,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smiles-drawer@npm:2.1.2":
-  version: 2.1.2
-  resolution: "smiles-drawer@npm:2.1.2"
-  dependencies:
-    chroma-js: ^2.4.2
-  checksum: f23acbcea46d786ea491e4102d3d9a4787ab4c68e036e75352b5cd2b6f80b04202e4acf26b5df1c8156ede333dce45b4ae61cc02b74180d8e588de842bf15c68
+"smiles-drawer@npm:2.0.3":
+  version: 2.0.3
+  resolution: "smiles-drawer@npm:2.0.3"
+  checksum: 898b1b1ef84ba431e2ca900052468d8075db2a31eb51b0191dd067dd58c894ad665d2945b56e287ddff6660d1172e6b5a5f0a9c12acf1f97f8c0ec7592e6c7fe
   languageName: node
   linkType: hard
 
