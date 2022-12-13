@@ -122,6 +122,7 @@ let smilesDrawer = new SmilesDrawer.SvgDrawer({
     width: 500,
     bondThickness: 1,
     explicitHydrogens: true,
+    compactDrawing: false,
 });
 let svgs = {};
 
