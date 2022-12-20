@@ -20,7 +20,7 @@
     "bootstrap": "5.2.3",
     "bootstrap-select": "1.14.0-beta3",
     "d3": "3.5.17",
-    "jquery": "3.6.2",
+    "jquery": "3.6.3",
     "jsrender": "1.0.12",
     "magnific-popup": "1.1.0",
     "paginationjs": "2.4.2",
