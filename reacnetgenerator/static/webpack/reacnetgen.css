@@ -89,5 +89,5 @@
 }
 
 .paginationjs {
-    display: none!important;
+    display: unset!important;
 }
