@@ -13,7 +13,7 @@
 
 
 <div class=viewcode-block id=read_species><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.tools.read_species>[docs]</a><span class=k>def</span> <span class=nf>read_species</span><span class=p>(</span><span class=n>specfile</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>Path</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=n>Tuple</span><span class=p>[</span><span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>,</span> <span class=n>Dict</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>]]:</span>
-    <span class=sd>&quot;&quot;&quot;Read species from the species file (ends with .species).</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Read species from the species file (ends with .species).</span>
 
 <span class=sd>    For accuracy, HMM filter should be disabled.</span>
 
@@ -57,7 +57,7 @@
 
 
 <div class=viewcode-block id=read_reactions><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.tools.read_reactions>[docs]</a><span class=k>def</span> <span class=nf>read_reactions</span><span class=p>(</span><span class=n>reacfile</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>Path</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=n>List</span><span class=p>[</span><span class=n>Tuple</span><span class=p>[</span><span class=nb>int</span><span class=p>,</span> <span class=n>Counter</span><span class=p>,</span> <span class=nb>str</span><span class=p>]]:</span>
-    <span class=sd>&quot;&quot;&quot;Read reactions from the reactions file (ends with .reaction or .reactionsabcd).</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Read reactions from the reactions file (ends with .reaction or .reactionsabcd).</span>
 
 <span class=sd>    For accuracy, HMM filter should be disabled.</span>
 <span class=sd>    </span>
@@ -80,7 +80,7 @@
 
 
 <div class=viewcode-block id=calculate_rate><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.tools.calculate_rate>[docs]</a><span class=k>def</span> <span class=nf>calculate_rate</span><span class=p>(</span><span class=n>specfile</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>Path</span><span class=p>],</span> <span class=n>reacfile</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>Path</span><span class=p>],</span> <span class=n>cell</span><span class=p>:</span> <span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>,</span> <span class=n>timestep</span><span class=p>:</span> <span class=nb>float</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Dict</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>float</span><span class=p>]:</span>
-    <span class=sd>&quot;&quot;&quot;Calculate the rate constant of each reaction.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Calculate the rate constant of each reaction.</span>
 
 <span class=sd>    The rate constants are calculated by the method developed in [1]_.</span>
 <span class=sd>    The time interval of the trajectory is assumed to be uniform.</span>
@@ -139,4 +139,4 @@
         <span class=n>k</span> <span class=o>=</span> <span class=n>occ</span> <span class=o>/</span> <span class=p>(</span><span class=n>volume_times_na</span> <span class=o>*</span> <span class=n>time_int</span> <span class=o>*</span> <span class=n>c_tot</span><span class=p>)</span>
         <span class=n>rates</span><span class=p>[</span><span class=n>reactions</span><span class=p>]</span> <span class=o>=</span> <span class=n>k</span>
     <span class=k>return</span> <span class=n>rates</span></div>
-</pre></div> </article> <footer class=bd-footer-article> <!-- Previous / next buttons --> <div class=prev-next-area> </div> </footer> </div> <div class="bd-sidebar-secondary bd-toc"> <div class=toc-item> <div id=searchbox></div> </div> <div class=toc-item> </div> <div class=toc-item> </div> </div> </div> <footer class=bd-footer-content> <div class=bd-footer-content__inner> </div> </footer> </main> </div> </div> <!-- Scripts loaded after <body> so the DOM is not blocked --> <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script> <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script> <footer class=bd-footer><div class="bd-footer__inner container"> <div class=footer-item> <p class=copyright> &copy; Copyright 2019-2022, East China Normal University.<br> </p> </div> <div class=footer-item> <p class=theme-version> Built with the <a href=https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html> PyData Sphinx Theme </a> 0.12.0. </p> </div> <div class=footer-item> <p class=sphinx-version> Created using <a href=http://sphinx-doc.org/ >Sphinx</a> 5.3.0.<br> </p> </div> </div> </footer> </body> </html>
+</pre></div> </article> <footer class=bd-footer-article> <!-- Previous / next buttons --> <div class=prev-next-area> </div> </footer> </div> <div class="bd-sidebar-secondary bd-toc"> <div class=toc-item> <div id=searchbox></div> </div> <div class=toc-item> </div> <div class=toc-item> </div> </div> </div> <footer class=bd-footer-content> <div class=bd-footer-content__inner> </div> </footer> </main> </div> </div> <!-- Scripts loaded after <body> so the DOM is not blocked --> <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script> <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script> <footer class=bd-footer><div class="bd-footer__inner container"> <div class=footer-item> <p class=copyright> &copy; Copyright 2019-2023, East China Normal University.<br> </p> </div> <div class=footer-item> <p class=theme-version> Built with the <a href=https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html> PyData Sphinx Theme </a> 0.12.0. </p> </div> <div class=footer-item> <p class=sphinx-version> Created using <a href=http://sphinx-doc.org/ >Sphinx</a> 5.3.0.<br> </p> </div> </div> </footer> </body> </html>

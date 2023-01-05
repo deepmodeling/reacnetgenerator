@@ -45,7 +45,7 @@
 
 
 <div class=viewcode-block id=WriteBuffer><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer>[docs]</a><span class=k>class</span> <span class=nc>WriteBuffer</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Store a buffer for writing files.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Store a buffer for writing files.</span>
 
 <span class=sd>    It is expensive to write to a file, so we need to make a buffer.</span>
 <span class=sd>    </span>
@@ -74,7 +74,7 @@
         <span class=bp>self</span><span class=o>.</span><span class=n>name</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>f</span><span class=o>.</span><span class=n>name</span>
 
 <div class=viewcode-block id=WriteBuffer.append><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.append>[docs]</a>    <span class=k>def</span> <span class=nf>append</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>text</span><span class=p>:</span> <span class=n>AnyStr</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-        <span class=sd>&quot;&quot;&quot;Append a text.</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Append a text.</span>
 <span class=sd>        </span>
 <span class=sd>        Parameters</span>
 <span class=sd>        ----------</span>
@@ -85,7 +85,7 @@
         <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>()</span></div>
 
 <div class=viewcode-block id=WriteBuffer.extend><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.extend>[docs]</a>    <span class=k>def</span> <span class=nf>extend</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>text</span><span class=p>:</span> <span class=n>Iterable</span><span class=p>[</span><span class=n>AnyStr</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-        <span class=sd>&quot;&quot;&quot;Extend texts.</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Extend texts.</span>
 
 <span class=sd>        Parameters</span>
 <span class=sd>        ----------</span>
@@ -96,7 +96,7 @@
         <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>()</span></div>
 
 <div class=viewcode-block id=WriteBuffer.check><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.check>[docs]</a>    <span class=k>def</span> <span class=nf>check</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-        <span class=sd>&quot;&quot;&quot;Check if the number of stored contents exceeds.</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Check if the number of stored contents exceeds.</span>
 <span class=sd>        </span>
 <span class=sd>        If so, the buffer will be flushed.</span>
 <span class=sd>        &quot;&quot;&quot;</span>
@@ -104,7 +104,7 @@
             <span class=bp>self</span><span class=o>.</span><span class=n>flush</span><span class=p>()</span></div>
 
 <div class=viewcode-block id=WriteBuffer.flush><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.flush>[docs]</a>    <span class=k>def</span> <span class=nf>flush</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-        <span class=sd>&quot;&quot;&quot;Flush the buffer.&quot;&quot;&quot;</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Flush the buffer.&quot;&quot;&quot;</span>
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>buff</span><span class=p>:</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>f</span><span class=o>.</span><span class=n>writelines</span><span class=p>([</span><span class=bp>self</span><span class=o>.</span><span class=n>sep</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>buff</span><span class=p>),</span> <span class=bp>self</span><span class=o>.</span><span class=n>sep</span><span class=p>])</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>buff</span><span class=p>[:]</span> <span class=o>=</span> <span class=p>[]</span></div>
@@ -118,7 +118,7 @@
 
 
 <div class=viewcode-block id=appendIfNotNone><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.appendIfNotNone>[docs]</a><span class=k>def</span> <span class=nf>appendIfNotNone</span><span class=p>(</span><span class=n>f</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>WriteBuffer</span><span class=p>,</span> <span class=n>ExitStack</span><span class=p>],</span> <span class=n>wbytes</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>AnyStr</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Append a line to a file if the line is not None.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Append a line to a file if the line is not None.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -135,7 +135,7 @@
 <div class=viewcode-block id=produce><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.produce>[docs]</a><span class=k>def</span> <span class=nf>produce</span><span class=p>(</span><span class=n>semaphore</span><span class=p>:</span> <span class=s2>&quot;multiprocessing.synchronize.Semaphore&quot;</span><span class=p>,</span>
             <span class=n>plist</span><span class=p>:</span> <span class=n>Iterable</span><span class=p>[</span><span class=n>Any</span><span class=p>],</span>
             <span class=n>parameter</span><span class=p>:</span> <span class=n>Any</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Generator</span><span class=p>[</span><span class=n>Tuple</span><span class=p>[</span><span class=n>Any</span><span class=p>,</span> <span class=n>Any</span><span class=p>],</span> <span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>]:</span>
-    <span class=sd>&quot;&quot;&quot;Item producer with a semaphore.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Item producer with a semaphore.</span>
 <span class=sd>    </span>
 <span class=sd>    Prevent large memory usage due to slow IO.</span>
 <span class=sd>    </span>
@@ -163,7 +163,7 @@
 
 
 <div class=viewcode-block id=compress><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.compress>[docs]</a><span class=k>def</span> <span class=nf>compress</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>bytes</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=nb>bytes</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Compress the line.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Compress the line.</span>
 
 <span class=sd>    This function reduces IO overhead to speed up the program. The functions will</span>
 <span class=sd>    use lz4 to compress, since lz4 has better performance</span>
@@ -190,7 +190,7 @@
 
 
 <div class=viewcode-block id=decompress><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.decompress>[docs]</a><span class=k>def</span> <span class=nf>decompress</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=nb>bytes</span><span class=p>,</span> <span class=n>isbytes</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>False</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>bytes</span><span class=p>]:</span>
-    <span class=sd>&quot;&quot;&quot;Decompress the line.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Decompress the line.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -211,7 +211,7 @@
 
 
 <div class=viewcode-block id=listtobytes><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.listtobytes>[docs]</a><span class=k>def</span> <span class=nf>listtobytes</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=n>Any</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>bytes</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Convert an object to a compressed line.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert an object to a compressed line.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -227,7 +227,7 @@
 
 
 <div class=viewcode-block id=read_compressed_block><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.read_compressed_block>[docs]</a><span class=k>def</span> <span class=nf>read_compressed_block</span><span class=p>(</span><span class=n>f</span><span class=p>:</span> <span class=n>BinaryIO</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Generator</span><span class=p>[</span><span class=nb>bytes</span><span class=p>,</span> <span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>]:</span>
-    <span class=sd>&quot;&quot;&quot;Read compressed binary file, assuming the format is size + data + size + data + ...</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Read compressed binary file, assuming the format is size + data + size + data + ...</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -248,7 +248,7 @@
 
 
 <div class=viewcode-block id=bytestolist><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.bytestolist>[docs]</a><span class=k>def</span> <span class=nf>bytestolist</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=nb>bytes</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Any</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Convert a compressed line to an object.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert a compressed line to an object.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -266,7 +266,7 @@
 
 
 <div class=viewcode-block id=listtostirng><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.listtostirng>[docs]</a><span class=k>def</span> <span class=nf>listtostirng</span><span class=p>(</span><span class=n>l</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>list</span><span class=p>,</span> <span class=nb>tuple</span><span class=p>,</span> <span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>],</span> <span class=n>sep</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span> <span class=n>Tuple</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=o>...</span><span class=p>]])</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Convert a list to string, that is easier to store.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert a list to string, that is easier to store.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -301,7 +301,7 @@
               <span class=n>desc</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>str</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
               <span class=n>unit</span><span class=p>:</span> <span class=nb>str</span> <span class=o>=</span> <span class=s2>&quot;it&quot;</span><span class=p>,</span>
               <span class=n>total</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Iterable</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Returns an interated object for process a file with multiple processors.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Returns an interated object for process a file with multiple processors.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -362,7 +362,7 @@
 
 
 <div class=viewcode-block id=SCOUROPTIONS><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS>[docs]</a><span class=k>class</span> <span class=nc>SCOUROPTIONS</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Scour (SVG optimization) options.&quot;&quot;&quot;</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Scour (SVG optimization) options.&quot;&quot;&quot;</span>
     <span class=n>strip_xml_prolog</span> <span class=o>=</span> <span class=kc>True</span>
     <span class=n>remove_titles</span> <span class=o>=</span> <span class=kc>True</span>
     <span class=n>remove_descriptions</span> <span class=o>=</span> <span class=kc>True</span>
@@ -377,7 +377,7 @@
 
 
 <div class=viewcode-block id=SharedRNGData><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.SharedRNGData>[docs]</a><span class=k>class</span> <span class=nc>SharedRNGData</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Share ReacNetGenerator data with a class of the submodule.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Share ReacNetGenerator data with a class of the submodule.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -406,13 +406,13 @@
                 <span class=nb>setattr</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>key</span><span class=p>,</span> <span class=kc>None</span><span class=p>)</span>
 
 <div class=viewcode-block id=SharedRNGData.returnkeys><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.SharedRNGData.returnkeys>[docs]</a>    <span class=k>def</span> <span class=nf>returnkeys</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-        <span class=sd>&quot;&quot;&quot;Return back keys to ReacNetGenerator class.&quot;&quot;&quot;</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Return back keys to ReacNetGenerator class.&quot;&quot;&quot;</span>
         <span class=k>for</span> <span class=n>key</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>returnedRNGKeys</span><span class=p>:</span>
             <span class=nb>setattr</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>rng</span><span class=p>,</span> <span class=n>key</span><span class=p>,</span> <span class=nb>getattr</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>key</span><span class=p>))</span></div></div>
 
 
 <div class=viewcode-block id=checksha256><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.checksha256>[docs]</a><span class=k>def</span> <span class=nf>checksha256</span><span class=p>(</span><span class=n>filename</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span> <span class=n>sha256_check</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]]):</span>
-    <span class=sd>&quot;&quot;&quot;Check sha256 of a file is correct.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Check sha256 of a file is correct.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -446,7 +446,7 @@
 <div class=viewcode-block id=download_file><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.download_file>[docs]</a><span class=k>async</span> <span class=k>def</span> <span class=nf>download_file</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]],</span>
                         <span class=n>pathfilename</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span>
                         <span class=n>sha256</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Download files from remote urls if not exists.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Download files from remote urls if not exists.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -485,7 +485,7 @@
 
 
 <div class=viewcode-block id=gather_download_files><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.gather_download_files>[docs]</a><span class=k>async</span> <span class=k>def</span> <span class=nf>gather_download_files</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>dict</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Asynchronously download files from remote urls if not exists.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Asynchronously download files from remote urls if not exists.</span>
 <span class=sd>    </span>
 <span class=sd>    See download_multifiles function for details.</span>
 <span class=sd>    </span>
@@ -497,7 +497,7 @@
 
 
 <div class=viewcode-block id=download_multifiles><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.download_multifiles>[docs]</a><span class=k>def</span> <span class=nf>download_multifiles</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>dict</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-    <span class=sd>&quot;&quot;&quot;Download multiple files from dicts.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Download multiple files from dicts.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -514,7 +514,7 @@
 
 
 <div class=viewcode-block id=run_mp><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.run_mp>[docs]</a><span class=k>def</span> <span class=nf>run_mp</span><span class=p>(</span><span class=n>nproc</span><span class=p>:</span> <span class=nb>int</span><span class=p>,</span> <span class=o>**</span><span class=n>arg</span><span class=p>:</span> <span class=n>Any</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Iterable</span><span class=p>[</span><span class=n>Any</span><span class=p>]:</span>
-    <span class=sd>&quot;&quot;&quot;Process a file with multiple processors.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Process a file with multiple processors.</span>
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -550,7 +550,7 @@
 
 
 <div class=viewcode-block id=must_be_list><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.must_be_list>[docs]</a><span class=k>def</span> <span class=nf>must_be_list</span><span class=p>(</span><span class=n>obj</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>Any</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=n>Any</span><span class=p>]])</span> <span class=o>-&gt;</span> <span class=n>List</span><span class=p>[</span><span class=n>Any</span><span class=p>]:</span>
-    <span class=sd>&quot;&quot;&quot;Convert a object to a list if the object is not a list.</span>
+<span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert a object to a list if the object is not a list.</span>
 <span class=sd>    </span>
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
@@ -566,4 +566,4 @@
     <span class=k>if</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>obj</span><span class=p>,</span> <span class=nb>list</span><span class=p>):</span>
         <span class=k>return</span> <span class=n>obj</span>
     <span class=k>return</span> <span class=p>[</span><span class=n>obj</span><span class=p>]</span></div>
-</pre></div> </article> <footer class=bd-footer-article> <!-- Previous / next buttons --> <div class=prev-next-area> </div> </footer> </div> <div class="bd-sidebar-secondary bd-toc"> <div class=toc-item> <div id=searchbox></div> </div> <div class=toc-item> </div> <div class=toc-item> </div> </div> </div> <footer class=bd-footer-content> <div class=bd-footer-content__inner> </div> </footer> </main> </div> </div> <!-- Scripts loaded after <body> so the DOM is not blocked --> <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script> <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script> <footer class=bd-footer><div class="bd-footer__inner container"> <div class=footer-item> <p class=copyright> &copy; Copyright 2019-2022, East China Normal University.<br> </p> </div> <div class=footer-item> <p class=theme-version> Built with the <a href=https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html> PyData Sphinx Theme </a> 0.12.0. </p> </div> <div class=footer-item> <p class=sphinx-version> Created using <a href=http://sphinx-doc.org/ >Sphinx</a> 5.3.0.<br> </p> </div> </div> </footer> </body> </html>
+</pre></div> </article> <footer class=bd-footer-article> <!-- Previous / next buttons --> <div class=prev-next-area> </div> </footer> </div> <div class="bd-sidebar-secondary bd-toc"> <div class=toc-item> <div id=searchbox></div> </div> <div class=toc-item> </div> <div class=toc-item> </div> </div> </div> <footer class=bd-footer-content> <div class=bd-footer-content__inner> </div> </footer> </main> </div> </div> <!-- Scripts loaded after <body> so the DOM is not blocked --> <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script> <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script> <footer class=bd-footer><div class="bd-footer__inner container"> <div class=footer-item> <p class=copyright> &copy; Copyright 2019-2023, East China Normal University.<br> </p> </div> <div class=footer-item> <p class=theme-version> Built with the <a href=https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html> PyData Sphinx Theme </a> 0.12.0. </p> </div> <div class=footer-item> <p class=sphinx-version> Created using <a href=http://sphinx-doc.org/ >Sphinx</a> 5.3.0.<br> </p> </div> </div> </footer> </body> </html>
