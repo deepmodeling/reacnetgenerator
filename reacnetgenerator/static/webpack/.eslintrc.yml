@@ -5,4 +5,5 @@ env:
 overrides: []
 parserOptions:
   ecmaVersion: latest
+  allowImportExportEverywhere: true
 rules: {}
