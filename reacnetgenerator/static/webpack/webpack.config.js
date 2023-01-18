@@ -2,7 +2,8 @@ const StringReplacePlugin = require("string-replace-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
-const HTMLInlineCSSWebpackPlugin = require("html-inline-css-webpack-plugin").default;
+const HTMLInlineCSSWebpackPlugin =
+    require("html-inline-css-webpack-plugin").default;
 const OptimizeCssAssetsPlugin = require('css-minimizer-webpack-plugin');
 const WebpackCdnPlugin = require('webpack-cdn-plugin');
 const webpack = require('webpack');

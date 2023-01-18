@@ -23,6 +23,7 @@ import tempfile
 from contextlib import ExitStack
 
 import numpy as np
+
 try:
     # hmmlearn v0.2.8 renamed MultinomialHMM to CategoricalHMM
     from hmmlearn.hmm import CategoricalHMM as MultinomialHMM
@@ -54,9 +55,23 @@ class _HMMFilter(SharedRNGData):
     step: int
 
     def __init__(self, rng):
-        SharedRNGData.__init__(self, rng, ['runHMM', 'getoriginfile', 'printfiltersignal',
-                                           'moleculetempfilename', 'nproc', 'temp1it', 'p', 'a', 'b', 'step'],
-                               ['moleculetemp2filename', 'originfilename', 'hmmfilename', 'hmmit'])
+        SharedRNGData.__init__(
+            self,
+            rng,
+            [
+                "runHMM",
+                "getoriginfile",
+                "printfiltersignal",
+                "moleculetempfilename",
+                "nproc",
+                "temp1it",
+                "p",
+                "a",
+                "b",
+                "step",
+            ],
+            ["moleculetemp2filename", "originfilename", "hmmfilename", "hmmit"],
+        )
 
     def filter(self):
         """HMM Filters.
@@ -72,7 +87,7 @@ class _HMMFilter(SharedRNGData):
         self.returnkeys()
 
     def _initHMM(self):
-        
+
         self._model = MultinomialHMM(n_components=2, algorithm="viterbi")
         self._model.startprob_ = self.p
         self._model.transmat_ = self.a
@@ -82,8 +97,7 @@ class _HMMFilter(SharedRNGData):
         line_c = item
         value = bytestolist(line_c[-1])
         origin = idx_to_signal(value, self.step)
-        originbytes = listtobytes(
-            origin) if self.getoriginfile else None
+        originbytes = listtobytes(origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
             hmmsignal = self._model.predict(origin).astype(np.int8)
@@ -92,10 +106,15 @@ class _HMMFilter(SharedRNGData):
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
-        with WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.getoriginfile or not self.runHMM else ExitStack() as fo, \
-                WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) if self.runHMM else ExitStack() as fh, \
-                open(self.moleculetempfilename, 'rb') as ft, \
-                WriteBuffer(tempfile.NamedTemporaryFile('wb', delete=False)) as ft2:
+        with WriteBuffer(
+            tempfile.NamedTemporaryFile("wb", delete=False)
+        ) if self.getoriginfile or not self.runHMM else ExitStack() as fo, WriteBuffer(
+            tempfile.NamedTemporaryFile("wb", delete=False)
+        ) if self.runHMM else ExitStack() as fh, open(
+            self.moleculetempfilename, "rb"
+        ) as ft, WriteBuffer(
+            tempfile.NamedTemporaryFile("wb", delete=False)
+        ) as ft2:
             self.moleculetemp2filename = ft2.name
             if self.getoriginfile or not self.runHMM:
                 assert not isinstance(fo, ExitStack)
@@ -107,8 +126,15 @@ class _HMMFilter(SharedRNGData):
                 self.hmmfilename = fh.name
             else:
                 self.hmmfilename = None
-            results = run_mp(self.nproc, func=self._getoriginandhmm, l=read_compressed_block(ft),
-                                nlines=4, total=self.temp1it, desc="HMM filter", unit="molecule")
+            results = run_mp(
+                self.nproc,
+                func=self._getoriginandhmm,
+                l=read_compressed_block(ft),
+                nlines=4,
+                total=self.temp1it,
+                desc="HMM filter",
+                unit="molecule",
+            )
             hmmit = 0
             for originbytes, hmmbytes, line_c in results:
                 if originbytes is not None or hmmbytes is not None:

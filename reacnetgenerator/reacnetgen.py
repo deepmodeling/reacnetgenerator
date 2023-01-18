@@ -25,14 +25,14 @@ Features
 ==================
 Simple example
 ==================
-ReacNetGenerator can process any kind of trajectory files containing 
+ReacNetGenerator can process any kind of trajectory files containing
 atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1
 all custom 100 dump.reaxc id type x y z” in LAMMPS:
 $ reacnetgenerator --type dump -i dump.reaxc -a C H O --nohmm
 where C, H, and O are atomic names in the input file. Analysis report
 will be generated automatically.
 
-Also, ReacNetGenerator can process files containing bond information, 
+Also, ReacNetGenerator can process files containing bond information,
 e.g. LAMMPS bond file:
 $ reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm
 
@@ -55,7 +55,7 @@ from . import __version__, __date__
 from ._logging import logger
 from ._detect import _Detect
 from ._draw import _DrawNetwork
-from ._mergeiso import _mergeISO 
+from ._mergeiso import _mergeISO
 from ._hmmfilter import _HMMFilter
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
@@ -66,7 +66,7 @@ from .utils import must_be_list
 
 class ReacNetGenerator:
     """Use ReacNetGenerator for trajectory analysis.
-    
+
     Parameters
     ----------
     inputfiletype: str
@@ -87,7 +87,7 @@ class ReacNetGenerator:
         Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
         are filtered, they can turn off this option.
     miso: int, optional, default: 0
-        Merge the isomers and the highest frequency is used as the representative. 0, off 
+        Merge the isomers and the highest frequency is used as the representative. 0, off
         two available levels:
         1, merge the isomers with same atoms and same bond-network but different bond levels;
         2, merge the isomers with same atoms with different bond-network.
@@ -111,7 +111,7 @@ class ReacNetGenerator:
     b: (2,2) array_like, optional, default: [[0.6, 0.4], [0.4, 0.6]]
         Emission matrix B of HMM parameters. It is recommended for users to choose their own
         parameters. See the paper for details.
-    
+
     Examples
     --------
     >>> from reacnetgenerator import ReacNetGenerator
@@ -129,34 +129,81 @@ class ReacNetGenerator:
     def __init__(self, **kwargs: Any) -> None:
         """Init ReacNetGenerator."""
         logger.info(doc_run)
-        logger.info(
-            f"Version: {__version__}  Creation date: {__date__}")
-        
+        logger.info(f"Version: {__version__}  Creation date: {__date__}")
+
         # process kwargs
-        necessary_key = ['inputfiletype', 'inputfilename', 'atomname']
-        default_value = {"node_color": [78/256, 196/256, 238/256], "p": [0.5, 0.5],
-                            "a": [[0.999, 0.001], [0.001, 0.999]], "b": [[0.6, 0.4], [0.4, 0.6]],
-                            "speciesfilter": [], "start_color": [0, 0, 1], "end_color": [1, 0, 0],
-                            "nproc": cpu_count(), "pos": {}, "pbc": True, "split": 1, "n_searchspecies": 2,
-                            "node_size": 200, "font_size": 6, "widthcoefficient": 1, "maxspecies": 20, "stepinterval": 1,
-                            "nolabel": False,  "printfiltersignal": False, "showid": True, "runHMM": True, "SMILES": True,
-                            "miso": 0,
-                            "getoriginfile": False, "needprintspecies": True, "urls": [],
-                            "matrix_size":100,
-                            }
-        none_key = ['selectatoms', 'species', 'pos', 'k', 'speciescenter', 'cell']
-        accept_keys = ['atomtype', 'step', 'hmmit', 'timestep', 'steplinenum', 'N',
-            'temp1it', 'originfilename', 'hmmfilename', 'moleculetempfilename', 'moleculetemp2filename',
-            'allmoleculeroute', 'splitmoleculeroute']
-        nparray_key = ["atomname", "p", "a", "b",
-                        "node_color", "start_color", "end_color"]
-        file_key = {"moleculefilename": "moname", "atomroutefilename": "route", "reactionfilename": "reaction",
-                    "tablefilename": "table", "imagefilename": "svg", "speciesfilename": "species", "resultfilename": "html",
-                    "jsonfilename": "json", "reactionabcdfilename": "reactionabcd"}
+        necessary_key = ["inputfiletype", "inputfilename", "atomname"]
+        default_value = {
+            "node_color": [78 / 256, 196 / 256, 238 / 256],
+            "p": [0.5, 0.5],
+            "a": [[0.999, 0.001], [0.001, 0.999]],
+            "b": [[0.6, 0.4], [0.4, 0.6]],
+            "speciesfilter": [],
+            "start_color": [0, 0, 1],
+            "end_color": [1, 0, 0],
+            "nproc": cpu_count(),
+            "pos": {},
+            "pbc": True,
+            "split": 1,
+            "n_searchspecies": 2,
+            "node_size": 200,
+            "font_size": 6,
+            "widthcoefficient": 1,
+            "maxspecies": 20,
+            "stepinterval": 1,
+            "nolabel": False,
+            "printfiltersignal": False,
+            "showid": True,
+            "runHMM": True,
+            "SMILES": True,
+            "miso": 0,
+            "getoriginfile": False,
+            "needprintspecies": True,
+            "urls": [],
+            "matrix_size": 100,
+        }
+        none_key = ["selectatoms", "species", "pos", "k", "speciescenter", "cell"]
+        accept_keys = [
+            "atomtype",
+            "step",
+            "hmmit",
+            "timestep",
+            "steplinenum",
+            "N",
+            "temp1it",
+            "originfilename",
+            "hmmfilename",
+            "moleculetempfilename",
+            "moleculetemp2filename",
+            "allmoleculeroute",
+            "splitmoleculeroute",
+        ]
+        nparray_key = [
+            "atomname",
+            "p",
+            "a",
+            "b",
+            "node_color",
+            "start_color",
+            "end_color",
+        ]
+        file_key = {
+            "moleculefilename": "moname",
+            "atomroutefilename": "route",
+            "reactionfilename": "reaction",
+            "tablefilename": "table",
+            "imagefilename": "svg",
+            "speciesfilename": "species",
+            "resultfilename": "html",
+            "jsonfilename": "json",
+            "reactionabcdfilename": "reactionabcd",
+        }
         assert set(necessary_key).issubset(
-            set(kwargs)), "Must give neccessary key: %s" % ", ".join(necessary_key)
+            set(kwargs)
+        ), "Must give neccessary key: %s" % ", ".join(necessary_key)
         assert set(kwargs).issubset(
-            set(necessary_key) | set(default_value) | set(none_key) | set(file_key)), "Unsupported key"
+            set(necessary_key) | set(default_value) | set(none_key) | set(file_key)
+        ), "Unsupported key"
         kwargs["inputfilename"] = must_be_list(kwargs["inputfilename"])
         for kk in default_value:
             kwargs.setdefault(kk, default_value[kk])
@@ -165,8 +212,7 @@ class ReacNetGenerator:
         for kk in itertools.chain(none_key, accept_keys):
             kwargs.setdefault(kk, None)
         for kk in file_key:
-            kwargs.setdefault(
-                kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
+            kwargs.setdefault(kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
         for kk in nparray_key:
             kwargs[kk] = np.array(kwargs[kk])
         if not kwargs["runHMM"]:
@@ -176,18 +222,19 @@ class ReacNetGenerator:
         self.__dict__.update(kwargs)
         if self.cell is not None:
             if len(self.cell) == 9:
-                self.cell = np.array(self.cell).reshape((3,3))
+                self.cell = np.array(self.cell).reshape((3, 3))
             elif len(self.cell) == 3:
                 self.cell = np.diag(self.cell)
             else:
-                raise RuntimeError("cell must be (3,3) array_like or (3,) array_like or (9,) array_like")
+                raise RuntimeError(
+                    "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
+                )
 
-    def runanddraw(self,
-                   run: bool = True,
-                   draw: bool = True,
-                   report: bool = True) -> None:
+    def runanddraw(
+        self, run: bool = True, draw: bool = True, report: bool = True
+    ) -> None:
         """Analyze the trajectory from MD simulation.
-        
+
         Parameters
         ----------
         run: bool, optional, default: True
@@ -201,13 +248,15 @@ class ReacNetGenerator:
         if run:
             if self.urls:
                 processthing.append(self.Status.DOWNLOAD)
-            processthing.extend((
-                self.Status.DETECT,
-                self.Status.MISO,
-                self.Status.HMM,
-                self.Status.PATH,
-                self.Status.MATRIX,
-            ))
+            processthing.extend(
+                (
+                    self.Status.DETECT,
+                    self.Status.MISO,
+                    self.Status.HMM,
+                    self.Status.PATH,
+                    self.Status.MATRIX,
+                )
+            )
         if draw:
             processthing.append(self.Status.NETWORK)
         if report:
@@ -215,28 +264,27 @@ class ReacNetGenerator:
         self._process(processthing)
 
     def run(self) -> None:
-        """Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.
-        """
+        """Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps."""
         processthing = []
         if self.urls:
             processthing.append(self.Status.DOWNLOAD)
-        processthing.extend((
-            self.Status.DETECT,
-            self.Status.MISO,
-            self.Status.HMM,
-            self.Status.PATH,
-            self.Status.MATRIX,
-        ))
+        processthing.extend(
+            (
+                self.Status.DETECT,
+                self.Status.MISO,
+                self.Status.HMM,
+                self.Status.PATH,
+                self.Status.MATRIX,
+            )
+        )
         self._process(processthing)
 
     def draw(self) -> None:
-        """Draw the reaction network, i.e. NETWORK step.
-        """
+        """Draw the reaction network, i.e. NETWORK step."""
         self._process((self.Status.NETWORK,))
 
     def report(self) -> None:
-        """Generate the analysis report, i.e. REPORT step.
-        """
+        """Generate the analysis report, i.e. REPORT step."""
         self._process((self.Status.REPORT,))
 
     class Status(Enum):
@@ -281,7 +329,7 @@ class ReacNetGenerator:
         for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self).detect()
-            elif runstep == self.Status.MISO:  
+            elif runstep == self.Status.MISO:
                 _mergeISO(self).merge()
             elif runstep == self.Status.HMM:
                 _HMMFilter(self).filter()
@@ -299,11 +347,16 @@ class ReacNetGenerator:
             gc.collect()
             timearray.append(time.perf_counter())
             logger.info(
-                f"Step {i}: Done! Time consumed (s): {timearray[-1]-timearray[-2]:.3f} ({runstep})")
+                f"Step {i}: Done! Time consumed (s): {timearray[-1]-timearray[-2]:.3f} ({runstep})"
+            )
 
         # delete tempfile
         for tempfilename in (
-                self.moleculetempfilename, self.moleculetemp2filename, self.originfilename, self.hmmfilename):
+            self.moleculetempfilename,
+            self.moleculetemp2filename,
+            self.originfilename,
+            self.hmmfilename,
+        ):
             if tempfilename is not None:
                 try:
                     os.remove(tempfilename)
@@ -312,6 +365,7 @@ class ReacNetGenerator:
         # Summary
         logger.info("====== Summary ======")
         logger.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
+
 
 # Please import ReacNetGenerator class from reacnetgenerator instead of reacnetgenerator.reacnetgen
 __all__ = []

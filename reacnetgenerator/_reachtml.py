@@ -35,9 +35,22 @@ class _HTMLResult(SharedRNGData):
     atomname: np.ndarray
 
     def __init__(self, rng):
-        SharedRNGData.__init__(self, rng, ['reactionfilename', 'resultfilename', 'imagefilename', 'reactionabcdfilename',
-                                           'jsonfilename', 'nproc', 'split', 'atomname'], [],
-                               ['_specs', '_reaction', '_reactionsabcd', '_svgfiles'])
+        SharedRNGData.__init__(
+            self,
+            rng,
+            [
+                "reactionfilename",
+                "resultfilename",
+                "imagefilename",
+                "reactionabcdfilename",
+                "jsonfilename",
+                "nproc",
+                "split",
+                "atomname",
+            ],
+            [],
+            ["_specs", "_reaction", "_reactionsabcd", "_svgfiles"],
+        )
         self._templatedict: Dict[str, Union[str, int, list, dict]] = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
@@ -51,7 +64,8 @@ class _HTMLResult(SharedRNGData):
         self._readdata()
         self._generateresult()
         logger.info(
-            f"Report is generated. Please see {self.resultfilename} for more details.")
+            f"Report is generated. Please see {self.resultfilename} for more details."
+        )
 
     def _re(self, smi):
         """If you use RDkit to convert a methyl radical to SMILES, you will get something
@@ -73,9 +87,15 @@ class _HTMLResult(SharedRNGData):
         if "_unknownSMILES" in smi:
             # not SMILES
             return smi
-        Satom = sorted(self.atomname, key = lambda i:len(i), reverse=True)
-        elements = "|".join([((an.upper() + "|" + an.lower()) if len(an)==1 else an) for an in Satom if an != 'H'])
-        smi = re.sub(r'(?<!\[)(' + elements + r')(?!H)', r'[\1]', smi)
+        Satom = sorted(self.atomname, key=lambda i: len(i), reverse=True)
+        elements = "|".join(
+            [
+                ((an.upper() + "|" + an.lower()) if len(an) == 1 else an)
+                for an in Satom
+                if an != "H"
+            ]
+        )
+        smi = re.sub(r"(?<!\[)(" + elements + r")(?!H)", r"[\1]", smi)
         return smi.replace("[HH]", "[H]")
 
     def _handlereaction(self, line):
@@ -88,12 +108,20 @@ class _HTMLResult(SharedRNGData):
 
     def _readreaction(self, timeaxis=None, linknum=6):
         reaction = []
-        with open(self.reactionfilename if timeaxis is None else f"{self.reactionfilename}.{timeaxis}") as f:
+        with open(
+            self.reactionfilename
+            if timeaxis is None
+            else f"{self.reactionfilename}.{timeaxis}"
+        ) as f:
             for i, line in enumerate(f, 1):
                 left, right, num = self._handlereaction(line)
                 reaction.append({"i": i, "l": left, "r": right, "n": num})
                 for start, end in [(left[0], right[0]), (right[0], left[0])]:
-                    if timeaxis is None and len(self._linkreac[start]) < linknum and end not in self._linkreac[start]:
+                    if (
+                        timeaxis is None
+                        and len(self._linkreac[start]) < linknum
+                        and end not in self._linkreac[start]
+                    ):
                         self._linkreac[start].append(end)
         return reaction
 
@@ -103,8 +131,7 @@ class _HTMLResult(SharedRNGData):
             with open(self.reactionabcdfilename) as f:
                 for i, line in enumerate(f, 1):
                     left, right, num = self._handlereaction(line)
-                    reactionsabcd.append(
-                        {"i": i, "l": left, "r": right, "n": num})
+                    reactionsabcd.append({"i": i, "l": left, "r": right, "n": num})
                     for spec in left + right:
                         self._svgspecs.add(spec)
         return reactionsabcd
@@ -112,7 +139,7 @@ class _HTMLResult(SharedRNGData):
     def _readspecies(self, reaction, timeaxis=None):
         specs = []
         for reac in reaction:
-            for spec in (reac['l'][0], reac['r'][0]):
+            for spec in (reac["l"][0], reac["r"][0]):
                 if spec not in specs:
                     specs.append(spec)
                     if timeaxis is None:
@@ -140,24 +167,30 @@ class _HTMLResult(SharedRNGData):
         self._templatedict["reactions"] = self._reaction
         self._templatedict["reactionsabcd"] = self._reactionsabcd
         self._templatedict["linkreac"] = self._linkreac
-        rngdata = json.dumps(self._templatedict, separators=(',', ':'))
+        rngdata = json.dumps(self._templatedict, separators=(",", ":"))
         template = pkg_resources.resource_string(
-            __name__, 'static/webpack/bundle.html').decode()
-        webpage = template.replace('PUTREACNETGENERATORDATAHERE', rngdata)
-        with open(self.jsonfilename, 'w') as f:
+            __name__, "static/webpack/bundle.html"
+        ).decode()
+        webpage = template.replace("PUTREACNETGENERATORDATAHERE", rngdata)
+        with open(self.jsonfilename, "w") as f:
             f.write(rngdata)
-        with open(self.resultfilename, 'w', encoding="utf-8") as f:
+        with open(self.resultfilename, "w", encoding="utf-8") as f:
             f.write(webpage)
 
     def _generatenetwork(self, timeaxis=None):
-        with open(self.imagefilename if timeaxis is None else f"{self.imagefilename}.{timeaxis}") as f:
+        with open(
+            self.imagefilename
+            if timeaxis is None
+            else f"{self.imagefilename}.{timeaxis}"
+        ) as f:
             svgdata = f.read().strip()
-            svgdata = re.sub(r'width="\d+(\.\d+)?pt"',
-                             'width="100%"', svgdata, count=2)
-            svgdata = re.sub(r'height="\d+(\.\d+)?pt"', '', svgdata, count=2)
+            svgdata = re.sub(r'width="\d+(\.\d+)?pt"', 'width="100%"', svgdata, count=2)
+            svgdata = re.sub(r'height="\d+(\.\d+)?pt"', "", svgdata, count=2)
             svgdata = re.sub(
-                r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", '',
-                svgdata)
+                r"""<(\?xml|\!DOCTYPE|\!\-\-)("[^"]*"|'[^']*'|[^'">])*>""", "", svgdata
+            )
             svgdata = svgdata.replace(
-                r"""<style type="text/css">*{""", r"""<style type="text/css">#network svg *{""")
+                r"""<style type="text/css">*{""",
+                r"""<style type="text/css">#network svg *{""",
+            )
         return scour.scour.scourString(svgdata, SCOUROPTIONS)

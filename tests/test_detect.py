@@ -6,12 +6,12 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 
-p_inputs = Path(__file__).parent / 'inputs'
+p_inputs = Path(__file__).parent / "inputs"
 
 
 class TestDetect:
     """Test different detect format.
-    
+
     All systems contain a single water molecule: H, H, O.
     """
 
@@ -22,13 +22,15 @@ class TestDetect:
         yield
         os.chdir(start_direcroty)
 
-    @pytest.fixture(params=[
-        # inputfiletype, inputfilename
-        ("lammpsdumpfile", p_inputs / "water.dump"),
-        ("dump", p_inputs / "water_pbc.dump"),
-        ("lammpsbondfile", p_inputs / "water.bond"),
-        ("xyz", p_inputs / "water.xyz"),
-    ])
+    @pytest.fixture(
+        params=[
+            # inputfiletype, inputfilename
+            ("lammpsdumpfile", p_inputs / "water.dump"),
+            ("dump", p_inputs / "water_pbc.dump"),
+            ("lammpsbondfile", p_inputs / "water.bond"),
+            ("xyz", p_inputs / "water.xyz"),
+        ]
+    )
     def reacnetgen_param(self, request):
         return request.param
 
@@ -46,6 +48,8 @@ class TestDetect:
         """Test main process of ReacNetGen."""
         _Detect.gettype(reacnetgen).detect()
         assert reacnetgen.N == 3
-        np.testing.assert_array_equal(reacnetgen.atomtype, np.array([0, 0, 1], dtype=int))
+        np.testing.assert_array_equal(
+            reacnetgen.atomtype, np.array([0, 0, 1], dtype=int)
+        )
         # assert this is a single molecule
         assert reacnetgen.temp1it == 1

@@ -38,9 +38,25 @@ class _GenerateMatrix(SharedRNGData):
     splitmoleculeroute: List[np.ndarray]
 
     def __init__(self, rng):
-        SharedRNGData.__init__(self, rng, ["tablefilename", "speciesfilename", "reactionfilename", "moleculetemp2filename", "n_searchspecies",
-                                           "needprintspecies", "allmoleculeroute", "speciescenter", "mname", "timestep", 'splitmoleculeroute',
-                                           "matrix_size"], [])
+        SharedRNGData.__init__(
+            self,
+            rng,
+            [
+                "tablefilename",
+                "speciesfilename",
+                "reactionfilename",
+                "moleculetemp2filename",
+                "n_searchspecies",
+                "needprintspecies",
+                "allmoleculeroute",
+                "speciescenter",
+                "mname",
+                "timestep",
+                "splitmoleculeroute",
+                "matrix_size",
+            ],
+            [],
+        )
 
     def generate(self):
         """Generate a reaction matrix and print species.
@@ -57,7 +73,7 @@ class _GenerateMatrix(SharedRNGData):
             self._printspecies()
 
     def _getallroute(self, allmoleculeroute):
-        names = self.mname[allmoleculeroute-1]
+        names = self.mname[allmoleculeroute - 1]
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
             equations = np.unique(names, return_counts=True, axis=0)
@@ -67,8 +83,7 @@ class _GenerateMatrix(SharedRNGData):
     def _printtable(self, allroute, timeaxis=None):
         maxsize = self.matrix_size
         species = []
-        sortedreactions = sorted(
-            allroute, key=operator.itemgetter(1, 0), reverse=True)
+        sortedreactions = sorted(allroute, key=operator.itemgetter(1, 0), reverse=True)
         # added on Nov 17, 2018
         if self.speciescenter:
             newreactions = []
@@ -78,7 +93,8 @@ class _GenerateMatrix(SharedRNGData):
                 newnewspecies = []
                 for newspec in newspecies:
                     searchedspecies = self._searchspecies(
-                        newspec, sortedreactions, species)
+                        newspec, sortedreactions, species
+                    )
                     for searchedspec, searchedreaction in searchedspecies:
                         if len(species) < maxsize:
                             newnewspecies.append(searchedspec)
@@ -92,7 +108,12 @@ class _GenerateMatrix(SharedRNGData):
 
         table = np.zeros((maxsize, maxsize), dtype=int)
         reactionnumber = np.zeros((2), dtype=int)
-        with open(self.reactionfilename if timeaxis is None else f"{self.reactionfilename}.{timeaxis}", 'w') as f:
+        with open(
+            self.reactionfilename
+            if timeaxis is None
+            else f"{self.reactionfilename}.{timeaxis}",
+            "w",
+        ) as f:
             for reaction, n_reaction in sortedreactions:
                 f.write(f"{n_reaction} {'->'.join(reaction)}\n")
                 for i, spec in enumerate(reaction):
@@ -107,32 +128,38 @@ class _GenerateMatrix(SharedRNGData):
                 if all(reactionnumber >= 0):
                     table[tuple(reactionnumber)] = n_reaction
 
-        df = pd.DataFrame(table[:len(species), :len(
-            species)], index=species, columns=species)
+        df = pd.DataFrame(
+            table[: len(species), : len(species)], index=species, columns=species
+        )
         df.to_csv(
-            self.tablefilename if timeaxis is None else f"{self.tablefilename}.{timeaxis}", sep=' ')
+            self.tablefilename
+            if timeaxis is None
+            else f"{self.tablefilename}.{timeaxis}",
+            sep=" ",
+        )
 
     def _searchspecies(self, originspec, sortedreactions, species):
         searchedspecies = []
         for reaction, n_reaction in sortedreactions:
             ii = 1
-            if originspec == reaction[1-ii]:
+            if originspec == reaction[1 - ii]:
                 if not reaction[ii] in species:
-                    searchedspecies.append(
-                        (reaction[ii], (reaction, n_reaction)))
+                    searchedspecies.append((reaction[ii], (reaction, n_reaction)))
             if len(searchedspecies) >= self.n_searchspecies:
                 break
         return searchedspecies
 
     def _printspecies(self):
-        with open(self.moleculetemp2filename, 'rb') as ft, \
-             WriteBuffer(open(self.speciesfilename, 'w')) as fw:
+        with open(self.moleculetemp2filename, "rb") as ft, WriteBuffer(
+            open(self.speciesfilename, "w")
+        ) as fw:
             d = [Counter() for i in range(len(self.timestep))]
-            for name, line in zip(self.mname, itertools.zip_longest(*[read_compressed_block(ft)] * 4)):
+            for name, line in zip(
+                self.mname, itertools.zip_longest(*[read_compressed_block(ft)] * 4)
+            ):
                 for t in bytestolist(line[-1]).tolist():
                     d[t][name] += 1
             for t in range(len(self.timestep)):
                 fw.append(f"Timestep {self.timestep[t]}:")
-                fw.extend(
-                    map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
-                fw.append('\n')
+                fw.extend(map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
+                fw.append("\n")
