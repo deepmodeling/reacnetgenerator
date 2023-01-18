@@ -8,5 +8,11 @@
     "digest": {
       "enabled": false
     }
-  }
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": ["smiles-drawer"],
+      "allowedVersions": "<=2.0.3"
+    }
+  ]
 }

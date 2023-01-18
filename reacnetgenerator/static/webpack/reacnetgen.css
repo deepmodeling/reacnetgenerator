@@ -87,3 +87,7 @@
 .bootstrap-select>.dropdown-toggle.bs-placeholder{
     height: 38px;
 }
+
+.paginationjs {
+    justify-content: center;
+}
