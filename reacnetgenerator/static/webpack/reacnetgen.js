@@ -108,8 +108,7 @@ function loadrngdata() {
         addloadbutton();
       }
     }, 'text');
-  }
-  else {
+  } else {
     addloadbutton();
   }
 }
