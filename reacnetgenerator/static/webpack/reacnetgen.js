@@ -101,7 +101,8 @@ function loadrngdata() {
   // read from url
   const queryString = require('query-string');
   const parsed = queryString.parse(location.search);
-  const jdata = parsed['jdata'] if (jdata) {
+  const jdata = parsed['jdata'];
+  if (jdata) {
     $.get(decodeURIComponent(jdata), function(data) {
       if (!handlejsondata(data)) {
         addloadbutton();
