@@ -48,7 +48,7 @@
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Store a buffer for writing files.</span>
 
 <span class=sd>    It is expensive to write to a file, so we need to make a buffer.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    f: fileObject</span>
@@ -59,14 +59,17 @@
 <span class=sd>    sep: str or bytes, default: None</span>
 <span class=sd>        The separator for contents. If None (default), there will be no separator.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=k>def</span> <span class=fm>__init__</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>f</span><span class=p>:</span> <span class=n>IO</span><span class=p>,</span> <span class=n>linenumber</span><span class=p>:</span> <span class=nb>int</span> <span class=o>=</span> <span class=mi>1200</span><span class=p>,</span> <span class=n>sep</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>AnyStr</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
+
+    <span class=k>def</span> <span class=fm>__init__</span><span class=p>(</span>
+        <span class=bp>self</span><span class=p>,</span> <span class=n>f</span><span class=p>:</span> <span class=n>IO</span><span class=p>,</span> <span class=n>linenumber</span><span class=p>:</span> <span class=nb>int</span> <span class=o>=</span> <span class=mi>1200</span><span class=p>,</span> <span class=n>sep</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>AnyStr</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span>
+    <span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>f</span> <span class=o>=</span> <span class=n>f</span>
         <span class=k>if</span> <span class=n>sep</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>sep</span> <span class=o>=</span> <span class=n>sep</span>
-        <span class=k>elif</span> <span class=n>f</span><span class=o>.</span><span class=n>mode</span> <span class=o>==</span> <span class=s1>&#39;w&#39;</span><span class=p>:</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>sep</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
-        <span class=k>elif</span> <span class=n>f</span><span class=o>.</span><span class=n>mode</span> <span class=o>==</span> <span class=s1>&#39;wb&#39;</span><span class=p>:</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>sep</span> <span class=o>=</span> <span class=sa>b</span><span class=s1>&#39;&#39;</span>
+        <span class=k>elif</span> <span class=n>f</span><span class=o>.</span><span class=n>mode</span> <span class=o>==</span> <span class=s2>&quot;w&quot;</span><span class=p>:</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>sep</span> <span class=o>=</span> <span class=s2>&quot;&quot;</span>
+        <span class=k>elif</span> <span class=n>f</span><span class=o>.</span><span class=n>mode</span> <span class=o>==</span> <span class=s2>&quot;wb&quot;</span><span class=p>:</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>sep</span> <span class=o>=</span> <span class=sa>b</span><span class=s2>&quot;&quot;</span>
         <span class=k>else</span><span class=p>:</span>
             <span class=k>raise</span> <span class=ne>RuntimeError</span><span class=p>(</span><span class=s2>&quot;File mode should be w or wb!&quot;</span><span class=p>)</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>linenumber</span> <span class=o>=</span> <span class=n>linenumber</span>
@@ -75,7 +78,7 @@
 
 <div class=viewcode-block id=WriteBuffer.append><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.append>[docs]</a>    <span class=k>def</span> <span class=nf>append</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>text</span><span class=p>:</span> <span class=n>AnyStr</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
 <span class=w>        </span><span class=sd>&quot;&quot;&quot;Append a text.</span>
-<span class=sd>        </span>
+
 <span class=sd>        Parameters</span>
 <span class=sd>        ----------</span>
 <span class=sd>        text: str or bytes</span>
@@ -97,7 +100,7 @@
 
 <div class=viewcode-block id=WriteBuffer.check><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.WriteBuffer.check>[docs]</a>    <span class=k>def</span> <span class=nf>check</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
 <span class=w>        </span><span class=sd>&quot;&quot;&quot;Check if the number of stored contents exceeds.</span>
-<span class=sd>        </span>
+
 <span class=sd>        If so, the buffer will be flushed.</span>
 <span class=sd>        &quot;&quot;&quot;</span>
         <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>buff</span><span class=p>)</span> <span class=o>&gt;</span> <span class=bp>self</span><span class=o>.</span><span class=n>linenumber</span><span class=p>:</span>
@@ -119,7 +122,7 @@
 
 <div class=viewcode-block id=appendIfNotNone><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.appendIfNotNone>[docs]</a><span class=k>def</span> <span class=nf>appendIfNotNone</span><span class=p>(</span><span class=n>f</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>WriteBuffer</span><span class=p>,</span> <span class=n>ExitStack</span><span class=p>],</span> <span class=n>wbytes</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>AnyStr</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Append a line to a file if the line is not None.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    f: WriteBuffer</span>
@@ -132,13 +135,15 @@
         <span class=n>f</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>wbytes</span><span class=p>)</span></div>
 
 
-<div class=viewcode-block id=produce><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.produce>[docs]</a><span class=k>def</span> <span class=nf>produce</span><span class=p>(</span><span class=n>semaphore</span><span class=p>:</span> <span class=s2>&quot;multiprocessing.synchronize.Semaphore&quot;</span><span class=p>,</span>
-            <span class=n>plist</span><span class=p>:</span> <span class=n>Iterable</span><span class=p>[</span><span class=n>Any</span><span class=p>],</span>
-            <span class=n>parameter</span><span class=p>:</span> <span class=n>Any</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Generator</span><span class=p>[</span><span class=n>Tuple</span><span class=p>[</span><span class=n>Any</span><span class=p>,</span> <span class=n>Any</span><span class=p>],</span> <span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>]:</span>
+<div class=viewcode-block id=produce><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.produce>[docs]</a><span class=k>def</span> <span class=nf>produce</span><span class=p>(</span>
+    <span class=n>semaphore</span><span class=p>:</span> <span class=s2>&quot;multiprocessing.synchronize.Semaphore&quot;</span><span class=p>,</span>
+    <span class=n>plist</span><span class=p>:</span> <span class=n>Iterable</span><span class=p>[</span><span class=n>Any</span><span class=p>],</span>
+    <span class=n>parameter</span><span class=p>:</span> <span class=n>Any</span><span class=p>,</span>
+<span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Generator</span><span class=p>[</span><span class=n>Tuple</span><span class=p>[</span><span class=n>Any</span><span class=p>,</span> <span class=n>Any</span><span class=p>],</span> <span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>]:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Item producer with a semaphore.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Prevent large memory usage due to slow IO.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    semaphore: multiprocessing.Semaphore</span>
@@ -185,20 +190,20 @@
     <span class=k>if</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=nb>str</span><span class=p>):</span>
         <span class=n>x</span> <span class=o>=</span> <span class=n>x</span><span class=o>.</span><span class=n>encode</span><span class=p>()</span>
     <span class=n>compress_block</span> <span class=o>=</span> <span class=n>lz4</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>compress</span><span class=p>(</span><span class=n>x</span><span class=p>,</span> <span class=n>compression_level</span><span class=o>=</span><span class=mi>0</span><span class=p>)</span>
-    <span class=n>length_bytes</span> <span class=o>=</span> <span class=nb>len</span><span class=p>(</span><span class=n>compress_block</span><span class=p>)</span><span class=o>.</span><span class=n>to_bytes</span><span class=p>(</span><span class=mi>64</span><span class=p>,</span> <span class=n>byteorder</span><span class=o>=</span><span class=s1>&#39;little&#39;</span><span class=p>)</span>
+    <span class=n>length_bytes</span> <span class=o>=</span> <span class=nb>len</span><span class=p>(</span><span class=n>compress_block</span><span class=p>)</span><span class=o>.</span><span class=n>to_bytes</span><span class=p>(</span><span class=mi>64</span><span class=p>,</span> <span class=n>byteorder</span><span class=o>=</span><span class=s2>&quot;little&quot;</span><span class=p>)</span>
     <span class=k>return</span> <span class=n>length_bytes</span> <span class=o>+</span> <span class=n>compress_block</span></div>
 
 
 <div class=viewcode-block id=decompress><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.decompress>[docs]</a><span class=k>def</span> <span class=nf>decompress</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=nb>bytes</span><span class=p>,</span> <span class=n>isbytes</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>False</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>bytes</span><span class=p>]:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Decompress the line.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    x: bytes</span>
 <span class=sd>        The line to decompress.</span>
 <span class=sd>    isbytes: bool, optional, default: False</span>
 <span class=sd>        If the decompressed content is bytes. If not, the line will be decoded.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    str or bytes</span>
@@ -212,12 +217,12 @@
 
 <div class=viewcode-block id=listtobytes><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.listtobytes>[docs]</a><span class=k>def</span> <span class=nf>listtobytes</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=n>Any</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>bytes</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert an object to a compressed line.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    x: object</span>
 <span class=sd>        The object to convert, such as numpy.ndarray.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    bytes</span>
@@ -228,7 +233,7 @@
 
 <div class=viewcode-block id=read_compressed_block><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.read_compressed_block>[docs]</a><span class=k>def</span> <span class=nf>read_compressed_block</span><span class=p>(</span><span class=n>f</span><span class=p>:</span> <span class=n>BinaryIO</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Generator</span><span class=p>[</span><span class=nb>bytes</span><span class=p>,</span> <span class=kc>None</span><span class=p>,</span> <span class=kc>None</span><span class=p>]:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Read compressed binary file, assuming the format is size + data + size + data + ...</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    f: fileObject</span>
@@ -243,18 +248,18 @@
         <span class=n>sizeb</span> <span class=o>=</span> <span class=n>f</span><span class=o>.</span><span class=n>read</span><span class=p>(</span><span class=mi>64</span><span class=p>)</span>
         <span class=k>if</span> <span class=ow>not</span> <span class=n>sizeb</span><span class=p>:</span>
             <span class=k>break</span>
-        <span class=n>size</span> <span class=o>=</span> <span class=nb>int</span><span class=o>.</span><span class=n>from_bytes</span><span class=p>(</span><span class=n>sizeb</span><span class=p>,</span> <span class=n>byteorder</span><span class=o>=</span><span class=s1>&#39;little&#39;</span><span class=p>)</span>
+        <span class=n>size</span> <span class=o>=</span> <span class=nb>int</span><span class=o>.</span><span class=n>from_bytes</span><span class=p>(</span><span class=n>sizeb</span><span class=p>,</span> <span class=n>byteorder</span><span class=o>=</span><span class=s2>&quot;little&quot;</span><span class=p>)</span>
         <span class=k>yield</span> <span class=n>sizeb</span> <span class=o>+</span> <span class=n>f</span><span class=o>.</span><span class=n>read</span><span class=p>(</span><span class=n>size</span><span class=p>)</span></div>
 
 
 <div class=viewcode-block id=bytestolist><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.bytestolist>[docs]</a><span class=k>def</span> <span class=nf>bytestolist</span><span class=p>(</span><span class=n>x</span><span class=p>:</span> <span class=nb>bytes</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Any</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert a compressed line to an object.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    x: bytes</span>
 <span class=sd>        The compressed line.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    object</span>
@@ -265,7 +270,9 @@
     <span class=k>return</span> <span class=n>pickle</span><span class=o>.</span><span class=n>loads</span><span class=p>(</span><span class=n>data</span><span class=p>)</span></div>
 
 
-<div class=viewcode-block id=listtostirng><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.listtostirng>[docs]</a><span class=k>def</span> <span class=nf>listtostirng</span><span class=p>(</span><span class=n>l</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>list</span><span class=p>,</span> <span class=nb>tuple</span><span class=p>,</span> <span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>],</span> <span class=n>sep</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span> <span class=n>Tuple</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=o>...</span><span class=p>]])</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
+<div class=viewcode-block id=listtostirng><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.listtostirng>[docs]</a><span class=k>def</span> <span class=nf>listtostirng</span><span class=p>(</span>
+    <span class=n>l</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=nb>list</span><span class=p>,</span> <span class=nb>tuple</span><span class=p>,</span> <span class=n>np</span><span class=o>.</span><span class=n>ndarray</span><span class=p>],</span> <span class=n>sep</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span> <span class=n>Tuple</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=o>...</span><span class=p>]]</span>
+<span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert a list to string, that is easier to store.</span>
 
 <span class=sd>    Parameters</span>
@@ -287,20 +294,22 @@
     <span class=k>return</span> <span class=nb>str</span><span class=p>(</span><span class=n>l</span><span class=p>)</span></div>
 
 
-<div class=viewcode-block id=multiopen><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.multiopen>[docs]</a><span class=k>def</span> <span class=nf>multiopen</span><span class=p>(</span><span class=n>pool</span><span class=p>:</span> <span class=s2>&quot;multiprocessing.pool.Pool&quot;</span><span class=p>,</span>
-              <span class=n>func</span><span class=p>:</span> <span class=n>Callable</span><span class=p>,</span>
-              <span class=n>l</span><span class=p>:</span> <span class=n>IO</span><span class=p>,</span>
-              <span class=n>semaphore</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=s2>&quot;multiprocessing.synchronize.Semaphore&quot;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
-              <span class=n>nlines</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
-              <span class=n>unordered</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span>
-              <span class=n>return_num</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>False</span><span class=p>,</span>
-              <span class=n>start</span><span class=p>:</span> <span class=nb>int</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span>
-              <span class=n>extra</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>Any</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
-              <span class=n>interval</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
-              <span class=n>bar</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span>
-              <span class=n>desc</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>str</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
-              <span class=n>unit</span><span class=p>:</span> <span class=nb>str</span> <span class=o>=</span> <span class=s2>&quot;it&quot;</span><span class=p>,</span>
-              <span class=n>total</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Iterable</span><span class=p>:</span>
+<div class=viewcode-block id=multiopen><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.multiopen>[docs]</a><span class=k>def</span> <span class=nf>multiopen</span><span class=p>(</span>
+    <span class=n>pool</span><span class=p>:</span> <span class=s2>&quot;multiprocessing.pool.Pool&quot;</span><span class=p>,</span>
+    <span class=n>func</span><span class=p>:</span> <span class=n>Callable</span><span class=p>,</span>
+    <span class=n>l</span><span class=p>:</span> <span class=n>IO</span><span class=p>,</span>
+    <span class=n>semaphore</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=s2>&quot;multiprocessing.synchronize.Semaphore&quot;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+    <span class=n>nlines</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+    <span class=n>unordered</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span>
+    <span class=n>return_num</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>False</span><span class=p>,</span>
+    <span class=n>start</span><span class=p>:</span> <span class=nb>int</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span>
+    <span class=n>extra</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>Any</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+    <span class=n>interval</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+    <span class=n>bar</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span>
+    <span class=n>desc</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>str</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+    <span class=n>unit</span><span class=p>:</span> <span class=nb>str</span> <span class=o>=</span> <span class=s2>&quot;it&quot;</span><span class=p>,</span>
+    <span class=n>total</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=nb>int</span><span class=p>]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+<span class=p>)</span> <span class=o>-&gt;</span> <span class=n>Iterable</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Returns an interated object for process a file with multiple processors.</span>
 
 <span class=sd>    Parameters</span>
@@ -337,7 +346,7 @@
 <span class=sd>        The unit of the iteration shown in the bar.</span>
 <span class=sd>    total: int, optional, default: None</span>
 <span class=sd>        The total number of the iteration shown in the bar.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    object</span>
@@ -363,6 +372,7 @@
 
 <div class=viewcode-block id=SCOUROPTIONS><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.SCOUROPTIONS>[docs]</a><span class=k>class</span> <span class=nc>SCOUROPTIONS</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Scour (SVG optimization) options.&quot;&quot;&quot;</span>
+
     <span class=n>strip_xml_prolog</span> <span class=o>=</span> <span class=kc>True</span>
     <span class=n>remove_titles</span> <span class=o>=</span> <span class=kc>True</span>
     <span class=n>remove_descriptions</span> <span class=o>=</span> <span class=kc>True</span>
@@ -390,11 +400,14 @@
 <span class=sd>    extraNoneKeys: list of strs, optional, default: None</span>
 <span class=sd>        Set keys to None, which will be used in the submodule.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=k>def</span> <span class=fm>__init__</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span>
-                <span class=n>rng</span><span class=p>:</span> <span class=s2>&quot;reacnetgenerator.ReacNetGenerator&quot;</span><span class=p>,</span>
-                <span class=n>usedRNGKeys</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span>
-                <span class=n>returnedRNGKeys</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span>
-                <span class=n>extraNoneKeys</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
+
+    <span class=k>def</span> <span class=fm>__init__</span><span class=p>(</span>
+        <span class=bp>self</span><span class=p>,</span>
+        <span class=n>rng</span><span class=p>:</span> <span class=s2>&quot;reacnetgenerator.ReacNetGenerator&quot;</span><span class=p>,</span>
+        <span class=n>usedRNGKeys</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span>
+        <span class=n>returnedRNGKeys</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>],</span>
+        <span class=n>extraNoneKeys</span><span class=p>:</span> <span class=n>Optional</span><span class=p>[</span><span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]]</span> <span class=o>=</span> <span class=kc>None</span><span class=p>,</span>
+    <span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>rng</span> <span class=o>=</span> <span class=n>rng</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>returnedRNGKeys</span> <span class=o>=</span> <span class=n>returnedRNGKeys</span>
         <span class=k>for</span> <span class=n>key</span> <span class=ow>in</span> <span class=n>usedRNGKeys</span><span class=p>:</span>
@@ -413,14 +426,14 @@
 
 <div class=viewcode-block id=checksha256><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.checksha256>[docs]</a><span class=k>def</span> <span class=nf>checksha256</span><span class=p>(</span><span class=n>filename</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span> <span class=n>sha256_check</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]]):</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Check sha256 of a file is correct.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    filename: str</span>
 <span class=sd>        The filename.</span>
 <span class=sd>    sha256_check: str or list of strs</span>
 <span class=sd>        The sha256 to be checked.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    bool</span>
@@ -429,9 +442,9 @@
     <span class=k>if</span> <span class=ow>not</span> <span class=n>os</span><span class=o>.</span><span class=n>path</span><span class=o>.</span><span class=n>isfile</span><span class=p>(</span><span class=n>filename</span><span class=p>):</span>
         <span class=k>return</span>
     <span class=n>h</span> <span class=o>=</span> <span class=n>hashlib</span><span class=o>.</span><span class=n>sha256</span><span class=p>()</span>
-    <span class=n>b</span> <span class=o>=</span> <span class=nb>bytearray</span><span class=p>(</span><span class=mi>128</span><span class=o>*</span><span class=mi>1024</span><span class=p>)</span>
+    <span class=n>b</span> <span class=o>=</span> <span class=nb>bytearray</span><span class=p>(</span><span class=mi>128</span> <span class=o>*</span> <span class=mi>1024</span><span class=p>)</span>
     <span class=n>mv</span> <span class=o>=</span> <span class=nb>memoryview</span><span class=p>(</span><span class=n>b</span><span class=p>)</span>
-    <span class=k>with</span> <span class=nb>open</span><span class=p>(</span><span class=n>filename</span><span class=p>,</span> <span class=s1>&#39;rb&#39;</span><span class=p>,</span> <span class=n>buffering</span><span class=o>=</span><span class=mi>0</span><span class=p>)</span> <span class=k>as</span> <span class=n>f</span><span class=p>:</span>
+    <span class=k>with</span> <span class=nb>open</span><span class=p>(</span><span class=n>filename</span><span class=p>,</span> <span class=s2>&quot;rb&quot;</span><span class=p>,</span> <span class=n>buffering</span><span class=o>=</span><span class=mi>0</span><span class=p>)</span> <span class=k>as</span> <span class=n>f</span><span class=p>:</span>
         <span class=k>for</span> <span class=n>n</span> <span class=ow>in</span> <span class=nb>iter</span><span class=p>(</span><span class=k>lambda</span><span class=p>:</span> <span class=n>f</span><span class=o>.</span><span class=n>readinto</span><span class=p>(</span><span class=n>mv</span><span class=p>),</span> <span class=mi>0</span><span class=p>):</span>
             <span class=n>h</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>mv</span><span class=p>[:</span><span class=n>n</span><span class=p>])</span>
     <span class=n>sha256</span> <span class=o>=</span> <span class=n>h</span><span class=o>.</span><span class=n>hexdigest</span><span class=p>()</span>
@@ -443,11 +456,11 @@
     <span class=k>return</span> <span class=kc>False</span></div>
 
 
-<div class=viewcode-block id=download_file><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.download_file>[docs]</a><span class=k>async</span> <span class=k>def</span> <span class=nf>download_file</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]],</span>
-                        <span class=n>pathfilename</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span>
-                        <span class=n>sha256</span><span class=p>:</span> <span class=nb>str</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
+<div class=viewcode-block id=download_file><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.download_file>[docs]</a><span class=k>async</span> <span class=k>def</span> <span class=nf>download_file</span><span class=p>(</span>
+    <span class=n>urls</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=nb>str</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]],</span> <span class=n>pathfilename</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span> <span class=n>sha256</span><span class=p>:</span> <span class=nb>str</span>
+<span class=p>)</span> <span class=o>-&gt;</span> <span class=nb>str</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Download files from remote urls if not exists.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    urls: str or list of strs</span>
@@ -456,23 +469,25 @@
 <span class=sd>        The downloading path of the file.</span>
 <span class=sd>    sha256: str</span>
 <span class=sd>        Sha256 of the file. If not None and match the file, the download will be skiped.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    pathfilename: str</span>
 <span class=sd>        The downloading path of the file.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
     <span class=n>s</span> <span class=o>=</span> <span class=n>requests</span><span class=o>.</span><span class=n>Session</span><span class=p>()</span>
-    <span class=n>s</span><span class=o>.</span><span class=n>mount</span><span class=p>(</span><span class=s1>&#39;http://&#39;</span><span class=p>,</span> <span class=n>HTTPAdapter</span><span class=p>(</span><span class=n>max_retries</span><span class=o>=</span><span class=mi>3</span><span class=p>))</span>
-    <span class=n>s</span><span class=o>.</span><span class=n>mount</span><span class=p>(</span><span class=s1>&#39;https://&#39;</span><span class=p>,</span> <span class=n>HTTPAdapter</span><span class=p>(</span><span class=n>max_retries</span><span class=o>=</span><span class=mi>3</span><span class=p>))</span>
+    <span class=n>s</span><span class=o>.</span><span class=n>mount</span><span class=p>(</span><span class=s2>&quot;http://&quot;</span><span class=p>,</span> <span class=n>HTTPAdapter</span><span class=p>(</span><span class=n>max_retries</span><span class=o>=</span><span class=mi>3</span><span class=p>))</span>
+    <span class=n>s</span><span class=o>.</span><span class=n>mount</span><span class=p>(</span><span class=s2>&quot;https://&quot;</span><span class=p>,</span> <span class=n>HTTPAdapter</span><span class=p>(</span><span class=n>max_retries</span><span class=o>=</span><span class=mi>3</span><span class=p>))</span>
     <span class=c1># download if not exists</span>
-    <span class=k>if</span> <span class=n>os</span><span class=o>.</span><span class=n>path</span><span class=o>.</span><span class=n>isfile</span><span class=p>(</span><span class=n>pathfilename</span><span class=p>)</span> <span class=ow>and</span> <span class=p>(</span><span class=n>sha256</span> <span class=ow>is</span> <span class=kc>None</span> <span class=ow>or</span> <span class=n>checksha256</span><span class=p>(</span><span class=n>pathfilename</span><span class=p>,</span> <span class=n>sha256</span><span class=p>)):</span>
+    <span class=k>if</span> <span class=n>os</span><span class=o>.</span><span class=n>path</span><span class=o>.</span><span class=n>isfile</span><span class=p>(</span><span class=n>pathfilename</span><span class=p>)</span> <span class=ow>and</span> <span class=p>(</span>
+        <span class=n>sha256</span> <span class=ow>is</span> <span class=kc>None</span> <span class=ow>or</span> <span class=n>checksha256</span><span class=p>(</span><span class=n>pathfilename</span><span class=p>,</span> <span class=n>sha256</span><span class=p>)</span>
+    <span class=p>):</span>
         <span class=k>return</span> <span class=n>pathfilename</span>
 
     <span class=c1># from https://stackoverflow.com/questions/16694907</span>
     <span class=k>for</span> <span class=n>url</span> <span class=ow>in</span> <span class=n>must_be_list</span><span class=p>(</span><span class=n>urls</span><span class=p>):</span>
         <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=sa>f</span><span class=s2>&quot;Try to download </span><span class=si>{</span><span class=n>pathfilename</span><span class=si>}</span><span class=s2> from </span><span class=si>{</span><span class=n>url</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
-        <span class=k>with</span> <span class=n>s</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>url</span><span class=p>,</span> <span class=n>stream</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span> <span class=k>as</span> <span class=n>r</span><span class=p>,</span> <span class=nb>open</span><span class=p>(</span><span class=n>pathfilename</span><span class=p>,</span> <span class=s1>&#39;wb&#39;</span><span class=p>)</span> <span class=k>as</span> <span class=n>f</span><span class=p>:</span>
+        <span class=k>with</span> <span class=n>s</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>url</span><span class=p>,</span> <span class=n>stream</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span> <span class=k>as</span> <span class=n>r</span><span class=p>,</span> <span class=nb>open</span><span class=p>(</span><span class=n>pathfilename</span><span class=p>,</span> <span class=s2>&quot;wb&quot;</span><span class=p>)</span> <span class=k>as</span> <span class=n>f</span><span class=p>:</span>
             <span class=k>try</span><span class=p>:</span>
                 <span class=n>shutil</span><span class=o>.</span><span class=n>copyfileobj</span><span class=p>(</span><span class=n>r</span><span class=o>.</span><span class=n>raw</span><span class=p>,</span> <span class=n>f</span><span class=p>)</span>
                 <span class=k>break</span>
@@ -486,14 +501,19 @@
 
 <div class=viewcode-block id=gather_download_files><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.gather_download_files>[docs]</a><span class=k>async</span> <span class=k>def</span> <span class=nf>gather_download_files</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>dict</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Asynchronously download files from remote urls if not exists.</span>
-<span class=sd>    </span>
+
 <span class=sd>    See download_multifiles function for details.</span>
-<span class=sd>    </span>
+
 <span class=sd>    See Also</span>
 <span class=sd>    --------</span>
 <span class=sd>    download_multifiles</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span><span class=o>*</span><span class=p>[</span><span class=n>download_file</span><span class=p>(</span><span class=n>jdata</span><span class=p>[</span><span class=s2>&quot;url&quot;</span><span class=p>],</span> <span class=n>jdata</span><span class=p>[</span><span class=s2>&quot;fn&quot;</span><span class=p>],</span> <span class=n>jdata</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;sha256&quot;</span><span class=p>,</span> <span class=kc>None</span><span class=p>))</span> <span class=k>for</span> <span class=n>jdata</span> <span class=ow>in</span> <span class=n>urls</span><span class=p>])</span></div>
+    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span>
+        <span class=o>*</span><span class=p>[</span>
+            <span class=n>download_file</span><span class=p>(</span><span class=n>jdata</span><span class=p>[</span><span class=s2>&quot;url&quot;</span><span class=p>],</span> <span class=n>jdata</span><span class=p>[</span><span class=s2>&quot;fn&quot;</span><span class=p>],</span> <span class=n>jdata</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;sha256&quot;</span><span class=p>,</span> <span class=kc>None</span><span class=p>))</span>
+            <span class=k>for</span> <span class=n>jdata</span> <span class=ow>in</span> <span class=n>urls</span>
+        <span class=p>]</span>
+    <span class=p>)</span></div>
 
 
 <div class=viewcode-block id=download_multifiles><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.download_multifiles>[docs]</a><span class=k>def</span> <span class=nf>download_multifiles</span><span class=p>(</span><span class=n>urls</span><span class=p>:</span> <span class=n>List</span><span class=p>[</span><span class=nb>dict</span><span class=p>])</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
@@ -533,7 +553,7 @@
 <span class=sd>    multiopen</span>
 <span class=sd>    &quot;&quot;&quot;</span>
     <span class=n>pool</span> <span class=o>=</span> <span class=n>Pool</span><span class=p>(</span><span class=n>nproc</span><span class=p>,</span> <span class=n>maxtasksperchild</span><span class=o>=</span><span class=mi>1000</span><span class=p>)</span>
-    <span class=n>semaphore</span> <span class=o>=</span> <span class=n>Semaphore</span><span class=p>(</span><span class=n>nproc</span><span class=o>*</span><span class=mi>150</span><span class=p>)</span>
+    <span class=n>semaphore</span> <span class=o>=</span> <span class=n>Semaphore</span><span class=p>(</span><span class=n>nproc</span> <span class=o>*</span> <span class=mi>150</span><span class=p>)</span>
     <span class=k>try</span><span class=p>:</span>
         <span class=n>results</span> <span class=o>=</span> <span class=n>multiopen</span><span class=p>(</span><span class=n>pool</span><span class=o>=</span><span class=n>pool</span><span class=p>,</span> <span class=n>semaphore</span><span class=o>=</span><span class=n>semaphore</span><span class=p>,</span> <span class=o>**</span><span class=n>arg</span><span class=p>)</span>
         <span class=k>for</span> <span class=n>item</span> <span class=ow>in</span> <span class=n>results</span><span class=p>:</span>
@@ -551,7 +571,7 @@
 
 <div class=viewcode-block id=must_be_list><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.utils.must_be_list>[docs]</a><span class=k>def</span> <span class=nf>must_be_list</span><span class=p>(</span><span class=n>obj</span><span class=p>:</span> <span class=n>Union</span><span class=p>[</span><span class=n>Any</span><span class=p>,</span> <span class=n>List</span><span class=p>[</span><span class=n>Any</span><span class=p>]])</span> <span class=o>-&gt;</span> <span class=n>List</span><span class=p>[</span><span class=n>Any</span><span class=p>]:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Convert a object to a list if the object is not a list.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    obj: Object</span>

@@ -29,14 +29,14 @@
 <span class=s2>==================</span>
 <span class=s2>Simple example</span>
 <span class=s2>==================</span>
-<span class=s2>ReacNetGenerator can process any kind of trajectory files containing </span>
+<span class=s2>ReacNetGenerator can process any kind of trajectory files containing</span>
 <span class=s2>atomic coordinates, e.g. a LAMMPS dump file prepared by running “dump 1</span>
 <span class=s2>all custom 100 dump.reaxc id type x y z” in LAMMPS:</span>
 <span class=s2>$ reacnetgenerator --type dump -i dump.reaxc -a C H O --nohmm</span>
 <span class=s2>where C, H, and O are atomic names in the input file. Analysis report</span>
 <span class=s2>will be generated automatically.</span>
 
-<span class=s2>Also, ReacNetGenerator can process files containing bond information, </span>
+<span class=s2>Also, ReacNetGenerator can process files containing bond information,</span>
 <span class=s2>e.g. LAMMPS bond file:</span>
 <span class=s2>$ reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm</span>
 
@@ -59,7 +59,7 @@
 <span class=kn>from</span> <span class=nn>._logging</span> <span class=kn>import</span> <span class=n>logger</span>
 <span class=kn>from</span> <span class=nn>._detect</span> <span class=kn>import</span> <span class=n>_Detect</span>
 <span class=kn>from</span> <span class=nn>._draw</span> <span class=kn>import</span> <span class=n>_DrawNetwork</span>
-<span class=kn>from</span> <span class=nn>._mergeiso</span> <span class=kn>import</span> <span class=n>_mergeISO</span> 
+<span class=kn>from</span> <span class=nn>._mergeiso</span> <span class=kn>import</span> <span class=n>_mergeISO</span>
 <span class=kn>from</span> <span class=nn>._hmmfilter</span> <span class=kn>import</span> <span class=n>_HMMFilter</span>
 <span class=kn>from</span> <span class=nn>._matrix</span> <span class=kn>import</span> <span class=n>_GenerateMatrix</span>
 <span class=kn>from</span> <span class=nn>._path</span> <span class=kn>import</span> <span class=n>_CollectPaths</span>
@@ -70,7 +70,7 @@
 
 <div class=viewcode-block id=ReacNetGenerator><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator>[docs]</a><span class=k>class</span> <span class=nc>ReacNetGenerator</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Use ReacNetGenerator for trajectory analysis.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    inputfiletype: str</span>
@@ -91,7 +91,7 @@
 <span class=sd>        Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species</span>
 <span class=sd>        are filtered, they can turn off this option.</span>
 <span class=sd>    miso: int, optional, default: 0</span>
-<span class=sd>        Merge the isomers and the highest frequency is used as the representative. 0, off </span>
+<span class=sd>        Merge the isomers and the highest frequency is used as the representative. 0, off</span>
 <span class=sd>        two available levels:</span>
 <span class=sd>        1, merge the isomers with same atoms and same bond-network but different bond levels;</span>
 <span class=sd>        2, merge the isomers with same atoms with different bond-network.</span>
@@ -115,7 +115,7 @@
 <span class=sd>    b: (2,2) array_like, optional, default: [[0.6, 0.4], [0.4, 0.6]]</span>
 <span class=sd>        Emission matrix B of HMM parameters. It is recommended for users to choose their own</span>
 <span class=sd>        parameters. See the paper for details.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Examples</span>
 <span class=sd>    --------</span>
 <span class=sd>    &gt;&gt;&gt; from reacnetgenerator import ReacNetGenerator</span>
@@ -133,34 +133,81 @@
     <span class=k>def</span> <span class=fm>__init__</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>:</span> <span class=n>Any</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
 <span class=w>        </span><span class=sd>&quot;&quot;&quot;Init ReacNetGenerator.&quot;&quot;&quot;</span>
         <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=n>doc_run</span><span class=p>)</span>
-        <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span>
-            <span class=sa>f</span><span class=s2>&quot;Version: </span><span class=si>{</span><span class=n>__version__</span><span class=si>}</span><span class=s2>  Creation date: </span><span class=si>{</span><span class=n>__date__</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
-        
+        <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=sa>f</span><span class=s2>&quot;Version: </span><span class=si>{</span><span class=n>__version__</span><span class=si>}</span><span class=s2>  Creation date: </span><span class=si>{</span><span class=n>__date__</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
+
         <span class=c1># process kwargs</span>
-        <span class=n>necessary_key</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;inputfiletype&#39;</span><span class=p>,</span> <span class=s1>&#39;inputfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;atomname&#39;</span><span class=p>]</span>
-        <span class=n>default_value</span> <span class=o>=</span> <span class=p>{</span><span class=s2>&quot;node_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>78</span><span class=o>/</span><span class=mi>256</span><span class=p>,</span> <span class=mi>196</span><span class=o>/</span><span class=mi>256</span><span class=p>,</span> <span class=mi>238</span><span class=o>/</span><span class=mi>256</span><span class=p>],</span> <span class=s2>&quot;p&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mf>0.5</span><span class=p>,</span> <span class=mf>0.5</span><span class=p>],</span>
-                            <span class=s2>&quot;a&quot;</span><span class=p>:</span> <span class=p>[[</span><span class=mf>0.999</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>],</span> <span class=p>[</span><span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.999</span><span class=p>]],</span> <span class=s2>&quot;b&quot;</span><span class=p>:</span> <span class=p>[[</span><span class=mf>0.6</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>],</span> <span class=p>[</span><span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.6</span><span class=p>]],</span>
-                            <span class=s2>&quot;speciesfilter&quot;</span><span class=p>:</span> <span class=p>[],</span> <span class=s2>&quot;start_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>],</span> <span class=s2>&quot;end_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>1</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>],</span>
-                            <span class=s2>&quot;nproc&quot;</span><span class=p>:</span> <span class=n>cpu_count</span><span class=p>(),</span> <span class=s2>&quot;pos&quot;</span><span class=p>:</span> <span class=p>{},</span> <span class=s2>&quot;pbc&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;split&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span> <span class=s2>&quot;n_searchspecies&quot;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
-                            <span class=s2>&quot;node_size&quot;</span><span class=p>:</span> <span class=mi>200</span><span class=p>,</span> <span class=s2>&quot;font_size&quot;</span><span class=p>:</span> <span class=mi>6</span><span class=p>,</span> <span class=s2>&quot;widthcoefficient&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span> <span class=s2>&quot;maxspecies&quot;</span><span class=p>:</span> <span class=mi>20</span><span class=p>,</span> <span class=s2>&quot;stepinterval&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
-                            <span class=s2>&quot;nolabel&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span>  <span class=s2>&quot;printfiltersignal&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span> <span class=s2>&quot;showid&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;runHMM&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;SMILES&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
-                            <span class=s2>&quot;miso&quot;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
-                            <span class=s2>&quot;getoriginfile&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span> <span class=s2>&quot;needprintspecies&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span> <span class=s2>&quot;urls&quot;</span><span class=p>:</span> <span class=p>[],</span>
-                            <span class=s2>&quot;matrix_size&quot;</span><span class=p>:</span><span class=mi>100</span><span class=p>,</span>
-                            <span class=p>}</span>
-        <span class=n>none_key</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;selectatoms&#39;</span><span class=p>,</span> <span class=s1>&#39;species&#39;</span><span class=p>,</span> <span class=s1>&#39;pos&#39;</span><span class=p>,</span> <span class=s1>&#39;k&#39;</span><span class=p>,</span> <span class=s1>&#39;speciescenter&#39;</span><span class=p>,</span> <span class=s1>&#39;cell&#39;</span><span class=p>]</span>
-        <span class=n>accept_keys</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;atomtype&#39;</span><span class=p>,</span> <span class=s1>&#39;step&#39;</span><span class=p>,</span> <span class=s1>&#39;hmmit&#39;</span><span class=p>,</span> <span class=s1>&#39;timestep&#39;</span><span class=p>,</span> <span class=s1>&#39;steplinenum&#39;</span><span class=p>,</span> <span class=s1>&#39;N&#39;</span><span class=p>,</span>
-            <span class=s1>&#39;temp1it&#39;</span><span class=p>,</span> <span class=s1>&#39;originfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;hmmfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;moleculetempfilename&#39;</span><span class=p>,</span> <span class=s1>&#39;moleculetemp2filename&#39;</span><span class=p>,</span>
-            <span class=s1>&#39;allmoleculeroute&#39;</span><span class=p>,</span> <span class=s1>&#39;splitmoleculeroute&#39;</span><span class=p>]</span>
-        <span class=n>nparray_key</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;atomname&quot;</span><span class=p>,</span> <span class=s2>&quot;p&quot;</span><span class=p>,</span> <span class=s2>&quot;a&quot;</span><span class=p>,</span> <span class=s2>&quot;b&quot;</span><span class=p>,</span>
-                        <span class=s2>&quot;node_color&quot;</span><span class=p>,</span> <span class=s2>&quot;start_color&quot;</span><span class=p>,</span> <span class=s2>&quot;end_color&quot;</span><span class=p>]</span>
-        <span class=n>file_key</span> <span class=o>=</span> <span class=p>{</span><span class=s2>&quot;moleculefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;moname&quot;</span><span class=p>,</span> <span class=s2>&quot;atomroutefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;route&quot;</span><span class=p>,</span> <span class=s2>&quot;reactionfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;reaction&quot;</span><span class=p>,</span>
-                    <span class=s2>&quot;tablefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;table&quot;</span><span class=p>,</span> <span class=s2>&quot;imagefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;svg&quot;</span><span class=p>,</span> <span class=s2>&quot;speciesfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;species&quot;</span><span class=p>,</span> <span class=s2>&quot;resultfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;html&quot;</span><span class=p>,</span>
-                    <span class=s2>&quot;jsonfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;json&quot;</span><span class=p>,</span> <span class=s2>&quot;reactionabcdfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;reactionabcd&quot;</span><span class=p>}</span>
+        <span class=n>necessary_key</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;inputfiletype&quot;</span><span class=p>,</span> <span class=s2>&quot;inputfilename&quot;</span><span class=p>,</span> <span class=s2>&quot;atomname&quot;</span><span class=p>]</span>
+        <span class=n>default_value</span> <span class=o>=</span> <span class=p>{</span>
+            <span class=s2>&quot;node_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>78</span> <span class=o>/</span> <span class=mi>256</span><span class=p>,</span> <span class=mi>196</span> <span class=o>/</span> <span class=mi>256</span><span class=p>,</span> <span class=mi>238</span> <span class=o>/</span> <span class=mi>256</span><span class=p>],</span>
+            <span class=s2>&quot;p&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mf>0.5</span><span class=p>,</span> <span class=mf>0.5</span><span class=p>],</span>
+            <span class=s2>&quot;a&quot;</span><span class=p>:</span> <span class=p>[[</span><span class=mf>0.999</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>],</span> <span class=p>[</span><span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.999</span><span class=p>]],</span>
+            <span class=s2>&quot;b&quot;</span><span class=p>:</span> <span class=p>[[</span><span class=mf>0.6</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>],</span> <span class=p>[</span><span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.6</span><span class=p>]],</span>
+            <span class=s2>&quot;speciesfilter&quot;</span><span class=p>:</span> <span class=p>[],</span>
+            <span class=s2>&quot;start_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>],</span>
+            <span class=s2>&quot;end_color&quot;</span><span class=p>:</span> <span class=p>[</span><span class=mi>1</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>0</span><span class=p>],</span>
+            <span class=s2>&quot;nproc&quot;</span><span class=p>:</span> <span class=n>cpu_count</span><span class=p>(),</span>
+            <span class=s2>&quot;pos&quot;</span><span class=p>:</span> <span class=p>{},</span>
+            <span class=s2>&quot;pbc&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
+            <span class=s2>&quot;split&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+            <span class=s2>&quot;n_searchspecies&quot;</span><span class=p>:</span> <span class=mi>2</span><span class=p>,</span>
+            <span class=s2>&quot;node_size&quot;</span><span class=p>:</span> <span class=mi>200</span><span class=p>,</span>
+            <span class=s2>&quot;font_size&quot;</span><span class=p>:</span> <span class=mi>6</span><span class=p>,</span>
+            <span class=s2>&quot;widthcoefficient&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+            <span class=s2>&quot;maxspecies&quot;</span><span class=p>:</span> <span class=mi>20</span><span class=p>,</span>
+            <span class=s2>&quot;stepinterval&quot;</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span>
+            <span class=s2>&quot;nolabel&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span>
+            <span class=s2>&quot;printfiltersignal&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span>
+            <span class=s2>&quot;showid&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
+            <span class=s2>&quot;runHMM&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
+            <span class=s2>&quot;SMILES&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
+            <span class=s2>&quot;miso&quot;</span><span class=p>:</span> <span class=mi>0</span><span class=p>,</span>
+            <span class=s2>&quot;getoriginfile&quot;</span><span class=p>:</span> <span class=kc>False</span><span class=p>,</span>
+            <span class=s2>&quot;needprintspecies&quot;</span><span class=p>:</span> <span class=kc>True</span><span class=p>,</span>
+            <span class=s2>&quot;urls&quot;</span><span class=p>:</span> <span class=p>[],</span>
+            <span class=s2>&quot;matrix_size&quot;</span><span class=p>:</span> <span class=mi>100</span><span class=p>,</span>
+        <span class=p>}</span>
+        <span class=n>none_key</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;selectatoms&quot;</span><span class=p>,</span> <span class=s2>&quot;species&quot;</span><span class=p>,</span> <span class=s2>&quot;pos&quot;</span><span class=p>,</span> <span class=s2>&quot;k&quot;</span><span class=p>,</span> <span class=s2>&quot;speciescenter&quot;</span><span class=p>,</span> <span class=s2>&quot;cell&quot;</span><span class=p>]</span>
+        <span class=n>accept_keys</span> <span class=o>=</span> <span class=p>[</span>
+            <span class=s2>&quot;atomtype&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;step&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;hmmit&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;timestep&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;steplinenum&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;N&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;temp1it&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;originfilename&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;hmmfilename&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;moleculetempfilename&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;moleculetemp2filename&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;allmoleculeroute&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;splitmoleculeroute&quot;</span><span class=p>,</span>
+        <span class=p>]</span>
+        <span class=n>nparray_key</span> <span class=o>=</span> <span class=p>[</span>
+            <span class=s2>&quot;atomname&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;p&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;a&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;b&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;node_color&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;start_color&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;end_color&quot;</span><span class=p>,</span>
+        <span class=p>]</span>
+        <span class=n>file_key</span> <span class=o>=</span> <span class=p>{</span>
+            <span class=s2>&quot;moleculefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;moname&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;atomroutefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;route&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;reactionfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;reaction&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;tablefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;table&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;imagefilename&quot;</span><span class=p>:</span> <span class=s2>&quot;svg&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;speciesfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;species&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;resultfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;html&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;jsonfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;json&quot;</span><span class=p>,</span>
+            <span class=s2>&quot;reactionabcdfilename&quot;</span><span class=p>:</span> <span class=s2>&quot;reactionabcd&quot;</span><span class=p>,</span>
+        <span class=p>}</span>
         <span class=k>assert</span> <span class=nb>set</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span><span class=o>.</span><span class=n>issubset</span><span class=p>(</span>
-            <span class=nb>set</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)),</span> <span class=s2>&quot;Must give neccessary key: </span><span class=si>%s</span><span class=s2>&quot;</span> <span class=o>%</span> <span class=s2>&quot;, &quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span>
+            <span class=nb>set</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)</span>
+        <span class=p>),</span> <span class=s2>&quot;Must give neccessary key: </span><span class=si>%s</span><span class=s2>&quot;</span> <span class=o>%</span> <span class=s2>&quot;, &quot;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span>
         <span class=k>assert</span> <span class=nb>set</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)</span><span class=o>.</span><span class=n>issubset</span><span class=p>(</span>
-            <span class=nb>set</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>default_value</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>none_key</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>file_key</span><span class=p>)),</span> <span class=s2>&quot;Unsupported key&quot;</span>
+            <span class=nb>set</span><span class=p>(</span><span class=n>necessary_key</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>default_value</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>none_key</span><span class=p>)</span> <span class=o>|</span> <span class=nb>set</span><span class=p>(</span><span class=n>file_key</span><span class=p>)</span>
+        <span class=p>),</span> <span class=s2>&quot;Unsupported key&quot;</span>
         <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;inputfilename&quot;</span><span class=p>]</span> <span class=o>=</span> <span class=n>must_be_list</span><span class=p>(</span><span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;inputfilename&quot;</span><span class=p>])</span>
         <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>default_value</span><span class=p>:</span>
             <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=n>kk</span><span class=p>,</span> <span class=n>default_value</span><span class=p>[</span><span class=n>kk</span><span class=p>])</span>
@@ -169,8 +216,7 @@
         <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>itertools</span><span class=o>.</span><span class=n>chain</span><span class=p>(</span><span class=n>none_key</span><span class=p>,</span> <span class=n>accept_keys</span><span class=p>):</span>
             <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=n>kk</span><span class=p>,</span> <span class=kc>None</span><span class=p>)</span>
         <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>file_key</span><span class=p>:</span>
-            <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span>
-                <span class=n>kk</span><span class=p>,</span> <span class=sa>f</span><span class=s2>&quot;</span><span class=si>{</span><span class=n>kwargs</span><span class=p>[</span><span class=s1>&#39;inputfilename&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>]</span><span class=si>}</span><span class=s2>.</span><span class=si>{</span><span class=n>file_key</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
+            <span class=n>kwargs</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=n>kk</span><span class=p>,</span> <span class=sa>f</span><span class=s2>&quot;</span><span class=si>{</span><span class=n>kwargs</span><span class=p>[</span><span class=s1>&#39;inputfilename&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>]</span><span class=si>}</span><span class=s2>.</span><span class=si>{</span><span class=n>file_key</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span><span class=si>}</span><span class=s2>&quot;</span><span class=p>)</span>
         <span class=k>for</span> <span class=n>kk</span> <span class=ow>in</span> <span class=n>nparray_key</span><span class=p>:</span>
             <span class=n>kwargs</span><span class=p>[</span><span class=n>kk</span><span class=p>]</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=n>kwargs</span><span class=p>[</span><span class=n>kk</span><span class=p>])</span>
         <span class=k>if</span> <span class=ow>not</span> <span class=n>kwargs</span><span class=p>[</span><span class=s2>&quot;runHMM&quot;</span><span class=p>]:</span>
@@ -180,18 +226,19 @@
         <span class=bp>self</span><span class=o>.</span><span class=vm>__dict__</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>kwargs</span><span class=p>)</span>
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>cell</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
             <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span> <span class=o>==</span> <span class=mi>9</span><span class=p>:</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>cell</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span><span class=o>.</span><span class=n>reshape</span><span class=p>((</span><span class=mi>3</span><span class=p>,</span><span class=mi>3</span><span class=p>))</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>cell</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span><span class=o>.</span><span class=n>reshape</span><span class=p>((</span><span class=mi>3</span><span class=p>,</span> <span class=mi>3</span><span class=p>))</span>
             <span class=k>elif</span> <span class=nb>len</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span> <span class=o>==</span> <span class=mi>3</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>cell</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>diag</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>cell</span><span class=p>)</span>
             <span class=k>else</span><span class=p>:</span>
-                <span class=k>raise</span> <span class=ne>RuntimeError</span><span class=p>(</span><span class=s2>&quot;cell must be (3,3) array_like or (3,) array_like or (9,) array_like&quot;</span><span class=p>)</span>
+                <span class=k>raise</span> <span class=ne>RuntimeError</span><span class=p>(</span>
+                    <span class=s2>&quot;cell must be (3,3) array_like or (3,) array_like or (9,) array_like&quot;</span>
+                <span class=p>)</span>
 
-<div class=viewcode-block id=ReacNetGenerator.runanddraw><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.runanddraw>[docs]</a>    <span class=k>def</span> <span class=nf>runanddraw</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span>
-                   <span class=n>run</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span>
-                   <span class=n>draw</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span>
-                   <span class=n>report</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
+<div class=viewcode-block id=ReacNetGenerator.runanddraw><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.runanddraw>[docs]</a>    <span class=k>def</span> <span class=nf>runanddraw</span><span class=p>(</span>
+        <span class=bp>self</span><span class=p>,</span> <span class=n>run</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span> <span class=n>draw</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span><span class=p>,</span> <span class=n>report</span><span class=p>:</span> <span class=nb>bool</span> <span class=o>=</span> <span class=kc>True</span>
+    <span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
 <span class=w>        </span><span class=sd>&quot;&quot;&quot;Analyze the trajectory from MD simulation.</span>
-<span class=sd>        </span>
+
 <span class=sd>        Parameters</span>
 <span class=sd>        ----------</span>
 <span class=sd>        run: bool, optional, default: True</span>
@@ -205,13 +252,15 @@
         <span class=k>if</span> <span class=n>run</span><span class=p>:</span>
             <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>urls</span><span class=p>:</span>
                 <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DOWNLOAD</span><span class=p>)</span>
-            <span class=n>processthing</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>,</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>,</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>,</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>,</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>,</span>
-            <span class=p>))</span>
+            <span class=n>processthing</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span>
+                <span class=p>(</span>
+                    <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>,</span>
+                    <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>,</span>
+                    <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>,</span>
+                    <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>,</span>
+                    <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>,</span>
+                <span class=p>)</span>
+            <span class=p>)</span>
         <span class=k>if</span> <span class=n>draw</span><span class=p>:</span>
             <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>NETWORK</span><span class=p>)</span>
         <span class=k>if</span> <span class=n>report</span><span class=p>:</span>
@@ -219,28 +268,27 @@
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>(</span><span class=n>processthing</span><span class=p>)</span></div>
 
 <div class=viewcode-block id=ReacNetGenerator.run><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.run>[docs]</a>    <span class=k>def</span> <span class=nf>run</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-<span class=w>        </span><span class=sd>&quot;&quot;&quot;Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.</span>
-<span class=sd>        &quot;&quot;&quot;</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.&quot;&quot;&quot;</span>
         <span class=n>processthing</span> <span class=o>=</span> <span class=p>[]</span>
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>urls</span><span class=p>:</span>
             <span class=n>processthing</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DOWNLOAD</span><span class=p>)</span>
-        <span class=n>processthing</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>,</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>,</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>,</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>,</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>,</span>
-        <span class=p>))</span>
+        <span class=n>processthing</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span>
+            <span class=p>(</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>PATH</span><span class=p>,</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MATRIX</span><span class=p>,</span>
+            <span class=p>)</span>
+        <span class=p>)</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>(</span><span class=n>processthing</span><span class=p>)</span></div>
 
 <div class=viewcode-block id=ReacNetGenerator.draw><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.draw>[docs]</a>    <span class=k>def</span> <span class=nf>draw</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-<span class=w>        </span><span class=sd>&quot;&quot;&quot;Draw the reaction network, i.e. NETWORK step.</span>
-<span class=sd>        &quot;&quot;&quot;</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Draw the reaction network, i.e. NETWORK step.&quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>((</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>NETWORK</span><span class=p>,))</span></div>
 
 <div class=viewcode-block id=ReacNetGenerator.report><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.report>[docs]</a>    <span class=k>def</span> <span class=nf>report</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=kc>None</span><span class=p>:</span>
-<span class=w>        </span><span class=sd>&quot;&quot;&quot;Generate the analysis report, i.e. REPORT step.</span>
-<span class=sd>        &quot;&quot;&quot;</span>
+<span class=w>        </span><span class=sd>&quot;&quot;&quot;Generate the analysis report, i.e. REPORT step.&quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_process</span><span class=p>((</span><span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>REPORT</span><span class=p>,))</span></div>
 
 <div class=viewcode-block id=ReacNetGenerator.Status><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.ReacNetGenerator.Status>[docs]</a>    <span class=k>class</span> <span class=nc>Status</span><span class=p>(</span><span class=n>Enum</span><span class=p>):</span>
@@ -285,7 +333,7 @@
         <span class=k>for</span> <span class=n>i</span><span class=p>,</span> <span class=n>runstep</span> <span class=ow>in</span> <span class=nb>enumerate</span><span class=p>(</span><span class=n>steps</span><span class=p>,</span> <span class=mi>1</span><span class=p>):</span>
             <span class=k>if</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>DETECT</span><span class=p>:</span>
                 <span class=n>_Detect</span><span class=o>.</span><span class=n>gettype</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>detect</span><span class=p>()</span>
-            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>:</span>  
+            <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>MISO</span><span class=p>:</span>
                 <span class=n>_mergeISO</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>merge</span><span class=p>()</span>
             <span class=k>elif</span> <span class=n>runstep</span> <span class=o>==</span> <span class=bp>self</span><span class=o>.</span><span class=n>Status</span><span class=o>.</span><span class=n>HMM</span><span class=p>:</span>
                 <span class=n>_HMMFilter</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span><span class=o>.</span><span class=n>filter</span><span class=p>()</span>
@@ -303,11 +351,16 @@
             <span class=n>gc</span><span class=o>.</span><span class=n>collect</span><span class=p>()</span>
             <span class=n>timearray</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>time</span><span class=o>.</span><span class=n>perf_counter</span><span class=p>())</span>
             <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span>
-                <span class=sa>f</span><span class=s2>&quot;Step </span><span class=si>{</span><span class=n>i</span><span class=si>}</span><span class=s2>: Done! Time consumed (s): </span><span class=si>{</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span><span class=o>-</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>2</span><span class=p>]</span><span class=si>:</span><span class=s2>.3f</span><span class=si>}</span><span class=s2> (</span><span class=si>{</span><span class=n>runstep</span><span class=si>}</span><span class=s2>)&quot;</span><span class=p>)</span>
+                <span class=sa>f</span><span class=s2>&quot;Step </span><span class=si>{</span><span class=n>i</span><span class=si>}</span><span class=s2>: Done! Time consumed (s): </span><span class=si>{</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span><span class=o>-</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>2</span><span class=p>]</span><span class=si>:</span><span class=s2>.3f</span><span class=si>}</span><span class=s2> (</span><span class=si>{</span><span class=n>runstep</span><span class=si>}</span><span class=s2>)&quot;</span>
+            <span class=p>)</span>
 
         <span class=c1># delete tempfile</span>
         <span class=k>for</span> <span class=n>tempfilename</span> <span class=ow>in</span> <span class=p>(</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>moleculetempfilename</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>moleculetemp2filename</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>originfilename</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>hmmfilename</span><span class=p>):</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>moleculetempfilename</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>moleculetemp2filename</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>originfilename</span><span class=p>,</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>hmmfilename</span><span class=p>,</span>
+        <span class=p>):</span>
             <span class=k>if</span> <span class=n>tempfilename</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
                 <span class=k>try</span><span class=p>:</span>
                     <span class=n>os</span><span class=o>.</span><span class=n>remove</span><span class=p>(</span><span class=n>tempfilename</span><span class=p>)</span>
@@ -316,6 +369,7 @@
         <span class=c1># Summary</span>
         <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=s2>&quot;====== Summary ======&quot;</span><span class=p>)</span>
         <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=sa>f</span><span class=s2>&quot;Total time(s): </span><span class=si>{</span><span class=n>timearray</span><span class=p>[</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span><span class=o>-</span><span class=n>timearray</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span><span class=si>:</span><span class=s2>.3f</span><span class=si>}</span><span class=s2> s&quot;</span><span class=p>)</span></div>
+
 
 <span class=c1># Please import ReacNetGenerator class from reacnetgenerator instead of reacnetgenerator.reacnetgen</span>
 <span class=n>__all__</span> <span class=o>=</span> <span class=p>[]</span>

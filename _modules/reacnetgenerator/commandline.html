@@ -8,82 +8,128 @@
 <span class=kn>import</span> <span class=nn>textwrap</span>
 <span class=kn>from</span> <span class=nn>typing</span> <span class=kn>import</span> <span class=n>List</span>
 <span class=kn>from</span> <span class=nn>.</span> <span class=kn>import</span> <span class=n>__version__</span>
-<span class=kn>from</span> <span class=nn>._detect</span> <span class=kn>import</span> <span class=n>_Detect</span> 
+<span class=kn>from</span> <span class=nn>._detect</span> <span class=kn>import</span> <span class=n>_Detect</span>
+
 
 <div class=viewcode-block id=main_parser><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.commandline.main_parser>[docs]</a><span class=k>def</span> <span class=nf>main_parser</span><span class=p>()</span> <span class=o>-&gt;</span> <span class=n>argparse</span><span class=o>.</span><span class=n>ArgumentParser</span><span class=p>:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Returns main parser.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Returns</span>
 <span class=sd>    -------</span>
 <span class=sd>    argparse.ArgumentParser</span>
 <span class=sd>        reacnetgenerator cli parser</span>
 <span class=sd>    &quot;&quot;&quot;</span>
     <span class=n>parser</span> <span class=o>=</span> <span class=n>argparse</span><span class=o>.</span><span class=n>ArgumentParser</span><span class=p>(</span>
-        <span class=n>description</span><span class=o>=</span><span class=s1>&#39;ReacNetGenerator is an automatic reaction network generator for reactive molecular dynamics simulation.&#39;</span><span class=p>,</span>
+        <span class=n>description</span><span class=o>=</span><span class=s2>&quot;ReacNetGenerator is an automatic reaction network generator for reactive molecular dynamics simulation.&quot;</span><span class=p>,</span>
         <span class=n>formatter_class</span><span class=o>=</span><span class=n>argparse</span><span class=o>.</span><span class=n>ArgumentDefaultsHelpFormatter</span><span class=p>,</span>
-        <span class=n>epilog</span><span class=o>=</span><span class=n>textwrap</span><span class=o>.</span><span class=n>dedent</span><span class=p>(</span><span class=s2>&quot;&quot;&quot;</span><span class=se>\</span>
-<span class=s2>        Examples:</span>
-<span class=s2>            reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm</span>
-<span class=s2>        &quot;&quot;&quot;</span><span class=p>))</span>
+        <span class=n>epilog</span><span class=o>=</span><span class=n>textwrap</span><span class=o>.</span><span class=n>dedent</span><span class=p>(</span>
+<span class=w>            </span><span class=sd>&quot;&quot;&quot;\</span>
+<span class=sd>        Examples:</span>
+<span class=sd>            reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=p>),</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;-i&#39;</span><span class=p>,</span> <span class=s1>&#39;--inputfilename&#39;</span><span class=p>,</span> <span class=n>nargs</span><span class=o>=</span><span class=s1>&#39;*&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Input trajectory file(s), e.g. bonds.reaxc; If multiple file are given, they are concatenated.&#39;</span><span class=p>,</span>
-        <span class=n>required</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+        <span class=s2>&quot;-i&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;--inputfilename&quot;</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=s2>&quot;*&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Input trajectory file(s), e.g. bonds.reaxc; If multiple file are given, they are concatenated.&quot;</span><span class=p>,</span>
+        <span class=n>required</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;-a&#39;</span><span class=p>,</span> <span class=s1>&#39;--atomname&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Atomic names in the trajectory, e.g. C H O&#39;</span><span class=p>,</span>
-        <span class=n>nargs</span><span class=o>=</span><span class=s1>&#39;*&#39;</span><span class=p>,</span> <span class=n>required</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+        <span class=s2>&quot;-a&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;--atomname&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Atomic names in the trajectory, e.g. C H O&quot;</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=s2>&quot;*&quot;</span><span class=p>,</span>
+        <span class=n>required</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--nohmm&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=p>(</span><span class=s1>&#39;Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly &#39;</span>
-              <span class=s1>&#39;read the related section in the paper&#39;</span><span class=p>),</span>
-        <span class=n>action</span><span class=o>=</span><span class=s2>&quot;store_true&quot;</span><span class=p>)</span>
+        <span class=s2>&quot;--nohmm&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=p>(</span>
+            <span class=s2>&quot;Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly &quot;</span>
+            <span class=s2>&quot;read the related section in the paper&quot;</span>
+        <span class=p>),</span>
+        <span class=n>action</span><span class=o>=</span><span class=s2>&quot;store_true&quot;</span><span class=p>,</span>
+    <span class=p>)</span>
+    <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span><span class=s2>&quot;--miso&quot;</span><span class=p>,</span> <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Merge the isomers&quot;</span><span class=p>,</span> <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=mi>0</span><span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--miso&#39;</span><span class=p>,</span> <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Merge the isomers&#39;</span><span class=p>,</span><span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=mi>0</span><span class=p>)</span>
+        <span class=s2>&quot;--dump&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.&quot;</span><span class=p>,</span>
+        <span class=n>action</span><span class=o>=</span><span class=s2>&quot;store_true&quot;</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--dump&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.&#39;</span><span class=p>,</span>
-        <span class=n>action</span><span class=o>=</span><span class=s2>&quot;store_true&quot;</span><span class=p>)</span>
-    <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--type&#39;</span><span class=p>,</span> <span class=s1>&#39;-t&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Input file type&#39;</span><span class=p>,</span>
+        <span class=s2>&quot;--type&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;-t&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Input file type&quot;</span><span class=p>,</span>
         <span class=n>choices</span><span class=o>=</span><span class=nb>list</span><span class=p>(</span><span class=n>_Detect</span><span class=o>.</span><span class=n>subclasses</span><span class=o>.</span><span class=n>keys</span><span class=p>()),</span>
-        <span class=n>default</span><span class=o>=</span><span class=s1>&#39;lammpsbondfile&#39;</span><span class=p>)</span>
+        <span class=n>default</span><span class=o>=</span><span class=s2>&quot;lammpsbondfile&quot;</span><span class=p>,</span>
+    <span class=p>)</span>
+    <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span><span class=s2>&quot;--nopbc&quot;</span><span class=p>,</span> <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Disable PBC.&quot;</span><span class=p>,</span> <span class=n>action</span><span class=o>=</span><span class=s2>&quot;store_true&quot;</span><span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--nopbc&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Disable PBC.&#39;</span><span class=p>,</span>
-        <span class=n>action</span><span class=o>=</span><span class=s2>&quot;store_true&quot;</span><span class=p>)</span>
+        <span class=s2>&quot;--cell&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;-c&quot;</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=s2>&quot;+&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>float</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=p>(</span>
+            <span class=s2>&quot;Cell information if PBC is enabled and the input file does not contain cell information. &quot;</span>
+            <span class=s2>&quot;The cell information should be in 3x3 matrix format.&quot;</span>
+        <span class=p>),</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--cell&#39;</span><span class=p>,</span> <span class=s1>&#39;-c&#39;</span><span class=p>,</span> <span class=n>nargs</span><span class=o>=</span><span class=s1>&#39;+&#39;</span><span class=p>,</span> <span class=nb>type</span><span class=o>=</span><span class=nb>float</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=p>(</span><span class=s1>&#39;Cell information if PBC is enabled and the input file does not contain cell information. &#39;</span>
-              <span class=s1>&#39;The cell information should be in 3x3 matrix format.&#39;</span><span class=p>))</span>
+        <span class=s2>&quot;-n&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;-np&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;--nproc&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Number of processes, by default using all processes&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;-n&#39;</span><span class=p>,</span> <span class=s1>&#39;-np&#39;</span><span class=p>,</span> <span class=s1>&#39;--nproc&#39;</span><span class=p>,</span> <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Number of processes, by default using all processes&#39;</span><span class=p>,</span> <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>)</span>
+        <span class=s2>&quot;-s&quot;</span><span class=p>,</span>
+        <span class=s2>&quot;--selectatoms&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Select element(s) in the reaction network, e.g. C&quot;</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=s2>&quot;*&quot;</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;-s&#39;</span><span class=p>,</span> <span class=s1>&#39;--selectatoms&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Select element(s) in the reaction network, e.g. C&#39;</span><span class=p>,</span> <span class=n>nargs</span><span class=o>=</span><span class=s1>&#39;*&#39;</span><span class=p>)</span>
+        <span class=s2>&quot;--stepinterval&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Step interval, i.e. read every N step from the trajectory&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span>
+        <span class=n>default</span><span class=o>=</span><span class=mi>1</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--stepinterval&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Step interval, i.e. read every N step from the trajectory&#39;</span><span class=p>,</span>
-        <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=mi>1</span><span class=p>)</span>
+        <span class=s2>&quot;--split&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Split number for the time axis; the whole trajectroy will be splited into N parts for analysis&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span>
+        <span class=n>default</span><span class=o>=</span><span class=mi>1</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--split&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Split number for the time axis; the whole trajectroy will be splited into N parts for analysis&#39;</span><span class=p>,</span>
-        <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=mi>1</span><span class=p>)</span>
+        <span class=s2>&quot;--maxspecies&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Max number of nodes (species) in the network&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span>
+        <span class=n>default</span><span class=o>=</span><span class=mi>20</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--maxspecies&#39;</span><span class=p>,</span> <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Max number of nodes (species) in the network&#39;</span><span class=p>,</span> <span class=nb>type</span><span class=o>=</span><span class=nb>int</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=mi>20</span><span class=p>)</span>
+        <span class=s2>&quot;--matrixa&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Transition matrix A of HMM parameters&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>float</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=mi>4</span><span class=p>,</span>
+        <span class=n>default</span><span class=o>=</span><span class=p>[</span><span class=mf>0.999</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.999</span><span class=p>],</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--matrixa&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Transition matrix A of HMM parameters&#39;</span><span class=p>,</span>
-        <span class=nb>type</span><span class=o>=</span><span class=nb>float</span><span class=p>,</span> <span class=n>nargs</span><span class=o>=</span><span class=mi>4</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=p>[</span><span class=mf>0.999</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.001</span><span class=p>,</span> <span class=mf>0.999</span><span class=p>])</span>
+        <span class=s2>&quot;--matrixb&quot;</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Emission matrix B of HMM parameters&quot;</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>float</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=mi>4</span><span class=p>,</span>
+        <span class=n>default</span><span class=o>=</span><span class=p>[</span><span class=mf>0.6</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.6</span><span class=p>],</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--matrixb&#39;</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Emission matrix B of HMM parameters&#39;</span><span class=p>,</span>
-        <span class=nb>type</span><span class=o>=</span><span class=nb>float</span><span class=p>,</span> <span class=n>nargs</span><span class=o>=</span><span class=mi>4</span><span class=p>,</span> <span class=n>default</span><span class=o>=</span><span class=p>[</span><span class=mf>0.6</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.4</span><span class=p>,</span> <span class=mf>0.6</span><span class=p>])</span>
+        <span class=s2>&quot;--urls&quot;</span><span class=p>,</span>
+        <span class=n>action</span><span class=o>=</span><span class=s2>&quot;append&quot;</span><span class=p>,</span>
+        <span class=n>nargs</span><span class=o>=</span><span class=mi>2</span><span class=p>,</span>
+        <span class=nb>type</span><span class=o>=</span><span class=nb>str</span><span class=p>,</span>
+        <span class=n>help</span><span class=o>=</span><span class=s2>&quot;Download files before analysis, in the format of `--urls filename url`&quot;</span><span class=p>,</span>
+    <span class=p>)</span>
     <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span>
-        <span class=s1>&#39;--urls&#39;</span><span class=p>,</span> <span class=n>action</span><span class=o>=</span><span class=s1>&#39;append&#39;</span><span class=p>,</span> <span class=n>nargs</span><span class=o>=</span><span class=mi>2</span><span class=p>,</span> <span class=nb>type</span><span class=o>=</span><span class=nb>str</span><span class=p>,</span>
-        <span class=n>help</span><span class=o>=</span><span class=s1>&#39;Download files before analysis, in the format of `--urls filename url`&#39;</span><span class=p>)</span>
-    <span class=n>parser</span><span class=o>.</span><span class=n>add_argument</span><span class=p>(</span><span class=s1>&#39;--version&#39;</span><span class=p>,</span> <span class=n>action</span><span class=o>=</span><span class=s1>&#39;version&#39;</span><span class=p>,</span> <span class=n>version</span><span class=o>=</span><span class=s1>&#39;ReacNetGenerator v</span><span class=si>%s</span><span class=s1>&#39;</span> <span class=o>%</span> <span class=n>__version__</span><span class=p>)</span>
+        <span class=s2>&quot;--version&quot;</span><span class=p>,</span> <span class=n>action</span><span class=o>=</span><span class=s2>&quot;version&quot;</span><span class=p>,</span> <span class=n>version</span><span class=o>=</span><span class=s2>&quot;ReacNetGenerator v</span><span class=si>%s</span><span class=s2>&quot;</span> <span class=o>%</span> <span class=n>__version__</span>
+    <span class=p>)</span>
     <span class=k>return</span> <span class=n>parser</span></div>
 
 
@@ -92,17 +138,21 @@
     <span class=n>args</span> <span class=o>=</span> <span class=n>parser</span><span class=o>.</span><span class=n>parse_args</span><span class=p>()</span>
     <span class=kn>from</span> <span class=nn>.reacnetgen</span> <span class=kn>import</span> <span class=n>ReacNetGenerator</span>
     <span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
+
     <span class=n>ReacNetGenerator</span><span class=p>(</span>
-        <span class=n>inputfilename</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>inputfilename</span><span class=p>,</span> <span class=n>atomname</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>atomname</span><span class=p>,</span>
+        <span class=n>inputfilename</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>inputfilename</span><span class=p>,</span>
+        <span class=n>atomname</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>atomname</span><span class=p>,</span>
         <span class=n>miso</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>miso</span><span class=p>,</span>
         <span class=n>runHMM</span><span class=o>=</span><span class=ow>not</span> <span class=n>args</span><span class=o>.</span><span class=n>nohmm</span><span class=p>,</span>
-        <span class=n>inputfiletype</span><span class=o>=</span><span class=p>(</span><span class=s1>&#39;lammpsdumpfile&#39;</span> <span class=k>if</span> <span class=n>args</span><span class=o>.</span><span class=n>dump</span> <span class=k>else</span> <span class=n>args</span><span class=o>.</span><span class=n>type</span><span class=p>),</span>
-        <span class=n>nproc</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>nproc</span><span class=p>,</span> <span class=n>selectatoms</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>selectatoms</span><span class=p>,</span>
+        <span class=n>inputfiletype</span><span class=o>=</span><span class=p>(</span><span class=s2>&quot;lammpsdumpfile&quot;</span> <span class=k>if</span> <span class=n>args</span><span class=o>.</span><span class=n>dump</span> <span class=k>else</span> <span class=n>args</span><span class=o>.</span><span class=n>type</span><span class=p>),</span>
+        <span class=n>nproc</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>nproc</span><span class=p>,</span>
+        <span class=n>selectatoms</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>selectatoms</span><span class=p>,</span>
         <span class=n>stepinterval</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>stepinterval</span><span class=p>,</span>
         <span class=n>split</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>split</span><span class=p>,</span>
         <span class=n>maxspecies</span><span class=o>=</span><span class=n>args</span><span class=o>.</span><span class=n>maxspecies</span><span class=p>,</span>
-        <span class=n>urls</span><span class=o>=</span><span class=p>[{</span><span class=s2>&quot;fn&quot;</span><span class=p>:</span> <span class=n>url</span><span class=p>[</span><span class=mi>0</span><span class=p>],</span> <span class=s2>&quot;url&quot;</span><span class=p>:</span> <span class=n>url</span><span class=p>[</span><span class=mi>1</span><span class=p>]}</span>
-              <span class=k>for</span> <span class=n>url</span> <span class=ow>in</span> <span class=n>args</span><span class=o>.</span><span class=n>urls</span><span class=p>]</span> <span class=k>if</span> <span class=n>args</span><span class=o>.</span><span class=n>urls</span> <span class=k>else</span> <span class=kc>None</span><span class=p>,</span>
+        <span class=n>urls</span><span class=o>=</span><span class=p>[{</span><span class=s2>&quot;fn&quot;</span><span class=p>:</span> <span class=n>url</span><span class=p>[</span><span class=mi>0</span><span class=p>],</span> <span class=s2>&quot;url&quot;</span><span class=p>:</span> <span class=n>url</span><span class=p>[</span><span class=mi>1</span><span class=p>]}</span> <span class=k>for</span> <span class=n>url</span> <span class=ow>in</span> <span class=n>args</span><span class=o>.</span><span class=n>urls</span><span class=p>]</span>
+        <span class=k>if</span> <span class=n>args</span><span class=o>.</span><span class=n>urls</span>
+        <span class=k>else</span> <span class=kc>None</span><span class=p>,</span>
         <span class=n>a</span><span class=o>=</span><span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=n>args</span><span class=o>.</span><span class=n>matrixa</span><span class=p>)</span><span class=o>.</span><span class=n>reshape</span><span class=p>((</span><span class=mi>2</span><span class=p>,</span> <span class=mi>2</span><span class=p>)),</span>
         <span class=n>b</span><span class=o>=</span><span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>(</span><span class=n>args</span><span class=o>.</span><span class=n>matrixb</span><span class=p>)</span><span class=o>.</span><span class=n>reshape</span><span class=p>((</span><span class=mi>2</span><span class=p>,</span> <span class=mi>2</span><span class=p>)),</span>
         <span class=n>pbc</span><span class=o>=</span><span class=ow>not</span> <span class=n>args</span><span class=o>.</span><span class=n>nopbc</span><span class=p>,</span>
@@ -112,7 +162,7 @@
 
 <div class=viewcode-block id=parm2cmd><a class=viewcode-back href=../../api/reacnetgenerator.html#reacnetgenerator.commandline.parm2cmd>[docs]</a><span class=k>def</span> <span class=nf>parm2cmd</span><span class=p>(</span><span class=n>pp</span><span class=p>:</span> <span class=nb>dict</span><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>List</span><span class=p>[</span><span class=nb>str</span><span class=p>]:</span>
 <span class=w>    </span><span class=sd>&quot;&quot;&quot;Converts a parameter dictionary to command line arguments.</span>
-<span class=sd>    </span>
+
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
 <span class=sd>    pp : dict</span>
@@ -123,27 +173,40 @@
 <span class=sd>    List[str]</span>
 <span class=sd>        Command line arguments</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=n>commands</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;reacnetgenerator&#39;</span><span class=p>,</span> <span class=s1>&#39;-i&#39;</span><span class=p>,</span>
-                <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;inputfilename&#39;</span><span class=p>],</span> <span class=s1>&#39;-a&#39;</span><span class=p>,</span> <span class=o>*</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;atomname&#39;</span><span class=p>]]</span>
-    <span class=k>if</span> <span class=ow>not</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;runHMM&#39;</span><span class=p>,</span> <span class=kc>True</span><span class=p>):</span>
-        <span class=n>commands</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=s1>&#39;--nohmm&#39;</span><span class=p>)</span>
-    <span class=k>if</span> <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;inputfiletype&#39;</span><span class=p>]:</span>
-        <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span><span class=s1>&#39;--type&#39;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;inputfiletype&#39;</span><span class=p>]))</span>
-    <span class=k>if</span> <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;atomname&#39;</span><span class=p>]:</span>
-        <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span><span class=s1>&#39;-s&#39;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;atomname&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>]))</span>
-    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;urls&#39;</span><span class=p>,</span> <span class=p>[]):</span>
+    <span class=n>commands</span> <span class=o>=</span> <span class=p>[</span><span class=s2>&quot;reacnetgenerator&quot;</span><span class=p>,</span> <span class=s2>&quot;-i&quot;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;inputfilename&quot;</span><span class=p>],</span> <span class=s2>&quot;-a&quot;</span><span class=p>,</span> <span class=o>*</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;atomname&quot;</span><span class=p>]]</span>
+    <span class=k>if</span> <span class=ow>not</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;runHMM&quot;</span><span class=p>,</span> <span class=kc>True</span><span class=p>):</span>
+        <span class=n>commands</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=s2>&quot;--nohmm&quot;</span><span class=p>)</span>
+    <span class=k>if</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;inputfiletype&quot;</span><span class=p>]:</span>
+        <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span><span class=s2>&quot;--type&quot;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;inputfiletype&quot;</span><span class=p>]))</span>
+    <span class=k>if</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;atomname&quot;</span><span class=p>]:</span>
+        <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span><span class=s2>&quot;-s&quot;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;atomname&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>]))</span>
+    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;urls&quot;</span><span class=p>,</span> <span class=p>[]):</span>
+        <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span><span class=s2>&quot;--urls&quot;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;urls&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=s2>&quot;fn&quot;</span><span class=p>],</span> <span class=n>pp</span><span class=p>[</span><span class=s2>&quot;urls&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=s2>&quot;url&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>]))</span>
+    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;a&quot;</span><span class=p>,</span> <span class=p>[]):</span>
         <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span>
-            <span class=p>(</span><span class=s1>&#39;--urls&#39;</span><span class=p>,</span> <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;urls&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=s1>&#39;fn&#39;</span><span class=p>],</span> <span class=n>pp</span><span class=p>[</span><span class=s1>&#39;urls&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=s1>&#39;url&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>]))</span>
-    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;a&#39;</span><span class=p>,</span> <span class=p>[]):</span>
+            <span class=p>(</span>
+                <span class=s2>&quot;--matrixa&quot;</span><span class=p>,</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;a&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;a&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;a&quot;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;a&quot;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span>
+            <span class=p>)</span>
+        <span class=p>)</span>
+    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;b&quot;</span><span class=p>,</span> <span class=p>[]):</span>
         <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span>
-            <span class=p>(</span><span class=s1>&#39;--matrixa&#39;</span><span class=p>,</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;a&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;a&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;a&#39;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;a&#39;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>1</span><span class=p>])))</span>
-    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;b&#39;</span><span class=p>,</span> <span class=p>[]):</span>
+            <span class=p>(</span>
+                <span class=s2>&quot;--matrixb&quot;</span><span class=p>,</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;b&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;b&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;b&quot;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span>
+                <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;b&quot;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span>
+            <span class=p>)</span>
+        <span class=p>)</span>
+    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s2>&quot;cell&quot;</span><span class=p>,</span> <span class=p>[]):</span>
         <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span>
-            <span class=p>(</span><span class=s1>&#39;--matrixb&#39;</span><span class=p>,</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;b&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;b&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;b&#39;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;b&#39;</span><span class=p>][</span><span class=mi>1</span><span class=p>][</span><span class=mi>1</span><span class=p>])))</span>
-    <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;cell&#39;</span><span class=p>,</span> <span class=p>[]):</span>
-        <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span>
-            <span class=p>(</span><span class=s1>&#39;--cell&#39;</span><span class=p>,</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;cell&#39;</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;cell&#39;</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s1>&#39;cell&#39;</span><span class=p>][</span><span class=mi>2</span><span class=p>])))</span>
-    <span class=k>for</span> <span class=n>ii</span> <span class=ow>in</span> <span class=p>[</span><span class=s1>&#39;nproc&#39;</span><span class=p>,</span> <span class=s1>&#39;selectatoms&#39;</span><span class=p>,</span> <span class=s1>&#39;stepinterval&#39;</span><span class=p>,</span> <span class=s1>&#39;split&#39;</span><span class=p>,</span> <span class=s1>&#39;maxspecies&#39;</span><span class=p>]:</span>
+            <span class=p>(</span><span class=s2>&quot;--cell&quot;</span><span class=p>,</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;cell&quot;</span><span class=p>][</span><span class=mi>0</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;cell&quot;</span><span class=p>][</span><span class=mi>1</span><span class=p>]),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=s2>&quot;cell&quot;</span><span class=p>][</span><span class=mi>2</span><span class=p>]))</span>
+        <span class=p>)</span>
+    <span class=k>for</span> <span class=n>ii</span> <span class=ow>in</span> <span class=p>[</span><span class=s2>&quot;nproc&quot;</span><span class=p>,</span> <span class=s2>&quot;selectatoms&quot;</span><span class=p>,</span> <span class=s2>&quot;stepinterval&quot;</span><span class=p>,</span> <span class=s2>&quot;split&quot;</span><span class=p>,</span> <span class=s2>&quot;maxspecies&quot;</span><span class=p>]:</span>
         <span class=k>if</span> <span class=n>pp</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>ii</span><span class=p>,</span> <span class=kc>None</span><span class=p>):</span>
             <span class=n>commands</span><span class=o>.</span><span class=n>extend</span><span class=p>((</span><span class=s2>&quot;--</span><span class=si>{}</span><span class=s2>&quot;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>ii</span><span class=p>),</span> <span class=nb>str</span><span class=p>(</span><span class=n>pp</span><span class=p>[</span><span class=n>ii</span><span class=p>])))</span>
     <span class=k>return</span> <span class=n>commands</span></div>

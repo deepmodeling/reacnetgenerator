@@ -20,7 +20,7 @@ Besides ReacNetGenerator{cite:p}`Zeng_PhysChemChemPhys_2020_v22_p683`, DeePMD-ki
 
 ## Step 1: Preparing the reference dataset
 
-In the reference dataset preparation process, one also has to consider the expect accuracy of the final model, or at what QM level one should label the data. In {cite:t}`Zeng_NatCommun_2020_v11_p5713`, the [Gaussian](https://gaussian.com) software{cite:p}`g16` was used to calculate the potential energy and atomic forces of the reference data at the MN15/6-31G\*\* level. The MN15 functional was employed because it has good accuracy for both multi-reference and single-reference systems, which is essential for our system as we have to deal with a lot of radicals and their reactions. Here we assume that the dataset is prepared in advance, which can be downloaded from [tongzhugroup/Chapter13-tutorial](https://github.com/tongzhugroup/Chapter13-tutorial). 
+In the reference dataset preparation process, one also has to consider the expect accuracy of the final model, or at what QM level one should label the data. In {cite:t}`Zeng_NatCommun_2020_v11_p5713`, the [Gaussian](https://gaussian.com) software{cite:p}`g16` was used to calculate the potential energy and atomic forces of the reference data at the MN15/6-31G\*\* level. The MN15 functional was employed because it has good accuracy for both multi-reference and single-reference systems, which is essential for our system as we have to deal with a lot of radicals and their reactions. Here we assume that the dataset is prepared in advance, which can be downloaded from [tongzhugroup/Chapter13-tutorial](https://github.com/tongzhugroup/Chapter13-tutorial).
 
 ## Step 2. Training the Deep Potential (DP)
 
@@ -59,14 +59,14 @@ Here we use the same system from [our previous work](https://doi.org/10.1038/s41
 The MD will be performed under the NVT ensemble at 3000 K for 1 ns. The LAMMPS program can be invoked by the following command:
 
 ```sh
-$deepmd_root/bin/lmp -i input.lammps 
+$deepmd_root/bin/lmp -i input.lammps
 ```
 
 The `input.lammps` is the input file that controls the MD simulation in detail, technique details can be found in [the manual of LAMMPS](https://docs.lammps.org/). To use the DP, the `pair_style` option in this input should be specified as follows:
 
 ```lammps
-pair_style deepmd graph_compressed.pb 
-pair_coeff * * 
+pair_style deepmd graph_compressed.pb
+pair_coeff * *
 ```
 
 ## Step 5: Analysis of the trajectory

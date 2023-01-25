@@ -24,7 +24,7 @@ See also [Tutorial: Installation](../tutorial/install.ipynb).
 
 ## Docker images
 
-If you have [installed Docker](https://docs.docker.com/install/), an official Docker image is provided: 
+If you have [installed Docker](https://docs.docker.com/install/), an official Docker image is provided:
 
 ```bash
 docker run ghcr.io/tongzhugroup/reacnetgenerator reacnetgenerator -h
@@ -39,5 +39,5 @@ singularity run docker://ghcr.io/tongzhugroup/reacnetgenerator reacnetgenerator 
 ```
 
 :::{note}
-See [the build guide](build.md) if you want to build ReacNetGenerator from source. 
+See [the build guide](build.md) if you want to build ReacNetGenerator from source.
 :::
