@@ -44,7 +44,7 @@ class WriteBuffer:
     """Store a buffer for writing files.
 
     It is expensive to write to a file, so we need to make a buffer.
-    
+
     Parameters
     ----------
     f: fileObject
@@ -55,14 +55,17 @@ class WriteBuffer:
     sep: str or bytes, default: None
         The separator for contents. If None (default), there will be no separator.
     """
-    def __init__(self, f: IO, linenumber: int = 1200, sep: Optional[AnyStr] = None) -> None:
+
+    def __init__(
+        self, f: IO, linenumber: int = 1200, sep: Optional[AnyStr] = None
+    ) -> None:
         self.f = f
         if sep is not None:
             self.sep = sep
-        elif f.mode == 'w':
-            self.sep = ''
-        elif f.mode == 'wb':
-            self.sep = b''
+        elif f.mode == "w":
+            self.sep = ""
+        elif f.mode == "wb":
+            self.sep = b""
         else:
             raise RuntimeError("File mode should be w or wb!")
         self.linenumber = linenumber
@@ -71,7 +74,7 @@ class WriteBuffer:
 
     def append(self, text: AnyStr) -> None:
         """Append a text.
-        
+
         Parameters
         ----------
         text: str or bytes
@@ -93,7 +96,7 @@ class WriteBuffer:
 
     def check(self) -> None:
         """Check if the number of stored contents exceeds.
-        
+
         If so, the buffer will be flushed.
         """
         if len(self.buff) > self.linenumber:
@@ -115,7 +118,7 @@ class WriteBuffer:
 
 def appendIfNotNone(f: Union[WriteBuffer, ExitStack], wbytes: Optional[AnyStr]) -> None:
     """Append a line to a file if the line is not None.
-    
+
     Parameters
     ----------
     f: WriteBuffer
@@ -128,13 +131,15 @@ def appendIfNotNone(f: Union[WriteBuffer, ExitStack], wbytes: Optional[AnyStr]) 
         f.append(wbytes)
 
 
-def produce(semaphore: "multiprocessing.synchronize.Semaphore",
-            plist: Iterable[Any],
-            parameter: Any) -> Generator[Tuple[Any, Any], None, None]:
+def produce(
+    semaphore: "multiprocessing.synchronize.Semaphore",
+    plist: Iterable[Any],
+    parameter: Any,
+) -> Generator[Tuple[Any, Any], None, None]:
     """Item producer with a semaphore.
-    
+
     Prevent large memory usage due to slow IO.
-    
+
     Parameters
     ----------
     semaphore: multiprocessing.Semaphore
@@ -181,20 +186,20 @@ def compress(x: Union[str, bytes]) -> bytes:
     if isinstance(x, str):
         x = x.encode()
     compress_block = lz4.frame.compress(x, compression_level=0)
-    length_bytes = len(compress_block).to_bytes(64, byteorder='little')
+    length_bytes = len(compress_block).to_bytes(64, byteorder="little")
     return length_bytes + compress_block
 
 
 def decompress(x: bytes, isbytes: bool = False) -> Union[str, bytes]:
     """Decompress the line.
-    
+
     Parameters
     ----------
     x: bytes
         The line to decompress.
     isbytes: bool, optional, default: False
         If the decompressed content is bytes. If not, the line will be decoded.
-    
+
     Returns
     -------
     str or bytes
@@ -208,12 +213,12 @@ def decompress(x: bytes, isbytes: bool = False) -> Union[str, bytes]:
 
 def listtobytes(x: Any) -> bytes:
     """Convert an object to a compressed line.
-    
+
     Parameters
     ----------
     x: object
         The object to convert, such as numpy.ndarray.
-    
+
     Returns
     -------
     bytes
@@ -224,7 +229,7 @@ def listtobytes(x: Any) -> bytes:
 
 def read_compressed_block(f: BinaryIO) -> Generator[bytes, None, None]:
     """Read compressed binary file, assuming the format is size + data + size + data + ...
-    
+
     Parameters
     ----------
     f: fileObject
@@ -239,18 +244,18 @@ def read_compressed_block(f: BinaryIO) -> Generator[bytes, None, None]:
         sizeb = f.read(64)
         if not sizeb:
             break
-        size = int.from_bytes(sizeb, byteorder='little')
+        size = int.from_bytes(sizeb, byteorder="little")
         yield sizeb + f.read(size)
 
 
 def bytestolist(x: bytes) -> Any:
     """Convert a compressed line to an object.
-    
+
     Parameters
     ----------
     x: bytes
         The compressed line.
-    
+
     Returns
     -------
     object
@@ -261,7 +266,9 @@ def bytestolist(x: bytes) -> Any:
     return pickle.loads(data)
 
 
-def listtostirng(l: Union[str, list, tuple, np.ndarray], sep: Union[List[str], Tuple[str, ...]]) -> str:
+def listtostirng(
+    l: Union[str, list, tuple, np.ndarray], sep: Union[List[str], Tuple[str, ...]]
+) -> str:
     """Convert a list to string, that is easier to store.
 
     Parameters
@@ -283,20 +290,22 @@ def listtostirng(l: Union[str, list, tuple, np.ndarray], sep: Union[List[str], T
     return str(l)
 
 
-def multiopen(pool: "multiprocessing.pool.Pool",
-              func: Callable,
-              l: IO,
-              semaphore: Optional["multiprocessing.synchronize.Semaphore"] = None,
-              nlines: Optional[int] = None,
-              unordered: bool = True,
-              return_num: bool = False,
-              start: int = 0,
-              extra: Optional[Any] = None,
-              interval: Optional[int] = None,
-              bar: bool = True,
-              desc: Optional[str] = None,
-              unit: str = "it",
-              total: Optional[int] = None) -> Iterable:
+def multiopen(
+    pool: "multiprocessing.pool.Pool",
+    func: Callable,
+    l: IO,
+    semaphore: Optional["multiprocessing.synchronize.Semaphore"] = None,
+    nlines: Optional[int] = None,
+    unordered: bool = True,
+    return_num: bool = False,
+    start: int = 0,
+    extra: Optional[Any] = None,
+    interval: Optional[int] = None,
+    bar: bool = True,
+    desc: Optional[str] = None,
+    unit: str = "it",
+    total: Optional[int] = None,
+) -> Iterable:
     """Returns an interated object for process a file with multiple processors.
 
     Parameters
@@ -333,7 +342,7 @@ def multiopen(pool: "multiprocessing.pool.Pool",
         The unit of the iteration shown in the bar.
     total: int, optional, default: None
         The total number of the iteration shown in the bar.
-    
+
     Returns
     -------
     object
@@ -359,6 +368,7 @@ def multiopen(pool: "multiprocessing.pool.Pool",
 
 class SCOUROPTIONS:
     """Scour (SVG optimization) options."""
+
     strip_xml_prolog = True
     remove_titles = True
     remove_descriptions = True
@@ -386,11 +396,14 @@ class SharedRNGData:
     extraNoneKeys: list of strs, optional, default: None
         Set keys to None, which will be used in the submodule.
     """
-    def __init__(self,
-                rng: "reacnetgenerator.ReacNetGenerator",
-                usedRNGKeys: List[str],
-                returnedRNGKeys: List[str],
-                extraNoneKeys: Optional[List[str]] = None) -> None:
+
+    def __init__(
+        self,
+        rng: "reacnetgenerator.ReacNetGenerator",
+        usedRNGKeys: List[str],
+        returnedRNGKeys: List[str],
+        extraNoneKeys: Optional[List[str]] = None,
+    ) -> None:
         self.rng = rng
         self.returnedRNGKeys = returnedRNGKeys
         for key in usedRNGKeys:
@@ -409,14 +422,14 @@ class SharedRNGData:
 
 def checksha256(filename: str, sha256_check: Union[str, List[str]]):
     """Check sha256 of a file is correct.
-    
+
     Parameters
     ----------
     filename: str
         The filename.
     sha256_check: str or list of strs
         The sha256 to be checked.
-    
+
     Returns
     -------
     bool
@@ -425,9 +438,9 @@ def checksha256(filename: str, sha256_check: Union[str, List[str]]):
     if not os.path.isfile(filename):
         return
     h = hashlib.sha256()
-    b = bytearray(128*1024)
+    b = bytearray(128 * 1024)
     mv = memoryview(b)
-    with open(filename, 'rb', buffering=0) as f:
+    with open(filename, "rb", buffering=0) as f:
         for n in iter(lambda: f.readinto(mv), 0):
             h.update(mv[:n])
     sha256 = h.hexdigest()
@@ -439,11 +452,11 @@ def checksha256(filename: str, sha256_check: Union[str, List[str]]):
     return False
 
 
-async def download_file(urls: Union[str, List[str]],
-                        pathfilename: str,
-                        sha256: str) -> str:
+async def download_file(
+    urls: Union[str, List[str]], pathfilename: str, sha256: str
+) -> str:
     """Download files from remote urls if not exists.
-    
+
     Parameters
     ----------
     urls: str or list of strs
@@ -452,23 +465,25 @@ async def download_file(urls: Union[str, List[str]],
         The downloading path of the file.
     sha256: str
         Sha256 of the file. If not None and match the file, the download will be skiped.
-    
+
     Returns
     -------
     pathfilename: str
         The downloading path of the file.
     """
     s = requests.Session()
-    s.mount('http://', HTTPAdapter(max_retries=3))
-    s.mount('https://', HTTPAdapter(max_retries=3))
+    s.mount("http://", HTTPAdapter(max_retries=3))
+    s.mount("https://", HTTPAdapter(max_retries=3))
     # download if not exists
-    if os.path.isfile(pathfilename) and (sha256 is None or checksha256(pathfilename, sha256)):
+    if os.path.isfile(pathfilename) and (
+        sha256 is None or checksha256(pathfilename, sha256)
+    ):
         return pathfilename
 
     # from https://stackoverflow.com/questions/16694907
     for url in must_be_list(urls):
         logger.info(f"Try to download {pathfilename} from {url}")
-        with s.get(url, stream=True) as r, open(pathfilename, 'wb') as f:
+        with s.get(url, stream=True) as r, open(pathfilename, "wb") as f:
             try:
                 shutil.copyfileobj(r.raw, f)
                 break
@@ -482,14 +497,19 @@ async def download_file(urls: Union[str, List[str]],
 
 async def gather_download_files(urls: List[dict]) -> None:
     """Asynchronously download files from remote urls if not exists.
-    
+
     See download_multifiles function for details.
-    
+
     See Also
     --------
     download_multifiles
     """
-    await asyncio.gather(*[download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None)) for jdata in urls])
+    await asyncio.gather(
+        *[
+            download_file(jdata["url"], jdata["fn"], jdata.get("sha256", None))
+            for jdata in urls
+        ]
+    )
 
 
 def download_multifiles(urls: List[dict]) -> None:
@@ -529,7 +549,7 @@ def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
     multiopen
     """
     pool = Pool(nproc, maxtasksperchild=1000)
-    semaphore = Semaphore(nproc*150)
+    semaphore = Semaphore(nproc * 150)
     try:
         results = multiopen(pool=pool, semaphore=semaphore, **arg)
         for item in results:
@@ -547,7 +567,7 @@ def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
 
 def must_be_list(obj: Union[Any, List[Any]]) -> List[Any]:
     """Convert a object to a list if the object is not a list.
-    
+
     Parameters
     ----------
     obj: Object

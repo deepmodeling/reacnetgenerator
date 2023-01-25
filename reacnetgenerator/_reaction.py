@@ -1,9 +1,9 @@
 # cython: language_level=3
 # cython: linetrace=True
-'''Reactions finder.
+"""Reactions finder.
 
 
-'''
+"""
 import numpy as np
 from collections import Counter, defaultdict
 
@@ -21,21 +21,27 @@ class ReactionsFinder(SharedRNGData):
     nproc: int
 
     def __init__(self, rng):
-        SharedRNGData.__init__(self, rng, ["step", "mname",
-                                           "reactionabcdfilename", "nproc"], [])
+        SharedRNGData.__init__(
+            self, rng, ["step", "mname", "reactionabcdfilename", "nproc"], []
+        )
 
     def findreactions(self, atomeach, conflict):
         allreactions = []
         # atomeach j, atomeach j+1, conflict j, conflict j+1
-        givenarray = zip(atomeach[:-1], atomeach[1:],
-                         conflict[:-1], conflict[1:])
-        results = run_mp(self.nproc, func=self._getstepreaction, l=[listtobytes(x) for x in givenarray],
-                         total=self.step-1, desc="Analyze reactions (A+B->C+D)", unit="timestep")
+        givenarray = zip(atomeach[:-1], atomeach[1:], conflict[:-1], conflict[1:])
+        results = run_mp(
+            self.nproc,
+            func=self._getstepreaction,
+            l=[listtobytes(x) for x in givenarray],
+            total=self.step - 1,
+            desc="Analyze reactions (A+B->C+D)",
+            unit="timestep",
+        )
         for networks in results:
             allreactions.extend(networks)
         # reaction with SMILES
         allreactionswithname = Counter(allreactions).most_common()
-        with WriteBuffer(open(self.reactionabcdfilename, 'w'), sep='\n') as f:
+        with WriteBuffer(open(self.reactionabcdfilename, "w"), sep="\n") as f:
             for reaction, number in allreactionswithname:
                 if reaction is not None:
                     f.append(f"{number} {reaction}")
@@ -57,7 +63,12 @@ class ReactionsFinder(SharedRNGData):
         # remove empty AND conflict
         new_networks = []
         for nn in networks:
-            if not (self.EMPTY in nn[0] or self.EMPTY in nn[1] or self.CONFLICT in nn[0] or self.CONFLICT in nn[1]):
+            if not (
+                self.EMPTY in nn[0]
+                or self.EMPTY in nn[1]
+                or self.CONFLICT in nn[0]
+                or self.CONFLICT in nn[1]
+            ):
                 new_networks.append(nn)
         # reaction with SMILES name like A+B->C+D
         reactions = [self._filterspec(reaction) for reaction in new_networks]
@@ -65,10 +76,16 @@ class ReactionsFinder(SharedRNGData):
 
     def _filterspec(self, reaction):
         leftname, rightname = (
-            Counter(self.mname[np.array(side)-1]) for side in reaction)
+            Counter(self.mname[np.array(side) - 1]) for side in reaction
+        )
         # remove duplicate species
         new_leftname = leftname - rightname
         new_rightname = rightname - leftname
         if new_leftname and new_rightname:
-            return '->'.join(('+'.join(sorted(side.elements())) for side in (new_leftname, new_rightname)))
+            return "->".join(
+                (
+                    "+".join(sorted(side.elements()))
+                    for side in (new_leftname, new_rightname)
+                )
+            )
         return None

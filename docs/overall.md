@@ -70,6 +70,3 @@ See [the guide](guide/index) to learn how to install and use ReacNetGenerattor. 
 * National Natural Science Foundation of China (Grants No. 91641116)
 * National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
 * ECNU Multifunctional Platform for Innovation (No. 001)
-
-
-

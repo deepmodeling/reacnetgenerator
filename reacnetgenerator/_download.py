@@ -6,6 +6,7 @@ from typing import List
 
 from .utils import SharedRNGData, download_multifiles
 
+
 class DownloadData(SharedRNGData):
     urls: List[dict]
 

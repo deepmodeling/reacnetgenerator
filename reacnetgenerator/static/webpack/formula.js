@@ -1,6 +1,6 @@
 // https://stackoverflow.com/a/1026087/9567349
 function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 /**
@@ -9,27 +9,28 @@ function capitalizeFirstLetter(string) {
  * @param {string} smi smiles
  * @returns {string} formula
  */
-function getFormula(smi){
-    // consider [Ca] [C] [c]
-    const reg = /\[([a-zA-Z][a-z]?)\]/g;
-    const atom_types = [...smi.matchAll(reg)].map(m => capitalizeFirstLetter(m[1]));
-    atom_types.sort();
-    const conut = {};
-    atom_types.forEach(atom => {
-        if (atom in conut) {
-            conut[atom] += 1;
-        } else {
-            conut[atom] = 1;
-        }
-    });
-    let formula = '';
-    for (const atom in conut) {
-        formula += atom;
-        if (conut[atom] > 1) {
-            formula += conut[atom];
-        }
+function getFormula(smi) {
+  // consider [Ca] [C] [c]
+  const reg = /\[([a-zA-Z][a-z]?)\]/g;
+  const atom_types =
+      [...smi.matchAll(reg) ].map(m => capitalizeFirstLetter(m[1]));
+  atom_types.sort();
+  const conut = {};
+  atom_types.forEach(atom => {
+    if (atom in conut) {
+      conut[atom] += 1;
+    } else {
+      conut[atom] = 1;
     }
-    return formula;
+  });
+  let formula = '';
+  for (const atom in conut) {
+    formula += atom;
+    if (conut[atom] > 1) {
+      formula += conut[atom];
+    }
+  }
+  return formula;
 }
 
-module.exports = { getFormula };
+module.exports = {getFormula};

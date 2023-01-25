@@ -66,4 +66,4 @@ You can process [reaction files](#reaction-files) manually for other information
 
 suffix: `.svg`
 
-A SVG file to show reaction networks. 
+A SVG file to show reaction networks.

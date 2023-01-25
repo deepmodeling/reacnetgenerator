@@ -1,79 +1,105 @@
 [
-    {
-        "rngparams": {
-            "urls": [{
-                "fn": "bonds.reaxc",
-                "url": [
-                    "https://bf.njzjz.win/reacnetgenerator/bonds.reaxc.test"
-                ],
-                "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304"
-            }],
-            "inputfilename": "bonds.reaxc",
-            "atomname": [
-                "H",
-                "O"
-            ],
-            "inputfiletype": "lammpsbondfile",
-            "runHMM": true,
-            "SMILES": true,
-            "split": 10,
-            "a": [[0.999, 0.001], [0.001, 0.999]],
-            "b": [[0.6, 0.4], [0.4, 0.6]]
-        },
-        "reaction_sha256": "5eb802a5a4f5c537ea556528a7db9402ab401f9cbd650e75b2a03e809ab9c8ad"
-    },
-    {
-        "rngparams": {
-            "urls": [{
-                "fn": "dump.reaxc",
-                "url": [
-                    "https://bf.njzjz.win/reacnetgenerator/dump.reaxc"
-                ],
-                "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e"
-            }],
-            "inputfilename": "dump.reaxc",
-            "atomname": [
-                "H",
-                "O"
-            ],
-            "inputfiletype": "lammpsdumpfile",
-            "runHMM": false,
-            "SMILES": false,
-            "speciescenter": "[H][H]"
-        },
-        "reaction_sha256": [
-            "3ad36fbbbe2f52f4533b42e19e9efa393129d505860f00efb544aac7820caac7"
+  {
+    "rngparams": {
+      "urls": [
+        {
+          "fn": "bonds.reaxc",
+          "url": [
+            "https://bf.njzjz.win/reacnetgenerator/bonds.reaxc.test"
+          ],
+          "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304"
+        }
+      ],
+      "inputfilename": "bonds.reaxc",
+      "atomname": [
+        "H",
+        "O"
+      ],
+      "inputfiletype": "lammpsbondfile",
+      "runHMM": true,
+      "SMILES": true,
+      "split": 10,
+      "a": [
+        [
+          0.999,
+          0.001
+        ],
+        [
+          0.001,
+          0.999
         ]
-    },
-    {
-        "rngparams": {
-            "urls": [{
-                "fn": "dump.reaxc",
-                "url": [
-                    "https://bf.njzjz.win/reacnetgenerator/dump.reaxc"
-                ],
-                "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e"
-            }],
-            "inputfilename": "dump.reaxc",
-            "atomname": [
-                "H",
-                "O"
-            ],
-            "inputfiletype": "dump",
-            "runHMM": false,
-            "miso": 1
-        },
-        "reaction_sha256": [
-            "ec826635846cbe4d70a2454056ae973aaaf2c7bb760514017ebd6c804a85b6c2",
-            "2b1f9276faeabd4dbbd3349a9ddd5ffbcb64ebc11dcf3f16d661c34372f36dca"
+      ],
+      "b": [
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.4,
+          0.6
         ]
+      ]
     },
-    {
-        "rngparams": {
-            "inputfilename": "xxx",
-            "inputfiletype": "abc",
-            "atomname": ["X"] 
-        },
-        "xfail": true
-    }
+    "reaction_sha256": "5eb802a5a4f5c537ea556528a7db9402ab401f9cbd650e75b2a03e809ab9c8ad"
+  },
+  {
+    "rngparams": {
+      "urls": [
+        {
+          "fn": "dump.reaxc",
+          "url": [
+            "https://bf.njzjz.win/reacnetgenerator/dump.reaxc"
+          ],
+          "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e"
+        }
+      ],
+      "inputfilename": "dump.reaxc",
+      "atomname": [
+        "H",
+        "O"
+      ],
+      "inputfiletype": "lammpsdumpfile",
+      "runHMM": false,
+      "SMILES": false,
+      "speciescenter": "[H][H]"
+    },
+    "reaction_sha256": [
+      "3ad36fbbbe2f52f4533b42e19e9efa393129d505860f00efb544aac7820caac7"
+    ]
+  },
+  {
+    "rngparams": {
+      "urls": [
+        {
+          "fn": "dump.reaxc",
+          "url": [
+            "https://bf.njzjz.win/reacnetgenerator/dump.reaxc"
+          ],
+          "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e"
+        }
+      ],
+      "inputfilename": "dump.reaxc",
+      "atomname": [
+        "H",
+        "O"
+      ],
+      "inputfiletype": "dump",
+      "runHMM": false,
+      "miso": 1
+    },
+    "reaction_sha256": [
+      "ec826635846cbe4d70a2454056ae973aaaf2c7bb760514017ebd6c804a85b6c2",
+      "2b1f9276faeabd4dbbd3349a9ddd5ffbcb64ebc11dcf3f16d661c34372f36dca"
+    ]
+  },
+  {
+    "rngparams": {
+      "inputfilename": "xxx",
+      "inputfiletype": "abc",
+      "atomname": [
+        "X"
+      ]
+    },
+    "xfail": true
+  }
 ]

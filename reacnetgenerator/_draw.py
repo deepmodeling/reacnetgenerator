@@ -53,9 +53,30 @@ class _DrawNetwork(SharedRNGData):
     split: int
 
     def __init__(self, rng):
-        SharedRNGData.__init__(self, rng, ['atomname', 'tablefilename', 'imagefilename', 'maxspecies', 'species', 'speciesfilter',
-                                  'start_color', 'end_color', 'node_size', 'node_color', 'font_size', 'widthcoefficient', 'k', 'pos', 'nolabel',
-                                  'showid', 'split'], [])
+        SharedRNGData.__init__(
+            self,
+            rng,
+            [
+                "atomname",
+                "tablefilename",
+                "imagefilename",
+                "maxspecies",
+                "species",
+                "speciesfilter",
+                "start_color",
+                "end_color",
+                "node_size",
+                "node_color",
+                "font_size",
+                "widthcoefficient",
+                "k",
+                "pos",
+                "nolabel",
+                "showid",
+                "split",
+            ],
+            [],
+        )
 
     def draw(self):
         """Draw the network."""
@@ -66,7 +87,10 @@ class _DrawNetwork(SharedRNGData):
 
     def _draw(self, timeaxis=None):
         table, name = self._readtable(
-            self.tablefilename if timeaxis is None else f"{self.tablefilename}.{timeaxis}")
+            self.tablefilename
+            if timeaxis is None
+            else f"{self.tablefilename}.{timeaxis}"
+        )
         species, showname = self._handlespecies(name)
 
         G = nx.DiGraph()
@@ -78,43 +102,69 @@ class _DrawNetwork(SharedRNGData):
         for i, j in permutations(idx, 2):
             if table[i][j] > 0:
                 G.add_weighted_edges_from(
-                    [(showname[name[i]], showname[name[j]], table[i][j])])
-        weights = np.array([math.log(G[u][v]['weight']+1)
-                            for u, v in G.edges()])
-        widths = weights / np.max(weights) * self.widthcoefficient * np.array(
-            [0.5, 2])[(weights > np.max(weights) * 0.7)+0] if weights.size else np.zeros(0)
-        colors = self.start_color + weights[:, np.newaxis] / np.max(weights) * (
-            self.end_color - self.start_color) if weights.size else np.zeros(0)
+                    [(showname[name[i]], showname[name[j]], table[i][j])]
+                )
+        weights = np.array([math.log(G[u][v]["weight"] + 1) for u, v in G.edges()])
+        widths = (
+            weights
+            / np.max(weights)
+            * self.widthcoefficient
+            * np.array([0.5, 2])[(weights > np.max(weights) * 0.7) + 0]
+            if weights.size
+            else np.zeros(0)
+        )
+        colors = (
+            self.start_color
+            + weights[:, np.newaxis]
+            / np.max(weights)
+            * (self.end_color - self.start_color)
+            if weights.size
+            else np.zeros(0)
+        )
         try:
-            pos = nx.spring_layout(G,
-                                   pos=self.pos if self.pos else None,
-                                   fixed=list(self.pos) if self.pos else None,
-                                   k=self.k)
+            pos = nx.spring_layout(
+                G,
+                pos=self.pos if self.pos else None,
+                fixed=list(self.pos) if self.pos else None,
+                k=self.k,
+            )
             if pos:
                 logger.info("The position of the species in the network is:")
                 logger.info(pos)
-            for with_labels in ([True] if not self.nolabel else [True, False]):
+            for with_labels in [True] if not self.nolabel else [True, False]:
                 nx.draw(
-                    G, pos=pos, width=widths, node_size=self.node_size,
-                    font_size=self.font_size, with_labels=with_labels,
-                    edge_color=colors, node_color=[self.node_color]*len(pos))
+                    G,
+                    pos=pos,
+                    width=widths,
+                    node_size=self.node_size,
+                    font_size=self.font_size,
+                    with_labels=with_labels,
+                    edge_color=colors,
+                    node_color=[self.node_color] * len(pos),
+                )
                 imagefilename = "".join(
-                    (("" if with_labels else "nolabel_"), self.imagefilename))
-                with StringIO() as stringio, open(imagefilename if timeaxis is None else f"{imagefilename}.{timeaxis}", 'w') as f:
-                    plt.savefig(stringio, format='svg')
-                    f.write(scour.scour.scourString(
-                        stringio.getvalue(), SCOUROPTIONS))
+                    (("" if with_labels else "nolabel_"), self.imagefilename)
+                )
+                with StringIO() as stringio, open(
+                    imagefilename
+                    if timeaxis is None
+                    else f"{imagefilename}.{timeaxis}",
+                    "w",
+                ) as f:
+                    plt.savefig(stringio, format="svg")
+                    f.write(scour.scour.scourString(stringio.getvalue(), SCOUROPTIONS))
                 plt.close()
         except Exception as e:
             logger.exception(f"Error: cannot draw images. Details: {e}")
 
     def _readtable(self, filename):
-        df = pd.read_csv(filename, sep=' ', index_col=0, header=0)
+        df = pd.read_csv(filename, sep=" ", index_col=0, header=0)
         return df.values, df.index
 
     def _handlespecies(self, name):
-        species = self.species if self.species else name[:min(
-            len(name), self.maxspecies)]
+        species = (
+            self.species if self.species else name[: min(len(name), self.maxspecies)]
+        )
         # filter
         species = [spec for spec in species if spec not in self.speciesfilter]
 

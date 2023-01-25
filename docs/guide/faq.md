@@ -18,7 +18,7 @@ You can refer the list of [publications driven by ReacNetGenerator](https://njzj
 When processing a large trajectory, you may get different OOM errors such as `Memory Error`, or subprocesses are directly killed by the system with `broken pipe` thrown.
 If you have a machine that has more memory, just use it.
 Otherwise, try to reduce the size of the trajectory or split the trajectory into multiple files or increase the number given by `--stepinterval`.
-It is also helpful to recuding the number of processes. 
+It is also helpful to recuding the number of processes.
 
 If you are using a Windows OS, it's known that the program may consume large memory through multiprocessing.
 In this situation, it's suggested to use [Windows Subsystem Linux (WSL)](https://docs.microsoft.com/windows/wsl).
