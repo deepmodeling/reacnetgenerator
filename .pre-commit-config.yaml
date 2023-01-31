@@ -28,13 +28,13 @@ repos:
     -   id: clang-format
 # Cython
 -   repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.10.1
+    rev: v0.11.1
     hooks:
     -   id: cython-lint
     -   id: double-quote-cython-strings
 # JS
 -   repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.32.0
+    rev: v8.33.0
     hooks:
     -   id: eslint
 # CSS
