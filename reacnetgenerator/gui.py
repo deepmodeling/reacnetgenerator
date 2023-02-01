@@ -4,14 +4,15 @@
 # cython: linetrace=True
 """GUI version of ReacNetGenerator.
 """
+import base64
 import os
 import tkinter as tk
 import tkinter.filedialog as tkfd
 import tkinter.messagebox as tkmb
 import webbrowser
-import base64
-import pkg_resources
 from multiprocessing import cpu_count
+
+import pkg_resources
 
 from . import ReacNetGenerator, __version__
 from ._logging import logger

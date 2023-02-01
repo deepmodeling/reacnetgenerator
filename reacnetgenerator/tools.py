@@ -1,11 +1,10 @@
 """Useful methods to futhur process ReacNetGenerator results."""
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Tuple, Dict, List, Union
-from collections import Counter
+from typing import Dict, List, Tuple, Union
 
-import numpy as np
 import ase
+import numpy as np
 
 
 def read_species(

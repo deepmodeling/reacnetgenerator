@@ -42,25 +42,25 @@ $ reacnetgenerator -h
 
 
 import gc
+import itertools
 import os
 import time
-import itertools
 from enum import Enum
 from multiprocessing import cpu_count
 from typing import Any, List, Tuple, Union
 
 import numpy as np
 
-from . import __version__, __date__
-from ._logging import logger
+from . import __date__, __version__
 from ._detect import _Detect
+from ._download import DownloadData
 from ._draw import _DrawNetwork
-from ._mergeiso import _mergeISO
 from ._hmmfilter import _HMMFilter
+from ._logging import logger
 from ._matrix import _GenerateMatrix
+from ._mergeiso import _mergeISO
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
-from ._download import DownloadData
 from .utils import must_be_list
 
 

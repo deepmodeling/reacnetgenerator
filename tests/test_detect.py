@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 

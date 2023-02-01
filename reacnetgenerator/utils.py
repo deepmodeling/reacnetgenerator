@@ -3,27 +3,27 @@
 """Provide utils for ReacNetGenerator."""
 
 
-from contextlib import ExitStack
-import os
-import shutil
-import itertools
-import pickle
-import hashlib
 import asyncio
+import hashlib
+import itertools
+import os
+import pickle
+import shutil
+from contextlib import ExitStack
 from multiprocessing import Pool, Semaphore
 from typing import (
+    IO,
+    TYPE_CHECKING,
     Any,
+    AnyStr,
     BinaryIO,
     Callable,
+    Generator,
     Iterable,
     List,
     Optional,
     Tuple,
-    IO,
-    AnyStr,
-    Generator,
     Union,
-    TYPE_CHECKING,
 )
 
 import lz4.frame
@@ -37,6 +37,7 @@ from ._logging import logger
 if TYPE_CHECKING:
     import multiprocessing.pool
     import multiprocessing.synchronize
+
     import reacnetgenerator
 
 

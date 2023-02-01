@@ -15,7 +15,6 @@
 # sys.path.insert(0, os.path.abspath('..'))
 from datetime import datetime
 
-
 # -- Project information -----------------------------------------------------
 
 project = "ReacNetGenerator"
@@ -136,9 +135,10 @@ bibtex_bibfiles = ["refs.bib"]
 
 
 def run_apidoc(_):
-    from sphinx.ext.apidoc import main
     import os
     import sys
+
+    from sphinx.ext.apidoc import main
 
     sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     cur_dir = os.path.abspath(os.path.dirname(__file__))
@@ -163,8 +163,8 @@ def copy_report(app):
     from pathlib import Path
 
     import yaml
-    from sphinx.util.fileutil import copy_asset_file
     from nodejs import node
+    from sphinx.util.fileutil import copy_asset_file
 
     cur_dir = Path(__file__).parent.absolute()
     webpack = Path(cur_dir) / ".." / "reacnetgenerator" / "static" / "webpack"

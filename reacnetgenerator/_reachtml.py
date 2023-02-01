@@ -11,17 +11,17 @@ network which starts from it.
 """
 
 import json
-import re
 import os
+import re
 from collections import defaultdict
 from typing import Dict, Union
-import pkg_resources
 
-import scour.scour
 import numpy as np
+import pkg_resources
+import scour.scour
 
-from .utils import SCOUROPTIONS, SharedRNGData
 from ._logging import logger
+from .utils import SCOUROPTIONS, SharedRNGData
 
 
 class _HTMLResult(SharedRNGData):

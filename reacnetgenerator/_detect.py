@@ -22,9 +22,9 @@ References
    1972, 1 (2), 146-160.
 """
 
-import tempfile
 import fileinput
 import operator
+import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
@@ -33,15 +33,15 @@ from typing import Optional, Tuple
 import numpy as np
 
 try:
-    from openbabel import openbabel, __version__ as obversion
+    from openbabel import __version__ as obversion
+    from openbabel import openbabel
 except ImportError:  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
 from ase import Atom, Atoms
 from packaging import version
 
 from .dps import dps
-from .utils import WriteBuffer, listtobytes, run_mp, SharedRNGData
-
+from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
 
 if version.parse(obversion) < version.parse("3.1.0"):  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")

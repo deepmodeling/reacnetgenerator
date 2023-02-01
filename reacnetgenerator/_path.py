@@ -29,12 +29,12 @@ from tqdm.auto import tqdm
 
 from ._reaction import ReactionsFinder
 from .utils import (
+    SharedRNGData,
     WriteBuffer,
     bytestolist,
     listtostirng,
-    run_mp,
-    SharedRNGData,
     read_compressed_block,
+    run_mp,
 )
 
 
