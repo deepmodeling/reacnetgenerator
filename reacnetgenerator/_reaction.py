@@ -4,11 +4,12 @@
 
 
 """
-import numpy as np
 from collections import Counter, defaultdict
 
-from .utils import WriteBuffer, run_mp, SharedRNGData, listtobytes, bytestolist
+import numpy as np
+
 from .dps import dps_reaction
+from .utils import SharedRNGData, WriteBuffer, bytestolist, listtobytes, run_mp
 
 
 class ReactionsFinder(SharedRNGData):

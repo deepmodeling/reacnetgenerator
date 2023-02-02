@@ -130,3 +130,6 @@ plugins = ["Cython.Coverage"]
 [tool.coverage.report]
 show_missing = true
 omit = ["*test*"]
+
+[tool.isort]
+profile = "black"

@@ -31,15 +31,15 @@ except ImportError:
     from hmmlearn.hmm import MultinomialHMM
 
 from .utils import (
+    SharedRNGData,
     WriteBuffer,
     appendIfNotNone,
     bytestolist,
     listtobytes,
-    run_mp,
-    SharedRNGData,
     read_compressed_block,
+    run_mp,
 )
-from .utils_np import idx_to_signal, check_zero_signal
+from .utils_np import check_zero_signal, idx_to_signal
 
 
 class _HMMFilter(SharedRNGData):

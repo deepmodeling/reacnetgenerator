@@ -2,10 +2,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from reacnetgenerator.tools import (
-    read_species,
-    calculate_rate,
-)
+
+from reacnetgenerator.tools import calculate_rate, read_species
 
 p_cwd = Path(__file__).parent
 

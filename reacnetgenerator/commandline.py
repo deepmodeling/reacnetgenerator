@@ -3,6 +3,7 @@
 import argparse
 import textwrap
 from typing import List
+
 from . import __version__
 from ._detect import _Detect
 
@@ -132,8 +133,9 @@ def main_parser() -> argparse.ArgumentParser:
 def _commandline():
     parser = main_parser()
     args = parser.parse_args()
-    from .reacnetgen import ReacNetGenerator
     import numpy as np
+
+    from .reacnetgen import ReacNetGenerator
 
     ReacNetGenerator(
         inputfilename=args.inputfilename,
