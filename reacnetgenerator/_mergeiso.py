@@ -1,14 +1,9 @@
 import itertools
 
-from tqdm.auto import tqdm
 import numpy as np
+from tqdm.auto import tqdm
 
-from .utils import (
-    bytestolist,
-    listtobytes,
-    SharedRNGData,
-    read_compressed_block,
-)
+from .utils import SharedRNGData, bytestolist, listtobytes, read_compressed_block
 
 
 class _mergeISO(SharedRNGData):

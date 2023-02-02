@@ -2,7 +2,9 @@
 # cython: linetrace=True
 """This module provides a logger for logging."""
 import logging
+
 import coloredlogs
+
 from ._version import __version__
 
 logger = logging.getLogger(__name__)

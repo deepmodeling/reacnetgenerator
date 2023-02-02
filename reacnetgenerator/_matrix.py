@@ -15,12 +15,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from .utils import (
-    WriteBuffer,
-    bytestolist,
-    SharedRNGData,
-    read_compressed_block,
-)
+from .utils import SharedRNGData, WriteBuffer, bytestolist, read_compressed_block
 
 
 class _GenerateMatrix(SharedRNGData):

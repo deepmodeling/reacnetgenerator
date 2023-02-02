@@ -3,7 +3,8 @@
 # cython: linetrace=True
 # cython: infer_types=True
 """Connect molecule with Depth-First Search."""
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport free, malloc
+
 
 cdef extern from "c_stack.h":
     # This function is copied from https://zhuanlan.zhihu.com/p/38212302

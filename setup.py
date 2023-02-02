@@ -3,13 +3,13 @@
 Just use `pip install .` to install.
 """
 import os
-from pathlib import Path
-
-import yaml
 from distutils import log
 from distutils.file_util import copy_file
-from setuptools import setup, Extension
+from pathlib import Path
+
 import setuptools.command.build_ext
+import yaml
+from setuptools import Extension, setup
 
 try:
     from nodejs.node import call as node_call

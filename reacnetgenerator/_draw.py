@@ -29,8 +29,8 @@ import numpy as np
 import pandas as pd
 import scour.scour
 
-from .utils import SCOUROPTIONS, SharedRNGData
 from ._logging import logger
+from .utils import SCOUROPTIONS, SharedRNGData
 
 
 class _DrawNetwork(SharedRNGData):
