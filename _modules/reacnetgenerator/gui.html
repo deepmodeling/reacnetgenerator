@@ -8,14 +8,15 @@
 <span class=c1># cython: linetrace=True</span>
 <span class=sd>&quot;&quot;&quot;GUI version of ReacNetGenerator.</span>
 <span class=sd>&quot;&quot;&quot;</span>
+<span class=kn>import</span> <span class=nn>base64</span>
 <span class=kn>import</span> <span class=nn>os</span>
 <span class=kn>import</span> <span class=nn>tkinter</span> <span class=k>as</span> <span class=nn>tk</span>
 <span class=kn>import</span> <span class=nn>tkinter.filedialog</span> <span class=k>as</span> <span class=nn>tkfd</span>
 <span class=kn>import</span> <span class=nn>tkinter.messagebox</span> <span class=k>as</span> <span class=nn>tkmb</span>
 <span class=kn>import</span> <span class=nn>webbrowser</span>
-<span class=kn>import</span> <span class=nn>base64</span>
-<span class=kn>import</span> <span class=nn>pkg_resources</span>
 <span class=kn>from</span> <span class=nn>multiprocessing</span> <span class=kn>import</span> <span class=n>cpu_count</span>
+
+<span class=kn>import</span> <span class=nn>pkg_resources</span>
 
 <span class=kn>from</span> <span class=nn>.</span> <span class=kn>import</span> <span class=n>ReacNetGenerator</span><span class=p>,</span> <span class=n>__version__</span>
 <span class=kn>from</span> <span class=nn>._logging</span> <span class=kn>import</span> <span class=n>logger</span>

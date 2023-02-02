@@ -46,25 +46,25 @@
 
 
 <span class=kn>import</span> <span class=nn>gc</span>
+<span class=kn>import</span> <span class=nn>itertools</span>
 <span class=kn>import</span> <span class=nn>os</span>
 <span class=kn>import</span> <span class=nn>time</span>
-<span class=kn>import</span> <span class=nn>itertools</span>
 <span class=kn>from</span> <span class=nn>enum</span> <span class=kn>import</span> <span class=n>Enum</span>
 <span class=kn>from</span> <span class=nn>multiprocessing</span> <span class=kn>import</span> <span class=n>cpu_count</span>
 <span class=kn>from</span> <span class=nn>typing</span> <span class=kn>import</span> <span class=n>Any</span><span class=p>,</span> <span class=n>List</span><span class=p>,</span> <span class=n>Tuple</span><span class=p>,</span> <span class=n>Union</span>
 
 <span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
 
-<span class=kn>from</span> <span class=nn>.</span> <span class=kn>import</span> <span class=n>__version__</span><span class=p>,</span> <span class=n>__date__</span>
-<span class=kn>from</span> <span class=nn>._logging</span> <span class=kn>import</span> <span class=n>logger</span>
+<span class=kn>from</span> <span class=nn>.</span> <span class=kn>import</span> <span class=n>__date__</span><span class=p>,</span> <span class=n>__version__</span>
 <span class=kn>from</span> <span class=nn>._detect</span> <span class=kn>import</span> <span class=n>_Detect</span>
+<span class=kn>from</span> <span class=nn>._download</span> <span class=kn>import</span> <span class=n>DownloadData</span>
 <span class=kn>from</span> <span class=nn>._draw</span> <span class=kn>import</span> <span class=n>_DrawNetwork</span>
-<span class=kn>from</span> <span class=nn>._mergeiso</span> <span class=kn>import</span> <span class=n>_mergeISO</span>
 <span class=kn>from</span> <span class=nn>._hmmfilter</span> <span class=kn>import</span> <span class=n>_HMMFilter</span>
+<span class=kn>from</span> <span class=nn>._logging</span> <span class=kn>import</span> <span class=n>logger</span>
 <span class=kn>from</span> <span class=nn>._matrix</span> <span class=kn>import</span> <span class=n>_GenerateMatrix</span>
+<span class=kn>from</span> <span class=nn>._mergeiso</span> <span class=kn>import</span> <span class=n>_mergeISO</span>
 <span class=kn>from</span> <span class=nn>._path</span> <span class=kn>import</span> <span class=n>_CollectPaths</span>
 <span class=kn>from</span> <span class=nn>._reachtml</span> <span class=kn>import</span> <span class=n>_HTMLResult</span>
-<span class=kn>from</span> <span class=nn>._download</span> <span class=kn>import</span> <span class=n>DownloadData</span>
 <span class=kn>from</span> <span class=nn>.utils</span> <span class=kn>import</span> <span class=n>must_be_list</span>
 
 
