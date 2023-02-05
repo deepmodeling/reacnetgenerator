@@ -26,6 +26,12 @@ repos:
     hooks:
     - id: isort
     files: \.py$
+# numpydoc
+-   repo: https://github.com/Carreau/velin
+    rev: 0.0.12
+    hooks:
+    - id: velin
+      args: ["--write"]
 # C++
 -   repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v15.0.7
