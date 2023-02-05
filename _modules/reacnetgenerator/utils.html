@@ -82,7 +82,7 @@
 
 <span class=sd>        Parameters</span>
 <span class=sd>        ----------</span>
-<span class=sd>        text: str or bytes</span>
+<span class=sd>        text : str or bytes</span>
 <span class=sd>            The text to be appended.</span>
 <span class=sd>        &quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>buff</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>text</span><span class=p>)</span>
@@ -93,7 +93,7 @@
 
 <span class=sd>        Parameters</span>
 <span class=sd>        ----------</span>
-<span class=sd>        text: list of strs or bytes</span>
+<span class=sd>        text : list of strs or bytes</span>
 <span class=sd>            Texts to be extended.</span>
 <span class=sd>        &quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>buff</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=n>text</span><span class=p>)</span>
@@ -126,9 +126,9 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    f: WriteBuffer</span>
+<span class=sd>    f : WriteBuffer</span>
 <span class=sd>        The file to write.</span>
-<span class=sd>    wbytes: str or bytes</span>
+<span class=sd>    wbytes : str or bytes</span>
 <span class=sd>        The line to write.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
     <span class=k>if</span> <span class=n>wbytes</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
@@ -147,11 +147,11 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    semaphore: multiprocessing.Semaphore</span>
+<span class=sd>    semaphore : multiprocessing.Semaphore</span>
 <span class=sd>        The semaphore to acquire.</span>
-<span class=sd>    plist: list of objects</span>
+<span class=sd>    plist : list of objects</span>
 <span class=sd>        The list of items to be passed.</span>
-<span class=sd>    parameter: object</span>
+<span class=sd>    parameter : object</span>
 <span class=sd>        The parameter yielded with each item.</span>
 
 <span class=sd>    Yields</span>
@@ -180,7 +180,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    x: str or bytes</span>
+<span class=sd>    x : str or bytes</span>
 <span class=sd>        The line to compress.</span>
 
 <span class=sd>    Returns</span>
@@ -200,9 +200,9 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    x: bytes</span>
+<span class=sd>    x : bytes</span>
 <span class=sd>        The line to decompress.</span>
-<span class=sd>    isbytes: bool, optional, default: False</span>
+<span class=sd>    isbytes : bool, optional, default: False</span>
 <span class=sd>        If the decompressed content is bytes. If not, the line will be decoded.</span>
 
 <span class=sd>    Returns</span>
@@ -221,7 +221,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    x: object</span>
+<span class=sd>    x : object</span>
 <span class=sd>        The object to convert, such as numpy.ndarray.</span>
 
 <span class=sd>    Returns</span>
@@ -237,7 +237,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    f: fileObject</span>
+<span class=sd>    f : fileObject</span>
 <span class=sd>        The file object to read.</span>
 
 <span class=sd>    Yields</span>
@@ -258,7 +258,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    x: bytes</span>
+<span class=sd>    x : bytes</span>
 <span class=sd>        The compressed line.</span>
 
 <span class=sd>    Returns</span>
@@ -278,9 +278,9 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    l: str or array-like</span>
+<span class=sd>    l : str or array-like</span>
 <span class=sd>        The list to convert, which can contain any number of dimensions.</span>
-<span class=sd>    sep: list of strs</span>
+<span class=sd>    sep : list of strs</span>
 <span class=sd>        The seperators for each dimension.</span>
 
 <span class=sd>    Returns</span>
@@ -315,37 +315,37 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    pool: multiprocessing.Pool</span>
+<span class=sd>    pool : multiprocessing.Pool</span>
 <span class=sd>        The pool for multiprocessing.</span>
-<span class=sd>    func: function</span>
+<span class=sd>    func : function</span>
 <span class=sd>        The function to process lines.</span>
-<span class=sd>    l: File object</span>
+<span class=sd>    l : File object</span>
 <span class=sd>        The file object.</span>
-<span class=sd>    semaphore: multiprocessing.Semaphore, optional, default: None</span>
+<span class=sd>    semaphore : multiprocessing.Semaphore, optional, default: None</span>
 <span class=sd>        The semaphore to acquire. If None (default), the object will be passed</span>
 <span class=sd>        without control.</span>
-<span class=sd>    nlines: int, optional, default: None</span>
+<span class=sd>    nlines : int, optional, default: None</span>
 <span class=sd>        The number of lines to pass to the function each time. If None (default),</span>
 <span class=sd>        only one line will be passed to the function.</span>
-<span class=sd>    unordered: bool, optional, default: True</span>
+<span class=sd>    unordered : bool, optional, default: True</span>
 <span class=sd>        Whether the process can be unordered.</span>
-<span class=sd>    return_num: bool, optional, default: False</span>
+<span class=sd>    return_num : bool, optional, default: False</span>
 <span class=sd>        If True, adds a counter to an iterable.</span>
-<span class=sd>    start: int, optional, default: 0</span>
+<span class=sd>    start : int, optional, default: 0</span>
 <span class=sd>        The start number of the counter.</span>
-<span class=sd>    extra: object, optional, default: None</span>
+<span class=sd>    extra : object, optional, default: None</span>
 <span class=sd>        The extra object passed to the item.</span>
-<span class=sd>    interval: int, optional, default: None</span>
+<span class=sd>    interval : int, optional, default: None</span>
 <span class=sd>        The interval of items that will be passed to the function. For example,</span>
 <span class=sd>        if set to 10, a item will be passed once every 10 items and others will</span>
 <span class=sd>        be dropped.</span>
-<span class=sd>    bar: bool, optional, default: True</span>
+<span class=sd>    bar : bool, optional, default: True</span>
 <span class=sd>        If True, show a tqdm bar for the iteration.</span>
-<span class=sd>    desc: str, optional, default: None</span>
+<span class=sd>    desc : str, optional, default: None</span>
 <span class=sd>        The description of the iteration shown in the bar.</span>
-<span class=sd>    unit: str, optional, default: it</span>
+<span class=sd>    unit : str, optional, default: it</span>
 <span class=sd>        The unit of the iteration shown in the bar.</span>
-<span class=sd>    total: int, optional, default: None</span>
+<span class=sd>    total : int, optional, default: None</span>
 <span class=sd>        The total number of the iteration shown in the bar.</span>
 
 <span class=sd>    Returns</span>
@@ -430,9 +430,9 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    filename: str</span>
+<span class=sd>    filename : str</span>
 <span class=sd>        The filename.</span>
-<span class=sd>    sha256_check: str or list of strs</span>
+<span class=sd>    sha256_check : str or list of strs</span>
 <span class=sd>        The sha256 to be checked.</span>
 
 <span class=sd>    Returns</span>
@@ -522,7 +522,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    urls: list of dicts</span>
+<span class=sd>    urls : list of dicts</span>
 <span class=sd>        The information of download files. Each dict should contain the following key:</span>
 <span class=sd>            - url: str or list of strs</span>
 <span class=sd>                The url(s) that is available to download.</span>
@@ -539,7 +539,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    nproc: int</span>
+<span class=sd>    nproc : int</span>
 <span class=sd>        The number of processors to be used.</span>
 <span class=sd>    **kwargs : dict, optional</span>
 <span class=sd>        Other parameters can be found in the `multiopen` method.</span>
@@ -575,7 +575,7 @@
 
 <span class=sd>    Parameters</span>
 <span class=sd>    ----------</span>
-<span class=sd>    obj: Object</span>
+<span class=sd>    obj : Object</span>
 <span class=sd>        The object to convert.</span>
 
 <span class=sd>    Returns</span>
