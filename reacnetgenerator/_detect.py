@@ -88,7 +88,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 
         Parameters
         ----------
-        rng: reacnetgenerator.ReacNetGenerator
+        rng : reacnetgenerator.ReacNetGenerator
             The ReacNetGenerator class.
 
         Returns
@@ -106,7 +106,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 
         Parameters
         ----------
-        message_type: str
+        message_type : str
             The type name to register, such as `xyz`.
 
         Returns
