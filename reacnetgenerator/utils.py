@@ -78,7 +78,7 @@ class WriteBuffer:
 
         Parameters
         ----------
-        text: str or bytes
+        text : str or bytes
             The text to be appended.
         """
         self.buff.append(text)
@@ -89,7 +89,7 @@ class WriteBuffer:
 
         Parameters
         ----------
-        text: list of strs or bytes
+        text : list of strs or bytes
             Texts to be extended.
         """
         self.buff.extend(text)
@@ -122,9 +122,9 @@ def appendIfNotNone(f: Union[WriteBuffer, ExitStack], wbytes: Optional[AnyStr]) 
 
     Parameters
     ----------
-    f: WriteBuffer
+    f : WriteBuffer
         The file to write.
-    wbytes: str or bytes
+    wbytes : str or bytes
         The line to write.
     """
     if wbytes is not None:
@@ -143,11 +143,11 @@ def produce(
 
     Parameters
     ----------
-    semaphore: multiprocessing.Semaphore
+    semaphore : multiprocessing.Semaphore
         The semaphore to acquire.
-    plist: list of objects
+    plist : list of objects
         The list of items to be passed.
-    parameter: object
+    parameter : object
         The parameter yielded with each item.
 
     Yields
@@ -176,7 +176,7 @@ def compress(x: Union[str, bytes]) -> bytes:
 
     Parameters
     ----------
-    x: str or bytes
+    x : str or bytes
         The line to compress.
 
     Returns
@@ -196,9 +196,9 @@ def decompress(x: bytes, isbytes: bool = False) -> Union[str, bytes]:
 
     Parameters
     ----------
-    x: bytes
+    x : bytes
         The line to decompress.
-    isbytes: bool, optional, default: False
+    isbytes : bool, optional, default: False
         If the decompressed content is bytes. If not, the line will be decoded.
 
     Returns
@@ -217,7 +217,7 @@ def listtobytes(x: Any) -> bytes:
 
     Parameters
     ----------
-    x: object
+    x : object
         The object to convert, such as numpy.ndarray.
 
     Returns
@@ -233,7 +233,7 @@ def read_compressed_block(f: BinaryIO) -> Generator[bytes, None, None]:
 
     Parameters
     ----------
-    f: fileObject
+    f : fileObject
         The file object to read.
 
     Yields
@@ -254,7 +254,7 @@ def bytestolist(x: bytes) -> Any:
 
     Parameters
     ----------
-    x: bytes
+    x : bytes
         The compressed line.
 
     Returns
@@ -274,9 +274,9 @@ def listtostirng(
 
     Parameters
     ----------
-    l: str or array-like
+    l : str or array-like
         The list to convert, which can contain any number of dimensions.
-    sep: list of strs
+    sep : list of strs
         The seperators for each dimension.
 
     Returns
@@ -311,37 +311,37 @@ def multiopen(
 
     Parameters
     ----------
-    pool: multiprocessing.Pool
+    pool : multiprocessing.Pool
         The pool for multiprocessing.
-    func: function
+    func : function
         The function to process lines.
-    l: File object
+    l : File object
         The file object.
-    semaphore: multiprocessing.Semaphore, optional, default: None
+    semaphore : multiprocessing.Semaphore, optional, default: None
         The semaphore to acquire. If None (default), the object will be passed
         without control.
-    nlines: int, optional, default: None
+    nlines : int, optional, default: None
         The number of lines to pass to the function each time. If None (default),
         only one line will be passed to the function.
-    unordered: bool, optional, default: True
+    unordered : bool, optional, default: True
         Whether the process can be unordered.
-    return_num: bool, optional, default: False
+    return_num : bool, optional, default: False
         If True, adds a counter to an iterable.
-    start: int, optional, default: 0
+    start : int, optional, default: 0
         The start number of the counter.
-    extra: object, optional, default: None
+    extra : object, optional, default: None
         The extra object passed to the item.
-    interval: int, optional, default: None
+    interval : int, optional, default: None
         The interval of items that will be passed to the function. For example,
         if set to 10, a item will be passed once every 10 items and others will
         be dropped.
-    bar: bool, optional, default: True
+    bar : bool, optional, default: True
         If True, show a tqdm bar for the iteration.
-    desc: str, optional, default: None
+    desc : str, optional, default: None
         The description of the iteration shown in the bar.
-    unit: str, optional, default: it
+    unit : str, optional, default: it
         The unit of the iteration shown in the bar.
-    total: int, optional, default: None
+    total : int, optional, default: None
         The total number of the iteration shown in the bar.
 
     Returns
@@ -426,9 +426,9 @@ def checksha256(filename: str, sha256_check: Union[str, List[str]]):
 
     Parameters
     ----------
-    filename: str
+    filename : str
         The filename.
-    sha256_check: str or list of strs
+    sha256_check : str or list of strs
         The sha256 to be checked.
 
     Returns
@@ -518,7 +518,7 @@ def download_multifiles(urls: List[dict]) -> None:
 
     Parameters
     ----------
-    urls: list of dicts
+    urls : list of dicts
         The information of download files. Each dict should contain the following key:
             - url: str or list of strs
                 The url(s) that is available to download.
@@ -535,7 +535,7 @@ def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
 
     Parameters
     ----------
-    nproc: int
+    nproc : int
         The number of processors to be used.
     **kwargs : dict, optional
         Other parameters can be found in the `multiopen` method.
@@ -571,7 +571,7 @@ def must_be_list(obj: Union[Any, List[Any]]) -> List[Any]:
 
     Parameters
     ----------
-    obj: Object
+    obj : Object
         The object to convert.
 
     Returns

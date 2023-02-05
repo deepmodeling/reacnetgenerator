@@ -237,11 +237,11 @@ class ReacNetGenerator:
 
         Parameters
         ----------
-        run: bool, optional, default: True
+        run : bool, optional, default: True
             Process the trajectory or not, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps.
-        draw: bool, optional, default: True
+        draw : bool, optional, default: True
             Draw the reaction network or not, i.e. NETWORK step.
-        report: bool, optional, default: True
+        report : bool, optional, default: True
             Generate the analysis report, i.e. NETWORK step.
         """
         processthing = []
@@ -322,7 +322,7 @@ class ReacNetGenerator:
 
         Parameters
         ----------
-        steps: tuple of ReacNetGenerator.Status
+        steps : tuple of ReacNetGenerator.Status
             The process that needs to be processed.
         """
         timearray = [time.perf_counter()]
