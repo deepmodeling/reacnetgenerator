@@ -301,6 +301,7 @@ class _CollectSMILESPaths(_CollectPaths):
                 if name is None:
                     # SMILES failed, fallback to VF2 identify isomers
                     molecule = Molecule(self, atoms, bonds)
+
                     # directly raise ValueError to save time
                     def _raise_anyway(*args, **kwargs):
                         raise ValueError("Maximum BFS search size exceeded.")

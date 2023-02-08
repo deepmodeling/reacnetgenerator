@@ -87,7 +87,6 @@ class _HMMFilter(SharedRNGData):
         self.returnkeys()
 
     def _initHMM(self):
-
         self._model = MultinomialHMM(n_components=2, algorithm="viterbi")
         self._model.startprob_ = self.p
         self._model.transmat_ = self.a
