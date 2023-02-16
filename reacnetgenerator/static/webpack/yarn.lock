@@ -1243,19 +1243,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssnano-preset-advanced@npm:5.3.9":
-  version: 5.3.9
-  resolution: "cssnano-preset-advanced@npm:5.3.9"
+"cssnano-preset-advanced@npm:5.3.10":
+  version: 5.3.10
+  resolution: "cssnano-preset-advanced@npm:5.3.10"
   dependencies:
     autoprefixer: ^10.4.12
-    cssnano-preset-default: ^5.2.13
+    cssnano-preset-default: ^5.2.14
     postcss-discard-unused: ^5.1.0
     postcss-merge-idents: ^5.1.1
     postcss-reduce-idents: ^5.2.0
     postcss-zindex: ^5.1.0
   peerDependencies:
     postcss: ^8.2.15
-  checksum: 094eb446107254b14f46257068376078c6daa0828c154df0a1d5cc6eabf13bd6015ce84be5de9c2cc34c60383dd27335c0496cecd1a30ce7557a6c5db4502d2d
+  checksum: d21cb382aea2f35c9eaa50686280bbd5158260edf73020731364b03bae0d887292da51ed0b20b369f51d2573ee8c02c695f604647b839a9ca746be8a44c3bb5b
   languageName: node
   linkType: hard
 
@@ -3575,7 +3575,7 @@ __metadata:
     css-loader: 6.7.3
     css-minimizer-webpack-plugin: 4.2.2
     cssnano: 5.1.15
-    cssnano-preset-advanced: 5.3.9
+    cssnano-preset-advanced: 5.3.10
     d3: 3.5.17
     html-inline-css-webpack-plugin: 1.11.1
     html-webpack-plugin: 5.5.0
