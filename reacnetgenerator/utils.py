@@ -530,7 +530,7 @@ def download_multifiles(urls: List[dict]) -> None:
     asyncio.run(gather_download_files(urls))
 
 
-def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
+def run_mp(nproc: int, **kwargs: Any) -> Iterable[Any]:
     """Process a file with multiple processors.
 
     Parameters
@@ -552,7 +552,7 @@ def run_mp(nproc: int, **arg: Any) -> Iterable[Any]:
     pool = Pool(nproc, maxtasksperchild=1000)
     semaphore = Semaphore(nproc * 150)
     try:
-        results = multiopen(pool=pool, semaphore=semaphore, **arg)
+        results = multiopen(pool=pool, semaphore=semaphore, **kwargs)
         for item in results:
             yield item
             semaphore.release()

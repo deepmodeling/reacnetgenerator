@@ -138,7 +138,7 @@ class _GenerateMatrix(SharedRNGData):
         for reaction, n_reaction in sortedreactions:
             ii = 1
             if originspec == reaction[1 - ii]:
-                if not reaction[ii] in species:
+                if reaction[ii] not in species:
                     searchedspecies.append((reaction[ii], (reaction, n_reaction)))
             if len(searchedspecies) >= self.n_searchspecies:
                 break

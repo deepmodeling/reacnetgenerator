@@ -1,9 +1,6 @@
 # cython: language_level=3
 # cython: linetrace=True
-"""Reactions finder.
-
-
-"""
+"""Reactions finder."""
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -84,9 +81,7 @@ class ReactionsFinder(SharedRNGData):
         new_rightname = rightname - leftname
         if new_leftname and new_rightname:
             return "->".join(
-                (
-                    "+".join(sorted(side.elements()))
-                    for side in (new_leftname, new_rightname)
-                )
+                "+".join(sorted(side.elements()))
+                for side in (new_leftname, new_rightname)
             )
         return None
