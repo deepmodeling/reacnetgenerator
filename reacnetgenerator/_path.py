@@ -166,7 +166,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         return moleculeroute, routestr
 
     def _printatomroute(self, atomeach, timeaxis=None):
-        """For analysis without HMM, we may not need to use np.unique"""
+        """For analysis without HMM, we may not need to use np.unique."""
         with WriteBuffer(
             open(
                 self.atomroutefilename

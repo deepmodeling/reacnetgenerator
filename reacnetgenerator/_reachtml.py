@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # cython: linetrace=True
 # cython: language_level=3
 """Generate a web page to show the analysis report.
@@ -72,7 +71,8 @@ class _HTMLResult(SharedRNGData):
         like [H]C([H])[H]. However, OpenBabel will consider it as a methane molecule. So,
         you have to use [H][C]([H])[H], if you need to process some radicals.
 
-        Examples:
+        Examples
+        --------
         >>> self._re('C')
         [C]
         >>> self._re('[C]')

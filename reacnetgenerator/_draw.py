@@ -175,5 +175,5 @@ class _DrawNetwork(SharedRNGData):
         if species:
             logger.info("Species are:")
             for specname, n in showname.items():
-                logger.info("{} {}".format(n, specname))
+                logger.info(f"{n} {specname}")
         return species, showname

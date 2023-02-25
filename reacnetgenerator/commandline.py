@@ -206,5 +206,5 @@ def parm2cmd(pp: dict) -> List[str]:
         )
     for ii in ["nproc", "selectatoms", "stepinterval", "split", "maxspecies"]:
         if pp.get(ii, None):
-            commands.extend(("--{}".format(ii), str(pp[ii])))
+            commands.extend((f"--{ii}", str(pp[ii])))
     return commands

@@ -471,7 +471,7 @@ class _Detectxyz(_DetectCrd):
             s = line.split()
             if index > 1:
                 step_atoms.append(
-                    (index - 1, Atom(s[0], tuple((float(x) for x in s[1:4]))))
+                    (index - 1, Atom(s[0], tuple(float(x) for x in s[1:4])))
                 )
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
