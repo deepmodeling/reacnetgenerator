@@ -18,10 +18,10 @@ __copyright__ = "Copyright 2018-2022, East China Normal University"
 
 import matplotlib as mpl
 
-mpl.use("svg")  # noqa
-import networkx  # avoid qhull library error
-
 from ._version import __version__
+
+mpl.use("svg")  # noqa
+
 from .reacnetgen import ReacNetGenerator
 
-__all__ = ["ReacNetGenerator"]
+__all__ = ["ReacNetGenerator", "__version__"]

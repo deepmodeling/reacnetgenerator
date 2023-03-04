@@ -1,4 +1,4 @@
-# Configuration file for the Sphinx documentation builder.
+"""Configuration file for the Sphinx documentation builder."""
 #
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
@@ -38,7 +38,7 @@ extensions = [
     "sphinxarg.ext",
     "myst_nb",
     "numpydoc",
-    "sphinx-favicon",
+    "sphinx_favicon",
     "deepmodeling_sphinx",
     "sphinxcontrib.bibtex",
 ]
@@ -135,6 +135,7 @@ bibtex_bibfiles = ["refs.bib"]
 
 
 def run_apidoc(_):
+    """Run sphinx-apidoc on every build."""
     import os
     import sys
 
@@ -159,6 +160,7 @@ def run_apidoc(_):
 
 
 def copy_report(app):
+    """Copy report.html to the build directory."""
     import os
     from pathlib import Path
 
@@ -192,5 +194,12 @@ def copy_report(app):
 
 
 def setup(app):
+    """Set up sphinx.
+
+    Parameters
+    ----------
+    app : sphinx.application.Sphinx
+        The sphinx application.
+    """
     app.connect("builder-inited", run_apidoc)
     app.connect("builder-inited", copy_report)

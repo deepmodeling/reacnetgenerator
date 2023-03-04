@@ -1,3 +1,4 @@
+"""Test different detect format."""
 import os
 from pathlib import Path
 
@@ -18,6 +19,7 @@ class TestDetect:
 
     @pytest.fixture(autouse=True)
     def chdir(self, tmp_path):
+        """Change directory to tmp_path."""
         start_direcroty = os.getcwd()
         os.chdir(tmp_path)
         yield
@@ -33,10 +35,12 @@ class TestDetect:
         ]
     )
     def reacnetgen_param(self, request):
+        """Fixture for ReacNetGenerator parameters."""
         return request.param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
+        """Fixture for ReacNetGenerator."""
         rngclass = ReacNetGenerator(
             inputfiletype=reacnetgen_param[0],
             inputfilename=reacnetgen_param[1],

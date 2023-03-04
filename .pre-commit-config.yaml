@@ -16,6 +16,7 @@ repos:
     -   id: check-merge-conflict
     -   id: check-symlinks
     -   id: check-toml
+    -   id: mixed-line-ending
 # Python
 -   repo: https://github.com/psf/black
     rev: 23.1.0

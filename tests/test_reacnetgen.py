@@ -26,6 +26,7 @@ class TestReacNetGen:
 
     @pytest.fixture(autouse=True)
     def chdir(self, tmp_path):
+        """Change directory to tmp_path."""
         start_direcroty = os.getcwd()
         os.chdir(tmp_path)
         yield
@@ -40,10 +41,12 @@ class TestReacNetGen:
         ]
     )
     def reacnetgen_param(self, request):
+        """Fixture for ReacNetGenerator parameters."""
         return request.param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
+        """Fixture for ReacNetGenerator."""
         rngclass = ReacNetGenerator(**reacnetgen_param["rngparams"])
         yield rngclass
         assert checksha256(
@@ -57,12 +60,14 @@ class TestReacNetGen:
         reacnetgen.runanddraw()
 
     def test_reacnetgen_step(self, reacnetgen):
+        """Test main process of ReacNetGen."""
         reacnetgen.run()
         reacnetgen.draw()
         reacnetgen.report()
 
     @pytest.fixture()
     def reacnetgengui(self):
+        """Fixture for GUI test."""
         try:
             gui = GUI()
             yield gui
@@ -79,6 +84,7 @@ class TestReacNetGen:
         reacnetgengui.gui()
 
     def test_gui_openandrun(self, reacnetgengui, mocker, reacnetgen_param):
+        """Test GUI of ReacNetGenerator."""
         pp = reacnetgen_param["rngparams"]
         mocker.patch(
             "tkinter.filedialog.askopenfilename", return_value=pp["inputfilename"]
@@ -93,18 +99,22 @@ class TestReacNetGen:
         reacnetgengui._runbtn.invoke()
 
     def test_commandline_help(self, script_runner):
+        """Test commandline of ReacNetGenerator."""
         ret = script_runner.run("reacnetgenerator", "-h")
         assert ret.success
 
     def test_commandline_version(self, script_runner):
+        """Test commandline of ReacNetGenerator."""
         ret = script_runner.run("reacnetgenerator", "--version")
         assert ret.success
 
     def test_commandline_run(self, script_runner, reacnetgen_param):
+        """Test commandline of ReacNetGenerator."""
         ret = script_runner.run(*parm2cmd(reacnetgen_param["rngparams"]))
         assert ret.success
 
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
+        """Benchmark _readstepfunc."""
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
         reacnetgen._process((reacnetgen.Status.DOWNLOAD,))
         detectclass = _Detect.gettype(reacnetgen)
@@ -115,6 +125,7 @@ class TestReacNetGen:
         benchmark(detectclass._readstepfunc, (0, lines))
 
     def test_benchmark_hmm(self, benchmark, reacnetgen_param):
+        """Benchmark _getoriginandhmm."""
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
         reacnetgen.step = 250000
         hmmclass = _HMMFilter(reacnetgen)
@@ -131,6 +142,7 @@ class TestReacNetGen:
         benchmark(hmmclass._getoriginandhmm, compressed_bytes)
 
     def test_re(self, reacnetgen_param):
+        """Test regular expression of _HTMLResult."""
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
         r = _HTMLResult(reacnetgen)
         r.atomname = ["C", "H", "O", "Na", "Cl"]
