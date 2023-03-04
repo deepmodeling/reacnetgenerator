@@ -1,6 +1,6 @@
 # cython: language_level=3
 # cython: linetrace=True
-"""This module provides a logger for logging."""
+"""A logger for logging."""
 import logging
 
 import coloredlogs

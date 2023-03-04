@@ -1,5 +1,6 @@
 # cython: language_level=3
 # cython: linetrace=True
+"""Command line interface for reacnetgenerator."""
 import argparse
 import textwrap
 from typing import List
@@ -9,7 +10,7 @@ from ._detect import _Detect
 
 
 def main_parser() -> argparse.ArgumentParser:
-    """Returns main parser.
+    """Return main parser.
 
     Returns
     -------
@@ -159,7 +160,7 @@ def _commandline():
 
 
 def parm2cmd(pp: dict) -> List[str]:
-    """Converts a parameter dictionary to command line arguments.
+    """Convert a parameter dictionary to command line arguments.
 
     Parameters
     ----------

@@ -18,11 +18,15 @@ except ModuleNotFoundError:
     import subprocess
 
     def node_call(args, **kwargs):
+        """Call node with subprocess."""
         return subprocess.call(["node", *args], **kwargs)
 
 
 class BuildExtCommand(setuptools.command.build_ext.build_ext):
+    """A custom command to build the extension."""
+
     def run(self):
+        """Run the command."""
         assert __doc__ is not None
         log.info(__doc__)
         log.info("Prepare JavaScript files with webpack...")

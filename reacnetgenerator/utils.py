@@ -110,9 +110,11 @@ class WriteBuffer:
             self.buff[:] = []
 
     def __enter__(self) -> "WriteBuffer":
+        """Enter the context."""
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Exit the context."""
         self.flush()
         self.f.__exit__(exc_type, exc_value, traceback)
 
@@ -307,7 +309,7 @@ def multiopen(
     unit: str = "it",
     total: Optional[int] = None,
 ) -> Iterable:
-    """Returns an interated object for process a file with multiple processors.
+    """Return an interated object for process a file with multiple processors.
 
     Parameters
     ----------
