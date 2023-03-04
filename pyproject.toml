@@ -86,7 +86,7 @@ docs = [
     'numpydoc',
     'sphinx-argparse',
     'myst-nb',
-    'sphinx-favicon',
+    'sphinx-favicon>=1.0',
     "nodejs-bin~=16.15.1a4",
     "pyyaml",
     "deepmodeling_sphinx>=0.1.3",

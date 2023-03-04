@@ -38,7 +38,7 @@ extensions = [
     "sphinxarg.ext",
     "myst_nb",
     "numpydoc",
-    "sphinx-favicon",
+    "sphinx_favicon",
     "deepmodeling_sphinx",
     "sphinxcontrib.bibtex",
 ]
