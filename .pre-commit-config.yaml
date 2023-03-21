@@ -23,7 +23,7 @@ repos:
     hooks:
     -   id: black-jupyter
 -   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.254
+    rev: v0.0.257
     hooks:
     - id: ruff
       args: ["--fix"]
@@ -40,13 +40,13 @@ repos:
     -   id: clang-format
 # Cython
 -   repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.12.5
+    rev: v0.14.0
     hooks:
     -   id: cython-lint
     -   id: double-quote-cython-strings
 # JS
 -   repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.35.0
+    rev: v8.36.0
     hooks:
     -   id: eslint
 # CSS
