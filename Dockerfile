@@ -4,7 +4,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 # Install package
 COPY . /reacnetgenerator
-RUN pip install /reacnetgenerator && \
+RUN pip install /reacnetgenerator "hmmlearn @ https://github.com/hmmlearn/hmmlearn/archive/e22127765b0ca70d01976df2a369667756b8445e.zip" && \
     reacnetgenerator -h
 
 FROM python:3.11 AS build-image
