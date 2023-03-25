@@ -1,13 +1,13 @@
-FROM python:3.11 AS compile-image
+FROM python:3.10 AS compile-image
 RUN python -m venv /opt/venv
 # Make sure we use the virtualenv
 ENV PATH="/opt/venv/bin:$PATH"
 # Install package
 COPY . /reacnetgenerator
-RUN pip install /reacnetgenerator "hmmlearn @ https://github.com/hmmlearn/hmmlearn/archive/e22127765b0ca70d01976df2a369667756b8445e.zip" && \
+RUN pip install /reacnetgenerator && \
     reacnetgenerator -h
 
-FROM python:3.11 AS build-image
+FROM python:3.10 AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 CMD ["/bin/bash" ]
