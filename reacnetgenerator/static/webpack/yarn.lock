@@ -776,15 +776,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap@npm:5.1.3":
-  version: 5.1.3
-  resolution: "bootstrap@npm:5.1.3"
-  peerDependencies:
-    "@popperjs/core": ^2.10.2
-  checksum: 301b5ed872efba061104cf22ac93568e3837867fb5527ab9326a51510fb752bd4883e1d488225c8be72f86d9d3a55ef5b166aa7fa62c2fdd077c3f05b65752f8
-  languageName: node
-  linkType: hard
-
 "bootstrap@npm:5.2.3":
   version: 5.2.3
   resolution: "bootstrap@npm:5.2.3"
@@ -3503,7 +3494,7 @@ __metadata:
     sass-loader: 13.2.1
     script-ext-html-webpack-plugin: 2.1.5
     smiles-drawer: 2.0.3
-    startbootstrap-creative: 7.0.6
+    startbootstrap-creative: 7.0.7
     string-replace-webpack-plugin: 0.1.3
     style-loader: 3.3.2
     terser-webpack-plugin: 5.3.7
@@ -3958,12 +3949,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"startbootstrap-creative@npm:7.0.6":
-  version: 7.0.6
-  resolution: "startbootstrap-creative@npm:7.0.6"
+"startbootstrap-creative@npm:7.0.7":
+  version: 7.0.7
+  resolution: "startbootstrap-creative@npm:7.0.7"
   dependencies:
-    bootstrap: 5.1.3
-  checksum: 7d4851b2efe5d9f63f0b646b20ee87a71f31ad2eb095889dbdd558ebf2462b020389c3d1ff018464b86c68f73e505d7ac7b7cc519e9c400a7b4f1b273c17481c
+    bootstrap: 5.2.3
+  checksum: 901229ebc9b3b038cce90f9da4ec74e5967d2eb0d39e9fe5cb576a6ef7c41b383f5afa42be7f9e474b3dc4ac29d34b699126a05cda2d1c841c194a1d8b2f3afc
   languageName: node
   linkType: hard
 
