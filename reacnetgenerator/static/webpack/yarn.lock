@@ -1266,19 +1266,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssnano-preset-advanced@npm:5.3.10":
-  version: 5.3.10
-  resolution: "cssnano-preset-advanced@npm:5.3.10"
+"cssnano-preset-advanced@npm:6.0.0":
+  version: 6.0.0
+  resolution: "cssnano-preset-advanced@npm:6.0.0"
   dependencies:
     autoprefixer: ^10.4.12
-    cssnano-preset-default: ^5.2.14
-    postcss-discard-unused: ^5.1.0
-    postcss-merge-idents: ^5.1.1
-    postcss-reduce-idents: ^5.2.0
-    postcss-zindex: ^5.1.0
+    cssnano-preset-default: ^6.0.0
+    postcss-discard-unused: ^6.0.0
+    postcss-merge-idents: ^6.0.0
+    postcss-reduce-idents: ^6.0.0
+    postcss-zindex: ^6.0.0
   peerDependencies:
     postcss: ^8.2.15
-  checksum: d21cb382aea2f35c9eaa50686280bbd5158260edf73020731364b03bae0d887292da51ed0b20b369f51d2573ee8c02c695f604647b839a9ca746be8a44c3bb5b
+  checksum: 455d34c5e5005755bc6a73e7845c57743dad06474328961a63b291774603319837abff8e631e55419a84d8c2166f644a00f91df7fe751373aa77863a9deaec38
   languageName: node
   linkType: hard
 
@@ -3246,14 +3246,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-discard-unused@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "postcss-discard-unused@npm:5.1.0"
+"postcss-discard-unused@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "postcss-discard-unused@npm:6.0.0"
   dependencies:
     postcss-selector-parser: ^6.0.5
   peerDependencies:
     postcss: ^8.2.15
-  checksum: 5c09403a342a065033f5f22cefe6b402c76c2dc0aac31a736a2062d82c2a09f0ff2525b3df3a0c6f4e0ffc7a0392efd44bfe7f9d018e4cae30d15b818b216622
+  checksum: dca34d3553c1bc590d21f881f84ab80a52502909a3ae8d42da9c4307529449688ff789c6b3816fd018c730b1b72ff3c087d2476bc49008c8465309da4e3c956d
   languageName: node
   linkType: hard
 
@@ -3284,15 +3284,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-merge-idents@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "postcss-merge-idents@npm:5.1.1"
+"postcss-merge-idents@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "postcss-merge-idents@npm:6.0.0"
   dependencies:
-    cssnano-utils: ^3.1.0
+    cssnano-utils: ^4.0.0
     postcss-value-parser: ^4.2.0
   peerDependencies:
     postcss: ^8.2.15
-  checksum: ed8a673617ea6ae3e15d69558063cb1a5eeee01732f78cdc0196ab910324abc30828724ab8dfc4cda27e8c0077542e25688470f829819a2604625a673387ec72
+  checksum: 6a8498572d04694916175a6532f4a4c849198ddaede4317111b447645e8cd7aa71d34db55891a3a684ab942a16630c02cf3772c4f02ee67ec23ae2d4bdcefbab
   languageName: node
   linkType: hard
 
@@ -3709,14 +3709,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-reduce-idents@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "postcss-reduce-idents@npm:5.2.0"
+"postcss-reduce-idents@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "postcss-reduce-idents@npm:6.0.0"
   dependencies:
     postcss-value-parser: ^4.2.0
   peerDependencies:
     postcss: ^8.2.15
-  checksum: f0d644c86e160dd36ee4dd924ab7d6feacac867c87702e2f98f96b409430a62de4fec2dfc3c8731bda4e14196e29a752b4558942f0af2a3e6cd7f1f4b173db8e
+  checksum: db3a87c45de3adba4781dfc6661d60ed27260d74f4e7b0b9b72e3fea3391c344c0e5bd30f4dafcd5215ea90ba0aa3cd7df5034972cf8cb105ae35aae73c6670a
   languageName: node
   linkType: hard
 
@@ -3829,12 +3829,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-zindex@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "postcss-zindex@npm:5.1.0"
+"postcss-zindex@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "postcss-zindex@npm:6.0.0"
   peerDependencies:
     postcss: ^8.2.15
-  checksum: 8581e0ee552622489dcb9fb9609a3ccc261a67a229ba91a70bd138fe102a2d04cedb14642b82b673d4cac7b559ef32574f2dafde2ff7816eecac024d231c5ead
+  checksum: 445871130aed6333be04cd3c97c9f86fe7efc0bb0ab7b77e4f5836efd2f307ff7afc43ab1b03a4747a1cc3fd01a9aa144e4ca662188687f022d8e22d4f993835
   languageName: node
   linkType: hard
 
@@ -3930,7 +3930,7 @@ __metadata:
     css-loader: 6.7.3
     css-minimizer-webpack-plugin: 4.2.2
     cssnano: 6.0.0
-    cssnano-preset-advanced: 5.3.10
+    cssnano-preset-advanced: 6.0.0
     d3: 3.5.17
     html-inline-css-webpack-plugin: 1.11.1
     html-webpack-plugin: 5.5.0
