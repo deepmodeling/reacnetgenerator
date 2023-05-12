@@ -224,13 +224,13 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         ValueError
             (RDKit error) Maximum BFS search size exceeded.
         """
-        m = Chem.RWMol(Chem.MolFromSmiles(""))
+        m = Chem.RWMol(Chem.MolFromSmiles(""))  # type: ignore
         d = {}
         for name, number in zip(self.atomnames[atoms], atoms):
-            d[number] = m.AddAtom(Chem.Atom(name))
+            d[number] = m.AddAtom(Chem.Atom(name))    # type: ignore
         for atom1, atom2, level in bonds:
-            m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
-        name = Chem.MolToSmiles(m)
+            m.AddBond(d[atom1], d[atom2], Chem.BondType(level))    # type: ignore
+        name = Chem.MolToSmiles(m)    # type: ignore
         return name
 
     def _getatomsandbonds(self, line):

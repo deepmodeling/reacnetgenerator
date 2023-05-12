@@ -3,7 +3,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-import ase
+import ase.geometry
+import ase.units
 import numpy as np
 
 
