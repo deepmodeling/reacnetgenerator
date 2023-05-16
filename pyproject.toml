@@ -73,7 +73,7 @@ reacnetgeneratorgui = "reacnetgenerator.gui:gui"
 [project.optional-dependencies]
 test = [
     'pytest-sugar',
-    'pytest-cov<4',
+    'pytest-cov<5',
     'cython',
     'pytest-xvfb',
     "pytest-console-scripts",
