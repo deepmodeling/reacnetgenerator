@@ -38,7 +38,7 @@
     "html-inline-css-webpack-plugin": "1.11.1",
     "html-webpack-plugin": "5.5.1",
     "ifdef-loader": "2.3.2",
-    "mini-css-extract-plugin": "2.7.5",
+    "mini-css-extract-plugin": "2.7.6",
     "postcss": "8.4.23",
     "postcss-import": "15.1.0",
     "postcss-loader": "7.3.0",
