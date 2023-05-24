@@ -198,12 +198,12 @@ __metadata:
   linkType: hard
 
 "@types/eslint@npm:*":
-  version: 8.37.0
-  resolution: "@types/eslint@npm:8.37.0"
+  version: 8.40.0
+  resolution: "@types/eslint@npm:8.40.0"
   dependencies:
     "@types/estree": "*"
     "@types/json-schema": "*"
-  checksum: 06d3b3fba12004294591b5c7a52e3cec439472195da54e096076b1f2ddfbb8a445973b9681046dd530a6ac31eca502f635abc1e3ce37d03513089358e6f822ee
+  checksum: bab41d7f590182e743853cdd5bf5359cbc4240df986223457c8a5f5674743a3fe2a8626704b65bf9121dfa0ce0a0efd760da8339cc329018f229d4d2d6ee1c43
   languageName: node
   linkType: hard
 
@@ -254,9 +254,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 20.1.4
-  resolution: "@types/node@npm:20.1.4"
-  checksum: bffa6a6e92831cc805b13658c55be8e04abe3202d5e57ddd7fee4cfbe269656a1f475909a9f9514e1aff50310d0d90c516ac2c649cb6f1c77d4b1079c2fd1e88
+  version: 20.2.3
+  resolution: "@types/node@npm:20.2.3"
+  checksum: 576065e8fc1fa45798c8f59a6bf809169582d04abc2e25fab1a048ffc734975b9992ae31be0d960cf705a21fb37112f7fcde11aa322beddf7491e73d5a5a988c
   languageName: node
   linkType: hard
 
@@ -890,9 +890,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001449, caniuse-lite@npm:^1.0.30001464":
-  version: 1.0.30001487
-  resolution: "caniuse-lite@npm:1.0.30001487"
-  checksum: b5a9e72ec165765fb3e07913cc389685ce8a30ac48967f99baec773a4353d2037fb534241e87b3c95d40a5081079be2263710b784883183bb2998b73f7202233
+  version: 1.0.30001489
+  resolution: "caniuse-lite@npm:1.0.30001489"
+  checksum: 94585a351fd7661b855c83eace474db0ee5a617159b46f2eff1f6fe4b85d7a205418471fdec8cf5cd647a7f79958706d5e664c0bbf3c7c09118b35db9bb95a1b
   languageName: node
   linkType: hard
 
@@ -1505,9 +1505,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.284":
-  version: 1.4.394
-  resolution: "electron-to-chromium@npm:1.4.394"
-  checksum: db511decf3436f7293602ee6f4c363a5ed8e69f9b7edeb541d31c60950fe0dffc719027e1191a2151e0478658c5debe7059f4ee0b2c4bf8e5476c945e726816d
+  version: 1.4.405
+  resolution: "electron-to-chromium@npm:1.4.405"
+  checksum: d1cf421eaf63dbd5481bcc4296a94e5db5cf831bdc5cbdad283b4b0d53d8fd87254b64fa6cda88f1cb4789eab012f078c1eed4cbb01c5a34bd0ce657dcfe08c8
   languageName: node
   linkType: hard
 
@@ -1542,12 +1542,12 @@ __metadata:
   linkType: hard
 
 "enhanced-resolve@npm:^5.14.0":
-  version: 5.14.0
-  resolution: "enhanced-resolve@npm:5.14.0"
+  version: 5.14.1
+  resolution: "enhanced-resolve@npm:5.14.1"
   dependencies:
     graceful-fs: ^4.2.4
     tapable: ^2.2.0
-  checksum: fff1aaebbf376371e5df4502e111967f6247c37611ad3550e4e7fca657f6dcb29ef7ffe88bf14e5010b78997f1ddd984a8db97af87ee0a5477771398fd326f5b
+  checksum: ad2a31928b6649eed40d364838449587f731baa63863e83d2629bebaa8be1eabac18b90f89c1784bc805b0818363e99b22547159edd485d7e5ccf18cdc640642
   languageName: node
   linkType: hard
 
@@ -2162,11 +2162,11 @@ __metadata:
   linkType: hard
 
 "is-core-module@npm:^2.12.0":
-  version: 2.12.0
-  resolution: "is-core-module@npm:2.12.0"
+  version: 2.12.1
+  resolution: "is-core-module@npm:2.12.1"
   dependencies:
     has: ^1.0.3
-  checksum: f7f7eb2ab71fd769ee9fb2385c095d503aa4b5ce0028c04557de03f1e67a87c85e5bac1f215945fc3c955867a139a415a3ec4c4234a0bffdf715232660f440a6
+  checksum: f04ea30533b5e62764e7b2e049d3157dc0abd95ef44275b32489ea2081176ac9746ffb1cdb107445cf1ff0e0dfcad522726ca27c27ece64dadf3795428b8e468
   languageName: node
   linkType: hard
 
@@ -2789,9 +2789,9 @@ __metadata:
   linkType: hard
 
 "node-releases@npm:^2.0.8":
-  version: 2.0.10
-  resolution: "node-releases@npm:2.0.10"
-  checksum: d784ecde25696a15d449c4433077f5cce620ed30a1656c4abf31282bfc691a70d9618bae6868d247a67914d1be5cc4fde22f65a05f4398cdfb92e0fc83cadfbc
+  version: 2.0.12
+  resolution: "node-releases@npm:2.0.12"
+  checksum: b8c56db82c4642a0f443332b331a4396dae452a2ac5a65c8dbd93ef89ecb2fbb0da9d42ac5366d4764973febadca816cf7587dad492dce18d2a6b2af59cda260
   languageName: node
   linkType: hard
 
@@ -3413,12 +3413,12 @@ __metadata:
   linkType: hard
 
 "postcss-selector-parser@npm:^6.0.11, postcss-selector-parser@npm:^6.0.2, postcss-selector-parser@npm:^6.0.4, postcss-selector-parser@npm:^6.0.5":
-  version: 6.0.12
-  resolution: "postcss-selector-parser@npm:6.0.12"
+  version: 6.0.13
+  resolution: "postcss-selector-parser@npm:6.0.13"
   dependencies:
     cssesc: ^3.0.0
     util-deprecate: ^1.0.2
-  checksum: f166ed4350511f6fb4a7e82aaaa6dfd81a1e648d4567ca15a3ca87b7ea2e55a8c136fb0ae9456b7b88a390c160f05d06bd1c69f47d7e331b53b70941e06e90fe
+  checksum: f89163338a1ce3b8ece8e9055cd5a3165e79a15e1c408e18de5ad8f87796b61ec2d48a2902d179ae0c4b5de10fccd3a325a4e660596549b040bc5ad1b465f096
   languageName: node
   linkType: hard
 
@@ -4176,8 +4176,8 @@ __metadata:
   linkType: hard
 
 "tar@npm:^6.1.11, tar@npm:^6.1.2":
-  version: 6.1.14
-  resolution: "tar@npm:6.1.14"
+  version: 6.1.15
+  resolution: "tar@npm:6.1.15"
   dependencies:
     chownr: ^2.0.0
     fs-minipass: ^2.0.0
@@ -4185,11 +4185,11 @@ __metadata:
     minizlib: ^2.1.1
     mkdirp: ^1.0.3
     yallist: ^4.0.0
-  checksum: a1be0815a9bdc97dfca7c6c2d71d1b836f8ba9314684e2c412832f0f59cc226d4c13da303d6bc30925e82f634cc793f40da79ae72f3e96fb87c23d0f4efd5207
+  checksum: f23832fceeba7578bf31907aac744ae21e74a66f4a17a9e94507acf460e48f6db598c7023882db33bab75b80e027c21f276d405e4a0322d58f51c7088d428268
   languageName: node
   linkType: hard
 
-"terser-webpack-plugin@npm:5.3.9":
+"terser-webpack-plugin@npm:5.3.9, terser-webpack-plugin@npm:^5.3.7":
   version: 5.3.9
   resolution: "terser-webpack-plugin@npm:5.3.9"
   dependencies:
@@ -4211,31 +4211,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"terser-webpack-plugin@npm:^5.3.7":
-  version: 5.3.8
-  resolution: "terser-webpack-plugin@npm:5.3.8"
-  dependencies:
-    "@jridgewell/trace-mapping": ^0.3.17
-    jest-worker: ^27.4.5
-    schema-utils: ^3.1.1
-    serialize-javascript: ^6.0.1
-    terser: ^5.16.8
-  peerDependencies:
-    webpack: ^5.1.0
-  peerDependenciesMeta:
-    "@swc/core":
-      optional: true
-    esbuild:
-      optional: true
-    uglify-js:
-      optional: true
-  checksum: 0ffc2a1949b1fd60ef9c815c4629b9817656db612bb58c5db96e3b04204c86afd142b115392e48733364edc7bf95131f54c10174c05f046ba8f2adead6b06c3c
-  languageName: node
-  linkType: hard
-
 "terser@npm:^5.10.0, terser@npm:^5.16.8":
-  version: 5.17.3
-  resolution: "terser@npm:5.17.3"
+  version: 5.17.6
+  resolution: "terser@npm:5.17.6"
   dependencies:
     "@jridgewell/source-map": ^0.3.2
     acorn: ^8.5.0
@@ -4243,7 +4221,7 @@ __metadata:
     source-map-support: ~0.5.20
   bin:
     terser: bin/terser
-  checksum: 6b5a859bf9707f34be6e4c567437bc4e47e9364eec37a48b0ae3bff46bb510ef43caf543a23a89b8f43eca47c90a6759105add171fdb0d768dd639deb4545ac9
+  checksum: 9c0ab0261a99a61c5f53d05d4ecc7f68c552bae6af481464fdd596bc9d7e89ce8e21b1833cb3ce06ad5f658e2b226081d543e4fe6e324b2cdf03ee8b7eeec01a
   languageName: node
   linkType: hard
 
@@ -4298,9 +4276,9 @@ __metadata:
   linkType: hard
 
 "tslib@npm:^2.0.3":
-  version: 2.5.0
-  resolution: "tslib@npm:2.5.0"
-  checksum: ae3ed5f9ce29932d049908ebfdf21b3a003a85653a9a140d614da6b767a93ef94f460e52c3d787f0e4f383546981713f165037dc2274df212ea9f8a4541004e1
+  version: 2.5.2
+  resolution: "tslib@npm:2.5.2"
+  checksum: 4d3c1e238b94127ed0e88aa0380db3c2ddae581dc0f4bae5a982345e9f50ee5eda90835b8bfba99b02df10a5734470be197158c36f9129ac49fdc14a6a9da222
   languageName: node
   linkType: hard
 
@@ -4466,12 +4444,12 @@ __metadata:
   linkType: hard
 
 "webpack-merge@npm:^5.7.3":
-  version: 5.8.0
-  resolution: "webpack-merge@npm:5.8.0"
+  version: 5.9.0
+  resolution: "webpack-merge@npm:5.9.0"
   dependencies:
     clone-deep: ^4.0.1
     wildcard: ^2.0.0
-  checksum: 88786ab91013f1bd2a683834ff381be81c245a4b0f63304a5103e90f6653f44dab496a0768287f8531761f8ad957d1f9f3ccb2cb55df0de1bd9ee343e079da26
+  checksum: 64fe2c23aacc5f19684452a0e84ec02c46b990423aee6fcc5c18d7d471155bd14e9a6adb02bd3656eb3e0ac2532c8e97d69412ad14c97eeafe32fa6d10050872
   languageName: node
   linkType: hard
 
