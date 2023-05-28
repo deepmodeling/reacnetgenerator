@@ -3570,7 +3570,7 @@ __metadata:
     query-string: 7.1.3
     regenerator-runtime: 0.13.11
     sass: 1.62.1
-    sass-loader: 13.3.0
+    sass-loader: 13.3.1
     script-ext-html-webpack-plugin: 2.1.5
     smiles-drawer: 2.0.3
     startbootstrap-creative: 7.0.7
@@ -3765,9 +3765,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass-loader@npm:13.3.0":
-  version: 13.3.0
-  resolution: "sass-loader@npm:13.3.0"
+"sass-loader@npm:13.3.1":
+  version: 13.3.1
+  resolution: "sass-loader@npm:13.3.1"
   dependencies:
     klona: ^2.0.6
     neo-async: ^2.6.2
@@ -3786,7 +3786,7 @@ __metadata:
       optional: true
     sass-embedded:
       optional: true
-  checksum: a3b57eaf09ae853fa95298bd7a42d64409f3f3b97f46ec4c61178763ffb61edddd5f89cc03940ef963aa328b4f6dcd4f1153e810e5eb29fb07ac02ddc121749c
+  checksum: 0cd4fcb6a6d7154412b27d19c65c3d84003c8e13dbf8196a905055043a4f70888cbb6c6d70d8b9e7ce55a6835644d8bdafe44eb6fd4a779188d528d558d492fb
   languageName: node
   linkType: hard
 
