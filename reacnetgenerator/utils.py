@@ -289,7 +289,7 @@ def listtostirng(
     if isinstance(l, str):
         return l
     if isinstance(l, (list, tuple, np.ndarray)):
-        return sep[0].join(map(lambda x: listtostirng(x, sep[1:]), l))
+        return sep[0].join(listtostirng(x, sep[1:]) for x in l)
     return str(l)
 
 

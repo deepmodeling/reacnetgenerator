@@ -169,9 +169,9 @@ class _DrawNetwork(SharedRNGData):
         species = [spec for spec in species if spec not in self.speciesfilter]
 
         if self.showid:
-            showname = dict([(v, u) for u, v in enumerate(species, start=1)])
+            showname = {v: u for u, v in enumerate(species, start=1)}
         else:
-            showname = dict([(u, u) for u in species])
+            showname = {u: u for u in species}
         if species:
             logger.info("Species are:")
             for specname, n in showname.items():

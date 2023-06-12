@@ -185,8 +185,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         # int() because sometimes, the elements in bondlist are type numpy.int64 sometimes are int
         # which cause the different bytes results from same bond-network.
         mols, bondlists = dps(bond, level)
-        return list(
-            [
+        return [
                 b"".join(
                     (
                         listtobytes(mol),
@@ -196,7 +195,6 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 )
                 for mol, bondlist in zip(mols, bondlists)
             ]
-        )
 
     def _writemoleculetempfile(self, d):
         with WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as f:

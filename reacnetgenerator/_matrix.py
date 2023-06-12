@@ -156,5 +156,5 @@ class _GenerateMatrix(SharedRNGData):
                     d[t][name] += 1
             for t in range(len(self.timestep)):
                 fw.append(f"Timestep {self.timestep[t]}:")
-                fw.extend(map(lambda item: f" {item[0]} {item[1]}", d[t].items()))
+                fw.extend(f" {item[0]} {item[1]}" for item in d[t].items())
                 fw.append("\n")
