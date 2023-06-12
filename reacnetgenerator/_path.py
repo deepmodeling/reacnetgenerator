@@ -99,9 +99,9 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         if self.split > 1:
             splittime = np.array_split(np.arange(self.step), self.split)
             self.splitmoleculeroute = [
-                    self._printatomroute(atomeach[:, st], timeaxis=i)
-                    for i, st in enumerate(splittime)
-                ]
+                self._printatomroute(atomeach[:, st], timeaxis=i)
+                for i, st in enumerate(splittime)
+            ]
         self.returnkeys()
         ReactionsFinder(self.rng).findreactions(atomeach.T, conflict.T)
 
