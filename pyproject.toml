@@ -143,6 +143,7 @@ select = [
     "D", # pydocstyle
 	"I", # isort
     "UP", # pyupgrade
+    "C4", # flake8-comprehensions
 ]
 ignore = [
     "E501", # line too long

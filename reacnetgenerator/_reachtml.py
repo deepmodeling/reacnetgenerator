@@ -101,8 +101,8 @@ class _HTMLResult(SharedRNGData):
     def _handlereaction(self, line):
         sx = line.split()
         left, right = sx[1].split("->")
-        left = list([self._re(spec) for spec in left.split("+")])
-        right = list([self._re(spec) for spec in right.split("+")])
+        left = [self._re(spec) for spec in left.split("+")]
+        right = [self._re(spec) for spec in right.split("+")]
         num = int(sx[0])
         return left, right, num
 
@@ -145,7 +145,7 @@ class _HTMLResult(SharedRNGData):
                     if timeaxis is None:
                         self._svgspecs.add(spec)
         # return list of dict
-        return list([{"s": spec, "i": i} for i, spec in enumerate(specs, 1)])
+        return [{"s": spec, "i": i} for i, spec in enumerate(specs, 1)]
 
     def _readdata(self):
         self._reaction = [self._readreaction()]

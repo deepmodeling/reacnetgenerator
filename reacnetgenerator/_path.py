@@ -98,12 +98,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         self.allmoleculeroute = self._printatomroute(atomeach)
         if self.split > 1:
             splittime = np.array_split(np.arange(self.step), self.split)
-            self.splitmoleculeroute = list(
-                [
-                    self._printatomroute(atomeach[:, st], timeaxis=i)
-                    for i, st in enumerate(splittime)
-                ]
-            )
+            self.splitmoleculeroute = [
+                self._printatomroute(atomeach[:, st], timeaxis=i)
+                for i, st in enumerate(splittime)
+            ]
         self.returnkeys()
         ReactionsFinder(self.rng).findreactions(atomeach.T, conflict.T)
 
@@ -341,7 +339,7 @@ class Molecule:
         self.graph = self._makemoleculegraph()
         counter = Counter(self._atomnames)
         self.name = "".join(
-            map(lambda atomname: f"{atomname}{counter[atomname]}", cmp.atomname)
+            f"{atomname}{counter[atomname]}" for atomname in cmp.atomname
         )
         self._smiles = None
         self._convertSMILES = cmp.convertSMILES
