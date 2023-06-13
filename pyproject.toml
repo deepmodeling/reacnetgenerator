@@ -92,9 +92,7 @@ docs = [
     "deepmodeling_sphinx>=0.1.3",
     "pygments-lammps",
     "sphinxcontrib-bibtex",
-    # fix https://github.com/mcmtroffaes/sphinxcontrib-bibtex/issues/309
-    # "docutils>=0.19.1",
-    #"docutils @ git+https://github.com/docutils/docutils@17f69f54bc9872602b07320ad94ca4860556fae3#egg=docutils&subdirectory=docutils",
+    "docutils!=0.18,!=0.19",
 ]
 
 [tool.setuptools.packages.find]
