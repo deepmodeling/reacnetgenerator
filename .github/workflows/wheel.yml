@@ -106,6 +106,9 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    permissions:
+        # IMPORTANT: this permission is mandatory for trusted publishing
+        id-token: write
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -113,6 +116,3 @@ jobs:
           path: dist
 
       - uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
