@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 const assert = require('assert');
 const {getFormula} = require('../formula');
 

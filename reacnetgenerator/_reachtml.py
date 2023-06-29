@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 # cython: linetrace=True
 # cython: language_level=3
 """Generate a web page to show the analysis report.

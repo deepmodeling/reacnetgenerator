@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+# SPDX-License-Identifier: LGPL-3.0-or-later
 # cython: language_level=3
 # cython: linetrace=True
 """GUI version of ReacNetGenerator."""

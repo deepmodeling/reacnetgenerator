@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 # Copyright 2018-2022, East China Normal University
 """ReacNetGenerator is an automatic reaction network generator for
 reactive molecular dynamics simulation.[1]_.

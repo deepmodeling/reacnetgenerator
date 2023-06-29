@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+# SPDX-License-Identifier: LGPL-3.0-or-later
 # cython: language_level=3
 # cython: linetrace=True
 """The main module of ReacNetGenerator."""

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Useful methods to futhur process ReacNetGenerator results."""
 from collections import Counter, defaultdict
 from pathlib import Path
