@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Welcome to install ReacNetGenerator.
 
 Just use `pip install .` to install.

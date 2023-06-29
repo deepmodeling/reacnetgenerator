@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 extern "C" {
 #include "c_stack.h"
 }

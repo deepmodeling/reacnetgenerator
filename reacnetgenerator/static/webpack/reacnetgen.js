@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 /*!
  * ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
  * Copyright 2018-2019 East China Normal University
