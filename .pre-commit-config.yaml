@@ -58,14 +58,23 @@ repos:
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.1
     hooks:
-    # C++, js, CSS
+    # C++, js
     -   id: insert-license
-        files: \.(c|cc|cpp|js|ts|css|scss)$
+        files: \.(c|cc|cpp|js|ts)$
         args:
         - --license-filepath
         - .license-header.txt
         - --comment-style
         - //
+        - --no-extra-eol
+    # CSS
+    -   id: insert-license
+        files: \.(css|scss)$
+        args:
+        - --license-filepath
+        - .license-header.txt
+        - --comment-style
+        - /*| *| */
         - --no-extra-eol
     # Python
     -   id: insert-license
