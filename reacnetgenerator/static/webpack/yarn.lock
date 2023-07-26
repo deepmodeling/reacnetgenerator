@@ -802,12 +802,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap@npm:5.3.0":
-  version: 5.3.0
-  resolution: "bootstrap@npm:5.3.0"
+"bootstrap@npm:5.3.1":
+  version: 5.3.1
+  resolution: "bootstrap@npm:5.3.1"
   peerDependencies:
-    "@popperjs/core": ^2.11.7
-  checksum: 29a83cc8cac96d70051e265a5da342cc488df8fc76dff6746ef7d155698286cd5bdfa3e52c6ebf09f8e5a97f25929ee97aee36237117732e52b0d3276a72c45c
+    "@popperjs/core": ^2.11.8
+  checksum: f8176376aa6c6d8947d58a67f0c57fa0b6b7dcd087ff83454e0d727c07cf33e8107e56aa298045d652f84b53b24ac72457af73e41c5631c9ebdc1909039c5dac
   languageName: node
   linkType: hard
 
@@ -3625,7 +3625,7 @@ __metadata:
     "@njzjz/jsnetworkx": 0.3.5
     "@popperjs/core": 2.11.8
     animejs: 3.2.1
-    bootstrap: 5.3.0
+    bootstrap: 5.3.1
     bootstrap-select: 1.14.0-beta3
     css-loader: 6.8.1
     css-minimizer-webpack-plugin: 5.0.1
