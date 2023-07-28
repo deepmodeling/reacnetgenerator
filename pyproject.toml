@@ -133,8 +133,6 @@ omit = ["*test*"]
 profile = "black"
 
 [tool.ruff]
-convention = "numpy"
-
 select = [
     "E", # errors
     "F", # pyflakes
@@ -154,3 +152,6 @@ ignore = [
     "D213", # multi-line docstring summary should start at the second line
     "D205", # 1 blank line required between summary line and description
 ]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
