@@ -145,6 +145,7 @@ ignore = [
     "E501", # line too long
     "E741", # ambiguous variable name
     "E402", # module level import not at top of file
+    "D205", # 1 blank line required between summary line and description
 ]
 
 [tool.ruff.pydocstyle]

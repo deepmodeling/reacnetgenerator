@@ -18,15 +18,15 @@ repos:
     -   id: check-toml
     -   id: mixed-line-ending
 # Python
--   repo: https://github.com/psf/black
-    rev: 23.7.0
-    hooks:
-    -   id: black-jupyter
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.0.278
     hooks:
     - id: ruff
       args: ["--fix"]
+-   repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 23.7.0
+    hooks:
+    -   id: black-jupyter
 # numpydoc
 -   repo: https://github.com/Carreau/velin
     rev: 0.0.12
