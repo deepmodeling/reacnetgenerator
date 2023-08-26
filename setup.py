@@ -11,6 +11,7 @@ from pathlib import Path
 import setuptools.command.build_ext
 import yaml
 from setuptools import Extension, setup
+from wheel.bdist_wheel import bdist_wheel
 
 try:
     from nodejs.node import call as node_call
@@ -65,6 +66,17 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         setuptools.command.build_ext.build_ext.run(self)
 
 
+class bdist_wheel_abi3(bdist_wheel):
+    def get_tag(self):
+        python, abi, plat = super().get_tag()
+
+        if python.startswith("cp"):
+            # on CPython, our wheels are abi3 and compatible back to 3.7
+            return "cp37", "abi3", plat
+
+        return python, abi, plat
+
+
 if __name__ == "__main__":
     define_macros = []
     if os.environ.get("DEBUG", 0):
@@ -89,5 +101,6 @@ if __name__ == "__main__":
         ext_modules=ext_modules,
         cmdclass={
             "build_ext": BuildExtCommand,
+            "bdist_wheel": bdist_wheel_abi3
         },
     )

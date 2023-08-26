@@ -6,6 +6,8 @@
 """Connect molecule with Depth-First Search."""
 from libc.stdlib cimport free, malloc
 
+import cython
+
 
 cdef extern from "c_stack.h":
     # This function is copied from https://zhuanlan.zhihu.com/p/38212302
@@ -14,6 +16,7 @@ cdef extern from "c_stack.h":
         int pop()
 
 
+@cython.binding(False)
 def dps(bonds, levels):
     """Connect molecule with Depth-First Search.
 
@@ -67,6 +70,7 @@ def dps(bonds, levels):
     return molecule, bondlist
 
 
+@cython.binding(False)
 def dps_reaction(reactdict):
     """Find A+B->C+D reactions.
 

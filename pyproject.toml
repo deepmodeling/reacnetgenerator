@@ -6,7 +6,7 @@ requires = [
     "oldest-supported-numpy",
     "nodejs-bin~=16.15.1a4",
     "pyyaml",
-    "cython>=0.16",
+    "cython>=3.0.1",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -116,6 +116,17 @@ test-skip = "*-win_amd64"
 
 [tool.cibuildwheel.linux]
 environment-pass = ["CIBW_BUILD"]
+# Use abi3audit to catch issues with Limited API wheels
+repair-wheel-command = [
+  "auditwheel repair -w {dest_dir} {wheel}",
+  "pipx run abi3audit --strict --report {wheel}",
+]
+
+[tool.cibuildwheel.macos]
+repair-wheel-command = [
+  "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
+  "pipx run abi3audit --strict --report {wheel}",
+]
 
 [tool.pyright]
 include = [

@@ -4,6 +4,7 @@
 # cython: linetrace=True
 # cython: infer_types=True
 
+import cython
 import numpy as np
 
 cimport cython
@@ -17,6 +18,7 @@ ctypedef np.int8_t DTYPE8_t
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.binding(False)
 cpdef idx_to_signal(DTYPE_t[:] idx, int step):
     """Converts an index array to a signal array.
 
@@ -53,6 +55,7 @@ cpdef idx_to_signal(DTYPE_t[:] idx, int step):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.binding(False)
 cpdef check_zero_signal(DTYPE8_t[:] signal):
     """Check if the given signal contains only zeros.
 
