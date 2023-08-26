@@ -94,7 +94,7 @@ def dps_reaction(reactdict):
     cdef set visited_right = set()
     visited = [visited_left, visited_right]
     cdef C_Stack st
-    cdef nm, im, nr, ir
+    cdef int nm, im, nr, ir
 
     nm = len(reactdict[0])
     for im in range(nm):
