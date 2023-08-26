@@ -99,8 +99,5 @@ if __name__ == "__main__":
 
     setup(
         ext_modules=ext_modules,
-        cmdclass={
-            "build_ext": BuildExtCommand,
-            "bdist_wheel": bdist_wheel_abi3
-        },
+        cmdclass={"build_ext": BuildExtCommand, "bdist_wheel": bdist_wheel_abi3},
     )
