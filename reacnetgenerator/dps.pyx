@@ -38,7 +38,7 @@ def dps(bonds, levels):
     bondlist = []
     cdef int _N = len(bonds)
     cdef int *visited = <int *> malloc(_N * sizeof(int))
-    cdef int i, s, b_c, l
+    cdef int i, s, b_c, l, ib, nb
     cdef C_Stack st
     for i in range(_N):
         visited[i]=0
@@ -55,7 +55,10 @@ def dps(bonds, levels):
                 elif visited[s]==1:
                     continue
                 mol.append(s)
-                for b, l in zip(bonds[s], levels[s]):
+                nb = len(bonds[s])
+                for ib in range(nb):
+                    b = bonds[s][nb]
+                    l = levels[s][nb]
                     b_c = b
                     if visited[b_c]==0:
                         # bond.append((s, b, l) if i < b else (b, s, l))
@@ -91,8 +94,11 @@ def dps_reaction(reactdict):
     cdef set visited_right = set()
     visited = [visited_left, visited_right]
     cdef C_Stack st
+    cdef nm, im, nr, ir
 
-    for init_mol in reactdict[0]:
+    nm = len(reactdict[0])
+    for im in range(nm):
+        init_mol = reactdict[0][im]
         if init_mol not in visited[0]:
             reaction = [[], []]
             st.push(init_mol)
@@ -104,7 +110,9 @@ def dps_reaction(reactdict):
                 elif mol in visited[side]:
                     continue
                 reaction[side].append(mol)
-                for r in reactdict[side][mol]:
+                nr = len(reactdict[side][mol])
+                for ir in range(nr):
+                    r = reactdict[side][mol][ir]
                     if r < 0:
                         if r not in reaction[1-side]:
                             reaction[1-side].append(r)
