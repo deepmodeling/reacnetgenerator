@@ -140,6 +140,8 @@ select = [
     "I", # isort
     "UP", # pyupgrade
     "C4", # flake8-comprehensions
+    "RUF", # ruff
+    "NPY", # numpy
 ]
 ignore = [
     "E501", # line too long
