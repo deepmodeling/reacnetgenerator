@@ -223,7 +223,7 @@ class _DetectLAMMPSbond(_Detect):
                     else:
                         iscompleted = True
                         stepaindex = index
-                    N = [int(s) for s in line.split() if s.isdigit()][0]
+                    N = next(int(s) for s in line.split() if s.isdigit())
                     atomtype = np.zeros(N, dtype=int)
             else:
                 s = line.split()

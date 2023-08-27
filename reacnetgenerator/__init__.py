@@ -21,7 +21,7 @@ import matplotlib as mpl
 
 from ._version import __version__
 
-mpl.use("svg")  # noqa
+mpl.use("svg")
 
 from .reacnetgen import ReacNetGenerator
 
