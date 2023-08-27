@@ -133,9 +133,7 @@ class TestReacNetGen:
         if hmmclass.runHMM:
             hmmclass._initHMM()
         rng = np.random.default_rng()
-        index = np.sort(
-            rng.choice(hmmclass.step, hmmclass.step // 2, replace=False)
-        )
+        index = np.sort(rng.choice(hmmclass.step, hmmclass.step // 2, replace=False))
         compressed_bytes = [
             listtobytes((5, 6)),
             listtobytes(((5, 6, 1),)),

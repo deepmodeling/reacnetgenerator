@@ -59,7 +59,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         The ReacNetGenerator class.
     """
 
-    subclasses : ClassVar[dict] = {}
+    subclasses: ClassVar[dict] = {}
 
     # type hints
     # TODO: we need a better way to communicate with parameters
