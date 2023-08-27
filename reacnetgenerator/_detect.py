@@ -29,7 +29,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
-from typing import Optional, Tuple
+from typing import ClassVar, Optional, Tuple
 
 import numpy as np
 
