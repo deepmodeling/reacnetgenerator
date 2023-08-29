@@ -3530,7 +3530,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:8.4.28, postcss@npm:^8.4.21, postcss@npm:^8.4.24":
+"postcss@npm:8.4.29":
+  version: 8.4.29
+  resolution: "postcss@npm:8.4.29"
+  dependencies:
+    nanoid: ^3.3.6
+    picocolors: ^1.0.0
+    source-map-js: ^1.0.2
+  checksum: dd6daa25e781db9ae5b651d9b7bfde0ec6e60e86a37da69a18eb4773d5ddd51e28fc4ff054fbdc04636a31462e6bf09a1e50986f69ac52b10d46b7457cd36d12
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.21, postcss@npm:^8.4.24":
   version: 8.4.28
   resolution: "postcss@npm:8.4.28"
   dependencies:
@@ -3626,7 +3637,7 @@ __metadata:
     mini-css-extract-plugin: 2.7.6
     paginationjs: 2.6.0
     popper.js: 1.16.1
-    postcss: 8.4.28
+    postcss: 8.4.29
     postcss-import: 15.1.0
     postcss-loader: 7.3.3
     query-string: 7.1.3
