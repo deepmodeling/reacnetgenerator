@@ -5,16 +5,19 @@ Just use `pip install .` to install.
 """
 import os
 import subprocess
-from pathlib import Path
 from distutils import log
 from distutils.file_util import copy_file
-import yaml
+from pathlib import Path
+
 import setuptools.command.build_ext
+import yaml
 from setuptools import Extension, setup
+
 
 def run_node_command(args, cwd):
     """Call node with subprocess."""
     return subprocess.call(["node", *args], cwd=cwd)
+
 
 class BuildExtCommand(setuptools.command.build_ext.build_ext):
     """A custom command to build the extension."""
@@ -27,7 +30,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
         this_directory = Path(__file__).parent
         webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
-        
+
         # Check if nodejs-bin is installed, otherwise, use system node
         try:
             from nodejs.node import call as node_call
@@ -37,7 +40,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
         with open(webpack_dir / ".yarnrc.yml") as f:
             yarn_path = str(Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"]))
-        
+
         node_call([yarn_path], cwd=webpack_dir)
         node_call([yarn_path, "start"], cwd=webpack_dir)
 
@@ -47,9 +50,11 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
             raise RuntimeError("Failed to build bundle.html with Yarn, please retry.")
 
         # Copy files to build_lib
-        build_lib_dir = os.path.join(self.build_lib, "reacnetgenerator", "static", "webpack")
+        build_lib_dir = os.path.join(
+            self.build_lib, "reacnetgenerator", "static", "webpack"
+        )
         os.makedirs(build_lib_dir, exist_ok=True)
-        
+
         copy_file(
             str(bundle_html_path),
             os.path.join(build_lib_dir, "bundle.html"),
@@ -62,6 +67,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
 
         self.include_dirs.append(np.get_include())
         super().run()
+
 
 if __name__ == "__main__":
     define_macros = []
