@@ -3,8 +3,8 @@
 
 Just use `pip install .` to install.
 """
-import os
 import logging
+import os
 from pathlib import Path
 
 import setuptools.command.build_ext
