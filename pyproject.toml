@@ -121,6 +121,9 @@ environment-pass = ["CIBW_BUILD"]
 include = [
      "reacnetgenerator",
 ]
+exclude = [
+    "reacnetgenerator/_version2.py",
+]
 
 [tool.coverage.run]
 plugins = ["Cython.Coverage"]
