@@ -4,13 +4,14 @@
 Just use `pip install .` to install.
 """
 import os
-from distutils import log
-from distutils.file_util import copy_file
+import logging
 from pathlib import Path
 
 import setuptools.command.build_ext
 import yaml
 from setuptools import Extension, setup
+
+log = logging.getLogger(__name__)
 
 try:
     from nodejs.node import call as node_call
@@ -48,7 +49,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
             )
         except OSError:
             pass
-        copy_file(
+        self.copy_file(
             os.path.join(
                 this_directory, "reacnetgenerator", "static", "webpack", "bundle.html"
             ),
