@@ -56,8 +56,6 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
             os.path.join(
                 self.build_lib, "reacnetgenerator", "static", "webpack", "bundle.html"
             ),
-            verbose=self.verbose,
-            dry_run=self.dry_run,
         )
         # Add numpy headers to include_dirs
         import numpy as np

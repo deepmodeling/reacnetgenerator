@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=61",
+    "setuptools>=63",
     "wheel",
     "setuptools_scm[toml]",
     "oldest-supported-numpy",
