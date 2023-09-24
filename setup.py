@@ -3,15 +3,16 @@
 
 Just use `pip install .` to install.
 """
+import logging
 import os
 import subprocess
-from distutils import log
-from distutils.file_util import copy_file
 from pathlib import Path
 
 import setuptools.command.build_ext
 import yaml
 from setuptools import Extension, setup
+
+log = logging.getLogger(__name__)
 
 
 def run_node_command(args, cwd):
@@ -55,11 +56,9 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         )
         os.makedirs(build_lib_dir, exist_ok=True)
 
-        copy_file(
+        self.copy_file(
             str(bundle_html_path),
             os.path.join(build_lib_dir, "bundle.html"),
-            verbose=self.verbose,
-            dry_run=self.dry_run,
         )
 
         # Add numpy headers to include_dirs
