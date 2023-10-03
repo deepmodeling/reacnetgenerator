@@ -162,6 +162,8 @@ def run_apidoc(_):
 
 def run_node_command(args, cwd):
     """Call node with subprocess."""
+    import subprocess
+
     return subprocess.call(["node", *args], cwd=cwd)
 
 
