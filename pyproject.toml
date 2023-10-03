@@ -4,7 +4,7 @@ requires = [
     "wheel",
     "setuptools_scm[toml]",
     "oldest-supported-numpy",
-    "nodejs-bin~=16.15.1a4",
+    "nodejs-wheel~=18.12",
     "pyyaml",
     "cython>=0.16",
 ]
@@ -87,7 +87,7 @@ docs = [
     'sphinx-argparse',
     'myst-nb',
     'sphinx-favicon>=1.0',
-    "nodejs-bin~=16.15.1a4",
+    "nodejs-wheel~=18.12",
     "pyyaml",
     "deepmodeling_sphinx>=0.1.3",
     "pygments-lammps",
