@@ -160,11 +160,11 @@ def run_apidoc(_):
     )
 
 
-def run_node_command(args, cwd):
+def run_node_command(args, **kwargs):
     """Call node with subprocess."""
     import subprocess
 
-    return subprocess.call(["node", *args], cwd=cwd)
+    return subprocess.call(["node", *args], **kwargs)
 
 
 def copy_report(app):
