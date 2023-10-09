@@ -5,6 +5,7 @@ on:
     tags:
       - v*
   pull_request:
+  merge_group:
 name: Build website
 jobs:
   test:
@@ -28,12 +29,21 @@ jobs:
     - run: tox
       env:
         TOXENV: docs
-    - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@releases/v4
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v2
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: gh-pages
-        folder: docs/_build/html
-        base_branch: master
-        clean: true
+        path: docs/_build/html
+  deploy:
+    needs: test
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
