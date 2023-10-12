@@ -3,9 +3,9 @@
 
 Just use `pip install .` to install.
 """
+import logging
 import os
-from distutils import log
-from distutils.file_util import copy_file
+import subprocess
 from pathlib import Path
 
 import setuptools.command.build_ext
@@ -13,15 +13,12 @@ import yaml
 from setuptools import Extension, setup
 from wheel.bdist_wheel import bdist_wheel
 
-try:
-    from nodejs.node import call as node_call
-except ModuleNotFoundError:
-    log.info("nodejs-bin is not installed, try system node")
-    import subprocess
+log = logging.getLogger(__name__)
 
-    def node_call(args, **kwargs):
-        """Call node with subprocess."""
-        return subprocess.call(["node", *args], **kwargs)
+
+def run_node_command(args, cwd):
+    """Call node with subprocess."""
+    return subprocess.call(["node", *args], cwd=cwd)
 
 
 class BuildExtCommand(setuptools.command.build_ext.build_ext):
@@ -31,39 +28,40 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         """Run the command."""
         assert __doc__ is not None
         log.info(__doc__)
-        log.info("Prepare JavaScript files with webpack...")
+        log.info("Preparing JavaScript files with webpack...")
+
         this_directory = Path(__file__).parent
         webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
+
+        node_call = run_node_command
+
         with open(webpack_dir / ".yarnrc.yml") as f:
             yarn_path = str(Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"]))
+
         node_call([yarn_path], cwd=webpack_dir)
         node_call([yarn_path, "start"], cwd=webpack_dir)
-        try:
-            assert (webpack_dir / "bundle.html").exists()
-        except AssertionError:
-            raise RuntimeError("Fail to build bundle.html with Yarn, please retry.")
-        # copy files
-        try:
-            os.makedirs(
-                os.path.join(self.build_lib, "reacnetgenerator", "static", "webpack")
-            )
-        except OSError:
-            pass
-        copy_file(
-            os.path.join(
-                this_directory, "reacnetgenerator", "static", "webpack", "bundle.html"
-            ),
-            os.path.join(
-                self.build_lib, "reacnetgenerator", "static", "webpack", "bundle.html"
-            ),
-            verbose=self.verbose,
-            dry_run=self.dry_run,
+
+        bundle_html_path = webpack_dir / "bundle.html"
+
+        if not bundle_html_path.exists():
+            raise RuntimeError("Failed to build bundle.html with Yarn, please retry.")
+
+        # Copy files to build_lib
+        build_lib_dir = os.path.join(
+            self.build_lib, "reacnetgenerator", "static", "webpack"
         )
+        os.makedirs(build_lib_dir, exist_ok=True)
+
+        self.copy_file(
+            str(bundle_html_path),
+            os.path.join(build_lib_dir, "bundle.html"),
+        )
+
         # Add numpy headers to include_dirs
         import numpy as np
 
         self.include_dirs.append(np.get_include())
-        setuptools.command.build_ext.build_ext.run(self)
+        super().run()
 
 
 class bdist_wheel_abi3(bdist_wheel):
