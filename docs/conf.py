@@ -210,3 +210,70 @@ def setup(app):
     """
     app.connect("builder-inited", run_apidoc)
     app.connect("builder-inited", copy_report)
+
+def linkcode_resolve(domain, info):
+    """
+    Determine the URL corresponding to Python object
+    """
+    if domain != 'py':
+        return None
+
+    modname = info['module']
+    fullname = info['fullname']
+
+    submod = sys.modules.get(modname)
+    if submod is None:
+        return None
+
+    obj = submod
+    for part in fullname.split('.'):
+        try:
+            obj = getattr(obj, part)
+        except Exception:
+            return None
+
+    # Use the original function object if it is wrapped.
+    while hasattr(obj, "__wrapped__"):
+        obj = obj.__wrapped__
+    # SciPy's distributions are instances of *_gen. Point to this
+    # class since it contains the implementation of all the methods.
+    if isinstance(obj, (rv_generic, multi_rv_generic)):
+        obj = obj.__class__
+    try:
+        fn = inspect.getsourcefile(obj)
+    except Exception:
+        fn = None
+    if not fn:
+        try:
+            fn = inspect.getsourcefile(sys.modules[obj.__module__])
+        except Exception:
+            fn = None
+    if not fn:
+        return None
+
+    try:
+        source, lineno = inspect.getsourcelines(obj)
+    except Exception:
+        lineno = None
+
+    if lineno:
+        linespec = "#L%d-L%d" % (lineno, lineno + len(source) - 1)
+    else:
+        linespec = ""
+
+    import reacnetgenerator as mypkg
+    
+    startdir = os.path.abspath(os.path.join(dirname(mypkg.__file__), '..'))
+    fn = relpath(fn, start=startdir).replace(os.path.sep, '/')
+
+    if fn.startswith('reacnetgenerator/'):
+        m = re.match(r'^.*dev0\+([a-f0-9]+)$', mypkg.__version__)
+        base_url = "https://github.com/tongzhugroup/reacnetgenerator/blob"
+        if m:
+            return f"{base_url}/{m.group(1)}/{fn}{linespec}"
+        elif 'dev' in mypkg.__version__:
+            return f"{base_url}/master/{fn}{linespec}"
+        else:
+            return f"{base_url}/v{mypkg.__version__}/{fn}{linespec}"
+    else:
+        return None
