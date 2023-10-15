@@ -211,22 +211,21 @@ def setup(app):
     app.connect("builder-inited", run_apidoc)
     app.connect("builder-inited", copy_report)
 
+
 def linkcode_resolve(domain, info):
-    """
-    Determine the URL corresponding to Python object
-    """
-    if domain != 'py':
+    """Determine the URL corresponding to Python object."""
+    if domain != "py":
         return None
 
-    modname = info['module']
-    fullname = info['fullname']
+    modname = info["module"]
+    fullname = info["fullname"]
 
     submod = sys.modules.get(modname)
     if submod is None:
         return None
 
     obj = submod
-    for part in fullname.split('.'):
+    for part in fullname.split("."):
         try:
             obj = getattr(obj, part)
         except Exception:
@@ -262,16 +261,16 @@ def linkcode_resolve(domain, info):
         linespec = ""
 
     import reacnetgenerator as mypkg
-    
-    startdir = os.path.abspath(os.path.join(dirname(mypkg.__file__), '..'))
-    fn = relpath(fn, start=startdir).replace(os.path.sep, '/')
 
-    if fn.startswith('reacnetgenerator/'):
-        m = re.match(r'^.*dev0\+([a-f0-9]+)$', mypkg.__version__)
+    startdir = os.path.abspath(os.path.join(dirname(mypkg.__file__), ".."))
+    fn = relpath(fn, start=startdir).replace(os.path.sep, "/")
+
+    if fn.startswith("reacnetgenerator/"):
+        m = re.match(r"^.*dev0\+([a-f0-9]+)$", mypkg.__version__)
         base_url = "https://github.com/tongzhugroup/reacnetgenerator/blob"
         if m:
             return f"{base_url}/{m.group(1)}/{fn}{linespec}"
-        elif 'dev' in mypkg.__version__:
+        elif "dev" in mypkg.__version__:
             return f"{base_url}/master/{fn}{linespec}"
         else:
             return f"{base_url}/v{mypkg.__version__}/{fn}{linespec}"
