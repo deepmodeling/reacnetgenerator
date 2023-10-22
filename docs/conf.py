@@ -34,7 +34,7 @@ author = "Jinzhe Zeng"
 extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.mathjax",
-    "sphinx.ext.viewcode",
+    "sphinx.ext.linkcode",
     "sphinx.ext.intersphinx",
     "sphinxarg.ext",
     "myst_nb",
