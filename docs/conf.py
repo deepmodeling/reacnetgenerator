@@ -214,6 +214,11 @@ def setup(app):
 
 def linkcode_resolve(domain, info):
     """Determine the URL corresponding to Python object."""
+    import os
+    import sys
+    import re
+    import inspect
+
     if domain != "py":
         return None
 
