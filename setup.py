@@ -3,15 +3,16 @@
 
 Just use `pip install .` to install.
 """
+import logging
 import os
 import subprocess
-from distutils import log
-from distutils.file_util import copy_file
 from pathlib import Path
 
 import setuptools.command.build_ext
 import yaml
 from setuptools import Extension, setup
+
+log = logging.getLogger(__name__)
 
 
 def run_node_command(args, cwd):
@@ -31,12 +32,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         this_directory = Path(__file__).parent
         webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
 
-        # Check if nodejs-bin is installed, otherwise, use system node
-        try:
-            from nodejs.node import call as node_call
-        except ModuleNotFoundError:
-            log.info("nodejs-bin is not installed, trying system node")
-            node_call = run_node_command
+        node_call = run_node_command
 
         with open(webpack_dir / ".yarnrc.yml") as f:
             yarn_path = str(Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"]))
@@ -55,11 +51,9 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         )
         os.makedirs(build_lib_dir, exist_ok=True)
 
-        copy_file(
+        self.copy_file(
             str(bundle_html_path),
             os.path.join(build_lib_dir, "bundle.html"),
-            verbose=self.verbose,
-            dry_run=self.dry_run,
         )
 
         # Add numpy headers to include_dirs

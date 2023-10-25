@@ -7,6 +7,7 @@ on:
     tags:
       - v*
   pull_request:
+  merge_group:
 
 jobs:
   build_wheels:
