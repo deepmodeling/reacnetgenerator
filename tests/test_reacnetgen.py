@@ -20,6 +20,9 @@ from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
 
+with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
+    test_data = json.load(f)
+
 
 class TestReacNetGen:
     """Test ReacNetGenerator."""
@@ -37,7 +40,7 @@ class TestReacNetGen:
             pytest.param(
                 param, marks=(pytest.mark.xfail if param.get("xfail", False) else ())
             )
-            for param in json.load(os.path.join(os.path.dirname(__file__), "test.json"))
+            for param in test_data
         ]
     )
     def reacnetgen_param(self, request):
