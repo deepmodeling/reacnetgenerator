@@ -10,7 +10,6 @@ import os
 from tkinter import END, TclError
 
 import numpy as np
-import pkg_resources
 import pytest
 
 from reacnetgenerator import ReacNetGenerator
@@ -38,7 +37,7 @@ class TestReacNetGen:
             pytest.param(
                 param, marks=(pytest.mark.xfail if param.get("xfail", False) else ())
             )
-            for param in json.load(pkg_resources.resource_stream(__name__, "test.json"))
+            for param in json.load(os.path.join(os.path.dirname(__file__), "test.json"))
         ]
     )
     def reacnetgen_param(self, request):

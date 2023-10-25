@@ -17,7 +17,6 @@ from collections import defaultdict
 from typing import Dict, Union
 
 import numpy as np
-import pkg_resources
 import scour.scour
 
 from ._logging import logger
@@ -169,9 +168,8 @@ class _HTMLResult(SharedRNGData):
         self._templatedict["reactionsabcd"] = self._reactionsabcd
         self._templatedict["linkreac"] = self._linkreac
         rngdata = json.dumps(self._templatedict, separators=(",", ":"))
-        template = pkg_resources.resource_string(
-            __name__, "static/webpack/bundle.html"
-        ).decode()
+        with open(os.path.join(os.path.dirname(__file__), "static", "webpack", "bundle.html")) as f:
+            template = f.read()
         webpage = template.replace("PUTREACNETGENERATORDATAHERE", rngdata)
         with open(self.jsonfilename, "w") as f:
             f.write(rngdata)
