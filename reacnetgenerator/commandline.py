@@ -51,12 +51,13 @@ def main_parser() -> argparse.ArgumentParser:
         action="store_true",
     )
     parser.add_argument("--miso", help="Merge the isomers", type=int, default=0)
-    parser.add_argument(
+    parser_type = parser.add_mutually_exclusive_group()
+    parser_type.add_argument(
         "--dump",
         help="(deprecated) Process the LAMMPS dump file. Please use `--type dump` instead.",
         action="store_true",
     )
-    parser.add_argument(
+    parser_type.add_argument(
         "--type",
         "-t",
         help="Input file type",

@@ -160,21 +160,27 @@ def run_apidoc(_):
     )
 
 
+def run_node_command(args, **kwargs):
+    """Call node with subprocess."""
+    import subprocess
+
+    return subprocess.call(["node", *args], **kwargs)
+
+
 def copy_report(app):
     """Copy report.html to the build directory."""
     import os
     from pathlib import Path
 
     import yaml
-    from nodejs import node
     from sphinx.util.fileutil import copy_asset_file
 
     cur_dir = Path(__file__).parent.absolute()
     webpack = Path(cur_dir) / ".." / "reacnetgenerator" / "static" / "webpack"
     with open(webpack / ".yarnrc.yml") as f:
         yarn_path = Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"])
-    node.call([yarn_path], cwd=webpack)
-    node.call(
+    run_node_command([yarn_path], cwd=webpack)
+    run_node_command(
         [yarn_path, "start"],
         cwd=webpack,
         env={**os.environ, "REACNETGENERATOR_BUILDWEB": "1"},

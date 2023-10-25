@@ -32,12 +32,7 @@ class BuildExtCommand(setuptools.command.build_ext.build_ext):
         this_directory = Path(__file__).parent
         webpack_dir = this_directory / "reacnetgenerator" / "static" / "webpack"
 
-        # Check if nodejs-bin is installed, otherwise, use system node
-        try:
-            from nodejs.node import call as node_call
-        except ModuleNotFoundError:
-            log.info("nodejs-bin is not installed, trying system node")
-            node_call = run_node_command
+        node_call = run_node_command
 
         with open(webpack_dir / ".yarnrc.yml") as f:
             yarn_path = str(Path(yaml.load(f, Loader=yaml.Loader)["yarnPath"]))
