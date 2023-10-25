@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@master
     - uses: actions/setup-node@v4
       with:
-        node-version: 16
+        node-version: 20
         cache: 'yarn'
         cache-dependency-path: reacnetgenerator/static/webpack/yarn.lock
     - run: yarn install
