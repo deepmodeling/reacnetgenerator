@@ -7,6 +7,7 @@ on:
     tags:
       - v*
   pull_request:
+  merge_group:
 
 jobs:
   build_wheels:
@@ -65,7 +66,7 @@ jobs:
             python: 311
             platform_id: win_amd64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         name: Install Python
         with:
@@ -88,7 +89,7 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v4
         name: Install Python

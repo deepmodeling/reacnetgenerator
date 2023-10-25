@@ -1,10 +1,10 @@
 [build-system]
 requires = [
-    "setuptools>=61",
+    "setuptools>=63",
     "wheel",
     "setuptools_scm[toml]",
     "oldest-supported-numpy",
-    "nodejs-bin~=16.15.1a4",
+    "nodejs-wheel~=20.9",
     "pyyaml",
     "cython>=0.16",
 ]
@@ -87,7 +87,7 @@ docs = [
     'sphinx-argparse',
     'myst-nb>=1.0.0rc0',
     'sphinx-favicon>=1.0',
-    "nodejs-bin~=16.15.1a4",
+    "nodejs-wheel~=20.9",
     "pyyaml",
     "deepmodeling_sphinx>=0.1.3",
     "pygments-lammps",
@@ -111,7 +111,7 @@ fallback_version = "Unknown"
 test-command = "reacnetgenerator -h"
 build = ["cp37-*", "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
-test-skip = "*-win_amd64"
+test-skip = "cp37-win_amd64"
 
 [tool.cibuildwheel.linux]
 environment-pass = ["CIBW_BUILD"]
@@ -119,6 +119,9 @@ environment-pass = ["CIBW_BUILD"]
 [tool.pyright]
 include = [
      "reacnetgenerator",
+]
+exclude = [
+    "reacnetgenerator/_version2.py",
 ]
 
 [tool.coverage.run]
@@ -132,24 +135,22 @@ omit = ["*test*"]
 profile = "black"
 
 [tool.ruff]
-target-version = "py37"
-
 select = [
     "E", # errors
     "F", # pyflakes
     "D", # pydocstyle
-	"I", # isort
+    "I", # isort
     "UP", # pyupgrade
     "C4", # flake8-comprehensions
+    "RUF", # ruff
+    "NPY", # numpy
 ]
 ignore = [
     "E501", # line too long
     "E741", # ambiguous variable name
     "E402", # module level import not at top of file
-    "D413", # missing blank line after last section
-    "D416", # section name should end with a colon
-    "D203", # 1 blank line required before class docstring
-    "D107", # missing docstring in __init__
-    "D213", # multi-line docstring summary should start at the second line
     "D205", # 1 blank line required between summary line and description
 ]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"

@@ -29,7 +29,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
-from typing import Optional, Tuple
+from typing import ClassVar, Optional, Tuple
 
 import numpy as np
 
@@ -59,7 +59,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         The ReacNetGenerator class.
     """
 
-    subclasses = {}
+    subclasses: ClassVar[dict] = {}
 
     # type hints
     # TODO: we need a better way to communicate with parameters
@@ -223,7 +223,7 @@ class _DetectLAMMPSbond(_Detect):
                     else:
                         iscompleted = True
                         stepaindex = index
-                    N = [int(s) for s in line.split() if s.isdigit()][0]
+                    N = next(int(s) for s in line.split() if s.isdigit())
                     atomtype = np.zeros(N, dtype=int)
             else:
                 s = line.split()
