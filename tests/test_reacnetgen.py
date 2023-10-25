@@ -10,7 +10,6 @@ import os
 from tkinter import END, TclError
 
 import numpy as np
-import pkg_resources
 import pytest
 
 from reacnetgenerator import ReacNetGenerator
@@ -20,6 +19,9 @@ from reacnetgenerator._reachtml import _HTMLResult
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
+
+with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
+    test_data = json.load(f)
 
 
 class TestReacNetGen:
@@ -38,7 +40,7 @@ class TestReacNetGen:
             pytest.param(
                 param, marks=(pytest.mark.xfail if param.get("xfail", False) else ())
             )
-            for param in json.load(pkg_resources.resource_stream(__name__, "test.json"))
+            for param in test_data
         ]
     )
     def reacnetgen_param(self, request):
