@@ -168,7 +168,9 @@ class _HTMLResult(SharedRNGData):
         self._templatedict["reactionsabcd"] = self._reactionsabcd
         self._templatedict["linkreac"] = self._linkreac
         rngdata = json.dumps(self._templatedict, separators=(",", ":"))
-        with open(os.path.join(os.path.dirname(__file__), "static", "webpack", "bundle.html")) as f:
+        with open(
+            os.path.join(os.path.dirname(__file__), "static", "webpack", "bundle.html")
+        ) as f:
             template = f.read()
         webpage = template.replace("PUTREACNETGENERATORDATAHERE", rngdata)
         with open(self.jsonfilename, "w") as f:

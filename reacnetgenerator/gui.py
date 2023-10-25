@@ -12,7 +12,6 @@ import tkinter.messagebox as tkmb
 import webbrowser
 from multiprocessing import cpu_count
 
-
 from . import ReacNetGenerator, __version__
 from ._logging import logger
 
@@ -36,13 +35,11 @@ class GUI:
         self._openpage = tk.IntVar()
         self._openpage.set(1)
 
-        with open(os.path.join(os.path.dirname(__file__), "static", "img-title.png"), 'rb') as f:
+        with open(
+            os.path.join(os.path.dirname(__file__), "static", "img-title.png"), "rb"
+        ) as f:
             imagedata = f.read()
-        titleimage = tk.PhotoImage(
-            data=base64.b64encode(
-                imagedata
-            ).decode()
-        )
+        titleimage = tk.PhotoImage(data=base64.b64encode(imagedata).decode())
         self._titlelb = tk.Label(self._top, image=titleimage)
         # self._titlelb.image = titleimage
         self._filenamelb = tk.Label(self._top, text="Trajectory File")
