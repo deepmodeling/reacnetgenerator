@@ -19,14 +19,13 @@ repos:
     -   id: mixed-line-ending
 # Python
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.1
+    rev: v0.1.3
     hooks:
     - id: ruff
       args: ["--fix"]
--   repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.10.0
-    hooks:
-    -   id: black-jupyter
+      types_or: [python, pyi, jupyter]
+    - id: format
+      types_or: [python, pyi, jupyter]
 # numpydoc
 -   repo: https://github.com/Carreau/velin
     rev: 0.0.12
