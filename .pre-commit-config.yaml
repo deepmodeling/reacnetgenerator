@@ -24,7 +24,7 @@ repos:
     - id: ruff
       args: ["--fix"]
       types_or: [python, pyi, jupyter]
-    - id: format
+    - id: ruff-format
       types_or: [python, pyi, jupyter]
 # numpydoc
 -   repo: https://github.com/Carreau/velin
