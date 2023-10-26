@@ -112,9 +112,7 @@ class _HMMFilter(SharedRNGData):
             tempfile.NamedTemporaryFile("wb", delete=False)
         ) if self.runHMM else ExitStack() as fh, open(
             self.moleculetempfilename, "rb"
-        ) as ft, WriteBuffer(
-            tempfile.NamedTemporaryFile("wb", delete=False)
-        ) as ft2:
+        ) as ft, WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as ft2:
             self.moleculetemp2filename = ft2.name
             if self.getoriginfile or not self.runHMM:
                 assert not isinstance(fo, ExitStack)
