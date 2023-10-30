@@ -153,5 +153,8 @@ ignore = [
     "D205", # 1 blank line required between summary line and description
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"**/*.ipynb" = ["D100"]
+
 [tool.ruff.pydocstyle]
 convention = "numpy"
