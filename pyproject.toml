@@ -1,99 +1,100 @@
 [build-system]
-requires = [
-    "setuptools>=63",
-    "wheel",
-    "setuptools_scm[toml]",
-    "oldest-supported-numpy",
-    "nodejs-wheel~=20.9",
-    "pyyaml",
-    "cython>=0.16",
-]
 build-backend = "setuptools.build_meta"
+requires = [
+  "cython>=0.16",
+  "nodejs-wheel~=20.9",
+  "oldest-supported-numpy",
+  "pyyaml",
+  "setuptools>=63",
+  "setuptools_scm[toml]",
+  "wheel",
+]
 
 [project]
 name = "reacnetgenerator"
-dynamic = ["version"]
 description = "ReacNetGenerator: An automatic reaction network generator for reactive molecular dynamics simulation."
+readme = "README.md"
+keywords = [
+  "reaction network",
+]
+license = {file = "LICENSE"}
 authors = [
   {name = "Jinzhe Zeng", email = "jinzhe.zeng@rutgers.edu"},
 ]
-license = {file = "LICENSE"}
+requires-python = ">=3.7"
 classifiers = [
-    "Natural Language :: English",
-    "Operating System :: POSIX :: Linux",
-    "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: JavaScript",
-    "Programming Language :: C",
-    "Programming Language :: Cython",
-    "Topic :: Scientific/Engineering :: Chemistry",
-    "Topic :: Scientific/Engineering :: Visualization",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Software Development :: Version Control :: Git",
-    "Development Status :: 6 - Mature",
-    "Environment :: Console",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+  "Development Status :: 6 - Mature",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+  "Natural Language :: English",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: C",
+  "Programming Language :: Cython",
+  "Programming Language :: JavaScript",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Chemistry",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: Version Control :: Git",
+]
+dynamic = [
+  "version",
 ]
 dependencies = [
-    'numpy',
-    'networkx',
-    'matplotlib',
-    'hmmlearn>=0.2.1',
-    'ase',
-    'scour',
-    'tqdm>=4.9.0',
-    'coloredlogs',
-    'pandas',
-    'lz4',
-    'requests',
-    "openbabel-wheel",
-    "rdkit",
-    "packaging",
+  "ase",
+  "coloredlogs",
+  "hmmlearn>=0.2.1",
+  "lz4",
+  "matplotlib",
+  "networkx",
+  "numpy",
+  "openbabel-wheel",
+  "packaging",
+  "pandas",
+  "rdkit",
+  "requests",
+  "scour",
+  "tqdm>=4.9",
 ]
-requires-python = ">=3.7"
-readme = "README.md"
-keywords = ["reaction network"]
-
+[project.optional-dependencies]
+docs = [
+  "deepmodeling_sphinx>=0.1.3",
+  "myst-nb>=1.0.0rc0",
+  "nodejs-wheel~=20.9",
+  "numpydoc",
+  "pydata-sphinx-theme",
+  "pygments-lammps",
+  "pyyaml",
+  "sphinx",
+  "sphinx-argparse",
+  "sphinx-favicon>=1",
+  "sphinxcontrib-bibtex>=2.6",
+]
+test = [
+  "cython",
+  "pytest-benchmark",
+  "pytest-console-scripts",
+  "pytest-cov<4",
+  "pytest-mock",
+  "pytest-sugar",
+  "pytest-xvfb",
+]
 [project.urls]
-homepage = "https://github.com/tongzhugroup/reacnetgenerator"
 documentation = "https://reacnetgenerator.njzjz.win/"
+homepage = "https://github.com/tongzhugroup/reacnetgenerator"
 repository = "https://github.com/tongzhugroup/reacnetgenerator"
-
 [project.entry-points.console_scripts]
 reacnetgenerator = "reacnetgenerator.commandline:_commandline"
-
 [project.entry-points.gui_scripts]
 reacnetgeneratorgui = "reacnetgenerator.gui:gui"
-
-[project.optional-dependencies]
-test = [
-    'pytest-sugar',
-    'pytest-cov<4',
-    'cython',
-    'pytest-xvfb',
-    "pytest-console-scripts",
-    "pytest-mock",
-    "pytest-benchmark",
-]
-docs = [
-    'sphinx',
-    'pydata-sphinx-theme',
-    'numpydoc',
-    'sphinx-argparse',
-    'myst-nb>=1.0.0rc0',
-    'sphinx-favicon>=1.0',
-    "nodejs-wheel~=20.9",
-    "pyyaml",
-    "deepmodeling_sphinx>=0.1.3",
-    "pygments-lammps",
-    "sphinxcontrib-bibtex>=2.6.0",
-]
 
 [tool.setuptools.packages.find]
 include = ["reacnetgenerator*"]
@@ -116,24 +117,6 @@ test-skip = "cp37-*"
 
 [tool.cibuildwheel.linux]
 environment-pass = ["CIBW_BUILD"]
-
-[tool.pyright]
-include = [
-     "reacnetgenerator",
-]
-exclude = [
-    "reacnetgenerator/_version2.py",
-]
-
-[tool.coverage.run]
-plugins = ["Cython.Coverage"]
-
-[tool.coverage.report]
-show_missing = true
-omit = ["*test*"]
-
-[tool.isort]
-profile = "black"
 
 [tool.ruff]
 select = [
@@ -158,3 +141,21 @@ ignore = [
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
+
+[tool.isort]
+profile = "black"
+
+[tool.coverage.run]
+plugins = ["Cython.Coverage"]
+
+[tool.coverage.report]
+show_missing = true
+omit = ["*test*"]
+
+[tool.pyright]
+include = [
+     "reacnetgenerator",
+]
+exclude = [
+    "reacnetgenerator/_version2.py",
+]
