@@ -29,7 +29,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
-from typing import ClassVar, Optional, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 import numpy as np
 
@@ -266,7 +266,7 @@ class _DetectLAMMPSbond(_Detect):
 
 
 class _DetectCrd(_Detect):
-    def _getbondfromcrd(self, step_atoms: ase.Atoms, cell: np.ndarray) -> Tuple[List[List[int], List[List[int]]]:
+    def _getbondfromcrd(self, step_atoms: ase.Atoms, cell: np.ndarray) -> Tuple[List[List[int]], List[List[int]]]:
         """Perceive bonds from atomic coordinates.
 
         Parameters
