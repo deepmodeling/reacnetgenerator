@@ -267,7 +267,7 @@ class _DetectLAMMPSbond(_Detect):
 
 class _DetectCrd(_Detect):
     def _getbondfromcrd(
-        self, step_atoms: ase.Atoms, cell: np.ndarray
+        self, step_atoms: Atoms, cell: np.ndarray
     ) -> Tuple[List[List[int]], List[List[int]]]:
         """Perceive bonds from atomic coordinates.
 
