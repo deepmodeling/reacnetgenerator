@@ -191,29 +191,29 @@ __metadata:
   linkType: hard
 
 "@types/eslint-scope@npm:^3.7.3":
-  version: 3.7.6
-  resolution: "@types/eslint-scope@npm:3.7.6"
+  version: 3.7.7
+  resolution: "@types/eslint-scope@npm:3.7.7"
   dependencies:
     "@types/eslint": "npm:*"
     "@types/estree": "npm:*"
-  checksum: a2339e312949ae7f96bca52cde89a3d2218d4505746a78a0ba1aa56573e43b3d52ce9662b86ab785663a62fa8f2bd2fb61b990398785b40f2efc91be3fd246f8
+  checksum: e2889a124aaab0b89af1bab5959847c5bec09809209255de0e63b9f54c629a94781daa04adb66bffcdd742f5e25a17614fb933965093c0eea64aacda4309380e
   languageName: node
   linkType: hard
 
 "@types/eslint@npm:*":
-  version: 8.44.6
-  resolution: "@types/eslint@npm:8.44.6"
+  version: 8.44.7
+  resolution: "@types/eslint@npm:8.44.7"
   dependencies:
     "@types/estree": "npm:*"
     "@types/json-schema": "npm:*"
-  checksum: 07ee27c1803fce2d732800d4972462e4c08f2ac84c70a6addb0ae2566de392eb92e39ccc8f6ab487348f751b4b253c4724d3490ea8856abcd8917acae676a2d6
+  checksum: 3bb9415f5db98bc33f033e2d07503096ffd26046f95e6a4cf4d4a537c8b16398452f3059793e03b0fedbb0e35f0da68a4c68e6ac50d8fef9d555bdd074afb9fb
   languageName: node
   linkType: hard
 
 "@types/estree@npm:*, @types/estree@npm:^1.0.0":
-  version: 1.0.4
-  resolution: "@types/estree@npm:1.0.4"
-  checksum: dc871045040c36a8457a6e37730f4475f31818863cf388e1f699e9b3abd0a59063f60a2d97e0758d8e5c95ab4d1f83044dc24784fb1201c12b38d7a021536d59
+  version: 1.0.5
+  resolution: "@types/estree@npm:1.0.5"
+  checksum: 7de6d928dd4010b0e20c6919e1a6c27b61f8d4567befa89252055fad503d587ecb9a1e3eab1b1901f923964d7019796db810b7fd6430acb26c32866d126fd408
   languageName: node
   linkType: hard
 
@@ -225,59 +225,59 @@ __metadata:
   linkType: hard
 
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0":
-  version: 2.0.5
-  resolution: "@types/istanbul-lib-coverage@npm:2.0.5"
-  checksum: 978eaf327f9a238eb1e2828b93b4b48e288ffb88c4be81330c74477ab8b93fac41a8784260d72bdd9995535d70608f738199b6364fd3344842e924a3ec3301e7
+  version: 2.0.6
+  resolution: "@types/istanbul-lib-coverage@npm:2.0.6"
+  checksum: 3feac423fd3e5449485afac999dcfcb3d44a37c830af898b689fadc65d26526460bedb889db278e0d4d815a670331796494d073a10ee6e3a6526301fe7415778
   languageName: node
   linkType: hard
 
 "@types/istanbul-lib-report@npm:*":
-  version: 3.0.2
-  resolution: "@types/istanbul-lib-report@npm:3.0.2"
+  version: 3.0.3
+  resolution: "@types/istanbul-lib-report@npm:3.0.3"
   dependencies:
     "@types/istanbul-lib-coverage": "npm:*"
-  checksum: 549e44e14a4dc98164ce477ca8650d33898e5c74a6bb8079cbec7f811567dcb805a3bfdbf83ce53222eaecc37ae53aa7f25bda1a7d8347449155c8f0b4f30232
+  checksum: b91e9b60f865ff08cb35667a427b70f6c2c63e88105eadd29a112582942af47ed99c60610180aa8dcc22382fa405033f141c119c69b95db78c4c709fbadfeeb4
   languageName: node
   linkType: hard
 
 "@types/istanbul-reports@npm:^3.0.0":
-  version: 3.0.3
-  resolution: "@types/istanbul-reports@npm:3.0.3"
+  version: 3.0.4
+  resolution: "@types/istanbul-reports@npm:3.0.4"
   dependencies:
     "@types/istanbul-lib-report": "npm:*"
-  checksum: 21d007be7dd09165ed24f5cc9947319ad435fc3b3e568f3eec0a42ee80fd2adccdeb929bc1311efb2cf7597835638cde865d3630d8b4c15d1390c9527bcad1a9
+  checksum: 93eb18835770b3431f68ae9ac1ca91741ab85f7606f310a34b3586b5a34450ec038c3eed7ab19266635499594de52ff73723a54a72a75b9f7d6a956f01edee95
   languageName: node
   linkType: hard
 
 "@types/json-schema@npm:*, @types/json-schema@npm:^7.0.8, @types/json-schema@npm:^7.0.9":
-  version: 7.0.14
-  resolution: "@types/json-schema@npm:7.0.14"
-  checksum: 84b5efed51984c077f9cb7c5a3dcb8d8288ce1ae8825952b173c3506a0cfc90bc961d7f2a8847c440310d02bbd570cf918ac463d8310b0c9dce2252baa1ba4e0
+  version: 7.0.15
+  resolution: "@types/json-schema@npm:7.0.15"
+  checksum: 1a3c3e06236e4c4aab89499c428d585527ce50c24fe8259e8b3926d3df4cfbbbcf306cfc73ddfb66cbafc973116efd15967020b0f738f63e09e64c7d260519e7
   languageName: node
   linkType: hard
 
 "@types/node@npm:*":
-  version: 20.8.10
-  resolution: "@types/node@npm:20.8.10"
+  version: 20.9.0
+  resolution: "@types/node@npm:20.9.0"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 8930039077c8ad74de74c724909412bea8110c3f8892bcef8dda3e9629073bed65632ee755f94b252bcdae8ca71cf83e89a4a440a105e2b1b7c9797b43483049
+  checksum: a934f7645ed117a27857147403b0c657ffbca578c8f280e4c21d27dfb43e58dc4f24c4319d4335b8a4fa08e28fb2dc905a5bd5e4bc8878047164c56c1b162139
   languageName: node
   linkType: hard
 
 "@types/yargs-parser@npm:*":
-  version: 21.0.2
-  resolution: "@types/yargs-parser@npm:21.0.2"
-  checksum: 68a1be28e2aedf563f97456353ab09c895e91306826959ef594d140a856ab9f33686944d3f65c7c6f7d5a295dc7591a1d76dac89d23b9637925e1e0973cbda68
+  version: 21.0.3
+  resolution: "@types/yargs-parser@npm:21.0.3"
+  checksum: a794eb750e8ebc6273a51b12a0002de41343ffe46befef460bdbb57262d187fdf608bc6615b7b11c462c63c3ceb70abe2564c8dd8ee0f7628f38a314f74a9b9b
   languageName: node
   linkType: hard
 
 "@types/yargs@npm:^17.0.8":
-  version: 17.0.29
-  resolution: "@types/yargs@npm:17.0.29"
+  version: 17.0.31
+  resolution: "@types/yargs@npm:17.0.31"
   dependencies:
     "@types/yargs-parser": "npm:*"
-  checksum: 5836dad231db4cc9a86e3522fcb86e2af590447114481b95542b530ce578d522e2e7224f1586e5ebd0d2f9a48411bca3d28f86af1a09bab7fd5e331e4f25e8f2
+  checksum: 9b180fc289cc7342a584e9e552dd667d60e6e0a436be67ed8feee681cb22de1ebffacd6a1e29c5905049850c10bb1c9db45d957cfd01a97f58b33e290b233b1f
   languageName: node
   linkType: hard
 
@@ -1307,7 +1307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csso@npm:^5.0.5":
+"csso@npm:5.0.5":
   version: 5.0.5
   resolution: "csso@npm:5.0.5"
   dependencies:
@@ -1464,9 +1464,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.535":
-  version: 1.4.576
-  resolution: "electron-to-chromium@npm:1.4.576"
-  checksum: 9db54ffa605dba161392e7b3c8a47493029cbb64801980f3ba4214ce69c22fc8bf4e4aa6c6449c7805a1e7f24c3233f94a955418732ff9d63247d2ecbb079eb6
+  version: 1.4.581
+  resolution: "electron-to-chromium@npm:1.4.581"
+  checksum: a40ea2863c9b2e586987d67c87d3ebd819991e86e24fab862ca3a04a60d9e27490951a2fa7bf50d122f02b8ea14a14c5bdbaebe2a97fa95cacca70a27904cfd3
   languageName: node
   linkType: hard
 
@@ -1564,9 +1564,9 @@ __metadata:
   linkType: hard
 
 "es-module-lexer@npm:^1.2.1":
-  version: 1.3.1
-  resolution: "es-module-lexer@npm:1.3.1"
-  checksum: c6aa137c5f5865fe1d12b4edbe027ff618d3836684cda9e52ae4dec48bfc2599b25db4f1265a12228d4663e21fd0126addfb79f761d513f1a6708c37989137e3
+  version: 1.4.1
+  resolution: "es-module-lexer@npm:1.4.1"
+  checksum: cf453613468c417af6e189b03d9521804033fdd5a229a36fedec28d37ea929fccf6822d42abff1126eb01ba1d2aa2845a48d5d1772c0724f8204464d9d3855f6
   languageName: node
   linkType: hard
 
@@ -2461,9 +2461,11 @@ __metadata:
   linkType: hard
 
 "lru-cache@npm:^10.0.1, lru-cache@npm:^9.1.1 || ^10.0.0":
-  version: 10.0.1
-  resolution: "lru-cache@npm:10.0.1"
-  checksum: 5bb91a97a342a41fd049c3494b44d9e21a7d4843f9284d0a0b26f00bb0e436f1f627d0641c78f88be16b86b4231546c5ee4f284733fb530c7960f0bcd7579026
+  version: 10.0.2
+  resolution: "lru-cache@npm:10.0.2"
+  dependencies:
+    semver: "npm:^7.3.5"
+  checksum: a675b71a19f4b23186549e343792c3eb6196a5fca2a96b59e31a44289459b7e166b3c6cb08952f45ac29d8cfe561cabee88d906fdd5c98fb7cbda8f5d47431a3
   languageName: node
   linkType: hard
 
@@ -2667,11 +2669,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^3.3.6":
-  version: 3.3.6
-  resolution: "nanoid@npm:3.3.6"
+  version: 3.3.7
+  resolution: "nanoid@npm:3.3.7"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: 67235c39d1bc05851383dadde5cf77ae1c90c2a1d189e845c7f20f646f0488d875ad5f5226bbba072a88cebbb085a3f784a6673117daf785bdf614a852550362
+  checksum: ac1eb60f615b272bccb0e2b9cd933720dad30bf9708424f691b8113826bb91aca7e9d14ef5d9415a6ba15c266b37817256f58d8ce980c82b0ba3185352565679
   languageName: node
   linkType: hard
 
@@ -4066,18 +4068,18 @@ __metadata:
   linkType: hard
 
 "svgo@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "svgo@npm:3.0.2"
+  version: 3.0.3
+  resolution: "svgo@npm:3.0.3"
   dependencies:
     "@trysound/sax": "npm:0.2.0"
     commander: "npm:^7.2.0"
     css-select: "npm:^5.1.0"
     css-tree: "npm:^2.2.1"
-    csso: "npm:^5.0.5"
+    csso: "npm:5.0.5"
     picocolors: "npm:^1.0.0"
   bin:
-    svgo: bin/svgo
-  checksum: e2c72b166881ef697c1de85628d87e8d41d5e175b3063eab0025760aafe79356507b409fcfa74afffec44a334e59ebe71154909851a72ccb4eb3a5e5217f2e84
+    svgo: ./bin/svgo
+  checksum: 3cebb7553cd57b7c2020ea6d580681cdd6045a8a5c40d866d4dfb40da1d6668d27ccac23fb8d9365773c354b55f7073f0fcc6f6e50c60e599cc70bdc20dd4fab
   languageName: node
   linkType: hard
 
