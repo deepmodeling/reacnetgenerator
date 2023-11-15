@@ -142,7 +142,7 @@ class ReacNetGenerator:
             "speciesfilter": [],
             "start_color": [0, 0, 1],
             "end_color": [1, 0, 0],
-            "nproc": cpu_count(),
+            "nproc": len(os.sched_getaffinity(0)),
             "pos": {},
             "pbc": True,
             "split": 1,
