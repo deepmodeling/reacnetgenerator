@@ -1921,9 +1921,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"html-webpack-plugin@npm:5.5.3":
-  version: 5.5.3
-  resolution: "html-webpack-plugin@npm:5.5.3"
+"html-webpack-plugin@npm:5.5.4":
+  version: 5.5.4
+  resolution: "html-webpack-plugin@npm:5.5.4"
   dependencies:
     "@types/html-minifier-terser": "npm:^6.0.0"
     html-minifier-terser: "npm:^6.0.2"
@@ -1932,7 +1932,7 @@ __metadata:
     tapable: "npm:^2.0.0"
   peerDependencies:
     webpack: ^5.20.0
-  checksum: 01d302a434e3db9f0e2db370f06300fb613de0fb8bdcafd4693e44c2528b8608621e5e7ca5d8302446db3f20c5f8875f1f675926d469b13ebab139954d241055
+  checksum: ef3ceb84a1cd4304a3b4d2391e767ed8a32ec99454dff90daca6654bed689a54b0bc43de5a498564718e02df71e13ffb492b61234c09f59f6ab058e2c2a25be6
   languageName: node
   linkType: hard
 
@@ -3479,7 +3479,7 @@ __metadata:
     cssnano-preset-advanced: "npm:6.0.1"
     d3: "npm:3.5.17"
     html-inline-css-webpack-plugin: "npm:1.11.2"
-    html-webpack-plugin: "npm:5.5.3"
+    html-webpack-plugin: "npm:5.5.4"
     ifdef-loader: "npm:2.3.2"
     jquery: "npm:3.7.1"
     jsrender: "npm:1.0.13"
