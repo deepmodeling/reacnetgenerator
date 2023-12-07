@@ -41,7 +41,7 @@ classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
 dependencies = [
-    'numpy',
+    'numpy<2',
     'networkx',
     'matplotlib',
     'hmmlearn>=0.2.1',
