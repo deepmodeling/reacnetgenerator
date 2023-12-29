@@ -3487,7 +3487,7 @@ __metadata:
     postcss-loader: "npm:7.3.4"
     query-string: "npm:7.1.3"
     regenerator-runtime: "npm:0.14.1"
-    sass: "npm:1.69.5"
+    sass: "npm:1.69.6"
     sass-loader: "npm:13.3.3"
     script-ext-html-webpack-plugin: "npm:2.1.5"
     smiles-drawer: "npm:2.0.3"
@@ -3696,16 +3696,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:1.69.5":
-  version: 1.69.5
-  resolution: "sass@npm:1.69.5"
+"sass@npm:1.69.6":
+  version: 1.69.6
+  resolution: "sass@npm:1.69.6"
   dependencies:
     chokidar: "npm:>=3.0.0 <4.0.0"
     immutable: "npm:^4.0.0"
     source-map-js: "npm:>=0.6.2 <2.0.0"
   bin:
     sass: sass.js
-  checksum: b320ab22061b3c7fe8cee43b13329b281dd7d86691b8b7c55dec3e47d3ede988989dac56db4dff57ee847d10252a26b611be1b0a5f7c3a0f6a6405ef37a6d018
+  checksum: 60b4793aca965b538aae15421a598dee96011a3680b49a807904fcdbb7ea7888d5ea5040908826510493b61d1b2faa7b878283690a34e936b3a8b81e14083d8d
   languageName: node
   linkType: hard
 
