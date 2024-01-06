@@ -100,9 +100,8 @@ function loadrngdata() {
     return;
   }
   // read from url
-  const queryString = require('query-string');
-  const parsed = queryString.parse(location.search);
-  const jdata = parsed['jdata'];
+  const parsed = new URLSearchParams(location.search);
+  const jdata = parsed.get("jdata");
   if (jdata) {
     $.get(decodeURIComponent(jdata), function(data) {
       if (!handlejsondata(data)) {
