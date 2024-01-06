@@ -29,7 +29,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
-from typing import ClassVar, Optional, Tuple
+from typing import ClassVar, List, Optional, Tuple
 
 import numpy as np
 
@@ -266,7 +266,25 @@ class _DetectLAMMPSbond(_Detect):
 
 
 class _DetectCrd(_Detect):
-    def _getbondfromcrd(self, step_atoms, cell):
+    def _getbondfromcrd(
+        self, step_atoms: Atoms, cell: np.ndarray
+    ) -> Tuple[List[List[int]], List[List[int]]]:
+        """Perceive bonds from atomic coordinates.
+
+        Parameters
+        ----------
+        step_atoms : ase.Atoms
+            Atoms in a step.
+        cell : np.ndarray
+            Cell in the shape (3, 3).
+
+        Returns
+        -------
+        list[list[int]]
+            Connected atoms for each atom.
+        list[list[int]]
+            Bond orders for each atom. 12 is an aromatic bond.
+        """
         atomnumber = len(step_atoms)
         # Use openbabel to connect atoms
         mol = openbabel.OBMol()

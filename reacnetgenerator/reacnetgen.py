@@ -47,7 +47,6 @@ import itertools
 import os
 import time
 from enum import Enum
-from multiprocessing import cpu_count
 from typing import Any, List, Tuple, Union
 
 import numpy as np
@@ -132,6 +131,12 @@ class ReacNetGenerator:
         logger.info(doc_run)
         logger.info(f"Version: {__version__}  Creation date: {__date__}")
 
+        try:
+            nproc = len(os.sched_getaffinity(0))
+        except AttributeError:
+            # macos and windows
+            nproc = os.cpu_count()
+
         # process kwargs
         necessary_key = ["inputfiletype", "inputfilename", "atomname"]
         default_value = {
@@ -142,7 +147,7 @@ class ReacNetGenerator:
             "speciesfilter": [],
             "start_color": [0, 0, 1],
             "end_color": [1, 0, 0],
-            "nproc": cpu_count(),
+            "nproc": nproc,
             "pos": {},
             "pbc": True,
             "split": 1,
