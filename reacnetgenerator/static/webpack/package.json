@@ -30,7 +30,7 @@
     "startbootstrap-creative": "7.0.7"
   },
   "devDependencies": {
-    "css-loader": "6.8.1",
+    "css-loader": "6.9.0",
     "css-minimizer-webpack-plugin": "5.0.1",
     "cssnano": "6.0.3",
     "cssnano-preset-advanced": "6.0.3",
