@@ -120,12 +120,12 @@ __metadata:
   linkType: hard
 
 "@jridgewell/trace-mapping@npm:^0.3.18, @jridgewell/trace-mapping@npm:^0.3.20, @jridgewell/trace-mapping@npm:^0.3.9":
-  version: 0.3.20
-  resolution: "@jridgewell/trace-mapping@npm:0.3.20"
+  version: 0.3.21
+  resolution: "@jridgewell/trace-mapping@npm:0.3.21"
   dependencies:
     "@jridgewell/resolve-uri": "npm:^3.1.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
-  checksum: 683117e4e6707ef50c725d6d0ec4234687ff751f36fa46c2b3068931eb6a86b49af374d3030200777666579a992b7470d1bd1c591e9bf64d764dda5295f33093
+  checksum: 925dda0620887e5a24f11b5a3a106f4e8b1a66155b49be6ceee61432174df33a17c243d8a89b2cd79ccebd281d817878759236a2fc42c47325ae9f73dfbfb90d
   languageName: node
   linkType: hard
 
@@ -201,12 +201,12 @@ __metadata:
   linkType: hard
 
 "@types/eslint@npm:*":
-  version: 8.56.1
-  resolution: "@types/eslint@npm:8.56.1"
+  version: 8.56.2
+  resolution: "@types/eslint@npm:8.56.2"
   dependencies:
     "@types/estree": "npm:*"
     "@types/json-schema": "npm:*"
-  checksum: 985fd0293e454c459e672e73857920d0746f2eaae8b9aa13a4078c6d3d8fd0d2272f07f67b7fd9078a52d8fe7e1e61a498944129c0f4bc4c29c9cfa968168f5e
+  checksum: 9e4805e770ea90a561e1f69e5edce28b8f66e92e290705100e853c7c252cf87bef654168d0d47fc60c0effbe4517dd7a8d2fa6d3f04c7f831367d568009fd368
   languageName: node
   linkType: hard
 
@@ -257,11 +257,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 20.10.7
-  resolution: "@types/node@npm:20.10.7"
+  version: 20.11.0
+  resolution: "@types/node@npm:20.11.0"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 4a1ba3fb7fc0a262c6b2d5ec763cec7abf5b5d6b2d277798ddbf05227f5778f9a806987821fd4d3eacd6f37c946ac61a9c64fb79ae4b84daaec12354158835a3
+  checksum: 8da60a8ccb65181c3d6f7686ddc5f1b1616cafa14d9e520a866adff82c17cc99336a78dd7ce7bee8f54e2332946f678b0e3aa377fbaaf751d3c05b64600872c6
   languageName: node
   linkType: hard
 
@@ -1457,9 +1457,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.601":
-  version: 1.4.623
-  resolution: "electron-to-chromium@npm:1.4.623"
-  checksum: 483640dbbedf46d627f264aae7bd2ef723326488fa5b7730fbe9c53f5bdde25ce421e54134b88ef85649e4473f42e73709692da5bbfb6aec7c08cdfe8c0037e2
+  version: 1.4.630
+  resolution: "electron-to-chromium@npm:1.4.630"
+  checksum: b5565f062f5f5d3c9bdd52a9fc1b233a29e495b3b6bbe67397d8fbd352f0ed65e2677fdb140e835e0af191ccefd40eeeee792a2109662f1c4d8b5e25bd0ff985
   languageName: node
   linkType: hard
 
@@ -3729,11 +3729,11 @@ __metadata:
   linkType: hard
 
 "serialize-javascript@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "serialize-javascript@npm:6.0.1"
+  version: 6.0.2
+  resolution: "serialize-javascript@npm:6.0.2"
   dependencies:
     randombytes: "npm:^2.1.0"
-  checksum: f756b1ff34b655b2183c64dd6683d28d4d9b9a80284b264cac9fd421c73890491eafd6c5c2bbe93f1f21bf78b572037c5a18d24b044c317ee1c9dc44d22db94c
+  checksum: 445a420a6fa2eaee4b70cbd884d538e259ab278200a2ededd73253ada17d5d48e91fb1f4cd224a236ab62ea7ba0a70c6af29fc93b4f3d3078bf7da1c031fde58
   languageName: node
   linkType: hard
 
