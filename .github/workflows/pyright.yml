@@ -17,6 +17,6 @@ jobs:
       with:
         python-version: '3.10'
     - run: pip install -e .
-    - uses: jakebailey/pyright-action@v1
+    - uses: jakebailey/pyright-action@v2
       with:
         version: 1.1.308
