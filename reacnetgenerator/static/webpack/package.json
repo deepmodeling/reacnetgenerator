@@ -39,7 +39,7 @@
     "ifdef-loader": "2.3.2",
     "mini-css-extract-plugin": "2.8.0",
     "postcss": "8.4.35",
-    "postcss-import": "16.0.0",
+    "postcss-import": "16.0.1",
     "postcss-loader": "7.3.4",
     "sass": "1.70.0",
     "sass-loader": "13.3.3",
