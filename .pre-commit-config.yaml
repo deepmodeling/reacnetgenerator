@@ -19,7 +19,7 @@ repos:
     -   id: mixed-line-ending
 # Python
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
+    rev: v0.2.2
     hooks:
     - id: ruff
       args: ["--fix"]
@@ -49,7 +49,7 @@ repos:
     -   id: double-quote-cython-strings
 # JS
 -   repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.56.0
+    rev: v9.0.0-beta.0
     hooks:
     -   id: eslint
 # CSS
@@ -59,7 +59,7 @@ repos:
     -   id: csslint
 # license header
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.4
+    rev: v1.5.5
     hooks:
     # C++, js
     -   id: insert-license
