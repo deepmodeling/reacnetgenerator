@@ -12,6 +12,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+
 # import sys
 # sys.path.insert(0, os.path.abspath('..'))
 from datetime import datetime
@@ -75,7 +76,12 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
-    "external_links": [{"name": "Report Loader", "url": os.environ.get("READTHEDOCS_CANONICAL_URL", "/") + "report.html"}],
+    "external_links": [
+        {
+            "name": "Report Loader",
+            "url": os.environ.get("READTHEDOCS_CANONICAL_URL", "/") + "report.html",
+        }
+    ],
     "github_url": "https://github.com/deepmodeling/reacnetgenerator",
     "logo": {
         "text": "ReacNetGenerator",
