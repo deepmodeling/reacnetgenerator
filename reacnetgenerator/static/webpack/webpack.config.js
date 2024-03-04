@@ -87,6 +87,7 @@ module.exports = {
       template: __dirname + '/template.html',
       inject: 'body',
       inlineSource: '.(js|css)$',
+      publicPath: './',
       minify: {
         collapseWhitespace: true,
         collapseBooleanAttributes: true,
@@ -104,7 +105,6 @@ module.exports = {
         sortAttributes: true,
         sortClassName: true,
         useShortDoctype: true,
-        publicPath: './',
         ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/],
         processScripts: ['text/x-jsrender']
       }
