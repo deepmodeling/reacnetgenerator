@@ -28,7 +28,7 @@ conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 
-See [the guide](https://reacnetgenerator.njzjz.win/guide/) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](https://reacnetgenerator.njzjz.win/tutorial/) to help you learn ReacNetGenerator.
+See [the guide](https://docs.deepmodeling.com/projects/reacnetgenerator/en/latest/guide/) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](https://docs.deepmodeling.com/projects/reacnetgenerator/en/latest/tutorial/) to help you learn ReacNetGenerator.
 
 ## Awards
 * The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students

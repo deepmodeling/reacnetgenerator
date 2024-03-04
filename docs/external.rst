@@ -13,6 +13,6 @@ More
 
    ReacNetGenerator paper <https://doi.org/10.1039/C9CP05091D>
    Accepted manuscript <https://scholarship.libraries.rutgers.edu/view/pdfCoverPage?instCode=01RUT_INST&filePid=13678734780004646&download=true>
-   GitHub <https://github.com/tongzhugroup/reacnetgenerator>
+   GitHub <https://github.com/deepmodeling/reacnetgenerator>
    Research group <https://computchem.cn>
    Jinzhe Zeng <https://njzjz.win/cv/>

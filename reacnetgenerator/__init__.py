@@ -15,7 +15,9 @@ __date__ = "2018-03-11"
 __author__ = "Jinzhe Zeng"
 __email__ = "jinzhe.zeng@rutgers.edu"
 __credits__ = ["Jinzhe Zeng", "Tong Zhu", "Liqun Cao", "Chih-Hao Chin", "John ZH Zhang"]
-__copyright__ = "Copyright 2018-2022, East China Normal University"
+__copyright__ = (
+    "Copyright 2018-2024, East China Normal University; Copyright 2024, DeepModeling"
+)
 
 import matplotlib as mpl
 

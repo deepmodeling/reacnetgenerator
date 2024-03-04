@@ -61,9 +61,9 @@ readme = "README.md"
 keywords = ["reaction network"]
 
 [project.urls]
-homepage = "https://github.com/tongzhugroup/reacnetgenerator"
-documentation = "https://reacnetgenerator.njzjz.win/"
-repository = "https://github.com/tongzhugroup/reacnetgenerator"
+homepage = "https://github.com/deepmodeling/reacnetgenerator"
+documentation = "https://docs.deepmodeling.com/projects/reacnetgenerator/"
+repository = "https://github.com/deepmodeling/reacnetgenerator"
 
 [project.entry-points.console_scripts]
 reacnetgenerator = "reacnetgenerator.commandline:_commandline"
