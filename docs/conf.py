@@ -75,8 +75,8 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
-    "external_links": [{"name": "Report Loader", "url": "/report.html"}],
-    "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
+    "external_links": [{"name": "Report Loader", "url": "report.html"}],
+    "github_url": "https://github.com/deepmodeling/reacnetgenerator",
     "logo": {
         "text": "ReacNetGenerator",
         "alt_text": "ReacNetGenerator",
@@ -84,7 +84,7 @@ html_theme_options = {
 }
 
 html_context = {
-    "github_user": "tongzhugroup",
+    "github_user": "deepmodeling",
     "github_repo": "reacnetgenerator",
     "github_version": "master",
     "doc_path": "docs",
