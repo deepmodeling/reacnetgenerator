@@ -11,7 +11,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
+
 # import sys
 # sys.path.insert(0, os.path.abspath('..'))
 from datetime import datetime
@@ -75,8 +76,13 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
-    "external_links": [{"name": "Report Loader", "url": "/report.html"}],
-    "github_url": "https://github.com/tongzhugroup/reacnetgenerator",
+    "external_links": [
+        {
+            "name": "Report Loader",
+            "url": os.environ.get("READTHEDOCS_CANONICAL_URL", "/") + "report.html",
+        }
+    ],
+    "github_url": "https://github.com/deepmodeling/reacnetgenerator",
     "logo": {
         "text": "ReacNetGenerator",
         "alt_text": "ReacNetGenerator",
@@ -84,7 +90,7 @@ html_theme_options = {
 }
 
 html_context = {
-    "github_user": "tongzhugroup",
+    "github_user": "deepmodeling",
     "github_repo": "reacnetgenerator",
     "github_version": "master",
     "doc_path": "docs",
