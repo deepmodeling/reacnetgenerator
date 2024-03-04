@@ -21,8 +21,6 @@ env:
 jobs:
   test_or_push:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
     steps:
       - uses: actions/checkout@v4
       - name: Log in to the Container registry
