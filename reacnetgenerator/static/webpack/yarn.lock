@@ -681,7 +681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autoprefixer@npm:^10.4.16":
+"autoprefixer@npm:^10.4.17":
   version: 10.4.18
   resolution: "autoprefixer@npm:10.4.18"
   dependencies:
@@ -1228,23 +1228,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssnano-preset-advanced@npm:6.0.3":
-  version: 6.0.3
-  resolution: "cssnano-preset-advanced@npm:6.0.3"
+"cssnano-preset-advanced@npm:6.0.5":
+  version: 6.0.5
+  resolution: "cssnano-preset-advanced@npm:6.0.5"
   dependencies:
-    autoprefixer: "npm:^10.4.16"
-    cssnano-preset-default: "npm:^6.0.3"
-    postcss-discard-unused: "npm:^6.0.2"
-    postcss-merge-idents: "npm:^6.0.1"
+    autoprefixer: "npm:^10.4.17"
+    cssnano-preset-default: "npm:^6.0.5"
+    postcss-discard-unused: "npm:^6.0.3"
+    postcss-merge-idents: "npm:^6.0.2"
     postcss-reduce-idents: "npm:^6.0.2"
     postcss-zindex: "npm:^6.0.1"
   peerDependencies:
     postcss: ^8.4.31
-  checksum: 10/66dd068cfdaede53aa0244a512b13b5ec86ee684d3628bc4efd73af5f85fbec8da1e89b3e94f4a32d18354c7fbba341a2e111f4f45daef1926a2a1754657f402
+  checksum: 10/f3179b3cd7ae0e149396b72b676e99149e1ba649addb7b0fce2ba3aaef5650d0a9316f2e8204deabc02380d904c29e70c642f685ed6b3a4e247188f783fe41f1
   languageName: node
   linkType: hard
 
-"cssnano-preset-default@npm:^6.0.3, cssnano-preset-default@npm:^6.0.5":
+"cssnano-preset-default@npm:^6.0.5":
   version: 6.0.5
   resolution: "cssnano-preset-default@npm:6.0.5"
   dependencies:
@@ -3014,7 +3014,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-discard-unused@npm:^6.0.2":
+"postcss-discard-unused@npm:^6.0.3":
   version: 6.0.3
   resolution: "postcss-discard-unused@npm:6.0.3"
   dependencies:
@@ -3058,7 +3058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-merge-idents@npm:^6.0.1":
+"postcss-merge-idents@npm:^6.0.2":
   version: 6.0.2
   resolution: "postcss-merge-idents@npm:6.0.2"
   dependencies:
@@ -3461,7 +3461,7 @@ __metadata:
     css-loader: "npm:6.10.0"
     css-minimizer-webpack-plugin: "npm:6.0.0"
     cssnano: "npm:6.0.5"
-    cssnano-preset-advanced: "npm:6.0.3"
+    cssnano-preset-advanced: "npm:6.0.5"
     d3: "npm:3.5.17"
     html-inline-css-webpack-plugin: "npm:1.11.2"
     html-webpack-plugin: "npm:5.6.0"
