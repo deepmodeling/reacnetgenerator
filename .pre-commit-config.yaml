@@ -47,11 +47,6 @@ repos:
     hooks:
     -   id: cython-lint
     -   id: double-quote-cython-strings
-# JS
--   repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-beta.0
-    hooks:
-    -   id: eslint
 # CSS
 -   repo: https://github.com/pre-commit/mirrors-csslint
     rev: v1.0.5
