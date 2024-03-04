@@ -104,6 +104,7 @@ module.exports = {
         sortAttributes: true,
         sortClassName: true,
         useShortDoctype: true,
+        publicPath: './',
         ignoreCustomFragments: [/<%[\s\S]*?%>/, /<\?[\s\S]*?\?>/, /{{[\s\S]*?}}/],
         processScripts: ['text/x-jsrender']
       }
