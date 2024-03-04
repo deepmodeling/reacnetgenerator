@@ -19,7 +19,8 @@ module.exports = {
   entry: __dirname + "/reacnetgen.js",
   output: {
     path: __dirname + "/",
-    filename: "bundle.js"
+    filename: "bundle.js",
+    publicPath: "./",
   },
   mode: 'production',
   module: {
