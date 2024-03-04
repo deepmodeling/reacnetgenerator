@@ -21,4 +21,6 @@ jobs:
     - run: tox
 #    - run: conda build conda/recipe -c conda-forge --output-folder conda
 #      if: github.ref == 'refs/heads/master'
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
