@@ -934,6 +934,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chroma-js@npm:^2.4.2":
+  version: 2.4.2
+  resolution: "chroma-js@npm:2.4.2"
+  checksum: 10/2fb16f4189de7818abf9e4d61ab3afc76d4013ebdef36982105c41df834dc5050b04afff1b9559914edab384b39cbe61b26cbdcd4142d39532b1b0f2a2f14f76
+  languageName: node
+  linkType: hard
+
 "chrome-trace-event@npm:^1.0.2":
   version: 1.0.3
   resolution: "chrome-trace-event@npm:1.0.3"
@@ -3479,7 +3486,7 @@ __metadata:
     sass: "npm:1.71.1"
     sass-loader: "npm:14.1.1"
     script-ext-html-webpack-plugin: "npm:2.1.5"
-    smiles-drawer: "npm:2.0.3"
+    smiles-drawer: "npm:2.1.7"
     startbootstrap-creative: "npm:7.0.7"
     string-replace-webpack-plugin: "npm:0.1.3"
     style-loader: "npm:3.3.4"
@@ -3794,10 +3801,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smiles-drawer@npm:2.0.3":
-  version: 2.0.3
-  resolution: "smiles-drawer@npm:2.0.3"
-  checksum: 10/f0c8685996b0ef5a3ea591d2453cc12f01bc56c6ce05a5e1bfd40d59c4571f93fc6861f87c0ecad2bfbfac437acad19087c656b39fad54141be5b494c47f464b
+"smiles-drawer@npm:2.1.7":
+  version: 2.1.7
+  resolution: "smiles-drawer@npm:2.1.7"
+  dependencies:
+    chroma-js: "npm:^2.4.2"
+  checksum: 10/fab192def7be4fdb84e471c5014f2e11832c552313d3575f1b93044cb169b39d49ef7c6290885438f372eadae05b4f93423d76e51dea802a6bdfc7e157414cca
   languageName: node
   linkType: hard
 
