@@ -19,7 +19,7 @@ env:
   IMAGE_NAME: reacnetgenerator
 
 jobs:
-  test_or_push:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
