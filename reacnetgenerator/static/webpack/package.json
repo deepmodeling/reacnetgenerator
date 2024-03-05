@@ -19,7 +19,7 @@
     "animejs": "3.2.2",
     "bootstrap": "5.3.3",
     "bootstrap-select": "1.14.0-beta3",
-    "d3": "3.5.17",
+    "d3": "7.8.5",
     "jquery": "3.7.1",
     "jsrender": "1.0.13",
     "magnific-popup": "1.1.0",
