@@ -10,16 +10,18 @@ import os
 from tkinter import END, TclError
 
 import numpy as np
-import pkg_resources
 import pytest
 
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
-from reacnetgenerator._reachtml import _HTMLResult
+from reacnetgenerator._path import _CollectSMILESPaths
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
+
+with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
+    test_data = json.load(f)
 
 
 class TestReacNetGen:
@@ -38,7 +40,7 @@ class TestReacNetGen:
             pytest.param(
                 param, marks=(pytest.mark.xfail if param.get("xfail", False) else ())
             )
-            for param in json.load(pkg_resources.resource_stream(__name__, "test.json"))
+            for param in test_data
         ]
     )
     def reacnetgen_param(self, request):
@@ -101,17 +103,17 @@ class TestReacNetGen:
 
     def test_commandline_help(self, script_runner):
         """Test commandline of ReacNetGenerator."""
-        ret = script_runner.run("reacnetgenerator", "-h")
+        ret = script_runner.run(["reacnetgenerator", "-h"])
         assert ret.success
 
     def test_commandline_version(self, script_runner):
         """Test commandline of ReacNetGenerator."""
-        ret = script_runner.run("reacnetgenerator", "--version")
+        ret = script_runner.run(["reacnetgenerator", "--version"])
         assert ret.success
 
     def test_commandline_run(self, script_runner, reacnetgen_param):
         """Test commandline of ReacNetGenerator."""
-        ret = script_runner.run(*parm2cmd(reacnetgen_param["rngparams"]))
+        ret = script_runner.run(parm2cmd(reacnetgen_param["rngparams"]))
         assert ret.success
 
     def test_benchmark_detect(self, benchmark, reacnetgen_param):
@@ -144,7 +146,7 @@ class TestReacNetGen:
     def test_re(self, reacnetgen_param):
         """Test regular expression of _HTMLResult."""
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
-        r = _HTMLResult(reacnetgen)
+        r = _CollectSMILESPaths(reacnetgen)
         r.atomname = ["C", "H", "O", "Na", "Cl"]
         assert r._re("C"), "[C]"
         assert r._re("[C]"), "[C]"

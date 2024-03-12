@@ -17,7 +17,6 @@ from collections import defaultdict
 from typing import Dict, Union
 
 import numpy as np
-import pkg_resources
 import scour.scour
 
 from ._logging import logger
@@ -67,43 +66,11 @@ class _HTMLResult(SharedRNGData):
             f"Report is generated. Please see {self.resultfilename} for more details."
         )
 
-    def _re(self, smi):
-        """If you use RDkit to convert a methyl radical to SMILES, you will get something
-        like [H]C([H])[H]. However, OpenBabel will consider it as a methane molecule. So,
-        you have to use [H][C]([H])[H], if you need to process some radicals.
-
-        Examples
-        --------
-        >>> self._re('C')
-        [C]
-        >>> self._re('[C]')
-        [C]
-        >>> self._re('[CH]')
-        [CH]
-        >>> self._re('Na')
-        [Na]
-        >>> self._re('[H]c(Cl)C([H])Cl')
-        [H][c]([Cl])[C]([H])[Cl]
-        """
-        if "_unknownSMILES" in smi:
-            # not SMILES
-            return smi
-        Satom = sorted(self.atomname, key=lambda i: len(i), reverse=True)
-        elements = "|".join(
-            [
-                ((an.upper() + "|" + an.lower()) if len(an) == 1 else an)
-                for an in Satom
-                if an != "H"
-            ]
-        )
-        smi = re.sub(r"(?<!\[)(" + elements + r")(?!H)", r"[\1]", smi)
-        return smi.replace("[HH]", "[H]")
-
     def _handlereaction(self, line):
         sx = line.split()
         left, right = sx[1].split("->")
-        left = [self._re(spec) for spec in left.split("+")]
-        right = [self._re(spec) for spec in right.split("+")]
+        left = left.split("+")
+        right = right.split("+")
         num = int(sx[0])
         return left, right, num
 
@@ -169,9 +136,11 @@ class _HTMLResult(SharedRNGData):
         self._templatedict["reactionsabcd"] = self._reactionsabcd
         self._templatedict["linkreac"] = self._linkreac
         rngdata = json.dumps(self._templatedict, separators=(",", ":"))
-        template = pkg_resources.resource_string(
-            __name__, "static/webpack/bundle.html"
-        ).decode()
+        with open(
+            os.path.join(os.path.dirname(__file__), "static", "webpack", "bundle.html"),
+            encoding="utf-8",
+        ) as f:
+            template = f.read()
         webpage = template.replace("PUTREACNETGENERATORDATAHERE", rngdata)
         with open(self.jsonfilename, "w") as f:
             f.write(rngdata)

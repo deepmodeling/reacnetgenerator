@@ -27,7 +27,7 @@ See also [Tutorial: Installation](../tutorial/install.ipynb).
 If you have [installed Docker](https://docs.docker.com/install/), an official Docker image is provided:
 
 ```bash
-docker run ghcr.io/tongzhugroup/reacnetgenerator reacnetgenerator -h
+docker run ghcr.io/deepmodeling/reacnetgenerator reacnetgenerator -h
 ```
 
 When analyzing trajectories, you need to [monut](https://docs.docker.com/storage/bind-mounts/) the local directory into the container.
@@ -35,7 +35,7 @@ When analyzing trajectories, you need to [monut](https://docs.docker.com/storage
 If your HPC node has installed [Singularity](https://sylabs.io/docs/), you can also used it:
 
 ```bash
-singularity run docker://ghcr.io/tongzhugroup/reacnetgenerator reacnetgenerator -h
+singularity run docker://ghcr.io/deepmodeling/reacnetgenerator reacnetgenerator -h
 ```
 
 :::{note}

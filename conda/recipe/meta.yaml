@@ -49,10 +49,10 @@ test:
     - reacnetgenerator
 
 about:
-  home: http://github.com/tongzhugroup/reacnetgenerator
+  home: http://github.com/deepmodeling/reacnetgenerator
   summary: 'An automatic generator of reaction network for reactive molecular dynamics simulation.'
-  doc_url: https://reacnetgenerator.njzjz.win/
-  dev_url: https://github.com/tongzhugroup/reacnetgenerator
+  doc_url: https://docs.deepmodeling.com/projects/reacnetgenerator/
+  dev_url: https://github.com/deepmodeling/reacnetgenerator
   license: LGPL-3.0-only
   license_family: LGPL
   license_file: LICENSE

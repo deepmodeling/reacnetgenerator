@@ -10,7 +10,7 @@ import numpy as np
 
 
 def read_species(
-    specfile: Union[str, Path]
+    specfile: Union[str, Path],
 ) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
     """Read species from the species file (ends with .species).
 

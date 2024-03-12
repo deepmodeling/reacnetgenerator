@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 /*!
- * ReacNetGenerator (https://reacnetgenerator.njzjz.win/)
- * Copyright 2018-2019 East China Normal University
+ * ReacNetGenerator (https://docs.deepmodeling.com/projects/reacnetgenerator/)
+ * Copyright 2018-2024 East China Normal University; Copyright 2024 DeepModeling
  */
 
 const {searchspecies, searchreaction} = require("./select.js");
@@ -100,9 +100,8 @@ function loadrngdata() {
     return;
   }
   // read from url
-  const queryString = require('query-string');
-  const parsed = queryString.parse(location.search);
-  const jdata = parsed['jdata'];
+  const parsed = new URLSearchParams(location.search);
+  const jdata = parsed.get("jdata");
   if (jdata) {
     $.get(decodeURIComponent(jdata), function(data) {
       if (!handlejsondata(data)) {

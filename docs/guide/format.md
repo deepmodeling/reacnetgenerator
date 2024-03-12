@@ -3,7 +3,7 @@
 In principle, ReacNetGenerator can process any kind of trajectory files containing atomic coordinates or bond information.
 Up to now, the following formats are supported.
 You can convert your trajectory to one of the following formats using tools like [dpdata](https://github.com/deepmodeling/dpdata) or [ASE](https://gitlab.com/ase/ase).
-If you want new formats to be supported, please submit an issue to [the ReacNetGenerator repository](https://github.com/tongzhugroup/reacnetgenerator).
+If you want new formats to be supported, please submit an issue to [the ReacNetGenerator repository](https://github.com/deepmodeling/reacnetgenerator).
 
 ## LAMMPS dump files
 

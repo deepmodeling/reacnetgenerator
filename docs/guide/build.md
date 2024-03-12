@@ -1,9 +1,9 @@
 # Build ReacNetGenerator
 
-To build ReacNetGenerator by yourself, first, you need to download the source code from [the Releases page](https://github.com/tongzhugroup/reacnetgenerator/releases) or use `git` to clone the latest code:
+To build ReacNetGenerator by yourself, first, you need to download the source code from [the Releases page](https://github.com/deepmodeling/reacnetgenerator/releases) or use `git` to clone the latest code:
 
 ```bash
-git clone https://github.com/tongzhugroup/reacnetgenerator
+git clone https://github.com/deepmodeling/reacnetgenerator
 cd reacnetgenerator
 ```
 
