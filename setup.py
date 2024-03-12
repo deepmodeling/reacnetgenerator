@@ -76,7 +76,7 @@ class bdist_wheel_abi3(bdist_wheel):
 
 
 if __name__ == "__main__":
-    define_macros = [("CYTHON_LIMITED_API", "1"), ("Py_LIMITED_API", "0x03070000")]
+    define_macros = [("CYTHON_LIMITED_API", "1"), ("Py_LIMITED_API", "0x03110000")]
     if os.environ.get("DEBUG", 0):
         define_macros.extend((("CYTHON_TRACE", "1"), ("CYTHON_TRACE_NOGIL", "1")))
 
