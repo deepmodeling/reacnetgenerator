@@ -3,7 +3,7 @@ requires = [
     "setuptools>=63",
     "wheel",
     "setuptools_scm[toml]",
-    "oldest-supported-numpy",
+    "numpy>=2.0.0b0",
     "nodejs-wheel~=20.9",
     "pyyaml",
     "cython>=3.0.1",
