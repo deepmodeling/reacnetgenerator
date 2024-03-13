@@ -4,6 +4,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 """The main module of ReacNetGenerator."""
+
 doc_run = """ReacNetGenerator: an automatic reaction network generator for reactive
 molecular dynamics simulation.
 

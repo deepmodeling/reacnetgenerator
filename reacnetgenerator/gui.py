@@ -4,6 +4,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 """GUI version of ReacNetGenerator."""
+
 import base64
 import os
 import tkinter as tk

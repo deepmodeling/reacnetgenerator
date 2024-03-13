@@ -2,6 +2,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 """Command line interface for reacnetgenerator."""
+
 import argparse
 import textwrap
 from typing import List
