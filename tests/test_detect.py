@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Test different detect format."""
+
 import os
 from pathlib import Path
 

@@ -2,6 +2,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 """Reactions finder."""
+
 from collections import Counter, defaultdict
 
 import numpy as np

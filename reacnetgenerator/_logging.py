@@ -2,6 +2,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 """A logger for logging."""
+
 import logging
 
 import coloredlogs

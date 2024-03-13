@@ -3,7 +3,6 @@
 # cython: linetrace=True
 """Provide utils for ReacNetGenerator."""
 
-
 import asyncio
 import hashlib
 import itertools

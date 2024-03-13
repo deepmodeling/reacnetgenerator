@@ -2,6 +2,7 @@
 # cython: language_level=3
 # cython: linetrace=True
 """Obtain the version."""
+
 try:
     from ._version2 import version as __version__
 except ImportError:

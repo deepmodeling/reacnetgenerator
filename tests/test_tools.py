@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Test the tools module."""
+
 from pathlib import Path
 
 import numpy as np
