@@ -6,7 +6,7 @@ The latest version requires Python 3.7 or later.
 
 ## Install via conda
 
-You can [install Anaconda or Miniconda](https://conda.io/projects/continuumio-conda/en/latest/user-guide/install/index.html) to obtain conda, and install ReacNetGenerator easily with conda:
+You can [setup a conda environment](https://docs.deepmodeling.com/faq/conda.html) to obtain conda, and install ReacNetGenerator easily with conda:
 
 ```bash
 conda install reacnetgenerator -c conda-forge
