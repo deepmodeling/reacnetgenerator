@@ -41,7 +41,7 @@
     "postcss": "8.4.37",
     "postcss-import": "16.0.1",
     "postcss-loader": "8.1.1",
-    "sass": "1.71.1",
+    "sass": "1.72.0",
     "sass-loader": "14.1.1",
     "script-ext-html-webpack-plugin": "2.1.5",
     "string-replace-webpack-plugin": "0.1.3",
