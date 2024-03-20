@@ -1342,7 +1342,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssnano@npm:6.0.5, cssnano@npm:^6.0.3":
+"cssnano@npm:6.1.0":
+  version: 6.1.0
+  resolution: "cssnano@npm:6.1.0"
+  dependencies:
+    cssnano-preset-default: "npm:^6.1.0"
+    lilconfig: "npm:^3.1.1"
+  peerDependencies:
+    postcss: ^8.4.31
+  checksum: 10/5afc00c13e6bd6796b09436004fe2711d73b2c194ee8f895db86235ab4da016d7f07dccda724a12b764f2b54fb4928782c3ae0384e93549b50b6c6572af5bc70
+  languageName: node
+  linkType: hard
+
+"cssnano@npm:^6.0.3":
   version: 6.0.5
   resolution: "cssnano@npm:6.0.5"
   dependencies:
@@ -3813,7 +3825,7 @@ __metadata:
     bootstrap-select: "npm:1.14.0-beta3"
     css-loader: "npm:6.10.0"
     css-minimizer-webpack-plugin: "npm:6.0.0"
-    cssnano: "npm:6.0.5"
+    cssnano: "npm:6.1.0"
     cssnano-preset-advanced: "npm:6.1.0"
     d3: "npm:3.5.17"
     html-inline-css-webpack-plugin: "npm:1.11.2"
