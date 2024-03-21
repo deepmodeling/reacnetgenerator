@@ -10,21 +10,21 @@
  */
 const search = (select, from, func) => {
   // if there is no select, return all of list
-  if (!select.length) return from;
+  if (!select.length)
+    return from;
   return from.filter((element) => func(element, select));
 };
 
 const searchspecies = (select, from) =>
-  search(select, from, (element, select) => {
-    return select.includes(element["s"]);
-  });
+    search(select, from,
+           (element, select) => { return select.includes(element["s"]); });
 
 const searchreaction = (select, from) =>
-  search(select, from, (element, select) => {
-    return element["l"]
-      .concat(element["r"])
-      .some((spec) => select.includes(spec));
-  });
+    search(select, from, (element, select) => {
+      return element["l"]
+          .concat(element["r"])
+          .some((spec) => select.includes(spec));
+    });
 
 module.exports = {
   searchspecies,

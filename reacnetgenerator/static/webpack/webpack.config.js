@@ -4,14 +4,16 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin");
 const HTMLInlineCSSWebpackPlugin =
-  require("html-inline-css-webpack-plugin").default;
+    require("html-inline-css-webpack-plugin").default;
 const OptimizeCssAssetsPlugin = require("css-minimizer-webpack-plugin");
 const WebpackCdnPlugin = require("webpack-cdn-plugin");
 const webpack = require("webpack");
 
 const year = new Date().getFullYear();
-const banner = `ReacNetGenerator (https://docs.deepmodeling.com/projects/reacnetgenerator/)
-Copyright 2018-2024 East China Normal University; Copyright 2024-${year} DeepModeling
+const banner =
+    `ReacNetGenerator (https://docs.deepmodeling.com/projects/reacnetgenerator/)
+Copyright 2018-2024 East China Normal University; Copyright 2024-${
+        year} DeepModeling
 Date: ${new Date().toLocaleString()}`;
 const buildweb = process.env.REACNETGENERATOR_BUILDWEB;
 
