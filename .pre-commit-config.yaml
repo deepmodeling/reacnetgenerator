@@ -50,7 +50,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        types_or: [markdown, json, yaml, css, javascript, html]
+        types_or: [markdown, yaml, css, html]
         # workflow files cannot be modified by pre-commit.ci
         exclude: ^conda/recipe/meta\.yaml|\.github/workflows
   # license header
