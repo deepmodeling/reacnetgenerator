@@ -5,8 +5,6 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-    # there are many log files in tests
-    # TODO: seperate py files and log files
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: check-yaml
@@ -47,11 +45,12 @@ repos:
     hooks:
     -   id: cython-lint
     -   id: double-quote-cython-strings
-# CSS
--   repo: https://github.com/pre-commit/mirrors-csslint
-    rev: v1.0.5
+# markdown, json, yaml, CSS, javascript, html
+-   repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
     hooks:
-    -   id: csslint
+    -   id: prettier
+        types_or: [markdown, json, yaml, css, javascript, html]
 # license header
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
