@@ -4,40 +4,23 @@
       "urls": [
         {
           "fn": "bonds.reaxc",
-          "url": [
-            "https://bf.njzjz.win/reacnetgenerator/bonds.reaxc.test"
-          ],
+          "url": ["https://bf.njzjz.win/reacnetgenerator/bonds.reaxc.test"],
           "sha256": "e14b00d002028bd0cfb2e7ee70515493620f778b0fb895cb841f3258e540b304"
         }
       ],
       "inputfilename": "bonds.reaxc",
-      "atomname": [
-        "H",
-        "O"
-      ],
+      "atomname": ["H", "O"],
       "inputfiletype": "lammpsbondfile",
       "runHMM": true,
       "SMILES": true,
       "split": 10,
       "a": [
-        [
-          0.999,
-          0.001
-        ],
-        [
-          0.001,
-          0.999
-        ]
+        [0.999, 0.001],
+        [0.001, 0.999]
       ],
       "b": [
-        [
-          0.6,
-          0.4
-        ],
-        [
-          0.4,
-          0.6
-        ]
+        [0.6, 0.4],
+        [0.4, 0.6]
       ]
     },
     "reaction_sha256": "12a2c53d81db733405d24dfc67dd390c85195c4011cef53305629e8083a5d2f4"
@@ -47,17 +30,12 @@
       "urls": [
         {
           "fn": "dump.reaxc",
-          "url": [
-            "https://bf.njzjz.win/reacnetgenerator/dump.reaxc"
-          ],
+          "url": ["https://bf.njzjz.win/reacnetgenerator/dump.reaxc"],
           "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e"
         }
       ],
       "inputfilename": "dump.reaxc",
-      "atomname": [
-        "H",
-        "O"
-      ],
+      "atomname": ["H", "O"],
       "inputfiletype": "lammpsdumpfile",
       "runHMM": false,
       "SMILES": false,
@@ -73,17 +51,12 @@
       "urls": [
         {
           "fn": "dump.reaxc",
-          "url": [
-            "https://bf.njzjz.win/reacnetgenerator/dump.reaxc"
-          ],
+          "url": ["https://bf.njzjz.win/reacnetgenerator/dump.reaxc"],
           "sha256": "b797263a7fed7eb6ae9f76a884222290bcdea8d58bf9751f52c77f150859215e"
         }
       ],
       "inputfilename": "dump.reaxc",
-      "atomname": [
-        "H",
-        "O"
-      ],
+      "atomname": ["H", "O"],
       "inputfiletype": "dump",
       "runHMM": false,
       "miso": 1
@@ -99,9 +72,7 @@
     "rngparams": {
       "inputfilename": "xxx",
       "inputfiletype": "abc",
-      "atomname": [
-        "X"
-      ]
+      "atomname": ["X"]
     },
     "xfail": true
   }

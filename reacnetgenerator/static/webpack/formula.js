@@ -13,18 +13,19 @@ function capitalizeFirstLetter(string) {
 function getFormula(smi) {
   // consider [Ca] [C] [c]
   const reg = /\[([a-zA-Z][a-z]?)\]/g;
-  const atom_types =
-      [...smi.matchAll(reg) ].map(m => capitalizeFirstLetter(m[1]));
+  const atom_types = [...smi.matchAll(reg)].map((m) =>
+    capitalizeFirstLetter(m[1]),
+  );
   atom_types.sort();
   const conut = {};
-  atom_types.forEach(atom => {
+  atom_types.forEach((atom) => {
     if (atom in conut) {
       conut[atom] += 1;
     } else {
       conut[atom] = 1;
     }
   });
-  let formula = '';
+  let formula = "";
   for (const atom in conut) {
     formula += atom;
     if (conut[atom] > 1) {
@@ -34,4 +35,4 @@ function getFormula(smi) {
   return formula;
 }
 
-module.exports = {getFormula};
+module.exports = { getFormula };
