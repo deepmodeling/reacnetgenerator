@@ -6,223 +6,283 @@ ReacNetGenerator (https://docs.deepmodeling.com/projects/reacnetgenerator/)
 Copyright 2018-2024 East China Normal University; Copyright 2024 DeepModeling
 -->
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
     <title>Analysis Report</title>
-</head>
+  </head>
 
-<body id="page-top">
+  <body id="page-top">
     <script id="citationTmpl" type="text/x-jsrender">
-        <p>ReacNetGenerator:
-        an automatic reaction network generator for reactive molecular dynamic simulations,</p>
-		<p>Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691.</p>
-        <p><a href="mailto:jinzhe.zeng@rutgers.edu">jinzhe.zeng@rutgers.edu</a>&nbsp(Jinzhe Zeng),&nbsp
-        <a href="mailto:tzhu@lps.ecnu.edu.cn">tzhu@lps.ecnu.edu.cn</a>&nbsp(Tong Zhu)
-        </p>
+            <p>ReacNetGenerator:
+            an automatic reaction network generator for reactive molecular dynamic simulations,</p>
+      <p>Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691.</p>
+            <p><a href="mailto:jinzhe.zeng@rutgers.edu">jinzhe.zeng@rutgers.edu</a>&nbsp(Jinzhe Zeng),&nbsp
+            <a href="mailto:tzhu@lps.ecnu.edu.cn">tzhu@lps.ecnu.edu.cn</a>&nbsp(Tong Zhu)
+            </p>
     </script>
     <script id="optionTmpl" type="text/x-jsrender">
-        <option value={{:s}}>{{if formula}}{{:formula}} {{/if}}{{:s}}</option>
+      <option value={{:s}}>{{if formula}}{{:formula}} {{/if}}{{:s}}</option>
     </script>
     <script id="optionTimeTmpl" type="text/x-jsrender">
-        <option value={{:value}}>{{:text}}</option>
+      <option value={{:value}}>{{:text}}</option>
     </script>
     <script id="navTmpl" type="text/x-jsrender">
-        <li class="nav-item text-capitalize navtmpl">
-            <a class="nav-link js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
-        </li>
+      <li class="nav-item text-capitalize navtmpl">
+          <a class="nav-link js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
+      </li>
     </script>
     <script id="buttonTmpl" type="text/x-jsrender">
-        <div class="col-sm-3 mx-auto text-center">
-            <div class="service-box mt-5 mx-auto text-capitalize">
-                <a class="btn btn-primary btn-xl js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
-            </div>
-        </div>
+      <div class="col-sm-3 mx-auto text-center">
+          <div class="service-box mt-5 mx-auto text-capitalize">
+              <a class="btn btn-primary btn-xl js-scroll-trigger" href="#{{:#view.data}}">{{:#view.data}}</a>
+          </div>
+      </div>
     </script>
     <script id="loadTmpl" type="text/x-jsrender">
-        <div class="col-sm-3 mx-auto text-center">
-            <div class="service-box mt-5 mx-auto text-capitalize">
-                <label class="btn btn-primary btn-xl fileUpload">
-                    <span>Load data</span>
-                    <input type="file" id="loadbutton" class="realbutton"/>
-                </label>
-            </div>
-        </div>
+      <div class="col-sm-3 mx-auto text-center">
+          <div class="service-box mt-5 mx-auto text-capitalize">
+              <label class="btn btn-primary btn-xl fileUpload">
+                  <span>Load data</span>
+                  <input type="file" id="loadbutton" class="realbutton"/>
+              </label>
+          </div>
+      </div>
     </script>
 
-
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
-        <div class="container">
-            <img class="mx-2" style="height:40px;width:40px;" src="data:image/svg+xml,%3Csvg viewBox='0 0 2000 2000' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1161.4' cy='844.92' r='644.34' fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='80'/%3E%3Cpath d='M157.8 1848.5c-33.412-33.412-33.412-88.086 0-121.5l425.24-425.24c33.412-33.412 88.086-33.412 121.5 0s33.412 88.086 0 121.5L279.3 1848.5c-33.412 33.412-88.087 33.412-121.5 0z' fill='%23CC5C5C' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='40'/%3E%3Cpath fill='%23CC5C5C' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='39.9996' d='M643.775 1241.064l121.494 121.494-58.59 58.59-121.494-121.494z'/%3E%3Cpath fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='39.9992' d='M1134.424 1057.706L952.178 607.194l450.513-182.247 182.246 450.513z'/%3E%3Cpath fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='40' d='M952.23 607.15L1585 875.45M1134.5 1057.7l268.3-632.79M1134.5 1057.7l-318.61 128.8'/%3E%3Ccircle cx='952.23' cy='607.15' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1585' cy='875.45' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1134.5' cy='1057.7' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='816.47' cy='1186.3' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1402.8' cy='424.91' r='85.912' fill='%23CC5C5C'/%3E%3C/svg%3E">
-            <a class="navbar-brand js-scroll-trigger" href="#page-top">ReacNetGenerator</a>
-            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive"
-                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul id="navs" class="navbar-nav ml-auto">
-                    <li id="timeselectli" class="nav-item d-none">
-                        <select id="timeselect" class="selectpicker"></select>
-                    </li>
-                </ul>
-            </div>
+      <div class="container">
+        <img
+          class="mx-2"
+          style="height: 40px; width: 40px"
+          src="data:image/svg+xml,%3Csvg viewBox='0 0 2000 2000' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1161.4' cy='844.92' r='644.34' fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='80'/%3E%3Cpath d='M157.8 1848.5c-33.412-33.412-33.412-88.086 0-121.5l425.24-425.24c33.412-33.412 88.086-33.412 121.5 0s33.412 88.086 0 121.5L279.3 1848.5c-33.412 33.412-88.087 33.412-121.5 0z' fill='%23CC5C5C' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='40'/%3E%3Cpath fill='%23CC5C5C' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='39.9996' d='M643.775 1241.064l121.494 121.494-58.59 58.59-121.494-121.494z'/%3E%3Cpath fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='39.9992' d='M1134.424 1057.706L952.178 607.194l450.513-182.247 182.246 450.513z'/%3E%3Cpath fill='none' stroke='%23CC5C5C' stroke-miterlimit='10' stroke-width='40' d='M952.23 607.15L1585 875.45M1134.5 1057.7l268.3-632.79M1134.5 1057.7l-318.61 128.8'/%3E%3Ccircle cx='952.23' cy='607.15' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1585' cy='875.45' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1134.5' cy='1057.7' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='816.47' cy='1186.3' r='85.912' fill='%23CC5C5C'/%3E%3Ccircle cx='1402.8' cy='424.91' r='85.912' fill='%23CC5C5C'/%3E%3C/svg%3E"
+        />
+        <a class="navbar-brand js-scroll-trigger" href="#page-top"
+          >ReacNetGenerator</a
+        >
+        <button
+          class="navbar-toggler navbar-toggler-right"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarResponsive"
+          aria-controls="navbarResponsive"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul id="navs" class="navbar-nav ml-auto">
+            <li id="timeselectli" class="nav-item d-none">
+              <select id="timeselect" class="selectpicker"></select>
+            </li>
+          </ul>
         </div>
+      </div>
     </nav>
 
-    <header class="masthead text-center text-white d-flex bg-dark imgbg" id="info">
-        <div class="container my-auto">
-            <div class="row">
-                <div class="col-sm-10 mx-auto">
-                    <h1 class="text-uppercase">Analysis Report</h1>
-                </div>
-                <div class="col-sm-10 mx-auto">
-                    <p>
-                    <span class="citation"></span></p>
-                </div>
-            </div>
-            <div id="buttons" class="row"></div>
+    <header
+      class="masthead text-center text-white d-flex bg-dark imgbg"
+      id="info"
+    >
+      <div class="container my-auto">
+        <div class="row">
+          <div class="col-sm-10 mx-auto">
+            <h1 class="text-uppercase">Analysis Report</h1>
+          </div>
+          <div class="col-sm-10 mx-auto">
+            <p>
+              <span class="citation"></span>
+            </p>
+          </div>
         </div>
+        <div id="buttons" class="row"></div>
+      </div>
     </header>
 
-    <section id="network" class='page-section bg-white mx-auto text-center' style="display:none;">
-        <div class="container my-auto">
-            <div class="row">
-                <div class="mx-auto w-100 text-center">
-                    <h2>Reaction Network</h2>
-                    <div id="networkresult"></div>
-                </div>
-            </div>
+    <section
+      id="network"
+      class="page-section bg-white mx-auto text-center"
+      style="display: none"
+    >
+      <div class="container my-auto">
+        <div class="row">
+          <div class="mx-auto w-100 text-center">
+            <h2>Reaction Network</h2>
+            <div id="networkresult"></div>
+          </div>
         </div>
+      </div>
     </section>
 
     <script id="svgTmpl" type="text/x-jsrender">
-        <div class="spec col-sm-auto"><a class="popup-modal" href="#canvassec" onclick="addnode('{{:#view.data}}');" title="{{:#view.data}}">
-        <div class='smiles' data-smiles="{{:#view.data}}" data-smiles-loaded=false>
-        </div></a></div>
+      <div class="spec col-sm-auto"><a class="popup-modal" href="#canvassec" onclick="addnode('{{:#view.data}}');" title="{{:#view.data}}">
+      <div class='smiles' data-smiles="{{:#view.data}}" data-smiles-loaded=false>
+      </div></a></div>
     </script>
     <script id="specTmpl" type="text/x-jsrender">
-        <div class="col-sm-auto mx-auto">
-            {{include s tmpl="#svgTmpl"/}}
-            <div>{{:i}}</div>
-        </div>
+      <div class="col-sm-auto mx-auto">
+          {{include s tmpl="#svgTmpl"/}}
+          <div>{{:i}}</div>
+      </div>
     </script>
     <script id="rsideTmpl" type="text/x-jsrender">
-        {{for}}
-            {{if #getIndex()>0}}
-                <div class="plus col-sm-auto">+</div>
-            {{/if}}
-            {{include tmpl="#svgTmpl"/}}
-        {{/for}}
+      {{for}}
+          {{if #getIndex()>0}}
+              <div class="plus col-sm-auto">+</div>
+          {{/if}}
+          {{include tmpl="#svgTmpl"/}}
+      {{/for}}
     </script>
     <script id="rTmpl" type="text/x-jsrender">
-        <div class="reacid col-sm-auto">{{:i}}</div>
-        {{include l tmpl="#rsideTmpl"/}}
-        <div class="col-sm-auto">
-            <div class="reacnum">{{:n}}</div>
-            <div><svg width="25" height="14.33">
-                <path class="narrow" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z" font-size="39.506" font-weight="400"/>
-            </svg></div>
-        </div>
-        {{include r tmpl="#rsideTmpl"/}}
+      <div class="reacid col-sm-auto">{{:i}}</div>
+      {{include l tmpl="#rsideTmpl"/}}
+      <div class="col-sm-auto">
+          <div class="reacnum">{{:n}}</div>
+          <div><svg width="25" height="14.33">
+              <path class="narrow" d="M24.35 7.613c-3.035 1.11-5.407 2.908-7.113 5.395h-1.299c.585-1.743 1.567-3.39 2.945-4.938H.649V6.278h18.234c-1.378-1.548-2.36-3.2-2.945-4.956h1.299c1.706 2.487 4.078 4.285 7.114 5.395v.896z" font-size="39.506" font-weight="400"/>
+          </svg></div>
+      </div>
+      {{include r tmpl="#rsideTmpl"/}}
     </script>
     <script id="reacTmpl" type="text/x-jsrender">
-        <div class="col-sm-auto row mx-auto">
-            {{include tmpl="#rTmpl"/}}
-        </div>
+      <div class="col-sm-auto row mx-auto">
+          {{include tmpl="#rTmpl"/}}
+      </div>
     </script>
     <script id="reacabcdTmpl" type="text/x-jsrender">
-        <div class="col-sm-auto row mx-auto col-sm-5">
-            {{include tmpl="#rTmpl"/}}
-        </div>
+      <div class="col-sm-auto row mx-auto col-sm-5">
+          {{include tmpl="#rTmpl"/}}
+      </div>
     </script>
 
-    <section id="species" class='page-section bg-white mx-auto' style="display:none;">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-auto mx-auto text-center">
-                    <h2 class='text-center'>Species</h2>
-                    <div class="row justify-content-center">
-                        <select id="speciesselect" class="selectpicker" multiple data-live-search="true"></select>
-                    </div>
-                    <div class="container-fluid p-0">
-                        <div id="speciesresult" class="row no-gutters"></div>
-                    </div>
-                </div>
+    <section
+      id="species"
+      class="page-section bg-white mx-auto"
+      style="display: none"
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-auto mx-auto text-center">
+            <h2 class="text-center">Species</h2>
+            <div class="row justify-content-center">
+              <select
+                id="speciesselect"
+                class="selectpicker"
+                multiple
+                data-live-search="true"
+              ></select>
+            </div>
+            <div class="container-fluid p-0">
+              <div id="speciesresult" class="row no-gutters"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mx-auto text-center mt-5">
+          <div id="speciespager"></div>
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="reactions"
+      class="page-section bg-white mx-auto"
+      style="display: none"
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-auto mx-auto text-center">
+            <h2 class="text-center">Reactions</h2>
+            <h4 class="text-center">(sorted by frequency)</h4>
+            <div class="row justify-content-center">
+              <select
+                id="reactionsselect"
+                class="selectpicker"
+                multiple
+                data-live-search="true"
+              ></select>
+            </div>
+            <div class="container-fluid p-0">
+              <div id="reactionsresult" class="row no-gutters"></div>
             </div>
             <div class="mx-auto text-center mt-5">
-                <div id="speciespager"></div>
+              <div id="reactionspager"></div>
             </div>
+          </div>
         </div>
+      </div>
     </section>
 
-
-    <section id="reactions" class='page-section bg-white mx-auto' style="display:none;">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-auto mx-auto text-center">
-                    <h2 class='text-center'>Reactions</h2>
-                    <h4 class='text-center'>(sorted by frequency)</h4>
-                    <div class="row justify-content-center">
-                        <select id="reactionsselect" class="selectpicker" multiple data-live-search="true"></select>
-                    </div>
-                    <div class="container-fluid p-0">
-                        <div id="reactionsresult" class="row no-gutters"></div>
-                    </div>
-                    <div class="mx-auto text-center mt-5">
-                        <div id="reactionspager"></div>
-                    </div>
-                </div>
-	    </div>
-	</div>
-    </section>
-
-    <section id="reactionsabcd" class='page-section bg-white mx-auto d-none' style="display:none;">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-auto mx-auto text-center">
-                    <h2 class='text-center'>Reactions</h2>
-                    <h4 class='text-center'>(A+B->C+D)</h4>
-                    <div class="row justify-content-center">
-                        <select id="reactionsabcdselect" class="selectpicker" multiple data-live-search="true"></select>
-                    </div>
-                    <div class="container-fluid p-0">
-                        <div id="reactionsabcdresult" class="row no-gutters"></div>
-                    </div>
-                    <div class="mx-auto text-center mt-5">
-                        <div id="reactionsabcdpager"></div>
-                    </div>
-                </div>
+    <section
+      id="reactionsabcd"
+      class="page-section bg-white mx-auto d-none"
+      style="display: none"
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-auto mx-auto text-center">
+            <h2 class="text-center">Reactions</h2>
+            <h4 class="text-center">(A+B->C+D)</h4>
+            <div class="row justify-content-center">
+              <select
+                id="reactionsabcdselect"
+                class="selectpicker"
+                multiple
+                data-live-search="true"
+              ></select>
             </div>
+            <div class="container-fluid p-0">
+              <div id="reactionsabcdresult" class="row no-gutters"></div>
+            </div>
+            <div class="mx-auto text-center mt-5">
+              <div id="reactionsabcdpager"></div>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <section class="page-section bg-dark text-white" id="foot">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-8 mx-auto text-center">
-                    <p>Generated by&nbsp;<a href="https://docs.deepmodeling.com/projects/reacnetgenerator/">ReacNetGenerator</a></p>
-                    <p>
-                        <span class="citation"></span>
-                    </p>
-                </div>
-            </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-8 mx-auto text-center">
+            <p>
+              Generated by&nbsp;<a
+                href="https://docs.deepmodeling.com/projects/reacnetgenerator/"
+                >ReacNetGenerator</a
+              >
+            </p>
+            <p>
+              <span class="citation"></span>
+            </p>
+          </div>
         </div>
+      </div>
     </section>
 
-    <div id="canvassec" class='bg-white mx-auto'>
-        <div class="w-100 h-100 grid" id="canvas"></div>
-        <div class="savesvgarea" id="canvasbutton" style="display:none;">
-            <a href="javascript:savesvg();" class="button savesvgbutton">Save</a>
-            <a href="javascript:clearnode();" class="button clearbutton">Clear</a>
-        </div>
+    <div id="canvassec" class="bg-white mx-auto">
+      <div class="w-100 h-100 grid" id="canvas"></div>
+      <div class="savesvgarea" id="canvasbutton" style="display: none">
+        <a href="javascript:savesvg();" class="button savesvgbutton">Save</a>
+        <a href="javascript:clearnode();" class="button clearbutton">Clear</a>
+      </div>
     </div>
 
     <!-- obtain SMIELS SVG -->
-    <div id="tmpsvgdiv" style="display: none;">
-        <svg id="tmpsvg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+    <div id="tmpsvgdiv" style="display: none">
+      <svg
+        id="tmpsvg"
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+      ></svg>
     </div>
 
-    <script type="application/json" id="rngdata">PUTREACNETGENERATORDATAHERE</script>
-</body>
+    <script type="application/json" id="rngdata">
+      PUTREACNETGENERATORDATAHERE
+    </script>
+  </body>
 </html>
