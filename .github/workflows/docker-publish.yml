@@ -14,6 +14,10 @@ on:
   pull_request:
   merge_group:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   # TODO: Change variable to your image's name.
   IMAGE_NAME: reacnetgenerator
