@@ -17,7 +17,7 @@ repos:
       - id: mixed-line-ending
   # Python
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.3
+    rev: v0.3.4
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -36,7 +36,7 @@ repos:
         args: ["--write"]
   # C++
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.1
+    rev: v18.1.2
     hooks:
       - id: clang-format
   # Cython
