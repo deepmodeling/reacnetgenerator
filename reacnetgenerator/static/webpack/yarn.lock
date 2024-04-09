@@ -1109,9 +1109,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-loader@npm:7.0.0":
-  version: 7.0.0
-  resolution: "css-loader@npm:7.0.0"
+"css-loader@npm:7.1.0":
+  version: 7.1.0
+  resolution: "css-loader@npm:7.1.0"
   dependencies:
     icss-utils: "npm:^5.1.0"
     postcss: "npm:^8.4.33"
@@ -1129,7 +1129,7 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/dfd916dc9d7ecdda6d17a4798ef6f96cc61a3ed2f640c27ae17cfa2cbf534826ef402927e0650171d5a690945f98cc052ee7d6214146eb6f4ee917f98d726652
+  checksum: 10/7444ad8ea9927fead724412ba61aa6207eafff8d2cfa0bc2824301343353a1029e65b6583aa3e55d33e725e623edd0bcb44f407378033c39f58ce8b35f265f1e
   languageName: node
   linkType: hard
 
@@ -3840,7 +3840,7 @@ __metadata:
     animejs: "npm:3.2.2"
     bootstrap: "npm:5.3.3"
     bootstrap-select: "npm:1.14.0-beta3"
-    css-loader: "npm:7.0.0"
+    css-loader: "npm:7.1.0"
     css-minimizer-webpack-plugin: "npm:6.0.0"
     cssnano: "npm:6.1.1"
     cssnano-preset-advanced: "npm:6.1.1"
