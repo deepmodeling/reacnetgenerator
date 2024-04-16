@@ -1,10 +1,12 @@
 FROM python:3.12 AS compile-image
-RUN python -m venv /opt/venv
+RUN python -m pip install uv
+RUN python -m uv venv /opt/venv
 # Make sure we use the virtualenv
 ENV PATH="/opt/venv/bin:$PATH"
 # Install package
 COPY . /reacnetgenerator
-RUN pip install /reacnetgenerator && \
+RUN source /opt/venv/bin/activate && \
+    uv pip install /reacnetgenerator && \
     reacnetgenerator -h
 
 FROM python:3.12 AS build-image
