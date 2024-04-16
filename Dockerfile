@@ -3,7 +3,7 @@ RUN python -m pip install uv
 RUN python -m uv venv /opt/venv
 # Make sure we use the virtualenv
 ENV PATH="/opt/venv/bin:$PATH"
-ENV VIRTUAL_ENV="/opt/venv/bin"
+ENV VIRTUAL_ENV="/opt/venv"
 # Install package
 COPY . /reacnetgenerator
 RUN uv pip install /reacnetgenerator && \
