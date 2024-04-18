@@ -54,7 +54,7 @@ repos:
         # workflow files cannot be modified by pre-commit.ci
         exclude: ^conda/recipe/meta\.yaml|\.github/workflows
   - repo: https://github.com/FlamingTempura/bibtex-tidy
-    rev: v1.8.5
+    rev: v1.11.0
     hooks:
       - id: bibtex-tidy
         args:
