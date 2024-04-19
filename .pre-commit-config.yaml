@@ -53,6 +53,24 @@ repos:
         types_or: [markdown, yaml, css, html]
         # workflow files cannot be modified by pre-commit.ci
         exclude: ^conda/recipe/meta\.yaml|\.github/workflows
+  - repo: https://github.com/njzjz/mirrors-bibtex-tidy
+    rev: v1.11.0
+    hooks:
+      - id: bibtex-tidy
+        args:
+          - --curly
+          - --numeric
+          - --align=13
+          - --blank-lines
+          - --sort=key
+          - --duplicates=key,doi,citation,abstract
+          - --merge=combine
+          - --sort-fields
+          - --strip-comments
+          - --trailing-commas
+          - --encode-urls
+          - --remove-empty-fields
+          - --wrap=80
   # license header
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
