@@ -72,7 +72,7 @@ repos:
           - --encode-urls
           - --remove-empty-fields
           - --wrap=80
-        additional_dependencies: ['--ignore-scripts puppeteer']
+        additional_dependencies: ["--ignore-scripts puppeteer"]
   # license header
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
