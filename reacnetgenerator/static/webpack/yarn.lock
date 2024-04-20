@@ -681,7 +681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autoprefixer@npm:^10.4.18":
+"autoprefixer@npm:^10.4.19":
   version: 10.4.19
   resolution: "autoprefixer@npm:10.4.19"
   dependencies:
@@ -1109,6 +1109,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"css-declaration-sorter@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "css-declaration-sorter@npm:7.2.0"
+  peerDependencies:
+    postcss: ^8.0.9
+  checksum: 10/2acb9c13f556fc8f05e601e66ecae4cfdec0ed50ca69f18177718ad5a86c3929f7d0a2cae433fd831b2594670c6e61d3a25c79aa7830be5828dcd9d29219d387
+  languageName: node
+  linkType: hard
+
 "css-loader@npm:7.1.1":
   version: 7.1.1
   resolution: "css-loader@npm:7.1.1"
@@ -1235,20 +1244,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssnano-preset-advanced@npm:6.1.1":
-  version: 6.1.1
-  resolution: "cssnano-preset-advanced@npm:6.1.1"
+"cssnano-preset-advanced@npm:6.1.2":
+  version: 6.1.2
+  resolution: "cssnano-preset-advanced@npm:6.1.2"
   dependencies:
-    autoprefixer: "npm:^10.4.18"
+    autoprefixer: "npm:^10.4.19"
     browserslist: "npm:^4.23.0"
-    cssnano-preset-default: "npm:^6.1.1"
+    cssnano-preset-default: "npm:^6.1.2"
     postcss-discard-unused: "npm:^6.0.5"
     postcss-merge-idents: "npm:^6.0.3"
     postcss-reduce-idents: "npm:^6.0.3"
     postcss-zindex: "npm:^6.0.2"
   peerDependencies:
     postcss: ^8.4.31
-  checksum: 10/c5bdd5237347eb766db52dcfe2531c5583bdab10c29a28f6b327ae236939f3b45f5212471d20f17f1030ba73a39fa5db60da7008a61b18edc00277bf3200a23e
+  checksum: 10/2cdc4cb44e36cb08acef585c998d50caf7bdf1ef142cab179ebf5ad7831254380ee842fd17b72cb8d3be4cc39c27a45a2648a13f3dc02d28cce8aa33f1bcd556
   languageName: node
   linkType: hard
 
@@ -1328,6 +1337,46 @@ __metadata:
   peerDependencies:
     postcss: ^8.4.31
   checksum: 10/8d05c0f454087510bc5e3254d364e4d4a818b09d57be138f9e63e40e1665295db6f6abd2471a60675d8b2fb7774408a99d1b1fc5603f83e3b6d1ae8e6d64f1c2
+  languageName: node
+  linkType: hard
+
+"cssnano-preset-default@npm:^6.1.2":
+  version: 6.1.2
+  resolution: "cssnano-preset-default@npm:6.1.2"
+  dependencies:
+    browserslist: "npm:^4.23.0"
+    css-declaration-sorter: "npm:^7.2.0"
+    cssnano-utils: "npm:^4.0.2"
+    postcss-calc: "npm:^9.0.1"
+    postcss-colormin: "npm:^6.1.0"
+    postcss-convert-values: "npm:^6.1.0"
+    postcss-discard-comments: "npm:^6.0.2"
+    postcss-discard-duplicates: "npm:^6.0.3"
+    postcss-discard-empty: "npm:^6.0.3"
+    postcss-discard-overridden: "npm:^6.0.2"
+    postcss-merge-longhand: "npm:^6.0.5"
+    postcss-merge-rules: "npm:^6.1.1"
+    postcss-minify-font-values: "npm:^6.1.0"
+    postcss-minify-gradients: "npm:^6.0.3"
+    postcss-minify-params: "npm:^6.1.0"
+    postcss-minify-selectors: "npm:^6.0.4"
+    postcss-normalize-charset: "npm:^6.0.2"
+    postcss-normalize-display-values: "npm:^6.0.2"
+    postcss-normalize-positions: "npm:^6.0.2"
+    postcss-normalize-repeat-style: "npm:^6.0.2"
+    postcss-normalize-string: "npm:^6.0.2"
+    postcss-normalize-timing-functions: "npm:^6.0.2"
+    postcss-normalize-unicode: "npm:^6.1.0"
+    postcss-normalize-url: "npm:^6.0.2"
+    postcss-normalize-whitespace: "npm:^6.0.2"
+    postcss-ordered-values: "npm:^6.0.2"
+    postcss-reduce-initial: "npm:^6.1.0"
+    postcss-reduce-transforms: "npm:^6.0.2"
+    postcss-svgo: "npm:^6.0.3"
+    postcss-unique-selectors: "npm:^6.0.4"
+  peerDependencies:
+    postcss: ^8.4.31
+  checksum: 10/ea7515a8ee82df8ffecdaa39d5a7778264d215e56bef675daec8d0eedbbe7fe70853a4a4538ff6731c2260ca47c192eaf194883265a5abfd6abd006494611bc7
   languageName: node
   linkType: hard
 
@@ -3843,7 +3892,7 @@ __metadata:
     css-loader: "npm:7.1.1"
     css-minimizer-webpack-plugin: "npm:6.0.0"
     cssnano: "npm:6.1.1"
-    cssnano-preset-advanced: "npm:6.1.1"
+    cssnano-preset-advanced: "npm:6.1.2"
     d3: "npm:3.5.17"
     html-inline-css-webpack-plugin: "npm:1.11.2"
     html-webpack-plugin: "npm:5.6.0"
