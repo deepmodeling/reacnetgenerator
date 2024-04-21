@@ -63,10 +63,12 @@ reacnetgenerator -h
 See [the guide](guide/index) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](tutorial/index) to help you learn ReacNetGenerator.
 
 # Awards
-* The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
-* The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students
+
+- The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
+- The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students
 
 # Acknowledge
-* National Natural Science Foundation of China (Grants No. 91641116)
-* National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
-* ECNU Multifunctional Platform for Innovation (No. 001)
+
+- National Natural Science Foundation of China (Grants No. 91641116)
+- National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
+- ECNU Multifunctional Platform for Innovation (No. 001)

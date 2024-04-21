@@ -13,7 +13,7 @@ Zeng_2022_Chapter
 
 Please cite the above chapter if you follow the tutorial.
 
-----
+---
 
 In this tutorial, we will take the simulation of methane combustion as an example. All files needed in this section can be downloaded from [tongzhugroup/Chapter13-tutorial](https://github.com/tongzhugroup/Chapter13-tutorial).
 Besides ReacNetGenerator{cite:p}`Zeng_PhysChemChemPhys_2020_v22_p683`, DeePMD-kit{cite:p}`Wang_ComputPhysCommun_2018_v228_p178` (with LAMMPS{cite:p}`Thompson_ComputPhysCommun_2022_v271_p108171`) will be used to run simulations.
@@ -83,7 +83,8 @@ reacnetgenerator -i methane.lammpstrj -a C H O --dump
 
 Fig: The initial stage of combustion. The figure is taken from {cite:t}`Zeng_NatCommun_2020_v11_p5713` and more results can be found there.
 
-----
+---
+
 ## Acknowledge
 
-This work was supported by the National Natural Science Foundation of China (Grants No. 22173032, 21933010). J.Z. was supported in part by the National Institutes of Health (GM107485) under the direction of Darrin M. York.  We also thank the ECNU Multifunctional Platform for Innovation (No. 001) and the Extreme Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation Grant ACI-1548562.56 (specifically, the resources EXPANSE at SDSC through allocation TG-CHE190067), for providing supercomputer time.
+This work was supported by the National Natural Science Foundation of China (Grants No. 22173032, 21933010). J.Z. was supported in part by the National Institutes of Health (GM107485) under the direction of Darrin M. York. We also thank the ECNU Multifunctional Platform for Innovation (No. 001) and the Extreme Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation Grant ACI-1548562.56 (specifically, the resources EXPANSE at SDSC through allocation TG-CHE190067), for providing supercomputer time.

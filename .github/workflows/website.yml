@@ -6,6 +6,11 @@ on:
       - v*
   pull_request:
   merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
 name: Build website
 jobs:
   test:
@@ -17,15 +22,7 @@ jobs:
       with:
         python-version: '3.11'
         architecture: 'x64'
-    - name: pip cache
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key:
-          ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    - run: pip install tox
+    - run: pip install tox tox-uv
     - run: tox
       env:
         TOXENV: docs

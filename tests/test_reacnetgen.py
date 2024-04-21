@@ -2,7 +2,6 @@
 # cython: language_level=3
 """Test ReacNetGen."""
 
-
 import fileinput
 import itertools
 import json

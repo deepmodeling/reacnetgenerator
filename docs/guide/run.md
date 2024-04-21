@@ -5,6 +5,7 @@ After a [trajectory file](format.md) is prepared, you can process the file using
 ```bash
 reacnetgenerator --type dump -i dump.reaxc -a C H O --nohmm
 ```
+
 where C, H, and O are atomic names in the input file.
 `--type` decides the [format](format.md) of the trajectory file `dump.reaxc`.
 `--nohmm` controls whether [HMM filter](hmm.md) is enabled.
