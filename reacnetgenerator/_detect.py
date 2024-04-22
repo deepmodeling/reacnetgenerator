@@ -41,7 +41,7 @@ except ImportError:  # pragma: no cover
 from ase import Atom, Atoms
 from packaging import version
 
-from .dps import dps
+from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
 
 if version.parse(obversion) < version.parse("3.1.0"):  # pragma: no cover
