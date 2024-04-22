@@ -1,6 +1,5 @@
 #include <Python.h>
 
-extern "C" {
 class C_Stack {
 private:
   struct Node {
@@ -18,4 +17,3 @@ public:
 
   int pop();
 };
-}

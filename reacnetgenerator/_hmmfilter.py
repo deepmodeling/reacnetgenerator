@@ -40,7 +40,7 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
-from .utils_np import check_zero_signal, idx_to_signal
+from .utils_np import check_zero_signal, idx_to_signal  # type:ignore
 
 
 class _HMMFilter(SharedRNGData):
