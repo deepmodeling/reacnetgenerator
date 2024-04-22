@@ -31,8 +31,6 @@ try:
 except ImportError:
     from hmmlearn.hmm import MultinomialHMM
 
-from reacnetgenerator.utils_np import check_zero_signal, idx_to_signal
-
 from .utils import (
     SharedRNGData,
     WriteBuffer,
@@ -42,6 +40,7 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
+from .utils_np import check_zero_signal, idx_to_signal
 
 
 class _HMMFilter(SharedRNGData):

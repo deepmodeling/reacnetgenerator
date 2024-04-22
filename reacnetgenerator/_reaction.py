@@ -7,8 +7,7 @@ from collections import Counter, defaultdict
 
 import numpy as np
 
-from reacnetgenerator.dps import dps_reaction
-
+from .dps import dps_reaction
 from .utils import SharedRNGData, WriteBuffer, bytestolist, listtobytes, run_mp
 
 
