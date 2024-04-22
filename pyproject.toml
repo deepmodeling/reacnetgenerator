@@ -1,15 +1,13 @@
 [build-system]
 requires = [
-    "setuptools>=63",
-    "wheel",
-    "setuptools_scm[toml]",
+    "scikit-build-core>=0.9.0",
     "oldest-supported-numpy; python_version < '3.9'",
     "numpy>=2.0.0rc0; python_version >= '3.9'",
     "nodejs-wheel~=20.9",
     "pyyaml",
     "cython>=0.16",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "reacnetgenerator"
@@ -67,10 +65,10 @@ homepage = "https://github.com/deepmodeling/reacnetgenerator"
 documentation = "https://docs.deepmodeling.com/projects/reacnetgenerator/"
 repository = "https://github.com/deepmodeling/reacnetgenerator"
 
-[project.entry-points.console_scripts]
+[project.scripts]
 reacnetgenerator = "reacnetgenerator.commandline:_commandline"
 
-[project.entry-points.gui_scripts]
+[project.gui-scripts]
 reacnetgeneratorgui = "reacnetgenerator.gui:gui"
 
 [project.optional-dependencies]
@@ -99,14 +97,12 @@ docs = [
     "setuptools",
 ]
 
-[tool.setuptools.packages.find]
-include = ["reacnetgenerator*"]
-
-[tool.setuptools.package-data]
-reacnetgenerator = [
-    'static/webpack/bundle.html',
-    'static/img-title.png',
-]
+[tool.scikit-build]
+minimum-version = "0.9"
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+sdist.include = ["reacnetgenerator/_version.py"]
+sdist.exclude = ["reacnetgenerator/static/webpack/"]
+cmake.version = ">=3.18"
 
 [tool.setuptools_scm]
 write_to = "reacnetgenerator/_version2.py"

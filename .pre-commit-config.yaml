@@ -53,6 +53,11 @@ repos:
         types_or: [markdown, yaml, css, html]
         # workflow files cannot be modified by pre-commit.ci
         exclude: ^conda/recipe/meta\.yaml|\.github/workflows
+  # CMake
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+      - id: cmake-format
   - repo: https://github.com/njzjz/mirrors-bibtex-tidy
     rev: v1.11.0
     hooks:

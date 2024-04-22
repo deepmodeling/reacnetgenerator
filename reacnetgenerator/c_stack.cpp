@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-extern "C" {
 #include "c_stack.h"
-}
 
 C_Stack::C_Stack() {
   tail = new Node;
