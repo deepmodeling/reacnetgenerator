@@ -39,8 +39,9 @@ from .utils import (
     listtobytes,
     read_compressed_block,
     run_mp,
+    check_zero_signal
 )
-from .utils_np import check_zero_signal, idx_to_signal  # type:ignore
+from .utils_np import idx_to_signal  # type:ignore
 
 
 class _HMMFilter(SharedRNGData):
@@ -100,7 +101,7 @@ class _HMMFilter(SharedRNGData):
         originbytes = listtobytes(origin) if self.getoriginfile else None
         hmmbytes = None
         if self.runHMM:
-            hmmsignal = self._model.predict(origin).astype(np.int8)
+            hmmsignal = self._model.predict(origin).astype(bool)
             if check_zero_signal(hmmsignal) or self.printfiltersignal:
                 hmmbytes = listtobytes(hmmsignal)
         return originbytes, hmmbytes, line_c
