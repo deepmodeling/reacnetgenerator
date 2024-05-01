@@ -206,7 +206,7 @@ class ReacNetGenerator:
             "reactionabcdfilename": "reactionabcd",
         }
         assert set(necessary_key).issubset(set(kwargs)), (
-            "Must give neccessary key: %s" % ", ".join(necessary_key)
+            "Must give neccessary key: {}".format(", ".join(necessary_key))
         )
         assert set(kwargs).issubset(
             set(necessary_key) | set(default_value) | set(none_key) | set(file_key)

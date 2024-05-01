@@ -129,7 +129,7 @@ def main_parser() -> argparse.ArgumentParser:
         help="Download files before analysis, in the format of `--urls filename url`",
     )
     parser.add_argument(
-        "--version", action="version", version="ReacNetGenerator v%s" % __version__
+        "--version", action="version", version=f"ReacNetGenerator v{__version__}"
     )
     return parser
 
