@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Tests for the command line interface of the reacnetgenerator package."""
+
 import subprocess
 import sys
 
