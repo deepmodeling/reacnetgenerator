@@ -36,10 +36,10 @@ from .utils import (
     WriteBuffer,
     appendIfNotNone,
     bytestolist,
+    check_zero_signal,
     listtobytes,
     read_compressed_block,
     run_mp,
-    check_zero_signal
 )
 from .utils_np import idx_to_signal  # type:ignore
 
