@@ -57,8 +57,8 @@ def dps(bonds, levels):
                 mol.append(s)
                 nb = len(bonds[s])
                 for ib in range(nb):
-                    b = bonds[s][nb]
-                    ll = levels[s][nb]
+                    b = bonds[s][ib]
+                    ll = levels[s][ib]
                     b_c = b
                     if visited[b_c]==0:
                         bond.append((s, b, ll) if s < b else (b, s, ll))
