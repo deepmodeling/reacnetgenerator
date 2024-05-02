@@ -585,3 +585,30 @@ def must_be_list(obj: Union[Any, List[Any]]) -> List[Any]:
     if isinstance(obj, list):
         return obj
     return [obj]
+
+
+def check_zero_signal(signal: np.ndarray) -> bool:
+    """Check if the given signal contains only zeros.
+
+    Parameters
+    ----------
+    signal : 1D array of bool
+        The signal to check. The dtype should be bool.
+
+    Returns
+    -------
+    bool
+        False if the signal contains only zeros, True otherwise.
+    """
+    # Benchmark
+    # one_million_ones = np.ones(10**6, dtype=bool)
+    # %timeit reacnetgenerator.utils_np.check_zero_signal(one_million_ones)
+    # 808 ns ± 197 ns per loop (mean ± std. dev. of 7 runs, 1,000,000 loops each)
+    # %timeit one_million_ones.any()
+    # 17.9 µs ± 1.01 µs per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+    # %timeit one_million_ones[one_million_ones.argmax()]
+    # 561 ns ± 135 ns per loop (mean ± std. dev. of 7 runs, 1,000,000 loops each)
+    #
+    # any() doesn't have short-circuits, but argmax() does for bool.
+    # See https://stackoverflow.com/a/45774536/9567349
+    return signal[signal.argmax()]
