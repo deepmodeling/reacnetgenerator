@@ -93,11 +93,8 @@ def dps_reaction(reactdict):
     cdef set visited_right = set()
     visited = [visited_left, visited_right]
     cdef C_Stack st
-    cdef int nm, im, nr, ir
 
-    nm = len(reactdict[0])
-    for im in range(nm):
-        init_mol = reactdict[0][im]
+    for init_mol in reactdict[0]:
         if init_mol not in visited[0]:
             reaction = [[], []]
             st.push(init_mol)
@@ -109,9 +106,7 @@ def dps_reaction(reactdict):
                 elif mol in visited[side]:
                     continue
                 reaction[side].append(mol)
-                nr = len(reactdict[side][mol])
-                for ir in range(nr):
-                    r = reactdict[side][mol][ir]
+                for r in reactdict[side][mol]:
                     if r < 0:
                         if r not in reaction[1-side]:
                             reaction[1-side].append(r)
