@@ -80,6 +80,6 @@ if(FALSE)
     target_compile_definitions(utils_np PRIVATE CYTHON_TRACE=1
                                                 CYTHON_TRACE_NOGIL=1)
   endif()
-
-  install(TARGETS dps utils_np DESTINATION reacnetgenerator/)
+  install(TARGETS utils_np DESTINATION reacnetgenerator/)
 endif()
+install(TARGETS dps DESTINATION reacnetgenerator/)
