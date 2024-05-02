@@ -37,11 +37,11 @@ from .utils import (
     appendIfNotNone,
     bytestolist,
     check_zero_signal,
+    idx_to_signal,
     listtobytes,
     read_compressed_block,
     run_mp,
 )
-from .utils_np import idx_to_signal  # type:ignore
 
 
 class _HMMFilter(SharedRNGData):

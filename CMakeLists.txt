@@ -3,7 +3,8 @@ project(${SKBUILD_PROJECT_NAME} LANGUAGES C CXX)
 
 find_package(
   Python
-  COMPONENTS Interpreter Development.Module NumPy
+  COMPONENTS Interpreter Development.Module
+  # NumPy
   REQUIRED)
 
 # webpack
@@ -59,24 +60,26 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(dps PRIVATE CYTHON_TRACE=1 CYTHON_TRACE_NOGIL=1)
 endif()
 
-# utils_np
-add_custom_command(
-  OUTPUT utils_np.c
-  COMMENT
-    "Making ${CMAKE_CURRENT_BINARY_DIR}/utils_np.cpp from ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/utils_np.pyx"
-  COMMAND
-    Python::Interpreter -m cython
-    "${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/utils_np.pyx" --output-file
-    utils_np.c
-  DEPENDS reacnetgenerator/utils_np.pyx
-  VERBATIM)
+# utils_np temporary disable until limited api is supported
+if(FALSE)
+  add_custom_command(
+    OUTPUT utils_np.c
+    COMMENT
+      "Making ${CMAKE_CURRENT_BINARY_DIR}/utils_np.cpp from ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/utils_np.pyx"
+    COMMAND
+      Python::Interpreter -m cython
+      "${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/utils_np.pyx" --output-file
+      utils_np.c
+    DEPENDS reacnetgenerator/utils_np.pyx
+    VERBATIM)
 
-python_add_library(utils_np MODULE ${CMAKE_CURRENT_BINARY_DIR}/utils_np.c
-                   WITH_SOABI)
-target_link_libraries(utils_np PRIVATE Python::NumPy)
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_definitions(utils_np PRIVATE CYTHON_TRACE=1
-                                              CYTHON_TRACE_NOGIL=1)
+  python_add_library(utils_np MODULE ${CMAKE_CURRENT_BINARY_DIR}/utils_np.c
+                     WITH_SOABI)
+  target_link_libraries(utils_np PRIVATE Python::NumPy)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(utils_np PRIVATE CYTHON_TRACE=1
+                                                CYTHON_TRACE_NOGIL=1)
+  endif()
+
+  install(TARGETS dps utils_np DESTINATION reacnetgenerator/)
 endif()
-
-install(TARGETS dps utils_np DESTINATION reacnetgenerator/)
