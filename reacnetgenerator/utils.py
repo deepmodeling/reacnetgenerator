@@ -612,3 +612,30 @@ def check_zero_signal(signal: np.ndarray) -> bool:
     # any() doesn't have short-circuits, but argmax() does for bool.
     # See https://stackoverflow.com/a/45774536/9567349
     return signal[signal.argmax()]
+
+
+def idx_to_signal(idx: np.ndarray, step: int):
+    """Convert an index array to a signal array.
+
+    Parameters
+    ----------
+    idx : array_like
+        Index array.
+    step : int
+        Step size.
+
+    Returns
+    -------
+    signal : ndarray
+        Signal array in int8.
+    """
+    # Cython implementation is 1-2x faster than Python implementation.
+    # However, with it, it's hard to use the limited Python API:
+    # (1) https://github.com/cython/cython/issues/5697
+    # (2) memory view limited API only available since python 3.11
+    # when 1 is resolved, we may add back the Cython implementation
+    # for Python 3.11+ only (build two wheels).
+
+    signal = np.zeros(step, dtype=np.int8)
+    signal[idx] = 1
+    return signal.reshape((step, 1))
