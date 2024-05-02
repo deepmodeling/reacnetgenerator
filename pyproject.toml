@@ -2,7 +2,7 @@
 requires = [
     "scikit-build-core>=0.9.0",
     # "oldest-supported-numpy; python_version < '3.9'",
-    "numpy>=2.0.0rc0; python_version >= '3.9'",
+    # "numpy>=2.0.0rc0; python_version >= '3.9'",
     "nodejs-wheel~=20.9",
     "pyyaml",
     "cython>=3.0.1",
