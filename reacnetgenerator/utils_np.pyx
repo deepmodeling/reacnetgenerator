@@ -15,6 +15,7 @@ DTYPE8 = np.int8
 ctypedef np.int8_t DTYPE8_t
 
 
+@cython.binding(False)
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef idx_to_signal(DTYPE_t[:] idx, int step):

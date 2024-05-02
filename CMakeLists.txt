@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.18...3.28)
+cmake_minimum_required(VERSION 3.26...3.28)
 project(${SKBUILD_PROJECT_NAME} LANGUAGES C CXX)
 
 find_package(
   Python
-  COMPONENTS Interpreter Development.Module
+  COMPONENTS Interpreter Development.SABIModule
   # NumPy
   REQUIRED)
 
@@ -52,10 +52,16 @@ add_custom_command(
   VERBATIM)
 
 python_add_library(
-  dps MODULE ${CMAKE_CURRENT_BINARY_DIR}/dps.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/c_stack.cpp WITH_SOABI)
+  dps
+  MODULE
+  USE_SABI
+  3.7
+  ${CMAKE_CURRENT_BINARY_DIR}/dps.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/c_stack.cpp
+  WITH_SOABI)
 target_include_directories(dps
                            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator)
+target_compile_definitions(dps PRIVATE CYTHON_LIMITED_API=1)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(dps PRIVATE CYTHON_TRACE=1 CYTHON_TRACE_NOGIL=1)
 endif()
@@ -73,9 +79,10 @@ if(FALSE)
     DEPENDS reacnetgenerator/utils_np.pyx
     VERBATIM)
 
-  python_add_library(utils_np MODULE ${CMAKE_CURRENT_BINARY_DIR}/utils_np.c
-                     WITH_SOABI)
+  python_add_library(utils_np MODULE USE_SABI 3.11
+                     ${CMAKE_CURRENT_BINARY_DIR}/utils_np.c WITH_SOABI)
   target_link_libraries(utils_np PRIVATE Python::NumPy)
+  target_compile_definitions(utils_np PRIVATE CYTHON_LIMITED_API=1)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(utils_np PRIVATE CYTHON_TRACE=1
                                                 CYTHON_TRACE_NOGIL=1)
