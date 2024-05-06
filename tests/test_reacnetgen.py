@@ -124,6 +124,7 @@ class TestReacNetGen:
             nlines = detectclass._readNfunc(f)
         with fileinput.input(files=detectclass.inputfilename) as f:
             lines = next(itertools.zip_longest(*[f] * nlines))
+
         @benchmark
         def bench():
             detectclass._readstepfunc((0, lines))
@@ -142,6 +143,7 @@ class TestReacNetGen:
             listtobytes(((5, 6, 1),)),
             listtobytes(index),
         ]
+
         @benchmark
         def bench():
             hmmclass._getoriginandhmm(compressed_bytes)
