@@ -23,7 +23,7 @@ jobs:
         python-version: '3.11'
         architecture: 'x64'
     - run: pip install tox tox-gh-actions tox-uv
-    - uses: CodSpeedHQ/action
+    - uses: CodSpeedHQ/action@v2
       with:
         token: ${{ secrets.CODSPEED_TOKEN }}
         run: tox
