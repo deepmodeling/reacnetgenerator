@@ -23,9 +23,10 @@ jobs:
         python-version: '3.11'
         architecture: 'x64'
     - run: pip install tox tox-gh-actions tox-uv
-    - run: tox
-#    - run: conda build conda/recipe -c conda-forge --output-folder conda
-#      if: github.ref == 'refs/heads/master'
+    - uses: CodSpeedHQ/action
+      with:
+        token: ${{ secrets.CODSPEED_TOKEN }}
+        run: tox
     - uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
