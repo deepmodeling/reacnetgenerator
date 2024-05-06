@@ -1,31 +1,30 @@
 on:
-    push:
-      branches:
-        - master
-      tags:
-        - v*
-    pull_request:
-  
-  concurrency:
-    group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-    cancel-in-progress: true
-  
-  name: Benchmark
-  jobs:
-    test:
-      name: Test with tox
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          architecture: 'x64'
-      - run: pip install uv
-      - run: uv pip install --system .[test]
-      - name: Run benchmarks
-        uses: CodSpeedHQ/action@v2
-        with:
-          token: ${{ secrets.CODSPEED_TOKEN }}
-          run: pytest tests/ --codspeed
-  
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+name: Benchmark
+jobs:
+  test:
+    name: Test with tox
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        architecture: 'x64'
+    - run: pip install uv
+    - run: uv pip install --system .[test]
+    - name: Run benchmarks
+      uses: CodSpeedHQ/action@v2
+      with:
+        token: ${{ secrets.CODSPEED_TOKEN }}
+        run: pytest tests/ --codspeed
