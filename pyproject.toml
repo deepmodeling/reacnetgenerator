@@ -80,7 +80,7 @@ test = [
     'pytest-xvfb',
     "pytest-console-scripts",
     "pytest-mock",
-    "pytest-benchmark",
+    "pytest-codspeed",
 ]
 docs = [
     'sphinx',

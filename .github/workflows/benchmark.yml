@@ -5,13 +5,12 @@ on:
     tags:
       - v*
   pull_request:
-  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
-name: Test and deploy
+name: Benchmark
 jobs:
   test:
     name: Test with tox
@@ -22,8 +21,10 @@ jobs:
       with:
         python-version: '3.11'
         architecture: 'x64'
-    - run: pip install tox tox-gh-actions tox-uv
-    - run: tox
-    - uses: codecov/codecov-action@v4
+    - run: pip install uv
+    - run: uv pip install --system -e .[test]
+    - name: Run benchmarks
+      uses: CodSpeedHQ/action@v2
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ secrets.CODSPEED_TOKEN }}
+        run: pytest tests/ --codspeed

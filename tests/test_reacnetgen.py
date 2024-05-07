@@ -124,7 +124,10 @@ class TestReacNetGen:
             nlines = detectclass._readNfunc(f)
         with fileinput.input(files=detectclass.inputfilename) as f:
             lines = next(itertools.zip_longest(*[f] * nlines))
-        benchmark(detectclass._readstepfunc, (0, lines))
+
+        @benchmark
+        def bench():
+            detectclass._readstepfunc((0, lines))
 
     def test_benchmark_hmm(self, benchmark, reacnetgen_param):
         """Benchmark _getoriginandhmm."""
@@ -140,7 +143,10 @@ class TestReacNetGen:
             listtobytes(((5, 6, 1),)),
             listtobytes(index),
         ]
-        benchmark(hmmclass._getoriginandhmm, compressed_bytes)
+
+        @benchmark
+        def bench():
+            hmmclass._getoriginandhmm(compressed_bytes)
 
     def test_re(self, reacnetgen_param):
         """Test regular expression of _HTMLResult."""
