@@ -257,7 +257,6 @@ class ReacNetGenerator:
             processthing.extend(
                 (
                     self.Status.DETECT,
-                    self.Status.MISO,
                     self.Status.HMM,
                     self.Status.PATH,
                     self.Status.MATRIX,
@@ -277,7 +276,6 @@ class ReacNetGenerator:
         processthing.extend(
             (
                 self.Status.DETECT,
-                self.Status.MISO,
                 self.Status.HMM,
                 self.Status.PATH,
                 self.Status.MATRIX,
