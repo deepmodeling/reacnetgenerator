@@ -19,12 +19,17 @@ __copyright__ = (
     "Copyright 2018-2024, East China Normal University; Copyright 2024, DeepModeling"
 )
 
-import matplotlib as mpl
-
 from ._version import __version__
 
-mpl.use("svg")
 
-from .reacnetgen import ReacNetGenerator
+class ReacNetGenerator:
+    """Factory class for :class:`reacnetgenerator.reacnetgen.ReacNetGenerator`."""
+
+    def __new__(cls, *args, **kwargs):
+        """Create a new ReacNetGenerator instance."""
+        from .reacnetgen import ReacNetGenerator as RealRNG
+
+        return RealRNG(*args, **kwargs)
+
 
 __all__ = ["ReacNetGenerator", "__version__"]

@@ -8,7 +8,6 @@ import textwrap
 from typing import List
 
 from . import __version__
-from ._detect import _Detect
 
 
 def main_parser() -> argparse.ArgumentParser:
@@ -64,7 +63,8 @@ def main_parser() -> argparse.ArgumentParser:
         "--type",
         "-t",
         help="Input file type",
-        choices=list(_Detect.subclasses.keys()),
+        # manual ensure consistent
+        choices=["bond", "lammpsbondfile", "dump", "lammpsdumpfile", "xyz"],
         default="lammpsbondfile",
     )
     parser.add_argument("--nopbc", help="Disable PBC.", action="store_true")
