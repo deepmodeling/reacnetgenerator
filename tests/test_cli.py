@@ -4,6 +4,7 @@
 import subprocess
 import sys
 
+import pytest
 import reacnetgenerator
 
 
@@ -14,3 +15,11 @@ def test_module_script():
         [sys.executable, "-m", "reacnetgenerator", "--version"]
     ).decode("ascii")
     assert output.splitlines()[0] == f"ReacNetGenerator v{expected_version}"
+
+
+@pytest.mark.benchmark
+def test_cli():
+    """Test reacnetgenerator command."""
+    subprocess.check_output(
+        ["reacnetgenerator", "-h"]
+    ).decode("ascii")
