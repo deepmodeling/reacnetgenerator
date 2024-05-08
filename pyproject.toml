@@ -114,8 +114,9 @@ fallback_version = "Unknown"
 test-command = "reacnetgenerator -h"
 build = ["cp37-*", "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
-test-skip = "cp37-*"
-before-test = ["python -m pip install replace-pip-with-uv-pip"]
+# wait for openbabel
+test-skip = "cp37-* *-manylinux_aarch64"
+before-test = ["""python -m pip install "replace-pip-with-uv-pip; platform_system!='Linux' or platform_machine!='aarch64'" """]
 
 [tool.cibuildwheel.linux]
 environment-pass = ["CIBW_BUILD"]

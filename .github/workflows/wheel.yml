@@ -14,8 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  determine-arm64-runner:
+    runs-on: ubuntu-latest
+    permissions: read-all
+    outputs:
+      runner: ${{ steps.set-runner.outputs.runner }}
+    steps:
+      - name: Determine which runner to use for ARM64 build
+        id: set-runner
+        run: |
+          if [ "${{ github.repository_owner }}" == "deepmodeling" ]; then
+            echo "runner=[\"Linux\",\"ARM64\"]" >> $GITHUB_OUTPUT
+          else
+            echo "runner=\"ubuntu-latest\"" >> $GITHUB_OUTPUT
+          fi
   build_wheels:
     name: Build wheels for cp${{ matrix.python }}-${{ matrix.platform_id }}
+    needs: determine-arm64-runner
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -33,8 +48,16 @@ jobs:
           - os: windows-2019
             python: 38
             platform_id: win_amd64
+          # linux-aarch64
+          - os: ${{ fromJson(needs.determine-arm64-runner.outputs.runner) }}
+            python: 310
+            platform_id: manylinux_aarch64
+            dp_variant: cpu
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+        name: Setup QEMU
+        if: matrix.platform_id == 'manylinux_aarch64' && matrix.os == 'ubuntu-latest'
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.17
         env:
