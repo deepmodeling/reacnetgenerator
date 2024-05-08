@@ -26,6 +26,8 @@ def main_parser() -> argparse.ArgumentParser:
             """\
         Examples:
             reacnetgenerator --type bond -i bonds.reaxc -a C H O --nohmm
+            reacnetgenerator --type dump -i dump.reaxc -a C H O --nohmm
+            reacnetgenerator --type xyz -i md.xyz -a C H O --nohmm -c 10 0 0 0 10 0 0 0 10
         """
         ),
     )
