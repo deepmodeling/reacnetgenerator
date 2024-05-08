@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "css-loader": "7.1.1",
-    "css-minimizer-webpack-plugin": "6.0.0",
+    "css-minimizer-webpack-plugin": "7.0.0",
     "cssnano": "7.0.1",
     "cssnano-preset-advanced": "7.0.1",
     "html-inline-css-webpack-plugin": "1.11.2",
