@@ -38,7 +38,6 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
-from ._logging import logger
 
 
 class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
