@@ -5,6 +5,7 @@ import subprocess
 import sys
 
 import pytest
+
 import reacnetgenerator
 
 
@@ -20,6 +21,4 @@ def test_module_script():
 @pytest.mark.benchmark
 def test_cli():
     """Test reacnetgenerator command."""
-    subprocess.check_output(
-        ["reacnetgenerator", "-h"]
-    ).decode("ascii")
+    subprocess.check_output(["reacnetgenerator", "-h"]).decode("ascii")
