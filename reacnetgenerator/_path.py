@@ -55,6 +55,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     atomtype: np.ndarray
     selectatoms: list
     split: int
+    miso: int
     mname: np.ndarray
 
     def __init__(self, rng):
@@ -76,6 +77,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 "atomtype",
                 "selectatoms",
                 "split",
+                "miso",
             ],
             ["mname", "atomnames", "allmoleculeroute", "splitmoleculeroute"],
         )
@@ -314,6 +316,8 @@ class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = []
         d = defaultdict(list)
+        name_mapping = {}
+        name_mapping_graph = defaultdict(dict)
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         self.n_unknown = 0
         with WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm, open(
@@ -346,6 +350,23 @@ class _CollectSMILESPaths(_CollectPaths):
                     else:
                         d[str(molecule)].append(molecule)
                     name = molecule.smiles
+                if self.miso > 0:
+                    if name in name_mapping:
+                        name = name_mapping[name]
+                    else:
+                        # check if the name is isomorphic to the previous molecules
+                        molecule = Molecule(self, atoms, bonds)
+                        # the formula should be the same
+                        mng = name_mapping_graph[molecule.name]
+                        for isomer, mol in mng.items():
+                            if mol.isomorphic(molecule, em):
+                                # use the previous SMILES
+                                name_mapping[name] = isomer
+                                name = isomer
+                                break
+                        else:
+                            mng[name] = molecule
+                            name_mapping[name] = name
                 mname.append(name)
                 fm.append(listtostirng((name, atoms, bonds), sep=(" ", ";", ",")))
         self.mname = np.array(mname)
@@ -370,6 +391,7 @@ class Molecule:
         self.bonds = bonds
         self._atomtypes = cmp.atomtype[atoms]
         self._atomnames = cmp.atomnames[atoms]
+        self._miso = cmp.miso
         self.graph = self._makemoleculegraph()
         counter = Counter(self._atomnames)
         self.name = "".join(
@@ -402,7 +424,17 @@ class Molecule:
     def _makemoleculegraph(self):
         graph = nx.Graph()
         for line in self.bonds:
-            graph.add_edge(line[0], line[1], level=line[2])
+            if self._miso == 0:
+                # normal mode
+                graph.add_edge(line[0], line[1], level=line[2])
+            elif self._miso == 1:
+                # merge the isomers with same atoms and same bond-network but different bond orders
+                graph.add_edge(line[0], line[1], level=1)
+            elif self._miso == 2:
+                # merge the isomers with same atoms with different bond-network
+                pass
+            else:
+                raise ValueError(f"Unknown isomer identification method: {self._miso}.")
         for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
             graph.add_node(atomnumber, atom=atomtype)
         return graph

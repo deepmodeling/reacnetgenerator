@@ -59,7 +59,6 @@ from ._draw import _DrawNetwork
 from ._hmmfilter import _HMMFilter
 from ._logging import logger
 from ._matrix import _GenerateMatrix
-from ._mergeiso import _mergeISO
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
 from .utils import must_be_list
@@ -258,7 +257,6 @@ class ReacNetGenerator:
             processthing.extend(
                 (
                     self.Status.DETECT,
-                    self.Status.MISO,
                     self.Status.HMM,
                     self.Status.PATH,
                     self.Status.MATRIX,
@@ -278,7 +276,6 @@ class ReacNetGenerator:
         processthing.extend(
             (
                 self.Status.DETECT,
-                self.Status.MISO,
                 self.Status.HMM,
                 self.Status.PATH,
                 self.Status.MATRIX,
@@ -303,7 +300,6 @@ class ReacNetGenerator:
         - DOWNLOAD: Download trajectory from urls
         - DETECT: Read bond information and detect molecules
         - HMM: HMM filter
-        - MISO: Merge isomers
         - PATH: Indentify isomers and collect reaction paths
         - MATRIX: Reaction matrix generation
         - NETWORK: Draw reaction network
@@ -312,7 +308,6 @@ class ReacNetGenerator:
 
         INIT = "Init"
         DETECT = "Read bond information and detect molecules"
-        MISO = "Merge isomers"
         HMM = "HMM filter"
         PATH = "Indentify isomers and collect reaction paths"
         MATRIX = "Reaction matrix generation"
@@ -336,8 +331,6 @@ class ReacNetGenerator:
         for i, runstep in enumerate(steps, 1):
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self).detect()
-            elif runstep == self.Status.MISO:
-                _mergeISO(self).merge()
             elif runstep == self.Status.HMM:
                 _HMMFilter(self).filter()
             elif runstep == self.Status.PATH:
