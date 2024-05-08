@@ -28,6 +28,7 @@ class ReacNetGenerator:
     def __new__(cls, *args, **kwargs):
         """Create a new ReacNetGenerator instance."""
         from .reacnetgen import ReacNetGenerator as RealRNG
+
         return RealRNG(*args, **kwargs)
 
 
