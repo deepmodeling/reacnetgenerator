@@ -1,0 +1,11 @@
+changelog:
+  exclude:
+    authors:
+      - app/pre-commit-ci
+  categories:
+    - title: Dependencies update
+      labels:
+        - dependencies
+    - title: Other Changes
+      labels:
+        - "*"
