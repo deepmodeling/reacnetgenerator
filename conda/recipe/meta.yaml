@@ -18,23 +18,24 @@ requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - cmake >=3.26
+    - make  # [unix]
     - nodejs
   host:
     - python
     - pip
     - cython >=0.24.1
-    - setuptools >=61
     - setuptools_scm
-    - numpy
+    - scikit-build-core >=0.9.0
     - pyyaml
   run:
-    - python >=3.7
+    - python
     - openbabel
     - rdkit >=2018.09
     - numpy
     - pandas
     - networkx
-    - matplotlib
+    - matplotlib-base
     - hmmlearn >=0.2.1
     - ase
     - scour
