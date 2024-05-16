@@ -125,7 +125,9 @@ class _GenerateMatrix(SharedRNGData):
                     table[tuple(reactionnumber)] = n_reaction
 
         df = pd.DataFrame(
-            table[: len(species), : len(species)], index=species, columns=species  # type: ignore
+            table[: len(species), : len(species)],
+            index=species,
+            columns=species,  # type: ignore
         )
         df.to_csv(
             self.tablefilename
