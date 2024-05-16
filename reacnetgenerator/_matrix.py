@@ -124,10 +124,11 @@ class _GenerateMatrix(SharedRNGData):
                 if all(reactionnumber >= 0):
                     table[tuple(reactionnumber)] = n_reaction
 
+        species_idx = pd.Index(species)
         df = pd.DataFrame(
             table[: len(species), : len(species)],
-            index=species,
-            columns=species,  # type: ignore
+            index=species_idx,
+            columns=species_idx,
         )
         df.to_csv(
             self.tablefilename
