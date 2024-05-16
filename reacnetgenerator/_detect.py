@@ -173,11 +173,11 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         return listtobytes(np.array(x))
 
     @abstractmethod
-    def _readNfunc(self, f):
+    def _readNfunc(self, f) -> int:
         pass
 
     @abstractmethod
-    def _readstepfunc(self, item):
+    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
         pass
 
     def _connectmolecule(self, bond, level):
@@ -207,7 +207,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 @_Detect.register_subclass("bond")
 @_Detect.register_subclass("lammpsbondfile")
 class _DetectLAMMPSbond(_Detect):
-    def _readNfunc(self, f):
+    def _readNfunc(self, f) -> int:
         iscompleted = False
         N = None
         atomtype = None
@@ -236,10 +236,10 @@ class _DetectLAMMPSbond(_Detect):
         self.atomtype = atomtype
         return steplinenum
 
-    def _readstepfunc(self, item):
+    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
         step, lines = item
-        bond: list[Optional[Tuple[int]]] = [None] * self.N
-        level: list[Optional[Tuple[int]]] = [None] * self.N
+        bond: list[Optional[Tuple[int, ...]]] = [None] * self.N
+        level: list[Optional[Tuple[int, ...]]] = [None] * self.N
         timestep = None
         for line in lines:
             if line:
@@ -390,7 +390,7 @@ class _DetectLAMMPSdump(_DetectCrd):
         self.atomtype = atomtype
         return steplinenum
 
-    def _readstepfunc(self, item):
+    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
         step, lines = item
         step_atoms = []
         ss = []
@@ -439,7 +439,7 @@ class _DetectLAMMPSdump(_DetectCrd):
         zhi = ss[2][1]
         boxsize = np.array(
             [
-                [xhi - xlo, 0.0, 0.0],  # type: ignore
+                [xhi - xlo, 0.0, 0.0],
                 [xy, yhi - ylo, 0.0],
                 [xz, yz, zhi - zlo],
             ]
@@ -477,7 +477,7 @@ class _Detectxyz(_DetectCrd):
         steplinenum = N + 2
         return steplinenum
 
-    def _readstepfunc(self, item):
+    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
         step, lines = item
         timestep = step, step
         step_atoms = []
