@@ -36,7 +36,7 @@ def read_species(
     >>> from reacnetgenerator.tools import read_species
     >>> import matplotlib.pyplot as plt
     >>> step_idx, n_species = read_species('methane.species')
-    >>> plt.plot(step_idx, n_species['[H]C([H])([H])[H]'])
+    >>> plt.plot(step_idx, n_species['[H][C]([H])([H])[H]'])
     >>> plt.savefig("methane.svg")
     """
     step_idx = []
