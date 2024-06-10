@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build sdist
-        run: pipx run uv tool run --with build[uv] --from build python -m build --installer uv
+        run: pipx run uv tool run --with build[uv] --from build python -m build --installer uv --sdist
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-sdist
