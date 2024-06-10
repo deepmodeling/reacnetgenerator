@@ -68,17 +68,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
-
+.ipynb_checkpointscom
 # dotenv
 .env
 
@@ -197,3 +187,4 @@ pip-wheel-metadata/
 
 _build/
 reacnetgenerator/_version2.py
+.uv/
