@@ -68,7 +68,17 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpointscom
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
 # dotenv
 .env
 
