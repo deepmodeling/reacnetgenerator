@@ -58,13 +58,11 @@ jobs:
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
         if: runner.os != 'Linux'
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19
       - uses: docker/setup-qemu-action@v3
         name: Setup QEMU
         if: matrix.platform_id == 'manylinux_aarch64' && matrix.os == 'ubuntu-latest'
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.18
+        uses: pypa/cibuildwheel@v2.19
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
