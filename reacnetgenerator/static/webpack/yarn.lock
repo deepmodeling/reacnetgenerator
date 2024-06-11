@@ -2493,10 +2493,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magnific-popup@npm:1.1.0":
-  version: 1.1.0
-  resolution: "magnific-popup@npm:1.1.0"
-  checksum: 10/f88e9810f1d1ebf4779f16b327bb5b9ccba0c971b2323ab937ade225514f07942123a1119b151188742022dba0ac8835fef66ad7d9ce230936ea633104baf308
+"magnific-popup@npm:1.2.0":
+  version: 1.2.0
+  resolution: "magnific-popup@npm:1.2.0"
+  checksum: 10/eafe3a7cbed03a556df56cc804e5a37708f962ed8f4b4127f6bf961bb39cad14641051c4aa940e02e4c597eee6e974bca996d7a092fe8670f92ad89f0a74a4cc
   languageName: node
   linkType: hard
 
@@ -3498,7 +3498,7 @@ __metadata:
     ifdef-loader: "npm:2.3.2"
     jquery: "npm:3.7.1"
     jsrender: "npm:1.0.14"
-    magnific-popup: "npm:1.1.0"
+    magnific-popup: "npm:1.2.0"
     mini-css-extract-plugin: "npm:2.9.0"
     paginationjs: "npm:2.6.0"
     popper.js: "npm:1.16.1"
