@@ -86,7 +86,7 @@ docs = [
     'sphinx',
     'pydata-sphinx-theme',
     'numpydoc',
-    'sphinx-argparse',
+    'sphinx-argparse<0.5.0',
     'myst-nb>=1.0.0rc0',
     'sphinx-favicon>=1.0',
     "nodejs-wheel~=20.9",
