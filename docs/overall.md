@@ -54,7 +54,7 @@ conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 
-See [the guide](guide/index) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](tutorial/index) to help you learn ReacNetGenerator.
+See [the guide](guide/index) to learn how to install and use ReacNetGenerator. We also provide [a series of tutorials](tutorial/index) to help you learn ReacNetGenerator.
 
 ## Awards
 
