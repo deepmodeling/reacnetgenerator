@@ -11,7 +11,7 @@ An automatic reaction network generator for reactive molecular dynamics simulati
 Get Started
 ```
 
-::::{grid} 3
+::::{grid} 1 2 3 3
 :::{grid-item-card} Trajectory
 Processing of MD trajectory containing atomic coordinates or bond orders
 :::
