@@ -1,32 +1,33 @@
-![Logo](_static/reacnetgen.svg)
+![Logo](_static/reacnetgen.svg){.reacnetgenerator-logo}
 
 # ReacNetGenerator
 
 An automatic reaction network generator for reactive molecular dynamics simulation
 
 ```{button-ref} ./guide/install
-Get Started
 :color: primary
 :shadow:
+
+Get Started
 ```
 
 ::::{grid} 3
-:::{grid-item-card} Trajectory
+:::{grid-item-card}  Trajectory
 Processing of MD trajectory containing atomic coordinates or bond orders
 :::
-:::{grid-item-card} Filtering
+:::{grid-item-card}  Filtering
 Hidden Markov Model (HMM) based noise filtering
 :::
-:::{grid-item-card} Isomers
+:::{grid-item-card}  Isomers
 Isomers identifying accoarding to SMILES
 :::
-:::{grid-item-card} Network
+:::{grid-item-card}  Network
 Generation of reaction network for visualization using force-directed algorithm
 :::
-:::{grid-item-card} HTML5
+:::{grid-item-card}  HTML5
 Showing an interactive web page
 :::
-:::{grid-item-card} Fast
+:::{grid-item-card}  Fast
 Parallel computing and performance optimization
 :::
 ::::
@@ -65,3 +66,4 @@ See [the guide](guide/index) to learn how to install and use ReacNetGenerattor. 
 - National Natural Science Foundation of China (Grants No. 91641116)
 - National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
 - ECNU Multifunctional Platform for Innovation (No. 001)
+
