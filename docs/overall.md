@@ -4,14 +4,32 @@
 
 An automatic reaction network generator for reactive molecular dynamics simulation
 
-<a href="/guide/install.html" class="nav-link action-button">Get Started</a>
+```{button-ref} ./guide/install
+Get Started
+:color: primary
+:shadow:
+```
 
-- **Trajectory**: Processing of MD trajectory containing atomic coordinates or bond orders
-- **Filtering**: Hidden Markov Model (HMM) based noise filtering
-- **Isomers**: Isomers identifying accoarding to SMILES
-- **Network**: Generation of reaction network for visualization using force-directed algorithm
-- **HTML5**: Showing an interactive web page
-- **Fast**: Parallel computing and performance optimization
+::::{grid} 3
+:::{grid-item-card}  Trajectory
+Processing of MD trajectory containing atomic coordinates or bond orders
+:::
+:::{grid-item-card}  Filtering
+Hidden Markov Model (HMM) based noise filtering
+:::
+:::{grid-item-card}  Isomers
+Isomers identifying accoarding to SMILES
+:::
+:::{grid-item-card}  Network
+Generation of reaction network for visualization using force-directed algorithm
+:::
+:::{grid-item-card}  HTML5
+Showing an interactive web page
+:::
+:::{grid-item-card}  Fast
+Parallel computing and performance optimization
+:::
+::::
 
 <div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
 
