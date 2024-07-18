@@ -1,5 +1,3 @@
-<header class="hero">
-
 ![Logo](_static/reacnetgen.svg)
 
 # ReacNetGenerator
@@ -8,39 +6,16 @@ An automatic reaction network generator for reactive molecular dynamics simulati
 
 <a href="/guide/install.html" class="nav-link action-button">Get Started</a>
 
-</header>
-
-<div class="features">
-
-<h2>Trajectory</h2>
-
-Processing of MD trajectory containing atomic coordinates or bond orders
-
-<h2>Filtering</h2>
-
-Hidden Markov Model (HMM) based noise filtering
-
-<h2>Isomers</h2>
-
-Isomers identifying accoarding to SMILES
-
-<h2>Network</h2>
-
-Generation of reaction network for visualization using force-directed algorithm
-
-<h2>HTML5</h2>
-
-Showing an interactive web page
-
-<h2>Fast</h2>
-
-Parallel computing and performance optimization
-
-</div>
+- **Trajectory**: Processing of MD trajectory containing atomic coordinates or bond orders
+- **Filtering**: Hidden Markov Model (HMM) based noise filtering
+- **Isomers**: Isomers identifying accoarding to SMILES
+- **Network**: Generation of reaction network for visualization using force-directed algorithm
+- **HTML5**: Showing an interactive web page
+- **Fast**: Parallel computing and performance optimization
 
 <div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
 
-# Citation and contact
+## Citation and contact
 
 ```{bibliography}
 ---
@@ -51,7 +26,7 @@ Zeng_PhysChemChemPhys_2020_v22_p683
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
-# Guide and Tutorials
+## Guide and Tutorials
 
 You can install ReacNetGenerator with `conda`:
 
@@ -62,12 +37,12 @@ reacnetgenerator -h
 
 See [the guide](guide/index) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](tutorial/index) to help you learn ReacNetGenerator.
 
-# Awards
+## Awards
 
 - The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
 - The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students
 
-# Acknowledge
+## Acknowledge
 
 - National Natural Science Foundation of China (Grants No. 91641116)
 - National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
