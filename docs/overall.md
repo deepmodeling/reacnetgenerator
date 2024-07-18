@@ -12,27 +12,27 @@ An automatic reaction network generator for reactive molecular dynamics simulati
 
 <div class="features">
 
-## Trajectory
+<h2>Trajectory</h2>
 
 Processing of MD trajectory containing atomic coordinates or bond orders
 
-## Filtering
+<h2>Filtering</h2>
 
 Hidden Markov Model (HMM) based noise filtering
 
-## Isomers
+<h2>Isomers</h2>
 
 Isomers identifying accoarding to SMILES
 
-## Network
+<h2>Network</h2>
 
 Generation of reaction network for visualization using force-directed algorithm
 
-## HTML5
+<h2>HTML5</h2>
 
 Showing an interactive web page
 
-## Fast
+<h2>Fast</h2>
 
 Parallel computing and performance optimization
 
