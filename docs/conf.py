@@ -112,6 +112,7 @@ enable_deepmodeling = False
 myst_enable_extensions = [
     "dollarmath",
     "colon_fence",
+    "attrs_inline",
 ]
 mathjax_path = (
     "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"

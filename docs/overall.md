@@ -19,7 +19,7 @@ Processing of MD trajectory containing atomic coordinates or bond orders
 Hidden Markov Model (HMM) based noise filtering
 :::
 :::{grid-item-card} Isomers
-Isomers identifying accoarding to SMILES
+Isomers identifying according to SMILES
 :::
 :::{grid-item-card} Network
 Generation of reaction network for visualization using force-directed algorithm
