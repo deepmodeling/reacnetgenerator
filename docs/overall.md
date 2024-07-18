@@ -1,46 +1,40 @@
-<header class="hero">
-
-![Logo](_static/reacnetgen.svg)
+![Logo](_static/reacnetgen.svg){.reacnetgenerator-logo}
 
 # ReacNetGenerator
 
 An automatic reaction network generator for reactive molecular dynamics simulation
 
-<a href="/guide/install.html" class="nav-link action-button">Get Started</a>
+```{button-ref} ./guide/install
+:color: primary
+:shadow:
 
-</header>
+Get Started
+```
 
-<div class="features">
-
-## Trajectory
-
+::::{grid} 1 2 3 3
+:::{grid-item-card} Trajectory
 Processing of MD trajectory containing atomic coordinates or bond orders
-
-## Filtering
-
+:::
+:::{grid-item-card} Filtering
 Hidden Markov Model (HMM) based noise filtering
-
-## Isomers
-
-Isomers identifying accoarding to SMILES
-
-## Network
-
+:::
+:::{grid-item-card} Isomers
+Isomers identifying according to SMILES
+:::
+:::{grid-item-card} Network
 Generation of reaction network for visualization using force-directed algorithm
-
-## HTML5
-
+:::
+:::{grid-item-card} HTML5
 Showing an interactive web page
-
-## Fast
-
+:::
+:::{grid-item-card} Fast
 Parallel computing and performance optimization
-
-</div>
+:::
+::::
 
 <div class="bilitube" data-youtube="TI21SI9YPfo" data-bvid="BV175411N7uG">Loading...</div>
 
-# Citation and contact
+## Citation and contact
 
 ```{bibliography}
 ---
@@ -51,7 +45,7 @@ Zeng_PhysChemChemPhys_2020_v22_p683
 
 jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
-# Guide and Tutorials
+## Guide and Tutorials
 
 You can install ReacNetGenerator with `conda`:
 
@@ -60,14 +54,14 @@ conda install reacnetgenerator -c conda-forge
 reacnetgenerator -h
 ```
 
-See [the guide](guide/index) to learn how to install and use ReacNetGenerattor. We also provide [a series of tutorials](tutorial/index) to help you learn ReacNetGenerator.
+See [the guide](guide/index) to learn how to install and use ReacNetGenerator. We also provide [a series of tutorials](tutorial/index) to help you learn ReacNetGenerator.
 
-# Awards
+## Awards
 
 - The First Prize in 2019 (the 11th Session) Shanghai Computer Application Competition for College Students
 - The First Prize in 2019 (the 12th Session) Chinese Computer Design Competition for College Students
 
-# Acknowledge
+## Acknowledge
 
 - National Natural Science Foundation of China (Grants No. 91641116)
 - National Innovation and Entrepreneurship Training Program for Undergraduate (201910269080)
