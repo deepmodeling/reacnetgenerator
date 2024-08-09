@@ -1355,7 +1355,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssnano@npm:7.0.1, cssnano@npm:^7.0.1":
+"cssnano@npm:7.0.5":
+  version: 7.0.5
+  resolution: "cssnano@npm:7.0.5"
+  dependencies:
+    cssnano-preset-default: "npm:^7.0.5"
+    lilconfig: "npm:^3.1.2"
+  peerDependencies:
+    postcss: ^8.4.31
+  checksum: 10/730095a9c1f149aa36d3f72c600756f974bd20f22e02fae560854f1cddb149579d20152355859f358bcda5da6811ee5b6b1db546d56795dce41a6ac433d56b9f
+  languageName: node
+  linkType: hard
+
+"cssnano@npm:^7.0.1":
   version: 7.0.1
   resolution: "cssnano@npm:7.0.1"
   dependencies:
@@ -2448,6 +2460,13 @@ __metadata:
   version: 3.1.1
   resolution: "lilconfig@npm:3.1.1"
   checksum: 10/c80fbf98ae7d1daf435e16a83fe3c63743b9d92804cac6dc53ee081c7c265663645c3162d8a0d04ff1874f9c07df145519743317dee67843234c6ed279300f83
+  languageName: node
+  linkType: hard
+
+"lilconfig@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "lilconfig@npm:3.1.2"
+  checksum: 10/8058403850cfad76d6041b23db23f730e52b6c17a8c28d87b90766639ca0ee40c748a3e85c2d7bd133d572efabff166c4b015e5d25e01fd666cb4b13cfada7f0
   languageName: node
   linkType: hard
 
@@ -3743,7 +3762,7 @@ __metadata:
     bootstrap-select: "npm:1.14.0-beta3"
     css-loader: "npm:7.1.2"
     css-minimizer-webpack-plugin: "npm:7.0.0"
-    cssnano: "npm:7.0.1"
+    cssnano: "npm:7.0.5"
     cssnano-preset-advanced: "npm:7.0.5"
     d3: "npm:3.5.17"
     html-inline-css-webpack-plugin: "npm:1.11.2"
