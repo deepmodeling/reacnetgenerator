@@ -45,7 +45,7 @@ jobs:
             type=ref,event=tag
             type=ref,event=pr
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ github.repository_owner == 'deepmodeling' && github.event_name == 'push' && github.actor != 'dependabot[bot]' }}
