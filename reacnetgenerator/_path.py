@@ -19,6 +19,7 @@ References
 """
 
 import itertools
+import re
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
 
@@ -217,6 +218,38 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             allmoleculeroute = np.unique(allmoleculeroute, axis=0)
         return allmoleculeroute
 
+    def _re(self, smi):
+        """If you use RDkit to convert a methyl radical to SMILES, you will get something
+        like [H]C([H])[H]. However, OpenBabel will consider it as a methane molecule. So,
+        you have to use [H][C]([H])[H], if you need to process some radicals.
+
+        Examples
+        --------
+        >>> self._re('C')
+        [C]
+        >>> self._re('[C]')
+        [C]
+        >>> self._re('[CH]')
+        [CH]
+        >>> self._re('Na')
+        [Na]
+        >>> self._re('[H]c(Cl)C([H])Cl')
+        [H][c]([Cl])[C]([H])[Cl]
+        """
+        if "_unknownSMILES" in smi:
+            # not SMILES
+            return smi
+        Satom = sorted(self.atomname, key=len, reverse=True)
+        elements = "|".join(
+            [
+                ((an.upper() + "|" + an.lower()) if len(an) == 1 else an)
+                for an in Satom
+                if an != "H"
+            ]
+        )
+        smi = re.sub(r"(?<!\[)(" + elements + r")(?!H)", r"[\1]", smi)
+        return smi.replace("[HH]", "[H]")
+
     def convertSMILES(self, atoms, bonds):
         """Convert atoms and bonds information to SMILES.
 
@@ -236,7 +269,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             a.SetNoImplicit(True)
             a.UpdatePropertyCache()
         name = Chem.MolToSmiles(m)
-        return name
+        return self._re(name)
 
     def _getatomsandbonds(self, line):
         atoms = np.array(bytestolist(line[0]), dtype=int)
