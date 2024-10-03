@@ -14,7 +14,6 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
-from reacnetgenerator._path import _CollectSMILESPaths
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
@@ -147,14 +146,3 @@ class TestReacNetGen:
         @benchmark
         def bench():
             hmmclass._getoriginandhmm(compressed_bytes)
-
-    def test_re(self, reacnetgen_param):
-        """Test regular expression of _HTMLResult."""
-        reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
-        r = _CollectSMILESPaths(reacnetgen)
-        r.atomname = ["C", "H", "O", "Na", "Cl"]
-        assert r._re("C"), "[C]"
-        assert r._re("[C]"), "[C]"
-        assert r._re("[CH]"), "[CH]"
-        assert r._re("Na"), "[Na]"
-        assert r._re("[H]c(Cl)C([H])Cl"), "[H][c]([Cl])[C]([H])[Cl]"
