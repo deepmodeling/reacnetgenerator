@@ -232,7 +232,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         for atom1, atom2, level in bonds:
             m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
         # https://github.com/rdkit/rdkit/discussions/6613#discussioncomment-6688021
-        for a in m.GetAtoms():
+        for a in m.GetAtoms():  # type:ignore
             a.SetNoImplicit(True)
             a.UpdatePropertyCache()
         name = Chem.MolToSmiles(m)
