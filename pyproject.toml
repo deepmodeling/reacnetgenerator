@@ -201,14 +201,29 @@ pass_env = [
     "TOXENV",
 ]
 set_env = { DEBUG = "1" }
-commands = [["pytest --pyargs tests --cov --cov-report term --cov-report xml --cov-config={toxinidir}/pyproject.toml"]]
+commands = [[
+    "pytest",
+    "--pyargs",
+    "tests",
+    "--cov",
+    "--cov-report",
+    "term",
+    "--cov-report",
+    "xml",
+    "--cov-config={toxinidir}/pyproject.toml"
+]]
 
-[tool.tox.env.type]
+[tool.tox.env.docs]
 description = "invoke sphinx-build to build the HTML docs"
 extras = [
     "docs",
 ]
-commands = [["mypy", "src{/}tox"], ["mypy", "tests"]]
+commands = [[
+    "make",
+    "-C",
+    "{toxinidir}/docs",
+    "html"
+]]
 allowlist_externals = [
     "make",
 ]
