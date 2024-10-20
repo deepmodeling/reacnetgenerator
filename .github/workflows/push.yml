@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: '3.11'
         architecture: 'x64'
-    - run: pip install tox tox-gh-actions tox-uv
+    - run: pip install tox tox-gh tox-uv
     - run: tox
     - uses: codecov/codecov-action@v4
       with:

@@ -173,3 +173,51 @@ ignore = [
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
+
+[tool.tox]
+requires = ["tox>=4.19"]
+env_list = [
+    "3.13",
+    "3.12",
+    "3.11",
+    "3.10",
+    "3.9",
+    "3.8",
+    "3.7",
+    "docs",
+]
+
+[tool.tox.env_run_base]
+description = "Run test under {base_python}"
+package = "editable"
+extras = [
+    "test",
+]
+pass_env = [
+    "CI",
+    "CODACY_*",
+    "CODECOV_*",
+    "GITHUB_*",
+    "TOXENV",
+]
+set_env = { DEBUG = "1" }
+commands = [["pytest --pyargs tests --cov --cov-report term --cov-report xml --cov-config={toxinidir}/pyproject.toml"]]
+
+[tool.tox.env.type]
+description = "invoke sphinx-build to build the HTML docs"
+extras = [
+    "docs",
+]
+commands = [["mypy", "src{/}tox"], ["mypy", "tests"]]
+allowlist_externals = [
+    "make",
+]
+
+[tool.tox.gh.python]
+"3.13" = ["3.13"]
+"3.12" = ["3.12"]
+"3.11" = ["3.11"]
+"3.10" = ["3.10"]
+"3.9" = ["3.9"]
+"3.8" = ["3.8"]
+"3.7" = ["3.7"]
