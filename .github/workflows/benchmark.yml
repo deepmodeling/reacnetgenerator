@@ -15,7 +15,7 @@ jobs:
   test:
     name: Benchmark with codspeed
     if: ${{ github.repository_owner == 'deepmodeling' }}
-    runs-on: codspeed
+    runs-on: codspeed-macro
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
