@@ -84,7 +84,7 @@ test = [
 ]
 docs = [
     'sphinx',
-    'pydata-sphinx-theme',
+    'sphinx-book-theme',
     'numpydoc',
     'sphinx-argparse<0.5.0',
     'myst-nb>=1.0.0rc0',
