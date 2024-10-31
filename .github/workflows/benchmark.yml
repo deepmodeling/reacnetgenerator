@@ -13,8 +13,9 @@ concurrency:
 name: Benchmark
 jobs:
   test:
-    name: Test with tox
-    runs-on: ubuntu-latest
+    name: Benchmark with codspeed
+    if: ${{ github.repository_owner == 'deepmodeling' }}
+    runs-on: codspeed
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
