@@ -16,7 +16,7 @@ Note that $\ce{A + B -> C + D}$ information may be not accurate when [HMM](hmm.m
 suffix: `.json`
 
 The JSON file storing necessary data for the web page.
-You can load it through the <a href="/report.html" target="_blank">web page loader</a>.
+You can load it through the <a href="../report.html" target="_blank">web page loader</a>.
 
 ## Species file
 
