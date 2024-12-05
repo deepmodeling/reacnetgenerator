@@ -19,4 +19,4 @@ Examples
    :maxdepth: 2
    :caption: Publications
 
-   Publications driven by ReacNetGenerator <http://njzjz.win/reacnetgenerator/>
+   Publications driven by ReacNetGenerator <https://blogs.deepmodeling.com/papers/ReacNetGenerator/>
