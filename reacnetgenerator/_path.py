@@ -247,7 +247,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 if an != "H"
             ]
         )
-        smi = re.sub(r"(?<!\[)(" + elements + r")(?!H)", r"[\1]", smi)
+        smi = re.sub(r"(?<!\[)(" + elements + r")(?!H|\])", r"[\1]", smi)
         return smi.replace("[HH]", "[H]")
 
     def convertSMILES(self, atoms, bonds):
