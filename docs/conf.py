@@ -20,7 +20,7 @@ from datetime import datetime
 # -- Project information -----------------------------------------------------
 
 project = "ReacNetGenerator"
-copyright = "2019-%d, DeepModeling" % datetime.now().year
+copyright = f"2019-{datetime.now().year}, DeepModeling"
 author = "Jinzhe Zeng"
 
 # The full version, including alpha/beta/rc tags
