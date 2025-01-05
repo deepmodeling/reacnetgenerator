@@ -267,7 +267,6 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         # https://github.com/rdkit/rdkit/discussions/6613#discussioncomment-6688021
         for a in m.GetAtoms():  # type:ignore
             a.SetNoImplicit(True)
-            a.UpdatePropertyCache()
         name = Chem.MolToSmiles(m)
         return self._re(name)
 
