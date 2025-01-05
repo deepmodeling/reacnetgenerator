@@ -39,6 +39,8 @@ repos:
     rev: v19.1.5
     hooks:
       - id: clang-format
+        exclude: \.ipynb$
+
   # Cython
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.16.6
