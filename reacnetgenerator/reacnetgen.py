@@ -204,9 +204,9 @@ class ReacNetGenerator:
             "jsonfilename": "json",
             "reactionabcdfilename": "reactionabcd",
         }
-        assert set(necessary_key).issubset(
-            set(kwargs)
-        ), "Must give neccessary key: {}".format(", ".join(necessary_key))
+        assert set(necessary_key).issubset(set(kwargs)), (
+            "Must give neccessary key: {}".format(", ".join(necessary_key))
+        )
         assert set(kwargs).issubset(
             set(necessary_key) | set(default_value) | set(none_key) | set(file_key)
         ), "Unsupported key"
@@ -347,7 +347,7 @@ class ReacNetGenerator:
             gc.collect()
             timearray.append(time.perf_counter())
             logger.info(
-                f"Step {i}: Done! Time consumed (s): {timearray[-1]-timearray[-2]:.3f} ({runstep})"
+                f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({runstep})"
             )
 
         # delete tempfile
@@ -364,7 +364,7 @@ class ReacNetGenerator:
                     pass
         # Summary
         logger.info("====== Summary ======")
-        logger.info(f"Total time(s): {timearray[-1]-timearray[0]:.3f} s")
+        logger.info(f"Total time(s): {timearray[-1] - timearray[0]:.3f} s")
 
 
 # Please import ReacNetGenerator class from reacnetgenerator instead of reacnetgenerator.reacnetgen
