@@ -112,7 +112,10 @@ write_to = "reacnetgenerator/_version2.py"
 fallback_version = "Unknown"
 
 [tool.cibuildwheel]
-test-command = "reacnetgenerator -h"
+test-command = [
+  "reacnetgenerator -h",
+  "reacnetgenerator --version",
+]
 build = ["cp37-*", "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
 # wait for openbabel
