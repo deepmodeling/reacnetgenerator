@@ -103,7 +103,7 @@ docs = [
 minimum-version = "0.9"
 wheel.py-api = "cp37"
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
-sdist.include = ["reacnetgenerator/_version.py"]
+sdist.include = ["reacnetgenerator/_version2.py"]
 sdist.exclude = ["reacnetgenerator/static/webpack/"]
 cmake.version = ">=3.26"
 
@@ -112,7 +112,10 @@ write_to = "reacnetgenerator/_version2.py"
 fallback_version = "Unknown"
 
 [tool.cibuildwheel]
-test-command = "reacnetgenerator -h"
+test-command = [
+  "reacnetgenerator -h",
+  "reacnetgenerator --version",
+]
 build = ["cp37-*", "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
 # wait for openbabel
