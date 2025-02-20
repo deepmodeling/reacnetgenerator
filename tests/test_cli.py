@@ -24,7 +24,7 @@ def test_cli():
     subprocess.check_output(["reacnetgenerator", "-h"]).decode("ascii")
 
 
-@pytest.mark.parametrize("mod_name", ["reacnetgenerator.commandline"]
+@pytest.mark.parametrize("mod_name", ["reacnetgenerator.commandline"])
 def test_bench_module_import():
     @benchmark
     def _():
