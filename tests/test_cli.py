@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Tests for the command line interface of the reacnetgenerator package."""
 
+import importlib
 import subprocess
 import sys
 from unittest import mock
@@ -25,7 +26,7 @@ def test_cli():
 
 
 @pytest.mark.parametrize("mod_name", ["reacnetgenerator.commandline"])
-def test_bench_module_import():
+def test_bench_module_import(benchmark, mod_name):
     @benchmark
     def _():
         with mock.patch("sys.modules", {}):
