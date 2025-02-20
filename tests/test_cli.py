@@ -27,6 +27,7 @@ def test_cli():
 
 @pytest.mark.parametrize("mod_name", ["reacnetgenerator.commandline"])
 def test_bench_module_import(benchmark, mod_name):
+    """Benchmark the import time."""
     @benchmark
     def _():
         with mock.patch("sys.modules", {}):
