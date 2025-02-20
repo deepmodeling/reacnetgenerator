@@ -30,4 +30,3 @@ def test_bench_module_import():
     def _():
         with mock.patch("sys.modules", {}):
             importlib.import_module(mod_name, "test_bench_imports")
-    
