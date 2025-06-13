@@ -8,7 +8,7 @@ An automatic reaction network generator for reactive molecular dynamics simulati
 
 ReacNetGenerator: an automatic reaction network generator for reactive molecular dynamic simulations, Phys. Chem. Chem. Phys., 2020, 22 (2): 683–691, doi: [10.1039/C9CP05091D](https://dx.doi.org/10.1039/C9CP05091D)
 
-jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
+jinzhe.zeng@ustc.edu.cn (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 ## Features
 

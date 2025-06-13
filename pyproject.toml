@@ -14,7 +14,7 @@ name = "reacnetgenerator"
 dynamic = ["version"]
 description = "ReacNetGenerator: An automatic reaction network generator for reactive molecular dynamics simulation."
 authors = [
-  {name = "Jinzhe Zeng", email = "jinzhe.zeng@rutgers.edu"},
+  {name = "Jinzhe Zeng", email = "jinzhe.zeng@ustc.edu.cn"},
 ]
 license = {file = "LICENSE"}
 classifiers = [
