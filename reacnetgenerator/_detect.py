@@ -497,6 +497,7 @@ class _Detectxyz(_DetectCrd):
         molecules = self._connectmolecule(bond, level)
         return molecules, timestep
 
+
 @_Detect.register_subclass("extxyz")
 class _Detectextxyz(_DetectCrd):
     """extxyz file. xyz with extended metadata support like cell, force, etc."""
