@@ -34,6 +34,7 @@ class TestDetect:
             ("dump", p_inputs / "water_pbc.dump"),
             ("lammpsbondfile", p_inputs / "water.bond"),
             ("xyz", p_inputs / "water.xyz"),
+            ("extxyz", p_inputs / "water.extxyz"),
         ]
     )
     def reacnetgen_param(self, request):

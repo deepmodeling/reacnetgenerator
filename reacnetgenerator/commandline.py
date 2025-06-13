@@ -64,7 +64,7 @@ def main_parser() -> argparse.ArgumentParser:
         "-t",
         help="Input file type",
         # manual ensure consistent
-        choices=["bond", "lammpsbondfile", "dump", "lammpsdumpfile", "xyz"],
+        choices=["bond", "lammpsbondfile", "dump", "lammpsdumpfile", "xyz", "extxyz"],
         default="lammpsbondfile",
     )
     parser.add_argument("--nopbc", help="Disable PBC.", action="store_true")

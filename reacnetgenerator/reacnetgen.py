@@ -77,6 +77,7 @@ class ReacNetGenerator:
             - bond: LAMMPS ReaxFF bond file. See https://lammps.sandia.gov/doc/fix_reaxc_bonds.html
               for details.
             - xyz: XYZ file, which can also be outputed by LAMMPS using dump.
+            - extxyz: extxyz file, which can also be outputed by ASE.
     inputfilename: str or list of strs
         The filename(s) of the input file, which can be either relative path or absolute path. If
         it is a list, the files will be read in order.
