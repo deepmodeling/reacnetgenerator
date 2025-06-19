@@ -3917,7 +3917,7 @@ __metadata:
     postcss-import: "npm:16.1.0"
     postcss-loader: "npm:8.1.1"
     regenerator-runtime: "npm:0.14.1"
-    sass: "npm:1.83.1"
+    sass: "npm:1.89.2"
     sass-loader: "npm:16.0.4"
     script-ext-html-webpack-plugin: "npm:2.1.5"
     smiles-drawer: "npm:2.0.3"
@@ -4137,9 +4137,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:1.83.1":
-  version: 1.83.1
-  resolution: "sass@npm:1.83.1"
+"sass@npm:1.89.2":
+  version: 1.89.2
+  resolution: "sass@npm:1.89.2"
   dependencies:
     "@parcel/watcher": "npm:^2.4.1"
     chokidar: "npm:^4.0.0"
@@ -4150,7 +4150,7 @@ __metadata:
       optional: true
   bin:
     sass: sass.js
-  checksum: 10/ee4ea5573faddeed375479eda6ac87a6f34dc6fc5391c6cc2743993f24827f4709f950fba6ef1ad0694215a1df40d43f4ed9006327daa3743c8e3ad1979d3c32
+  checksum: 10/7e9044f3c88b23580731de321cdf4c53fe6139395e2241fce7ff353c60a7cc8fe36b5eedc9701e092d2975f2c124e886379bb9ceab27b5ed053548f202b992b3
   languageName: node
   linkType: hard
 
