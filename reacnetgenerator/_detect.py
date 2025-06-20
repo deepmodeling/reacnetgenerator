@@ -86,6 +86,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             - lammpsbondfile: LAMMPS bond files, see http://lammps.sandia.gov/doc/fix_reax_bonds.html
             - lammpsdumpfile: LAMMPS dump files, see https://lammps.sandia.gov/doc/dump.html
             - xyz: xyz files
+            - extxyz: extended xyz files
 
         Parameters
         ----------
@@ -487,6 +488,58 @@ class _Detectxyz(_DetectCrd):
         for index, line in enumerate(lines):
             s = line.split()
             if index > 1:
+                step_atoms.append(
+                    (index - 1, Atom(s[0], tuple(float(x) for x in s[1:4])))
+                )
+        _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
+        step_atoms = Atoms(step_atoms)
+        bond, level = self._getbondfromcrd(step_atoms, boxsize)
+        molecules = self._connectmolecule(bond, level)
+        return molecules, timestep
+
+
+@_Detect.register_subclass("extxyz")
+class _Detectextxyz(_DetectCrd):
+    """extxyz file. xyz with extended metadata support like cell, force, etc."""
+
+    def _readNfunc(self, f):
+        atomname_dict = dict(zip(self.atomname.tolist(), range(self.atomname.size)))
+        N = None
+        atomtype = None
+        for index, line in enumerate(f):
+            if index == 0:
+                N = int(line.strip())
+                atomtype = np.zeros(N, dtype=int)
+            elif index == 1:
+                # Extract lattice (cell) from comment line
+                if "Lattice=" in line:
+                    lattice_str = line.split("Lattice=")[1].split('"')[1]
+                    lattice_floats = list(map(float, lattice_str.split()))
+                    self.cell = np.array(lattice_floats).reshape((3, 3))
+                else:
+                    raise RuntimeError("Missing Lattice= information in extxyz.")
+            elif (N is not None) and (index > N + 1):
+                break
+            elif index > 1:
+                s = line.split()
+                assert atomtype is not None
+                atomtype[index - 2] = atomname_dict[s[0]]
+        assert N is not None and atomtype is not None
+        self.N = N
+        self.atomtype = atomtype
+        steplinenum = N + 2
+        return steplinenum
+
+    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
+        step, lines = item
+        step_atoms = []
+        timestep = step, step  # Use step as timestep fallback
+        boxsize = self.cell
+        if self.pbc and boxsize is None:
+            raise RuntimeError("No cell information is given in extxyz.")
+        for index, line in enumerate(lines):
+            if index > 1:
+                s = line.split()
                 step_atoms.append(
                     (index - 1, Atom(s[0], tuple(float(x) for x in s[1:4])))
                 )
