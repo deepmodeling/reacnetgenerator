@@ -518,7 +518,7 @@ class _Detectextxyz(_DetectCrd):
                     self.cell = np.array(lattice_floats).reshape((3, 3))
                 else:
                     raise RuntimeError("Missing Lattice= information in extxyz.")
-            elif index > N + 1:
+            elif (N is not None) and (index > N + 1):
                 break
             elif index > 1:
                 s = line.split()
