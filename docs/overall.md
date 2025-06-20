@@ -43,7 +43,7 @@ filter: False
 Zeng_PhysChemChemPhys_2020_v22_p683
 ```
 
-jinzhe.zeng@rutgers.edu (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
+jinzhe.zeng@ustc.edu.cn (Jinzhe Zeng), tzhu@lps.ecnu.edu.cn (Tong Zhu)
 
 ## Guide and Tutorials
 
