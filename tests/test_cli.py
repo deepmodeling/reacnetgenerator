@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Tests for the command line interface of the reacnetgenerator package."""
 
-import importlib
 import subprocess
 import sys
-from unittest import mock
 
 import pytest
 
@@ -29,4 +27,6 @@ def test_cli():
 @pytest.mark.benchmark
 def test_bench_module_import():
     """Benchmark the import time."""
-    subprocess.check_output([sys.executable, "-c", "import reacnetgenerator"]).decode("ascii")
+    subprocess.check_output([sys.executable, "-c", "import reacnetgenerator"]).decode(
+        "ascii"
+    )
