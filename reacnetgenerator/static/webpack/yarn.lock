@@ -4090,7 +4090,7 @@ __metadata:
     postcss-loader: "npm:8.1.1"
     regenerator-runtime: "npm:0.14.1"
     sass: "npm:1.89.2"
-    sass-loader: "npm:16.0.4"
+    sass-loader: "npm:16.0.5"
     script-ext-html-webpack-plugin: "npm:2.1.5"
     smiles-drawer: "npm:2.0.3"
     startbootstrap-creative: "npm:7.0.7"
@@ -4283,9 +4283,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass-loader@npm:16.0.4":
-  version: 16.0.4
-  resolution: "sass-loader@npm:16.0.4"
+"sass-loader@npm:16.0.5":
+  version: 16.0.5
+  resolution: "sass-loader@npm:16.0.5"
   dependencies:
     neo-async: "npm:^2.6.2"
   peerDependencies:
@@ -4305,7 +4305,7 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/16e3552e04301864d59d99f1c90952e0c97cfa793a38a551b6dc19e49a9c0779ec8b3dd8ab39bc79cc4401972f13e8d5baaf577c96ea39911db5866a0b4bdcdd
+  checksum: 10/978b553900427c3fc24ed16b8258829d6a851bc5b0ab226cf43143fc08a0386e8cd07db367104d190a6cf0945af071805f70773525a970673c5b61fda4b7a59e
   languageName: node
   linkType: hard
 
