@@ -2569,12 +2569,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsrender@npm:1.0.15":
-  version: 1.0.15
-  resolution: "jsrender@npm:1.0.15"
+"jsrender@npm:1.0.16":
+  version: 1.0.16
+  resolution: "jsrender@npm:1.0.16"
   dependencies:
     through2: "npm:^3.0.1"
-  checksum: 10/e5eee38063c31ee5a70feaa0fc9b4a374a53965619ffff96e51df1ec06b0fc5c779aa5ffc1f7e719ce6c9abad2df8cf23cbab99753648d9721844eb7f6a9d131
+  checksum: 10/3c83cb8d066eb33885c66bb10ef7193af9a54b50ac80cb5852201eb5b94bc217ab572fd8da64fad495c7a20a0bc045d58a095d68f93174a90fe83af750b0ccf8
   languageName: node
   linkType: hard
 
@@ -4080,7 +4080,7 @@ __metadata:
     html-webpack-plugin: "npm:5.6.3"
     ifdef-loader: "npm:2.3.2"
     jquery: "npm:3.7.1"
-    jsrender: "npm:1.0.15"
+    jsrender: "npm:1.0.16"
     magnific-popup: "npm:1.2.0"
     mini-css-extract-plugin: "npm:2.9.2"
     paginationjs: "npm:2.6.0"
