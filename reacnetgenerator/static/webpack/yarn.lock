@@ -729,10 +729,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"animejs@npm:3.2.2":
-  version: 3.2.2
-  resolution: "animejs@npm:3.2.2"
-  checksum: 10/7abdb56f415c666ba02f4e64fdbb10d457fed7e3711b0f006f97e48e5650097013397d890e8ceb31e9e06b73bf6dfd9202309d0dae0fc0b5190aa7c4e0ab7054
+"animejs@npm:4.2.0":
+  version: 4.2.0
+  resolution: "animejs@npm:4.2.0"
+  checksum: 10/dc0e35a9f9da6c9bc938a5983993f387a72653d40037836dc5137b7bc87523b98c00d58f1fe9b74bfffd19ee36cd82818443f278e1dec935c40ca9867ce77e1f
   languageName: node
   linkType: hard
 
@@ -4068,7 +4068,7 @@ __metadata:
   dependencies:
     "@njzjz/jsnetworkx": "npm:0.3.5"
     "@popperjs/core": "npm:2.11.8"
-    animejs: "npm:3.2.2"
+    animejs: "npm:4.2.0"
     bootstrap: "npm:5.3.3"
     bootstrap-select: "npm:1.14.0-beta3"
     css-loader: "npm:7.1.2"
