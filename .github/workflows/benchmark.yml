@@ -15,7 +15,7 @@ jobs:
   test:
     name: Benchmark with codspeed
     if: ${{ github.repository_owner == 'deepmodeling' }}
-    runs-on: codspeed-macro
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
@@ -24,7 +24,8 @@ jobs:
     - run: pip install uv
     - run: uv pip install --system -e .[test]
     - name: Run benchmarks
-      uses: CodSpeedHQ/action@v3
+      uses: CodSpeedHQ/action@v4
       with:
         token: ${{ secrets.CODSPEED_TOKEN }}
+        mode: walltime
         run: pytest tests/ --codspeed
