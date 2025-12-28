@@ -138,7 +138,7 @@ def main_parser() -> argparse.ArgumentParser:
         help="Emission matrix B of HMM parameters",
         type=float,
         nargs=4,
-        default=[0.4, 0.6, 0.6, 0.4],
+        default=[0.6, 0.4, 0.4, 0.6],
     )
     parser.add_argument(
         "--urls",
