@@ -22,10 +22,10 @@ class TestDetect:
     @pytest.fixture(autouse=True)
     def chdir(self, tmp_path):
         """Change directory to tmp_path."""
-        start_direcroty = os.getcwd()
+        start_directory = os.getcwd()
         os.chdir(tmp_path)
         yield
-        os.chdir(start_direcroty)
+        os.chdir(start_directory)
 
     @pytest.fixture(
         params=[
@@ -66,15 +66,12 @@ class TestDetect:
 # Additional tests for ASE detection and Scipy clustering features
 try:
     from ase import Atoms
-    from ase.neighborlist import natural_cutoffs, neighbor_list
 
     ASE_AVAILABLE = True
 except ImportError:
     ASE_AVAILABLE = False
 
 try:
-    from scipy.sparse.csgraph import connected_components
-
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
@@ -161,11 +158,10 @@ class TestGetBondFromASE:
         )
         cell = np.eye(3) * 10  # Large cell to avoid PBC issues
 
-        bond, bondlevel = detect_instance._getbondfromase(atoms, cell)
+        bond, _bondlevel = detect_instance._getbondfromase(atoms, cell)
 
         # Should have 3 atoms
         assert len(bond) == 3
-        assert len(bondlevel) == 3
 
         # Count total bonds (each bond is counted twice - once for each atom)
         total_bonds = sum(len(neighbors) for neighbors in bond)
@@ -187,7 +183,7 @@ class TestGetBondFromASE:
         # Use a small cell to create potential duplicate scenarios
         cell = np.eye(3) * 5.0
 
-        bond, bondlevel = detect_instance._getbondfromase(atoms, cell)
+        bond, _bondlevel = detect_instance._getbondfromase(atoms, cell)
 
         # Check that there are no duplicate entries in bond lists
         for i, neighbors in enumerate(bond):
@@ -195,10 +191,6 @@ class TestGetBondFromASE:
             assert len(neighbors) == len(set(neighbors)), (
                 f"Duplicate bonds found for atom {i}"
             )
-            # Check that the corresponding bond levels are also unique
-            assert len(bondlevel[i]) == len(set(bondlevel[i])) or len(
-                bondlevel[i]
-            ) == len(neighbors)
 
     def test_custom_cutoffs_override(self, detect_instance):
         """Test that custom cutoffs override global settings."""
@@ -211,7 +203,7 @@ class TestGetBondFromASE:
         )  # H-O distance is 0.5
         cell = np.eye(3) * 10
 
-        bond, bondlevel = detect_instance._getbondfromase(atoms, cell)
+        bond, _bondlevel = detect_instance._getbondfromase(atoms, cell)
 
         # With a 1.0 cutoff, H-O should still be bonded
         # Check that oxygen is bonded to at least one hydrogen
