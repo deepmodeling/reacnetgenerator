@@ -45,6 +45,23 @@ from ._logging import logger
 from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
 
+# ASE imports
+try:
+    from ase.neighborlist import natural_cutoffs, neighbor_list
+
+    ASE_AVAILABLE = True
+except ImportError:
+    ASE_AVAILABLE = False
+
+# Scipy imports for connected components
+try:
+    from scipy.sparse import csr_matrix
+    from scipy.sparse.csgraph import connected_components
+
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+
 if version.parse(obversion) < version.parse("3.1.0"):  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
 
@@ -183,21 +200,71 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        # return list([b''.join((listtobytes(mol),
-        #                        listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
-        # int() because sometimes, the elements in bondlist are type numpy.int64 sometimes are int
-        # which cause the different bytes results from same bond-network.
-        mols, bondlists = dps(bond, level)
-        return [
-            b"".join(
-                (
-                    listtobytes(mol),
-                    listtobytes([(int(i[0]), int(i[1])) for i in bondlist]),
-                    listtobytes([int(i[2]) for i in bondlist]),
+        # Use scipy for connected components if available (better for large periodic systems)
+        if SCIPY_AVAILABLE:
+            # Build adjacency list into a sparse matrix for connected_components
+            n_atoms = len(bond)
+            row_ind = []
+            col_ind = []
+
+            for i, neighbors in enumerate(bond):
+                if neighbors:
+                    for j in neighbors:
+                        row_ind.append(i)
+                        col_ind.append(j)
+
+            # Create CSR matrix
+            data = [1] * len(row_ind)
+            graph = csr_matrix((data, (row_ind, col_ind)), shape=(n_atoms, n_atoms))
+
+            # Find connected components
+            n_components, labels = connected_components(graph, directed=False)
+
+            # Group atoms by component
+            components = defaultdict(list)
+            for atom_idx, comp_label in enumerate(labels):
+                components[comp_label].append(atom_idx)
+
+            # For each component, create the bond list
+            results = []
+            for comp_atoms in components.values():
+                # Extract bonds within this component
+                comp_bonds = []
+                for atom_idx in comp_atoms:
+                    if bond[atom_idx]:
+                        for neighbor_idx in bond[atom_idx]:
+                            # Only add bond if it's within the same component and in increasing order
+                            if neighbor_idx in comp_atoms and atom_idx < neighbor_idx:
+                                bond_idx = bond[atom_idx].index(neighbor_idx)
+                                bond_level = (
+                                    level[atom_idx][bond_idx] if level[atom_idx] else 1
+                                )
+                                comp_bonds.append((atom_idx, neighbor_idx, bond_level))
+
+                # Create the required format
+                results.append(
+                    b"".join(
+                        (
+                            listtobytes(comp_atoms),
+                            listtobytes([(int(b[0]), int(b[1])) for b in comp_bonds]),
+                            listtobytes([int(b[2]) for b in comp_bonds]),
+                        )
+                    )
                 )
-            )
-            for mol, bondlist in zip(mols, bondlists)
-        ]
+            return results
+        else:
+            # Fallback to the existing DPS implementation
+            mols, bondlists = dps(bond, level)
+            return [
+                b"".join(
+                    (
+                        listtobytes(mol),
+                        listtobytes([(int(i[0]), int(i[1])) for i in bondlist]),
+                        listtobytes([int(i[2]) for i in bondlist]),
+                    )
+                )
+                for mol, bondlist in zip(mols, bondlists)
+            ]
 
     def _writemoleculetempfile(self, d):
         with WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as f:
@@ -268,6 +335,125 @@ class _DetectLAMMPSbond(_Detect):
 
 
 class _DetectCrd(_Detect):
+    def _parse_custom_cutoffs(self, cutoff_str):
+        """Parse the custom cutoff string into a dictionary.
+
+        Parameters
+        ----------
+        cutoff_str : str
+            Custom cutoffs in the format "El1-El2:dist,El3-El4:dist"
+
+        Returns
+        -------
+        dict
+            Dictionary with frozenset pairs as keys and cutoffs as values
+        """
+        if not cutoff_str:
+            return {}
+
+        result = {}
+        pairs = cutoff_str.split(",")
+        for pair in pairs:
+            if ":" in pair:
+                atom_pair_str, dist_str = pair.split(":", 1)
+                atom1, atom2 = atom_pair_str.split("-", 1)
+                result[frozenset({atom1.strip(), atom2.strip()})] = float(
+                    dist_str.strip()
+                )
+        return result
+
+    def _getbondfromase(self, step_atoms: Atoms, cell: np.ndarray):
+        """Perceive bonds using ASE neighbor list with custom cutoffs.
+
+        Parameters
+        ----------
+        step_atoms : ase.Atoms
+            Atoms in a step.
+        cell : np.ndarray
+            Cell in the shape (3, 3).
+
+        Returns
+        -------
+        list[list[int]]
+            Connected atoms for each atom.
+        list[list[int]]
+            Bond levels (all set to 1 since ASE doesn't detect bond order).
+        """
+        if not ASE_AVAILABLE:
+            raise ImportError("ASE is not available. Please install ase package.")
+
+        # Step 1: Preparation
+        # Get raw covalent radii
+        radii = natural_cutoffs(step_atoms, mult=1.0)
+        symbols = step_atoms.get_chemical_symbols()
+
+        custom_cutoffs = {}
+        if self.rng.custom_cutoffs:
+            custom_cutoffs = self._parse_custom_cutoffs(self.rng.custom_cutoffs)
+
+        step_atoms.set_cell(cell)
+        step_atoms.set_pbc(self.pbc)  # Ensure neighbor_list respects PBC
+        if self.pbc:
+            step_atoms.wrap()
+
+        # Step 2: Calculate Global Search Cutoff (Absolute Angstroms)
+        # Determine max_radius = max(radii) (handle empty case)
+        if len(radii) > 0:
+            max_radius = max(radii)
+        else:
+            max_radius = 0.0
+
+        # base_limit = 2 * max_radius * self.rng.ase_cutoff_mult
+        base_limit = 2 * max_radius * self.rng.ase_cutoff_mult
+
+        # max_custom = max(custom_cutoffs.values()) if exists, else 0
+        max_custom = 0.0
+        if custom_cutoffs:
+            max_custom = max(custom_cutoffs.values())
+
+        # Final Cutoff: search_cutoff = max(base_limit, max_custom) + 0.45
+        # Aligned with OpenBabel's convention.
+        search_cutoff = max(base_limit, max_custom) + 0.45
+
+        # Step 3: Neighbor Search
+        i_list, j_list, d_list = neighbor_list("ijd", step_atoms, cutoff=search_cutoff)
+
+        atomnumber = len(step_atoms)
+        bond = [[] for _ in range(atomnumber)]
+        bondlevel = [[] for _ in range(atomnumber)]
+
+        # Step 4: Filtering & Deduplication
+        # Iterate through results. Skip if i >= j
+        for i, j, d in zip(i_list, j_list, d_list):
+            if i >= j:
+                continue
+
+            # Threshold:
+            # If pair (sym_i, sym_j) in custom_cutoffs: threshold = custom_value
+            elem_i = symbols[i]
+            elem_j = symbols[j]
+            pair_key = frozenset({elem_i, elem_j})
+
+            if pair_key in custom_cutoffs:
+                threshold = custom_cutoffs[pair_key]
+            else:
+                # Else: threshold = (radii[i] + radii[j]) * self.rng.ase_cutoff_mult
+                threshold = (radii[i] + radii[j]) * self.rng.ase_cutoff_mult
+
+            # Bond Decision:
+            # If d < threshold:
+            if d < threshold:
+                # Fix Duplicate Bonds: Check if j not in bond[i] before appending
+                # This prevents RDKit "bond already exists" errors caused by PBC images
+                if j not in bond[i]:
+                    bond[i].append(j)
+                    bond[j].append(i)
+                    # Set bondlevel to 1
+                    bondlevel[i].append(1)
+                    bondlevel[j].append(1)
+
+        return bond, bondlevel
+
     def _getbondfromcrd(
         self, step_atoms: Atoms, cell: np.ndarray
     ) -> Tuple[List[List[int]], List[List[int]]]:
@@ -287,6 +473,11 @@ class _DetectCrd(_Detect):
         list[list[int]]
             Bond orders for each atom. 12 is an aromatic bond.
         """
+        # Check if ASE mode is enabled
+        if getattr(self.rng, "use_ase", False):
+            return self._getbondfromase(step_atoms, cell)
+
+        # Otherwise, use the original OpenBabel logic
         atomnumber = len(step_atoms)
         # Use openbabel to connect atoms
         mol = openbabel.OBMol()

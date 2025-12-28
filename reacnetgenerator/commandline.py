@@ -67,6 +67,23 @@ def main_parser() -> argparse.ArgumentParser:
         choices=["bond", "lammpsbondfile", "dump", "lammpsdumpfile", "xyz", "extxyz"],
         default="lammpsbondfile",
     )
+    parser.add_argument(
+        "--use-ase",
+        help="Enable ASE mode for bond detection",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--ase-cutoff-mult",
+        help="Global multiplier for natural cutoffs",
+        type=float,
+        default=1.2,
+    )
+    parser.add_argument(
+        "--ase-pair-cutoffs",
+        help="Custom cutoffs for specific element pairs in the format 'El1-El2:dist,El3-El4:dist'",
+        type=str,
+        default=None,
+    )
     parser.add_argument("--nopbc", help="Disable PBC.", action="store_true")
     parser.add_argument(
         "--cell",
@@ -121,7 +138,7 @@ def main_parser() -> argparse.ArgumentParser:
         help="Emission matrix B of HMM parameters",
         type=float,
         nargs=4,
-        default=[0.6, 0.4, 0.4, 0.6],
+        default=[0.4, 0.6, 0.6, 0.4],
     )
     parser.add_argument(
         "--urls",
@@ -161,6 +178,9 @@ def _commandline():
         b=np.array(args.matrixb).reshape((2, 2)),
         pbc=not args.nopbc,
         cell=args.cell,
+        use_ase=args.use_ase,
+        ase_cutoff_mult=args.ase_cutoff_mult,
+        custom_cutoffs=args.ase_pair_cutoffs,
     ).runanddraw()
 
 
@@ -213,4 +233,10 @@ def parm2cmd(pp: dict) -> List[str]:
     for ii in ["nproc", "selectatoms", "stepinterval", "split", "maxspecies"]:
         if pp.get(ii, None):
             commands.extend((f"--{ii}", str(pp[ii])))
+    if pp.get("use_ase", False):
+        commands.append("--use-ase")
+    if pp.get("ase_cutoff_mult", 1.2) != 1.2:
+        commands.extend(("--ase-cutoff-mult", str(pp["ase_cutoff_mult"])))
+    if pp.get("custom_cutoffs", None):
+        commands.extend(("--ase-pair-cutoffs", str(pp["custom_cutoffs"])))
     return commands
