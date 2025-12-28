@@ -218,7 +218,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             graph = csr_matrix((data, (row_ind, col_ind)), shape=(n_atoms, n_atoms))
 
             # Find connected components
-            n_components, labels = connected_components(graph, directed=False)
+            _n_components, labels = connected_components(graph, directed=False)
 
             # Group atoms by component
             components = defaultdict(list)
