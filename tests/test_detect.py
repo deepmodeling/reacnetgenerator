@@ -72,6 +72,8 @@ except ImportError:
     ASE_AVAILABLE = False
 
 try:
+    import scipy
+    print(scipy.__version__)
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
