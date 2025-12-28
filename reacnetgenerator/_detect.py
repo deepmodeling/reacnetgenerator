@@ -41,6 +41,7 @@ except ImportError:  # pragma: no cover
 from ase import Atom, Atoms
 from packaging import version
 
+from ._logging import logger
 from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
 
@@ -296,7 +297,7 @@ class _DetectCrd(_Detect):
             a = mol.NewAtom(idx)
             a.SetAtomicNum(int(num))
             a.SetVector(*position)
-        # Apply period boundry conditions
+        # Apply period boundary conditions
         # openbabel#1853, supported in v3.1.0
         if self.pbc:
             uc = openbabel.OBUnitCell()
@@ -352,6 +353,7 @@ class _DetectLAMMPSdump(_DetectCrd):
             return cls.OTHER
 
     def _readNfunc(self, f):
+        logger.info("Reading from LAMMPS dump file")
         iscompleted = False
         N = None
         linecontent = None
@@ -380,12 +382,14 @@ class _DetectLAMMPSdump(_DetectCrd):
                         stepaindex = index
                     N = int(line.split()[0])
                     atomtype = np.zeros(N, dtype=int)
+                    logger.info(f"Found N = {N}, initializing atomtype array")
                 elif linecontent == self.LineType.ATOMS:
                     s = line.split()
                     assert atomtype is not None
                     atomtype[int(s[self.id_idx]) - 1] = int(s[self.tidx]) - 1
         else:
             steplinenum = index + 1
+        logger.info(f"Finished reading N, total lines processed: {index + 1}")
         assert N is not None and atomtype is not None
         self.N = N
         self.atomtype = atomtype
