@@ -357,27 +357,27 @@ class _DetectCrd(_Detect):
             pair = pair.strip()  # Clean input to allow spaces
             if not pair:  # Skip empty segments
                 continue
-                
+
             if ":" not in pair:
                 raise ValueError(
                     f"Invalid custom cutoff format '{pair}'. Expected 'Element1-Element2:distance'. "
                     f"Example: 'Al-O:2.5,C-H:1.1'"
                 )
-                
+
             atom_pair_str, dist_str = pair.split(":", 1)
             atom_pair_str = atom_pair_str.strip()
             dist_str = dist_str.strip()
-            
+
             if "-" not in atom_pair_str:
                 raise ValueError(
                     f"Invalid custom cutoff format '{pair}'. Expected 'Element1-Element2:distance'. "
                     f"Example: 'Al-O:2.5,C-H:1.1'"
                 )
-                
+
             atom1, atom2 = atom_pair_str.split("-", 1)
             atom1 = atom1.strip()
             atom2 = atom2.strip()
-            
+
             try:
                 distance = float(dist_str)
             except ValueError:
@@ -385,7 +385,7 @@ class _DetectCrd(_Detect):
                     f"Invalid distance value '{dist_str}' in '{pair}'. Expected a number. "
                     f"Example: 'Al-O:2.5,C-H:1.1'"
                 )
-                
+
             result[frozenset({atom1, atom2})] = distance
         return result
 
