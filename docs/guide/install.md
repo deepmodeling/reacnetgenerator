@@ -26,7 +26,7 @@ See also [Tutorial: Installation](../tutorial/install.ipynb).
 
 ## Install via uv
 
-If you have [installed UV](https://docs.astral.sh/uv/getting-started/installation/), you could use `uv tool` to install ReacNetGenerator:
+If you have [installed uv](https://docs.astral.sh/uv/getting-started/installation/), you could use `uv tool` to install ReacNetGenerator:
 
 ```bash
 uv tool install reacnetgenerator
