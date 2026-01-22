@@ -10,6 +10,7 @@ You can [setup a conda environment](https://docs.deepmodeling.com/faq/conda.html
 
 ```bash
 conda install reacnetgenerator -c conda-forge
+reacnetgenerator -h
 ```
 
 ## Install via pip
@@ -18,9 +19,19 @@ conda install reacnetgenerator -c conda-forge
 # upgrade pip as old pip may not be supported
 pip install -U pip
 pip install reacnetgenerator
+reacnetgenerator -h
 ```
 
 See also [Tutorial: Installation](../tutorial/install.ipynb).
+
+## Install via uv
+
+If you have [installed UV](https://docs.astral.sh/uv/getting-started/installation/), you could use `uv tool` to install ReacNetGenerator:
+
+```bash
+uv tool install reacnetgenerator
+reacnetgenerator -h
+```
 
 ## Docker images
 
