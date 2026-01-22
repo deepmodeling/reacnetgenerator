@@ -52,7 +52,16 @@ def main_parser() -> argparse.ArgumentParser:
         ),
         action="store_true",
     )
-    parser.add_argument("--miso", help="Merge the isomers", type=int, default=0)
+    parser.add_argument(
+        "--miso",
+        help=(
+            "Merge the isomers, and the highest frequency is used as the representative. 0, off; "
+            "1, merge the isomers with the same atoms and same bond networks but different bond orders; "
+            "2, merge the isomers with the same atoms with different bond networks."
+        ),
+        type=int,
+        default=0,
+    )
     parser_type = parser.add_mutually_exclusive_group()
     parser_type.add_argument(
         "--dump",
