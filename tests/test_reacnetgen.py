@@ -165,3 +165,68 @@ class TestReacNetGen:
         r = _CollectSMILESPaths(reacnetgen)
         r.atomname = np.array(["Mo", "O"])
         assert r._re("[Mo]") == "[Mo]"
+
+
+# Additional test for the auto-enable logic
+class TestAutoEnableLogic:
+    """Test the auto-enable logic for ASE mode."""
+
+    @pytest.fixture(autouse=True)
+    def chdir(self, tmp_path):
+        """Change directory to tmp_path."""
+        start_directory = os.getcwd()
+        os.chdir(tmp_path)
+        yield
+        os.chdir(start_directory)
+
+    def test_auto_enable_with_custom_cutoffs(self, tmp_path):
+        """Test that ASE mode is auto-enabled when custom cutoffs are provided."""
+        # Create a temporary file for input
+        dummy_file = tmp_path / "dummy.dump"
+        dummy_file.write_text("")
+
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(dummy_file),
+            atomname=["H", "O"],
+            use_ase=False,  # Explicitly set to False
+            custom_cutoffs="H-O:1.5",  # But provide custom cutoffs
+        )
+
+        # Should be auto-enabled
+        assert rng.use_ase is True
+
+    def test_auto_enable_with_modified_multiplier(self, tmp_path):
+        """Test that ASE mode is auto-enabled when multiplier is modified."""
+        # Create a temporary file for input
+        dummy_file = tmp_path / "dummy.dump"
+        dummy_file.write_text("")
+
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(dummy_file),
+            atomname=["H", "O"],
+            use_ase=False,  # Explicitly set to False
+            ase_cutoff_mult=1.5,  # But modify multiplier
+        )
+
+        # Should be auto-enabled
+        assert rng.use_ase is True
+
+    def test_no_auto_enable_with_defaults(self, tmp_path):
+        """Test that ASE mode is not auto-enabled when using defaults."""
+        # Create a temporary file for input
+        dummy_file = tmp_path / "dummy.dump"
+        dummy_file.write_text("")
+
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(dummy_file),
+            atomname=["H", "O"],
+            use_ase=False,  # Explicitly set to False
+            ase_cutoff_mult=1.2,  # Default value
+            custom_cutoffs=None,  # Default value
+        )
+
+        # Should remain False
+        assert rng.use_ase is False
