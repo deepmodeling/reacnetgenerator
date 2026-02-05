@@ -19,11 +19,13 @@ from typing import (
     BinaryIO,
     Callable,
     Generator,
+    Generic,
     Iterable,
     List,
     Optional,
     Tuple,
     Union,
+    cast,
 )
 
 import lz4.frame
@@ -41,7 +43,7 @@ if TYPE_CHECKING:
     import reacnetgenerator
 
 
-class WriteBuffer:
+class WriteBuffer(Generic[AnyStr]):
     """Store a buffer for writing files.
 
     It is expensive to write to a file, so we need to make a buffer.
@@ -58,19 +60,19 @@ class WriteBuffer:
     """
 
     def __init__(
-        self, f: IO, linenumber: int = 1200, sep: Optional[AnyStr] = None
+        self, f: IO[AnyStr], linenumber: int = 1200, sep: Optional[AnyStr] = None
     ) -> None:
         self.f = f
         if sep is not None:
             self.sep = sep
         elif f.mode == "w":
-            self.sep = ""
+            self.sep = cast(AnyStr, "")
         elif f.mode == "wb":
-            self.sep = b""
+            self.sep = cast(AnyStr, b"")
         else:
             raise RuntimeError("File mode should be w or wb!")
         self.linenumber = linenumber
-        self.buff = []
+        self.buff: list[AnyStr] = []
         self.name = self.f.name
 
     def append(self, text: AnyStr) -> None:
@@ -106,7 +108,7 @@ class WriteBuffer:
     def flush(self) -> None:
         """Flush the buffer."""
         if self.buff:
-            self.f.writelines([self.sep.join(self.buff), self.sep])
+            self.f.writelines([cast(Any, self.sep).join(self.buff), self.sep])
             self.buff[:] = []
 
     def __enter__(self) -> "WriteBuffer":
@@ -119,7 +121,9 @@ class WriteBuffer:
         self.f.__exit__(exc_type, exc_value, traceback)
 
 
-def appendIfNotNone(f: Union[WriteBuffer, ExitStack], wbytes: Optional[AnyStr]) -> None:
+def appendIfNotNone(
+    f: Union[WriteBuffer[AnyStr], ExitStack], wbytes: Optional[AnyStr]
+) -> None:
     """Append a line to a file if the line is not None.
 
     Parameters
@@ -456,7 +460,7 @@ def checksha256(filename: str, sha256_check: Union[str, List[str]]):
 
 
 async def download_file(
-    urls: Union[str, List[str]], pathfilename: str, sha256: str
+    urls: Union[str, List[str]], pathfilename: str, sha256: str | None
 ) -> str:
     """Download files from remote urls if not exists.
 
@@ -611,7 +615,7 @@ def check_zero_signal(signal: np.ndarray) -> bool:
     #
     # any() doesn't have short-circuits, but argmax() does for bool.
     # See https://stackoverflow.com/a/45774536/9567349
-    return signal[signal.argmax()]
+    return signal[signal.argmax()].item()
 
 
 def idx_to_signal(idx: np.ndarray, step: int):

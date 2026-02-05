@@ -15,14 +15,9 @@ name: Type checker
 jobs:
   test:
     name: pyright
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
-    - uses: actions/checkout@master
-    - uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
-    - run: pip install uv
-    - run: uv pip install --system -e . 'rdkit<2025.03.3'
-    - uses: jakebailey/pyright-action@v2
-      with:
-        version: 1.1.391
+    - uses: actions/checkout@v6
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v7
+    - run: uvx --from ty==0.0.15 --with . ty check
