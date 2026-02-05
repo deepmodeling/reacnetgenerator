@@ -121,14 +121,15 @@ class WriteBuffer(Generic[AnyStr]):
         self.flush()
         self.f.__exit__(exc_type, exc_value, traceback)
 
+
 @overload
 def appendIfNotNone(
     f: Union[WriteBuffer[str], ExitStack], wbytes: Optional[str]
-) -> None:...
+) -> None: ...
 @overload
 def appendIfNotNone(
     f: Union[WriteBuffer[bytes], ExitStack], wbytes: Optional[bytes]
-) -> None:...
+) -> None: ...
 def appendIfNotNone(
     f: Union[WriteBuffer[AnyStr], ExitStack], wbytes: Optional[AnyStr]
 ) -> None:
