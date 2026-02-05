@@ -105,7 +105,7 @@ class _DrawNetwork(SharedRNGData):
                 G.add_weighted_edges_from(
                     [(showname[name[i]], showname[name[j]], table[i][j])]
                 )
-        weights = np.array([math.log(G[u][v]["weight"] + 1) for u, v in G.edges()])  # type: ignore
+        weights = np.array([math.log(G[u][v]["weight"] + 1) for u, v in G.edges()])
         widths = (
             weights
             / np.max(weights)
