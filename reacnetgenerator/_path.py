@@ -239,7 +239,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         if "_unknownSMILES" in smi:
             # not SMILES
             return smi
-        Satom = sorted(self.atomname.tolist(), key=lambda x: len(x), reverse=True)
+        Satom = sorted(self.atomname, key=lambda x: len(x), reverse=True)
         elements = "|".join(
             [
                 ((an.upper() + "|" + an.lower()) if len(an) == 1 else an)
