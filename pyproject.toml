@@ -144,6 +144,15 @@ exclude = [
     "reacnetgenerator/static/webpack/node_modules"
 ]
 
+[tool.ty.src]
+include = [
+     "reacnetgenerator",
+]
+exclude = [
+    "reacnetgenerator/_version2.py",
+    "reacnetgenerator/static/webpack/node_modules"
+]
+
 [tool.coverage.run]
 plugins = ["Cython.Coverage"]
 
