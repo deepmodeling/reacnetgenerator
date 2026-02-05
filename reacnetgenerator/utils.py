@@ -26,6 +26,7 @@ from typing import (
     Tuple,
     Union,
     cast,
+    overload,
 )
 
 import lz4.frame
@@ -111,7 +112,7 @@ class WriteBuffer(Generic[AnyStr]):
             self.f.writelines([cast(Any, self.sep).join(self.buff), self.sep])
             self.buff[:] = []
 
-    def __enter__(self) -> "WriteBuffer":
+    def __enter__(self) -> "WriteBuffer[AnyStr]":
         """Enter the context."""
         return self
 
@@ -120,7 +121,14 @@ class WriteBuffer(Generic[AnyStr]):
         self.flush()
         self.f.__exit__(exc_type, exc_value, traceback)
 
-
+@overload
+def appendIfNotNone(
+    f: Union[WriteBuffer[str], ExitStack], wbytes: Optional[str]
+) -> None:...
+@overload
+def appendIfNotNone(
+    f: Union[WriteBuffer[bytes], ExitStack], wbytes: Optional[bytes]
+) -> None:...
 def appendIfNotNone(
     f: Union[WriteBuffer[AnyStr], ExitStack], wbytes: Optional[AnyStr]
 ) -> None:
