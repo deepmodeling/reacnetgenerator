@@ -72,7 +72,7 @@ class WriteBuffer(Generic[AnyStr]):
         else:
             raise RuntimeError("File mode should be w or wb!")
         self.linenumber = linenumber
-        self.buff: list[AnyStr] = []
+        self.buff: List[AnyStr] = []
         self.name = self.f.name
 
     def append(self, text: AnyStr) -> None:
@@ -460,7 +460,7 @@ def checksha256(filename: str, sha256_check: Union[str, List[str]]):
 
 
 async def download_file(
-    urls: Union[str, List[str]], pathfilename: str, sha256: str | None
+    urls: Union[str, List[str]], pathfilename: str, sha256: Optional[str]
 ) -> str:
     """Download files from remote urls if not exists.
 
