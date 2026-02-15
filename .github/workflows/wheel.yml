@@ -38,7 +38,7 @@ jobs:
             python: 310
             platform_id: manylinux_aarch64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -65,7 +65,7 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build sdist
         run: pipx run uv tool run --with build[uv] --from build python -m build --installer uv --sdist
