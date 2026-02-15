@@ -1,9 +1,9 @@
 on:
   push:
     branches:
-      - master
+    - master
     tags:
-      - v*
+    - v*
   pull_request:
   merge_group:
 
@@ -26,4 +26,6 @@ jobs:
     - run: tox
     - uses: codecov/codecov-action@v5
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        use_oidc: true
+permissions:
+  id-token: write
