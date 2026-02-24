@@ -6,14 +6,14 @@ This tutorial was adapted from:
 
 ```{bibliography}
 ---
-filter: False
+filter: false
 ---
 Zeng_2022_Chapter
 ```
 
 Please cite the above chapter if you follow the tutorial.
 
----
+______________________________________________________________________
 
 In this tutorial, we will take the simulation of methane combustion as an example. All files needed in this section can be downloaded from [tongzhugroup/Chapter13-tutorial](https://github.com/tongzhugroup/Chapter13-tutorial).
 Besides ReacNetGenerator{cite:p}`Zeng_PhysChemChemPhys_2020_v22_p683`, DeePMD-kit{cite:p}`Wang_ComputPhysCommun_2018_v228_p178` (with LAMMPS{cite:p}`Thompson_ComputPhysCommun_2022_v271_p108171`) will be used to run simulations.
@@ -83,7 +83,7 @@ reacnetgenerator -i methane.lammpstrj -a C H O --dump
 
 Fig: The initial stage of combustion. The figure is taken from {cite:t}`Zeng_NatCommun_2020_v11_p5713` and more results can be found there.
 
----
+______________________________________________________________________
 
 ## Acknowledge
 
