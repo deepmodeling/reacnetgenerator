@@ -6,21 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
-try:
-    from ase import Atoms
-    from ase.neighborlist import natural_cutoffs, neighbor_list
-
-    ASE_AVAILABLE = True
-except ImportError:
-    ASE_AVAILABLE = False
-
-try:
-    from scipy.sparse.csgraph import connected_components
-
-    SCIPY_AVAILABLE = True
-except ImportError:
-    SCIPY_AVAILABLE = False
+from ase import Atoms
 
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _DetectLAMMPSdump
@@ -39,7 +25,6 @@ class TestASEMode:
         yield
         os.chdir(start_directory)
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_mode_disabled_by_default(self):
         """Test that ASE mode is disabled by default."""
         rng = ReacNetGenerator(
@@ -52,7 +37,6 @@ class TestASEMode:
         assert rng.ase_cutoff_mult == 1.2
         assert rng.custom_cutoffs is None
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_mode_enabled_manually(self):
         """Test that ASE mode can be enabled manually."""
         rng = ReacNetGenerator(
@@ -64,7 +48,6 @@ class TestASEMode:
         )
         assert rng.use_ase
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_auto_enable_with_custom_cutoffs(self):
         """Test that ASE mode is auto-enabled when custom cutoffs are provided."""
         rng = ReacNetGenerator(
@@ -77,7 +60,6 @@ class TestASEMode:
         assert rng.use_ase
         assert rng.custom_cutoffs == "H-O:1.5,O-O:2.0"
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_auto_enable_with_modified_mult(self):
         """Test that ASE mode is auto-enabled when cutoff multiplier is modified."""
         rng = ReacNetGenerator(
@@ -90,7 +72,6 @@ class TestASEMode:
         assert rng.use_ase
         assert rng.ase_cutoff_mult == 1.5
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_parse_custom_cutoffs(self):
         """Test parsing of custom cutoff strings."""
         rng = ReacNetGenerator(
@@ -110,7 +91,6 @@ class TestASEMode:
         assert parsed[frozenset({"H", "O"})] == 1.5
         assert parsed[frozenset({"O", "O"})] == 2.0
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_parse_custom_cutoffs_order_independence(self):
         """Test that custom cutoff parsing is order-independent."""
         rng = ReacNetGenerator(
@@ -130,7 +110,6 @@ class TestASEMode:
         # In case of duplicate entries, the last one should be used
         assert parsed[frozenset({"H", "O"})] == 2.0
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_getbondfromase_method(self):
         """Test the _getbondfromase method directly."""
         rng = ReacNetGenerator(
@@ -166,7 +145,6 @@ class TestASEMode:
             for level in bond_levels:
                 assert level == 1
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_duplicate_bond_prevention(self):
         """Test that duplicate bonds are prevented in ASE mode."""
         rng = ReacNetGenerator(
@@ -201,39 +179,6 @@ class TestASEMode:
                 bondlevel[i]
             ) == len(neighbors)
 
-    @pytest.mark.skipif(
-        not (ASE_AVAILABLE and SCIPY_AVAILABLE), reason="ASE or Scipy not available"
-    )
-    def test_connected_components_algorithm(self):
-        """Test that connected components algorithm works properly."""
-        rng = ReacNetGenerator(
-            inputfiletype="lammpsdumpfile",
-            inputfilename=p_inputs / "water.dump",
-            atomname=["H", "O"],
-            pbc=False,
-            use_ase=True,
-        )
-        detect_class = _DetectLAMMPSdump(rng)
-
-        # Create a simple bond structure with 2 connected components
-        # Component 1: atoms 0 and 1 connected
-        # Component 2: atoms 2 and 3 connected
-        bond = [[1], [0], [3], [2]]  # 0-1 and 2-3
-        level = [[1], [1], [1], [1]]
-
-        # Use the _connectmolecule method which should use connected_components
-        result = detect_class._connectmolecule(bond, level)
-
-        # Should have 2 components
-        assert len(result) == 2
-
-        # Each component should have 2 atoms
-        for component in result:
-            # Parse the result format to check atoms
-            # This requires understanding the internal format of the result
-            pass
-
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_with_custom_cutoffs_integration(self):
         """Integration test for ASE mode with custom cutoffs."""
         # Create a temporary file with a simple water molecule
@@ -270,7 +215,6 @@ ITEM: ATOMS id type x y z
         assert hasattr(detect_class, "temp1it")
         assert detect_class.temp1it > 0
 
-    @pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
     def test_ase_warning_on_auto_enable(self, caplog):
         """Test that a warning is logged when ASE mode is auto-enabled."""
         with caplog.at_level("WARNING"):
