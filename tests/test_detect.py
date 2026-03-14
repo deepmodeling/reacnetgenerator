@@ -249,7 +249,6 @@ class TestScipyClustering:
         assert len(result) == 1
 
         # The component should contain all atoms
-        component_bytes = result[0]
         # The first part of the component bytes contains the atom indices
         # Need to extract the atom list from the bytes format
         # This is tricky since it's in the internal format, so just check length
