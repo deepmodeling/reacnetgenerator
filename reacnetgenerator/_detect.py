@@ -42,7 +42,6 @@ from ase import Atom, Atoms
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
 
-from ._logging import logger
 from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
 
