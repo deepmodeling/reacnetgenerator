@@ -39,6 +39,7 @@ try:
 except ImportError:  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
 from ase import Atom, Atoms
+from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
 
 from .dps import dps  # type:ignore
@@ -182,10 +183,6 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         pass
 
     def _connectmolecule(self, bond, level):
-        # return list([b''.join((listtobytes(mol),
-        #                        listtobytes(bondlist))) for mol, bondlist in zip(*dps(bond, level))])
-        # int() because sometimes, the elements in bondlist are type numpy.int64 sometimes are int
-        # which cause the different bytes results from same bond-network.
         mols, bondlists = dps(bond, level)
         return [
             b"".join(
@@ -267,6 +264,142 @@ class _DetectLAMMPSbond(_Detect):
 
 
 class _DetectCrd(_Detect):
+    use_ase: bool
+    ase_cutoff_mult: float
+    custom_cutoffs: Optional[str]
+
+    def __init__(self, rng):
+        SharedRNGData.__init__(
+            self,
+            rng,
+            [
+                "inputfilename",
+                "atomname",
+                "stepinterval",
+                "nproc",
+                "pbc",
+                "cell",
+                "use_ase",
+                "ase_cutoff_mult",
+                "custom_cutoffs",
+            ],
+            ["N", "atomtype", "step", "timestep", "temp1it", "moleculetempfilename"],
+        )
+        self._parsed_custom_cutoffs = self._parse_custom_cutoffs(self.custom_cutoffs)
+
+    def _parse_custom_cutoffs(self, cutoff_str):
+        """Parse the custom cutoff string into a dictionary.
+
+        Parameters
+        ----------
+        cutoff_str : str
+            Custom cutoffs in the format "El1-El2:dist,El3-El4:dist"
+
+        Returns
+        -------
+        dict
+            Dictionary with frozenset pairs as keys and cutoffs as values
+        """
+        if not cutoff_str:
+            return {}
+
+        result = {}
+        pairs = cutoff_str.split(",")
+        for pair in pairs:
+            pair = pair.strip()  # Clean input to allow spaces
+            if not pair:  # Skip empty segments
+                continue
+
+            if ":" not in pair:
+                raise ValueError(
+                    f"Invalid custom cutoff format '{pair}'. Expected 'Element1-Element2:distance'. "
+                    f"Example: 'Al-O:2.5,C-H:1.1'"
+                )
+
+            atom_pair_str, dist_str = pair.split(":", 1)
+            atom_pair_str = atom_pair_str.strip()
+            dist_str = dist_str.strip()
+
+            if "-" not in atom_pair_str:
+                raise ValueError(
+                    f"Invalid custom cutoff format '{pair}'. Expected 'Element1-Element2:distance'. "
+                    f"Example: 'Al-O:2.5,C-H:1.1'"
+                )
+
+            atom1, atom2 = atom_pair_str.split("-", 1)
+            atom1 = atom1.strip()
+            atom2 = atom2.strip()
+
+            try:
+                distance = float(dist_str)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid distance value '{dist_str}' in '{pair}'. Expected a number. "
+                    f"Example: 'Al-O:2.5,C-H:1.1'"
+                )
+
+            result[frozenset({atom1, atom2})] = distance
+        return result
+
+    def _getbondfromase(self, step_atoms: Atoms, cell: np.ndarray):
+        """Perceive bonds using ASE neighbor list with custom cutoffs.
+
+        Parameters
+        ----------
+        step_atoms : ase.Atoms
+            Atoms in a step.
+        cell : np.ndarray
+            Cell in the shape (3, 3).
+
+        Returns
+        -------
+        list[list[int]]
+            Connected atoms for each atom.
+        list[list[int]]
+            Bond levels (all set to 1 since ASE doesn't detect bond order).
+        """
+        step_atoms.set_cell(cell)
+        step_atoms.set_pbc(self.pbc)
+        if self.pbc:
+            step_atoms.wrap()
+
+        # Build per-atom natural cutoff radii (with global multiplier)
+        radii = natural_cutoffs(step_atoms, mult=self.ase_cutoff_mult)
+        symbols = step_atoms.get_chemical_symbols()
+
+        # Build a per-symbol radius lookup (same symbol always has same radius)
+        radii_by_symbol: dict = {}
+        for sym, r in zip(symbols, radii):
+            radii_by_symbol[sym] = r
+
+        # Build complete per-pair cutoff dict for all unique element pairs.
+        # ASE neighbor_list dict format: {('El1', 'El2'): distance}
+        # Pairs NOT in the dict get cutoff=0, so we must cover ALL pairs.
+        unique_symbols = sorted(set(symbols))
+        cutoff_dict: dict = {}
+        for s1 in unique_symbols:
+            for s2 in unique_symbols:
+                pair = frozenset({s1, s2})
+                if pair in self._parsed_custom_cutoffs:
+                    cutoff_dict[(s1, s2)] = self._parsed_custom_cutoffs[pair]
+                else:
+                    cutoff_dict[(s1, s2)] = radii_by_symbol[s1] + radii_by_symbol[s2]
+
+        i_list, j_list = neighbor_list("ij", step_atoms, cutoff=cutoff_dict)
+
+        atomnumber = len(step_atoms)
+        bond: list = [[] for _ in range(atomnumber)]
+        bondlevel: list = [[] for _ in range(atomnumber)]
+
+        for i, j in zip(i_list, j_list):
+            if i < j and j not in bond[i]:
+                bond[i].append(j)
+                bond[j].append(i)
+                bondlevel[i].append(1)
+                bondlevel[j].append(1)
+
+        return bond, bondlevel
+
     def _getbondfromcrd(
         self, step_atoms: Atoms, cell: np.ndarray
     ) -> Tuple[List[List[int]], List[List[int]]]:
@@ -286,6 +419,11 @@ class _DetectCrd(_Detect):
         list[list[int]]
             Bond orders for each atom. 12 is an aromatic bond.
         """
+        # Check if ASE mode is enabled
+        if self.use_ase:
+            return self._getbondfromase(step_atoms, cell)
+
+        # Otherwise, use the original OpenBabel logic
         atomnumber = len(step_atoms)
         # Use openbabel to connect atoms
         mol = openbabel.OBMol()
@@ -296,7 +434,7 @@ class _DetectCrd(_Detect):
             a = mol.NewAtom(idx)
             a.SetAtomicNum(int(num))
             a.SetVector(*position)
-        # Apply period boundry conditions
+        # Apply period boundary conditions
         # openbabel#1853, supported in v3.1.0
         if self.pbc:
             uc = openbabel.OBUnitCell()

@@ -168,6 +168,9 @@ class ReacNetGenerator:
             "needprintspecies": True,
             "urls": [],
             "matrix_size": 100,
+            "use_ase": False,
+            "ase_cutoff_mult": 1.2,
+            "custom_cutoffs": None,
         }
         none_key = ["selectatoms", "species", "pos", "k", "speciescenter", "cell"]
         accept_keys = [
@@ -226,6 +229,17 @@ class ReacNetGenerator:
             kwargs["getoriginfile"] = True
         if kwargs["selectatoms"] is None:
             kwargs["selectatoms"] = kwargs["atomname"]
+
+        # Handle ASE auto-enable logic
+        if kwargs.get("use_ase", False) is False and (
+            kwargs.get("ase_cutoff_mult", 1.2) != 1.2
+            or kwargs.get("custom_cutoffs", None) is not None
+        ):
+            logger.warning(
+                "ASE parameters detected. Automatically enabling --use-ase mode."
+            )
+            kwargs["use_ase"] = True
+
         self.__dict__.update(kwargs)
         if self.cell is not None:
             if len(self.cell) == 9:
