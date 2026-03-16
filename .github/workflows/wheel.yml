@@ -47,7 +47,7 @@ jobs:
             **/requirements*.txt
             **/pyproject.toml
         if: runner.os != 'Linux'
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4
         name: Setup QEMU
         if: matrix.platform_id == 'manylinux_aarch64' && matrix.os == 'ubuntu-latest'
       - name: Build wheels
