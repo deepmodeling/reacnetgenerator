@@ -16,7 +16,7 @@ description = "ReacNetGenerator: An automatic reaction network generator for rea
 authors = [
   {name = "Jinzhe Zeng", email = "jinzhe.zeng@ustc.edu.cn"},
 ]
-license = {file = "LICENSE"}
+license = "LGPL-3.0-or-later"
 classifiers = [
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
@@ -37,7 +37,6 @@ classifiers = [
     "Development Status :: 6 - Mature",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
 dependencies = [
     # "numpy<2; python_version < '3.9'",
