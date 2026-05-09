@@ -325,6 +325,35 @@ function addnode(spec) {
   }
 }
 
+/**
+ * narrow down results by adding species to selections and filtering
+ */
+function narrowSpecies(spec) {
+  // Add species to all relevant selects if not already selected
+  const selectIds = ["#speciesselect", "#reactionsselect", "#reactionsabcdselect"];
+  
+  selectIds.forEach((selectId) => {
+    const selectElement = $(selectId);
+    const currentValues = selectElement.val() || [];
+    
+    // Only add if not already in selection
+    if (!currentValues.includes(spec)) {
+      currentValues.push(spec);
+      selectElement.val(currentValues);
+      selectElement.selectpicker("refresh");
+      selectElement.trigger("change");
+    }
+  });
+}
+
+/**
+ * add node and narrow results when clicking on species
+ */
+function addnodeAndNarrow(spec) {
+  addnode(spec);
+  narrowSpecies(spec);
+}
+
 function storeSVG(spec, callback) {
   // load smiles svg
   if (spec in svgs) {
@@ -386,6 +415,8 @@ function SimpleLightbox(config) {}
 // define global
 window.$ = $;
 window.addnode = addnode;
+window.narrowSpecies = narrowSpecies;
+window.addnodeAndNarrow = addnodeAndNarrow;
 window.savesvg = savesvg;
 window.clearnode = clearnode;
 window.G = G;
