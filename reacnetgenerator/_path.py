@@ -56,6 +56,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     selectatoms: list
     split: int
     miso: int
+    timestep: dict
+    printmoleculetime: bool
+    moleculeframes: list
+    moleculetimesteps: list
     mname: np.ndarray
 
     def __init__(self, rng):
@@ -78,6 +82,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 "selectatoms",
                 "split",
                 "miso",
+                "timestep",
+                "printmoleculetime",
+                "moleculeframes",
+                "moleculetimesteps",
             ],
             ["mname", "atomnames", "allmoleculeroute", "splitmoleculeroute"],
         )
@@ -171,9 +179,11 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """For analysis without HMM, we may not need to use np.unique."""
         with WriteBuffer(
             open(
-                self.atomroutefilename
-                if timeaxis is None
-                else f"{self.atomroutefilename}.{timeaxis}",
+                (
+                    self.atomroutefilename
+                    if timeaxis is None
+                    else f"{self.atomroutefilename}.{timeaxis}"
+                ),
                 "w",
             ),
             sep="\n",
@@ -191,9 +201,11 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 start=1,
                 unordered=False,
                 total=self.N,
-                desc="Collect reaction paths"
-                if timeaxis is None
-                else f"Collect reaction paths {timeaxis}",
+                desc=(
+                    "Collect reaction paths"
+                    if timeaxis is None
+                    else f"Collect reaction paths {timeaxis}"
+                ),
                 unit="atom",
             )
             for ii, (moleculeroute, routestr) in enumerate(results):
@@ -277,6 +289,63 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         bonds = [[*pair, level] for pair, level in zip(pairs, levels)]
         return atoms, bonds
 
+    @staticmethod
+    def _gettimestepvalue(timestep):
+        if isinstance(timestep, tuple):
+            timestep = timestep[-1]
+        if isinstance(timestep, np.generic):
+            return timestep.item()
+        return timestep
+
+    def _getmoleculeframes(self, line):
+        return np.array(bytestolist(line[-1]), dtype=int)
+
+    def _needmoleculeframes(self):
+        return (
+            self.printmoleculetime
+            or self.moleculeframes is not None
+            or self.moleculetimesteps is not None
+        )
+
+    def _getmoleculeframesandtimesteps(self, line, need_timesteps=True):
+        if not self._needmoleculeframes():
+            return None, None
+        frames = self._getmoleculeframes(line)
+        timesteps = (
+            self._getmoleculetimesteps(frames)
+            if need_timesteps
+            and (self.printmoleculetime or self.moleculetimesteps is not None)
+            else None
+        )
+        return frames, timesteps
+
+    def _getmoleculetimesteps(self, frames):
+        return [self._gettimestepvalue(self.timestep[int(frame)]) for frame in frames]
+
+    def _shouldprintmolecule(self, frames, timesteps=None):
+        if self.moleculeframes is None and self.moleculetimesteps is None:
+            return True
+        assert frames is not None
+        if self.moleculeframes is not None:
+            if set(map(int, frames)).intersection(self.moleculeframes):
+                return True
+        if self.moleculetimesteps is not None:
+            if timesteps is None:
+                timesteps = self._getmoleculetimesteps(frames)
+            if set(timesteps).intersection(self.moleculetimesteps):
+                return True
+        return False
+
+    def _formatmoleculename(self, name, atoms, bonds, frames=None, timesteps=None):
+        if self.printmoleculetime:
+            assert frames is not None
+            if timesteps is None:
+                timesteps = self._getmoleculetimesteps(frames)
+            return listtostirng(
+                (name, atoms, bonds, frames, timesteps), sep=(" ", ";", ",")
+            )
+        return listtostirng((name, atoms, bonds), sep=(" ", ";", ","))
+
 
 class _CollectMolPaths(_CollectPaths):
     """VF2 is used to identify isomers.
@@ -301,6 +370,7 @@ class _CollectMolPaths(_CollectPaths):
                 disable=None,
             ):
                 atoms, bonds = self._getatomsandbonds(line)
+                frames, timesteps = self._getmoleculeframesandtimesteps(line)
                 molecule = Molecule(self, atoms, bonds)
                 for isomer in d[str(molecule)]:
                     if isomer.isomorphic(molecule, em):
@@ -309,9 +379,12 @@ class _CollectMolPaths(_CollectPaths):
                 else:
                     d[str(molecule)].append(molecule)
                 mname.append(molecule.smiles)
-                fm.append(
-                    listtostirng((molecule.smiles, atoms, bonds), sep=(" ", ";", ","))
-                )
+                if self._shouldprintmolecule(frames, timesteps):
+                    fm.append(
+                        self._formatmoleculename(
+                            molecule.smiles, atoms, bonds, frames, timesteps
+                        )
+                    )
         self.mname = np.array(mname)
 
 
@@ -336,7 +409,13 @@ class _CollectSMILESPaths(_CollectPaths):
                 desc="Indentify isomers",
                 unit="molecule",
             )
-            for name, atoms, bonds in results:
+            for name, atoms, bonds, frames in results:
+                timesteps = (
+                    self._getmoleculetimesteps(frames)
+                    if frames is not None
+                    and (self.printmoleculetime or self.moleculetimesteps is not None)
+                    else None
+                )
                 if name is None:
                     # SMILES failed, fallback to VF2 identify isomers
                     molecule = Molecule(self, atoms, bonds)
@@ -371,18 +450,22 @@ class _CollectSMILESPaths(_CollectPaths):
                             mng[name] = molecule
                             name_mapping[name] = name
                 mname.append(name)
-                fm.append(listtostirng((name, atoms, bonds), sep=(" ", ";", ",")))
+                if self._shouldprintmolecule(frames, timesteps):
+                    fm.append(
+                        self._formatmoleculename(name, atoms, bonds, frames, timesteps)
+                    )
         self.mname = np.array(mname)
 
     def _calmoleculeSMILESname(self, item):
         line = item
         atoms, bonds = self._getatomsandbonds(line)
+        frames, _ = self._getmoleculeframesandtimesteps(line, need_timesteps=False)
         try:
             name = self.convertSMILES(atoms, bonds)
         except ValueError:
             # fallback to VF2
             name = None
-        return name, atoms, bonds
+        return name, atoms, bonds, frames
 
 
 class Molecule:

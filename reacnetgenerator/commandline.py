@@ -130,6 +130,30 @@ def main_parser() -> argparse.ArgumentParser:
         default=1,
     )
     parser.add_argument(
+        "--show-molecule-time",
+        help="Append analyzed frame indices and original timestep values to the molecule file.",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--molecule-frame",
+        dest="moleculeframes",
+        help="Only write molecule-file entries that appear in the given analyzed frame index/indices.",
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
+        "--molecule-timestep",
+        dest="moleculetimesteps",
+        help="Only write molecule-file entries that appear in the given original timestep value(s).",
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
+        "--reaction-event",
+        help="Write per-event reaction details to the .reactionevent file.",
+        action="store_true",
+    )
+    parser.add_argument(
         "--maxspecies",
         help="Max number of nodes (species) in the network",
         type=int,
@@ -180,9 +204,9 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
-        urls=[{"fn": url[0], "url": url[1]} for url in args.urls]
-        if args.urls
-        else None,
+        urls=(
+            [{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None
+        ),
         a=np.array(args.matrixa).reshape((2, 2)),
         b=np.array(args.matrixb).reshape((2, 2)),
         pbc=not args.nopbc,
@@ -190,6 +214,10 @@ def _commandline():
         use_ase=args.use_ase,
         ase_cutoff_mult=args.ase_cutoff_mult,
         custom_cutoffs=args.ase_pair_cutoffs,
+        printmoleculetime=args.show_molecule_time,
+        moleculeframes=args.moleculeframes,
+        moleculetimesteps=args.moleculetimesteps,
+        printreactionevent=args.reaction_event,
     ).runanddraw()
 
 
@@ -242,6 +270,22 @@ def parm2cmd(pp: dict) -> List[str]:
     for ii in ["nproc", "selectatoms", "stepinterval", "split", "maxspecies"]:
         if pp.get(ii, None):
             commands.extend((f"--{ii}", str(pp[ii])))
+    if pp.get("printmoleculetime", False):
+        commands.append("--show-molecule-time")
+    if pp.get("moleculeframes", None):
+        commands.append("--molecule-frame")
+        moleculeframes = pp["moleculeframes"]
+        if not isinstance(moleculeframes, (list, tuple)):
+            moleculeframes = [moleculeframes]
+        commands.extend(str(x) for x in moleculeframes)
+    if pp.get("moleculetimesteps", None):
+        commands.append("--molecule-timestep")
+        moleculetimesteps = pp["moleculetimesteps"]
+        if not isinstance(moleculetimesteps, (list, tuple)):
+            moleculetimesteps = [moleculetimesteps]
+        commands.extend(str(x) for x in moleculetimesteps)
+    if pp.get("printreactionevent", False):
+        commands.append("--reaction-event")
     if pp.get("use_ase", False):
         commands.append("--use-ase")
     if pp.get("ase_cutoff_mult", 1.2) != 1.2:

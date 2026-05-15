@@ -7,6 +7,7 @@ import itertools
 import json
 import os
 from tkinter import END, TclError
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -15,6 +16,7 @@ from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
 from reacnetgenerator._path import _CollectSMILESPaths
+from reacnetgenerator._reaction import ReactionsFinder
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
@@ -165,6 +167,102 @@ class TestReacNetGen:
         r = _CollectSMILESPaths(reacnetgen)
         r.atomname = np.array(["Mo", "O"])
         assert r._re("[Mo]") == "[Mo]"
+
+    def test_reaction_event_details(self, tmp_path):
+        """Single reaction events should expose frame range and atom ids."""
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(tmp_path / "out.reactionevent"),
+                printreactionevent=True,
+                nproc=1,
+                timestep={0: 100, 1: 200},
+            )
+        )
+        item = listtobytes(
+            (
+                0,
+                np.array([1, 1, 2, 2]),
+                np.array([3, 3, 3, 3]),
+                np.zeros(4, dtype=int),
+                np.zeros(4, dtype=int),
+            )
+        )
+
+        assert finder._getstepreaction(item) == [
+            {
+                "frame_start": 0,
+                "frame_end": 1,
+                "timestep_start": 100,
+                "timestep_end": 200,
+                "reaction": "A+B->C",
+                "atom_ids": [0, 1, 2, 3],
+            }
+        ]
+
+    def test_reaction_event_default_is_off(self, tmp_path):
+        """Reaction event details should not be calculated unless requested."""
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(tmp_path / "out.reactionevent"),
+                printreactionevent=False,
+                nproc=1,
+                timestep={0: 100, 1: 200},
+            )
+        )
+        item = listtobytes(
+            (
+                np.array([1, 1, 2, 2]),
+                np.array([3, 3, 3, 3]),
+                np.zeros(4, dtype=int),
+                np.zeros(4, dtype=int),
+            )
+        )
+
+        assert finder._getstepreaction(item) == ["A+B->C"]
+
+    def test_molecule_time_formatting(self):
+        """Molecule-file time columns should be optional and filterable."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            printmoleculetime=True,
+            moleculeframes=[2],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+        collector.timestep = {0: 100, 1: 200, 2: 300}
+
+        frames = np.array([0, 2])
+        timesteps = collector._getmoleculetimesteps(frames)
+
+        assert timesteps == [100, 300]
+        assert collector._shouldprintmolecule(frames, timesteps)
+        assert (
+            collector._formatmoleculename(
+                "C", np.array([0, 1]), [[0, 1, 1]], frames, timesteps
+            )
+            == "C 0;1 0,1,1 0;2 100;300"
+        )
+
+    def test_molecule_time_filter_by_timestep(self):
+        """Molecule-file time filtering should accept original timestep values."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculetimesteps=[300],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert reacnetgen.printmoleculetime is True
+        assert collector._shouldprintmolecule(np.array([0, 2]), [100, 300])
+        assert not collector._shouldprintmolecule(np.array([0, 2]), [100, 200])
 
 
 # Additional test for the auto-enable logic
