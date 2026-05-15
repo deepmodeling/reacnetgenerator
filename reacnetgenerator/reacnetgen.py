@@ -249,7 +249,12 @@ class ReacNetGenerator:
             kwargs[kk] = np.array(kwargs[kk])
         for kk in ("moleculeframes", "moleculetimesteps"):
             if kwargs[kk] is not None:
-                kwargs[kk] = [int(x) for x in must_be_list(kwargs[kk])]
+                values = (
+                    list(kwargs[kk])
+                    if isinstance(kwargs[kk], (list, tuple, np.ndarray))
+                    else [kwargs[kk]]
+                )
+                kwargs[kk] = [int(x) for x in values]
         if (
             kwargs["moleculeframes"] is not None
             or kwargs["moleculetimesteps"] is not None
