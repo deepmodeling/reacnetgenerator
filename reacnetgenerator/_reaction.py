@@ -9,7 +9,14 @@ from collections import Counter, defaultdict
 import numpy as np
 
 from .dps import dps_reaction  # type:ignore
-from .utils import SharedRNGData, WriteBuffer, bytestolist, listtobytes, run_mp
+from .utils import (
+    SharedRNGData,
+    WriteBuffer,
+    bytestolist,
+    get_timestep_value,
+    listtobytes,
+    run_mp,
+)
 
 
 class ReactionsFinder(SharedRNGData):
@@ -131,22 +138,14 @@ class ReactionsFinder(SharedRNGData):
                 {
                     "frame_start": int(stepidx),
                     "frame_end": int(stepidx + 1),
-                    "timestep_start": self._gettimestepvalue(self.timestep[stepidx]),
-                    "timestep_end": self._gettimestepvalue(self.timestep[stepidx + 1]),
+                    "timestep_start": get_timestep_value(self.timestep[stepidx]),
+                    "timestep_end": get_timestep_value(self.timestep[stepidx + 1]),
                     "reaction": reactionname,
                     # Atom ids follow the internal 0-based indexing used elsewhere.
                     "atom_ids": np.flatnonzero(eventmask).tolist(),
                 }
             )
         return events
-
-    @staticmethod
-    def _gettimestepvalue(timestep):
-        if isinstance(timestep, tuple):
-            timestep = timestep[-1]
-        if isinstance(timestep, np.generic):
-            return timestep.item()
-        return timestep
 
     def _filterspec(self, reaction):
         leftname, rightname = (

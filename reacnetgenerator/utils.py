@@ -600,6 +600,15 @@ def must_be_list(obj: Union[Any, List[Any]]) -> List[Any]:
     return [obj]
 
 
+def get_timestep_value(timestep: Any) -> Any:
+    """Normalize stored timestep metadata to the timestep value."""
+    if isinstance(timestep, tuple):
+        timestep = timestep[-1]
+    if isinstance(timestep, np.generic):
+        return timestep.item()
+    return timestep
+
+
 def check_zero_signal(signal: np.ndarray) -> bool:
     """Check if the given signal contains only zeros.
 

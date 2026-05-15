@@ -272,13 +272,13 @@ def parm2cmd(pp: dict) -> List[str]:
             commands.extend((f"--{ii}", str(pp[ii])))
     if pp.get("printmoleculetime", False):
         commands.append("--show-molecule-time")
-    if pp.get("moleculeframes", None):
+    if pp.get("moleculeframes") is not None:
         commands.append("--molecule-frame")
         moleculeframes = pp["moleculeframes"]
         if not isinstance(moleculeframes, (list, tuple)):
             moleculeframes = [moleculeframes]
         commands.extend(str(x) for x in moleculeframes)
-    if pp.get("moleculetimesteps", None):
+    if pp.get("moleculetimesteps") is not None:
         commands.append("--molecule-timestep")
         moleculetimesteps = pp["moleculetimesteps"]
         if not isinstance(moleculetimesteps, (list, tuple)):

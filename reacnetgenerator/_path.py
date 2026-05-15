@@ -34,6 +34,7 @@ from .utils import (
     SharedRNGData,
     WriteBuffer,
     bytestolist,
+    get_timestep_value,
     listtostirng,
     read_compressed_block,
     run_mp,
@@ -289,14 +290,6 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         bonds = [[*pair, level] for pair, level in zip(pairs, levels)]
         return atoms, bonds
 
-    @staticmethod
-    def _gettimestepvalue(timestep):
-        if isinstance(timestep, tuple):
-            timestep = timestep[-1]
-        if isinstance(timestep, np.generic):
-            return timestep.item()
-        return timestep
-
     def _getmoleculeframes(self, line):
         return np.array(bytestolist(line[-1]), dtype=int)
 
@@ -320,7 +313,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         return frames, timesteps
 
     def _getmoleculetimesteps(self, frames):
-        return [self._gettimestepvalue(self.timestep[int(frame)]) for frame in frames]
+        return [get_timestep_value(self.timestep[int(frame)]) for frame in frames]
 
     def _shouldprintmolecule(self, frames, timesteps=None):
         if self.moleculeframes is None and self.moleculetimesteps is None:

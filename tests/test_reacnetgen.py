@@ -19,7 +19,12 @@ from reacnetgenerator._path import _CollectSMILESPaths
 from reacnetgenerator._reaction import ReactionsFinder
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
-from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
+from reacnetgenerator.utils import (
+    checksha256,
+    download_multifiles,
+    get_timestep_value,
+    listtobytes,
+)
 
 with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
     test_data = json.load(f)
@@ -226,6 +231,12 @@ class TestReacNetGen:
 
         assert finder._getstepreaction(item) == ["A+B->C"]
 
+    def test_get_timestep_value(self):
+        """Stored timestep metadata should normalize to the timestep value."""
+        assert get_timestep_value((0, 100)) == 100
+        assert get_timestep_value(np.int64(100)) == 100
+        assert get_timestep_value(100) == 100
+
     def test_molecule_time_formatting(self):
         """Molecule-file time columns should be optional and filterable."""
         reacnetgen = ReacNetGenerator(
@@ -263,6 +274,23 @@ class TestReacNetGen:
         assert reacnetgen.printmoleculetime is True
         assert collector._shouldprintmolecule(np.array([0, 2]), [100, 300])
         assert not collector._shouldprintmolecule(np.array([0, 2]), [100, 200])
+
+    def test_parm2cmd_preserves_zero_molecule_filters(self):
+        """Frame and timestep 0 are valid molecule filters."""
+        cmd = parm2cmd(
+            {
+                "inputfilename": "dummy",
+                "inputfiletype": "lammpsbondfile",
+                "atomname": ["H", "O"],
+                "moleculeframes": 0,
+                "moleculetimesteps": 0,
+            }
+        )
+
+        assert "--molecule-frame" in cmd
+        assert cmd[cmd.index("--molecule-frame") + 1] == "0"
+        assert "--molecule-timestep" in cmd
+        assert cmd[cmd.index("--molecule-timestep") + 1] == "0"
 
 
 # Additional test for the auto-enable logic
