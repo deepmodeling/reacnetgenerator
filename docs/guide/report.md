@@ -68,7 +68,19 @@ per-event reaction details in JSON lines format.
 Each line records one reaction event detected between two adjacent analyzed frames:
 
 ```json
-{"frame_start":0,"frame_end":1,"timestep_start":100,"timestep_end":200,"reaction":"A+B->C","atom_ids":[0,1,2,3]}
+{
+  "frame_start": 0,
+  "frame_end": 1,
+  "timestep_start": 100,
+  "timestep_end": 200,
+  "reaction": "A+B->C",
+  "atom_ids": [
+    0,
+    1,
+    2,
+    3
+  ]
+}
 ```
 
 `atom_ids` uses the internal 0-based atom indexing.
