@@ -248,13 +248,7 @@ class ReacNetGenerator:
         for kk in nparray_key:
             kwargs[kk] = np.array(kwargs[kk])
         for kk in ("moleculeframes", "moleculetimesteps"):
-            if kwargs[kk] is not None:
-                values = (
-                    list(kwargs[kk])
-                    if isinstance(kwargs[kk], (list, tuple, np.ndarray))
-                    else [kwargs[kk]]
-                )
-                kwargs[kk] = [int(x) for x in values]
+            kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
         if (
             kwargs["moleculeframes"] is not None
             or kwargs["moleculetimesteps"] is not None
@@ -285,6 +279,20 @@ class ReacNetGenerator:
                 raise RuntimeError(
                     "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
                 )
+
+    @staticmethod
+    def _normalize_optional_int_filter(value):
+        if value is None:
+            return None
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
+        if isinstance(value, tuple):
+            value = list(value)
+        elif not isinstance(value, list):
+            value = [value]
+        if not value:
+            return None
+        return [int(x) for x in value]
 
     def runanddraw(
         self, run: bool = True, draw: bool = True, report: bool = True

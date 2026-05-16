@@ -275,6 +275,59 @@ class TestReacNetGen:
         assert collector._shouldprintmolecule(np.array([0, 2]), [100, 300])
         assert not collector._shouldprintmolecule(np.array([0, 2]), [100, 200])
 
+    def test_molecule_time_filters_match_same_occurrence(self):
+        """Combined frame and timestep filters should match the same occurrence."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=[0],
+            moleculetimesteps=[300],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert not collector._shouldprintmolecule(np.array([0, 2]), [100, 300])
+
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=[2],
+            moleculetimesteps=[300],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert collector._shouldprintmolecule(np.array([0, 2]), [100, 300])
+
+    def test_empty_molecule_filters_are_ignored(self):
+        """Empty frame and timestep filters should behave like omitted filters."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=[],
+            moleculetimesteps=[],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert reacnetgen.moleculeframes is None
+        assert reacnetgen.moleculetimesteps is None
+        assert reacnetgen.printmoleculetime is False
+        assert collector._shouldprintmolecule(None)
+
+    def test_molecule_filter_normalization_accepts_sequences(self):
+        """Tuple and array molecule filters should normalize to integer lists."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=(1, 2),
+            moleculetimesteps=np.array([100, 300]),
+        )
+
+        assert reacnetgen.moleculeframes == [1, 2]
+        assert reacnetgen.moleculetimesteps == [100, 300]
+
     def test_parm2cmd_preserves_zero_molecule_filters(self):
         """Frame and timestep 0 are valid molecule filters."""
         cmd = parm2cmd(
@@ -291,6 +344,21 @@ class TestReacNetGen:
         assert cmd[cmd.index("--molecule-frame") + 1] == "0"
         assert "--molecule-timestep" in cmd
         assert cmd[cmd.index("--molecule-timestep") + 1] == "0"
+
+    def test_parm2cmd_omits_empty_molecule_filters(self):
+        """Empty molecule filters should not emit value-requiring CLI options."""
+        cmd = parm2cmd(
+            {
+                "inputfilename": "dummy",
+                "inputfiletype": "lammpsbondfile",
+                "atomname": ["H", "O"],
+                "moleculeframes": [],
+                "moleculetimesteps": [],
+            }
+        )
+
+        assert "--molecule-frame" not in cmd
+        assert "--molecule-timestep" not in cmd
 
 
 # Additional test for the auto-enable logic

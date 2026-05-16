@@ -10,6 +10,17 @@ from typing import List
 from . import __version__
 
 
+def _to_command_values(value):
+    if value is None:
+        return []
+    if isinstance(value, (str, bytes)):
+        return [value]
+    try:
+        return list(value)
+    except TypeError:
+        return [value]
+
+
 def main_parser() -> argparse.ArgumentParser:
     """Return main parser.
 
@@ -272,17 +283,13 @@ def parm2cmd(pp: dict) -> List[str]:
             commands.extend((f"--{ii}", str(pp[ii])))
     if pp.get("printmoleculetime", False):
         commands.append("--show-molecule-time")
-    if pp.get("moleculeframes") is not None:
+    moleculeframes = _to_command_values(pp.get("moleculeframes"))
+    if moleculeframes:
         commands.append("--molecule-frame")
-        moleculeframes = pp["moleculeframes"]
-        if not isinstance(moleculeframes, (list, tuple)):
-            moleculeframes = [moleculeframes]
         commands.extend(str(x) for x in moleculeframes)
-    if pp.get("moleculetimesteps") is not None:
+    moleculetimesteps = _to_command_values(pp.get("moleculetimesteps"))
+    if moleculetimesteps:
         commands.append("--molecule-timestep")
-        moleculetimesteps = pp["moleculetimesteps"]
-        if not isinstance(moleculetimesteps, (list, tuple)):
-            moleculetimesteps = [moleculetimesteps]
         commands.extend(str(x) for x in moleculetimesteps)
     if pp.get("printreactionevent", False):
         commands.append("--reaction-event")

@@ -296,8 +296,8 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     def _needmoleculeframes(self):
         return (
             self.printmoleculetime
-            or self.moleculeframes is not None
-            or self.moleculetimesteps is not None
+            or self._hasmoleculefilter(self.moleculeframes)
+            or self._hasmoleculefilter(self.moleculetimesteps)
         )
 
     def _getmoleculeframesandtimesteps(self, line, need_timesteps=True):
@@ -307,7 +307,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         timesteps = (
             self._getmoleculetimesteps(frames)
             if need_timesteps
-            and (self.printmoleculetime or self.moleculetimesteps is not None)
+            and (
+                self.printmoleculetime
+                or self._hasmoleculefilter(self.moleculetimesteps)
+            )
             else None
         )
         return frames, timesteps
@@ -315,19 +318,30 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     def _getmoleculetimesteps(self, frames):
         return [get_timestep_value(self.timestep[int(frame)]) for frame in frames]
 
+    @staticmethod
+    def _hasmoleculefilter(values):
+        return values is not None and len(values) > 0
+
     def _shouldprintmolecule(self, frames, timesteps=None):
-        if self.moleculeframes is None and self.moleculetimesteps is None:
+        has_frame_filter = self._hasmoleculefilter(self.moleculeframes)
+        has_timestep_filter = self._hasmoleculefilter(self.moleculetimesteps)
+        if not has_frame_filter and not has_timestep_filter:
             return True
         assert frames is not None
-        if self.moleculeframes is not None:
-            if set(map(int, frames)).intersection(self.moleculeframes):
-                return True
-        if self.moleculetimesteps is not None:
+        if has_timestep_filter:
             if timesteps is None:
                 timesteps = self._getmoleculetimesteps(frames)
-            if set(timesteps).intersection(self.moleculetimesteps):
-                return True
-        return False
+            timestep_filter = set(self.moleculetimesteps)
+        if has_frame_filter:
+            frame_filter = set(self.moleculeframes)
+        if has_frame_filter and has_timestep_filter:
+            return any(
+                int(frame) in frame_filter and timestep in timestep_filter
+                for frame, timestep in zip(frames, timesteps)
+            )
+        if has_frame_filter:
+            return bool(set(map(int, frames)).intersection(frame_filter))
+        return bool(set(timesteps).intersection(timestep_filter))
 
     def _formatmoleculename(self, name, atoms, bonds, frames=None, timesteps=None):
         if self.printmoleculetime:
