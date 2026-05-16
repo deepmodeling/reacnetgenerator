@@ -142,11 +142,12 @@ class ReacNetGenerator:
         logger.info(doc_run)
         logger.info(f"Version: {__version__}  Creation date: {__date__}")
 
-        try:
-            nproc = len(os.sched_getaffinity(0))
-        except AttributeError:
+        sched_getaffinity = getattr(os, "sched_getaffinity", None)
+        if sched_getaffinity is None:
             # macos and windows
             nproc = os.cpu_count()
+        else:
+            nproc = len(sched_getaffinity(0))
 
         # process kwargs
         necessary_key = ["inputfiletype", "inputfilename", "atomname"]
