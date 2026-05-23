@@ -107,15 +107,15 @@ class ReacNetGenerator:
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
     printmoleculetime: bool, optional, default: False
-        Append analyzed frame indices and original timestep values to the molecule file.
+        Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs.
     moleculeframes: list of int, optional, default: None
-        Only write molecule-file entries that appear in the given analyzed frame indices.
+        Only write molecule timeline CSV rows in the given analyzed frame indices.
         This also enables printmoleculetime.
     moleculetimesteps: list of int, optional, default: None
-        Only write molecule-file entries that appear in the given original timestep values.
+        Only write molecule timeline CSV rows in the given original timestep values.
         This also enables printmoleculetime.
     printreactionevent: bool, optional, default: False
-        Write per-event reaction details to the reaction event file.
+        Write time-resolved reaction events to the reaction event CSV file.
     a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]
         Transition matrix A of HMM parameters. It is recommended for users to choose their own
         parameters. See the paper for details.
@@ -221,6 +221,7 @@ class ReacNetGenerator:
         ]
         file_key = {
             "moleculefilename": "moname",
+            "moleculetimelinefilename": "molecules.csv",
             "atomroutefilename": "route",
             "reactionfilename": "reaction",
             "tablefilename": "table",
@@ -229,7 +230,7 @@ class ReacNetGenerator:
             "resultfilename": "html",
             "jsonfilename": "json",
             "reactionabcdfilename": "reactionabcd",
-            "reactioneventfilename": "reactionevent",
+            "reactioneventfilename": "reactionevent.csv",
         }
         assert set(necessary_key).issubset(set(kwargs)), (
             "Must give neccessary key: {}".format(", ".join(necessary_key))

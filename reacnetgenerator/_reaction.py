@@ -3,7 +3,7 @@
 # cython: linetrace=True
 """Reactions finder."""
 
-import json
+import csv
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -13,7 +13,6 @@ from .utils import (
     SharedRNGData,
     WriteBuffer,
     bytestolist,
-    get_timestep_value,
     listtobytes,
     run_mp,
 )
@@ -29,7 +28,6 @@ class ReactionsFinder(SharedRNGData):
     reactioneventfilename: str
     printreactionevent: bool
     nproc: int
-    timestep: dict
 
     def __init__(self, rng):
         SharedRNGData.__init__(
@@ -42,7 +40,6 @@ class ReactionsFinder(SharedRNGData):
                 "reactioneventfilename",
                 "printreactionevent",
                 "nproc",
-                "timestep",
             ],
             [],
         )
@@ -72,13 +69,20 @@ class ReactionsFinder(SharedRNGData):
             unit="timestep",
         )
         if self.printreactionevent:
-            with WriteBuffer(
-                open(self.reactioneventfilename, "w"), sep="\n"
-            ) as f_event:
+            with open(self.reactioneventfilename, "w", newline="") as f_event:
+                event_writer = csv.writer(f_event)
+                event_writer.writerow(["Timestep_Index", "Reactant", "Product"])
                 for events in results:
                     for event in events:
-                        allreactions.append(event["reaction"])
-                        f_event.append(json.dumps(event, separators=(",", ":")))
+                        reaction = "->".join((event["Reactant"], event["Product"]))
+                        allreactions.append(reaction)
+                        event_writer.writerow(
+                            [
+                                event["Timestep_Index"],
+                                event["Reactant"],
+                                event["Product"],
+                            ]
+                        )
         else:
             for reactions in results:
                 allreactions.extend(reactions)
@@ -128,26 +132,20 @@ class ReactionsFinder(SharedRNGData):
         events = []
         assert stepidx is not None
         for reaction in new_networks:
-            reactionname = self._filterspec(reaction)
-            if reactionname is None:
+            reactionpair = self._filterreactionpair(reaction)
+            if reactionpair is None:
                 continue
-            eventmask = modifiedatoms & (
-                np.isin(atomeachj, reaction[0]) | np.isin(atomeachjp1, reaction[1])
-            )
+            reactant, product = reactionpair
             events.append(
                 {
-                    "frame_start": int(stepidx),
-                    "frame_end": int(stepidx + 1),
-                    "timestep_start": get_timestep_value(self.timestep[stepidx]),
-                    "timestep_end": get_timestep_value(self.timestep[stepidx + 1]),
-                    "reaction": reactionname,
-                    # Atom ids follow the internal 0-based indexing used elsewhere.
-                    "atom_ids": np.flatnonzero(eventmask).tolist(),
+                    "Timestep_Index": int(stepidx),
+                    "Reactant": reactant,
+                    "Product": product,
                 }
             )
         return events
 
-    def _filterspec(self, reaction):
+    def _filterreactionpair(self, reaction):
         leftname, rightname = (
             Counter(self.mname[np.array(side) - 1]) for side in reaction
         )
@@ -155,8 +153,14 @@ class ReactionsFinder(SharedRNGData):
         new_leftname = leftname - rightname
         new_rightname = rightname - leftname
         if new_leftname and new_rightname:
-            return "->".join(
+            return tuple(
                 "+".join(sorted(side.elements()))
                 for side in (new_leftname, new_rightname)
             )
         return None
+
+    def _filterspec(self, reaction):
+        reactionpair = self._filterreactionpair(reaction)
+        if reactionpair is None:
+            return None
+        return "->".join(reactionpair)

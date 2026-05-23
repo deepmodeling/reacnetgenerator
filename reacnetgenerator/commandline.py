@@ -142,26 +142,35 @@ def main_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--show-molecule-time",
-        help="Append analyzed frame indices and original timestep values to the molecule file.",
+        help=(
+            "Write a molecule timeline CSV file with original timestep values, "
+            "atom IDs, and bond IDs."
+        ),
         action="store_true",
     )
     parser.add_argument(
         "--molecule-frame",
         dest="moleculeframes",
-        help="Only write molecule-file entries that appear in the given analyzed frame index/indices.",
+        help=(
+            "Only write molecule timeline CSV rows in the given analyzed frame "
+            "index/indices."
+        ),
         nargs="+",
         type=int,
     )
     parser.add_argument(
         "--molecule-timestep",
         dest="moleculetimesteps",
-        help="Only write molecule-file entries that appear in the given original timestep value(s).",
+        help=(
+            "Only write molecule timeline CSV rows in the given original "
+            "timestep value(s)."
+        ),
         nargs="+",
         type=int,
     )
     parser.add_argument(
         "--reaction-event",
-        help="Write per-event reaction details to the .reactionevent file.",
+        help="Write time-resolved reaction events to the .reactionevent.csv file.",
         action="store_true",
     )
     parser.add_argument(

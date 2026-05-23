@@ -34,11 +34,25 @@ This file contains information of each molecule.
 In each line, the first column is its SMILES.
 The second column is the atomic index (starts from 0) of atoms.
 The last column shows all the bonds in the molecule.
-By default, this file keeps the historical three-column format. If
-`--show-molecule-time` is enabled, two columns are appended: analyzed frame
-indices and the corresponding original timestep values. `--molecule-frame` and
-`--molecule-timestep` can be used to limit the written molecule entries to
-selected frames or timesteps; these filters also enable the time columns.
+This file always keeps the historical three-column format.
+
+## Molecule timeline file
+
+suffix: `.molecules.csv`
+
+This optional CSV file is written when `--show-molecule-time`,
+`--molecule-frame`, or `--molecule-timestep` is enabled. It contains one row per
+molecule occurrence in an analyzed frame, with the following columns:
+
+```text
+Timestep,Species,AtomIDs,BondIDs
+```
+
+Rows are sorted by `Timestep`. `Timestep` is the original timestep value from
+the input trajectory. `AtomIDs` and `BondIDs` are semicolon-separated lists.
+Bond IDs use `atom1-atom2-order` labels. The
+`--molecule-frame` and `--molecule-timestep` filters limit the CSV rows to
+selected frames or timesteps.
 
 ## Route file
 
@@ -61,29 +75,18 @@ Note that $\ce{A + B -> C + D}$ information may be not accurate when [HMM](hmm.m
 
 ## Reaction event file
 
-suffix: `.reactionevent`
+suffix: `.reactionevent.csv`
 
-This optional file is written when `--reaction-event` is enabled. It contains
-per-event reaction details in JSON lines format.
-Each line records one reaction event detected between two adjacent analyzed frames:
+This optional CSV file is written when `--reaction-event` is enabled. It contains
+one row per reaction event detected between two adjacent analyzed frames:
 
-```json
-{
-  "frame_start": 0,
-  "frame_end": 1,
-  "timestep_start": 100,
-  "timestep_end": 200,
-  "reaction": "A+B->C",
-  "atom_ids": [
-    0,
-    1,
-    2,
-    3
-  ]
-}
+```text
+Timestep_Index,Reactant,Product
 ```
 
-`atom_ids` uses the internal 0-based atom indexing.
+`Timestep_Index` is the analyzed transition index. A value of `0` means the
+reaction was detected between analyzed frames 0 and 1. `Reactant` and `Product`
+use the same species names as the reaction summary files.
 
 ## Reaction matrix file
 
