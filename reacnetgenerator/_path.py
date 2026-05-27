@@ -120,9 +120,7 @@ class _MoleculeTimelineSpool:
         with ExitStack() as stack:
             readers = []
             for path in paths:
-                readers.append(
-                    csv.reader(stack.enter_context(open(path, newline="")))
-                )
+                readers.append(csv.reader(stack.enter_context(open(path, newline=""))))
             yield from heapq.merge(*readers, key=self._sortkey)
 
 
@@ -487,9 +485,10 @@ class _CollectMolPaths(_CollectPaths):
             self._openmoleculetimelinespool() if self._needmoleculetimeline() else None
         )
         try:
-            with WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm, open(
-                self.moleculetemp2filename, "rb"
-            ) as ft:
+            with (
+                WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+                open(self.moleculetemp2filename, "rb") as ft,
+            ):
                 for line in tqdm(
                     itertools.zip_longest(*[read_compressed_block(ft)] * 4),
                     total=self.hmmit,
@@ -540,9 +539,10 @@ class _CollectSMILESPaths(_CollectPaths):
             self._openmoleculetimelinespool() if self._needmoleculetimeline() else None
         )
         try:
-            with WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm, open(
-                self.moleculetemp2filename, "rb"
-            ) as ft:
+            with (
+                WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+                open(self.moleculetemp2filename, "rb") as ft,
+            ):
                 results = run_mp(
                     self.nproc,
                     func=self._calmoleculeSMILESname,
