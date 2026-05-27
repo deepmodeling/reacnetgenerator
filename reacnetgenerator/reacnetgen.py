@@ -106,6 +106,16 @@ class ReacNetGenerator:
     split: int, optional, default: None
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
+    printmoleculetime: bool, optional, default: False
+        Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs.
+    moleculeframes: list of int, optional, default: None
+        Only write molecule timeline CSV rows in the given analyzed frame indices.
+        This also enables printmoleculetime.
+    moleculetimesteps: list of int, optional, default: None
+        Only write molecule timeline CSV rows in the given original timestep values.
+        This also enables printmoleculetime.
+    printreactionevent: bool, optional, default: False
+        Write time-resolved reaction events to the reaction event CSV file.
     a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]
         Transition matrix A of HMM parameters. It is recommended for users to choose their own
         parameters. See the paper for details.
@@ -132,11 +142,12 @@ class ReacNetGenerator:
         logger.info(doc_run)
         logger.info(f"Version: {__version__}  Creation date: {__date__}")
 
-        try:
-            nproc = len(os.sched_getaffinity(0))
-        except AttributeError:
+        sched_getaffinity = getattr(os, "sched_getaffinity", None)
+        if sched_getaffinity is None:
             # macos and windows
             nproc = os.cpu_count()
+        else:
+            nproc = len(sched_getaffinity(0))
 
         # process kwargs
         necessary_key = ["inputfiletype", "inputfilename", "atomname"]
@@ -166,13 +177,24 @@ class ReacNetGenerator:
             "miso": 0,
             "getoriginfile": False,
             "needprintspecies": True,
+            "printmoleculetime": False,
+            "printreactionevent": False,
             "urls": [],
             "matrix_size": 100,
             "use_ase": False,
             "ase_cutoff_mult": 1.2,
             "custom_cutoffs": None,
         }
-        none_key = ["selectatoms", "species", "pos", "k", "speciescenter", "cell"]
+        none_key = [
+            "selectatoms",
+            "species",
+            "pos",
+            "k",
+            "speciescenter",
+            "cell",
+            "moleculeframes",
+            "moleculetimesteps",
+        ]
         accept_keys = [
             "atomtype",
             "step",
@@ -199,6 +221,7 @@ class ReacNetGenerator:
         ]
         file_key = {
             "moleculefilename": "moname",
+            "moleculetimelinefilename": "molecules.csv",
             "atomroutefilename": "route",
             "reactionfilename": "reaction",
             "tablefilename": "table",
@@ -207,6 +230,7 @@ class ReacNetGenerator:
             "resultfilename": "html",
             "jsonfilename": "json",
             "reactionabcdfilename": "reactionabcd",
+            "reactioneventfilename": "reactionevent.csv",
         }
         assert set(necessary_key).issubset(set(kwargs)), (
             "Must give neccessary key: {}".format(", ".join(necessary_key))
@@ -225,6 +249,13 @@ class ReacNetGenerator:
             kwargs.setdefault(kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
         for kk in nparray_key:
             kwargs[kk] = np.array(kwargs[kk])
+        for kk in ("moleculeframes", "moleculetimesteps"):
+            kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
+        if (
+            kwargs["moleculeframes"] is not None
+            or kwargs["moleculetimesteps"] is not None
+        ):
+            kwargs["printmoleculetime"] = True
         if not kwargs["runHMM"]:
             kwargs["getoriginfile"] = True
         if kwargs["selectatoms"] is None:
@@ -250,6 +281,20 @@ class ReacNetGenerator:
                 raise RuntimeError(
                     "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
                 )
+
+    @staticmethod
+    def _normalize_optional_int_filter(value):
+        if value is None:
+            return None
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
+        if isinstance(value, tuple):
+            value = list(value)
+        elif not isinstance(value, list):
+            value = [value]
+        if not value:
+            return None
+        return [int(x) for x in value]
 
     def runanddraw(
         self, run: bool = True, draw: bool = True, report: bool = True

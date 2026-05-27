@@ -18,10 +18,16 @@ References
    and Machine Intelligence 2004, 26, 1367-1372.
 """
 
+import csv
+import heapq
 import itertools
+import os
 import re
+import shutil
+import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
+from contextlib import ExitStack
 
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -34,10 +40,88 @@ from .utils import (
     SharedRNGData,
     WriteBuffer,
     bytestolist,
+    get_timestep_value,
     listtostirng,
     read_compressed_block,
     run_mp,
 )
+
+
+class _MoleculeTimelineSpool:
+    def __init__(self, filename, buffer_rows=10000, max_open_chunks=64):
+        self.filename = filename
+        self.buffer_rows = max(1, int(buffer_rows))
+        self.max_open_chunks = max(2, int(max_open_chunks))
+        output_dir = os.path.dirname(os.path.abspath(filename))
+        self.tempdir = tempfile.mkdtemp(prefix=".molecule-timeline-", dir=output_dir)
+        self.paths = []
+        self.buffer = []
+        self.n_chunks = 0
+
+    def append(self, row):
+        self.buffer.append(row)
+        if len(self.buffer) >= self.buffer_rows:
+            self.flush()
+
+    def extend(self, rows):
+        for row in rows:
+            self.append(row)
+
+    def flush(self):
+        if not self.buffer:
+            return
+        self.buffer.sort(key=self._sortkey)
+        path = self._newpath()
+        with open(path, "w", newline="") as f:
+            csv.writer(f).writerows(self.buffer)
+        self.paths.append(path)
+        self.buffer = []
+
+    def write(self):
+        self.flush()
+        self.paths = self._mergechunks(self.paths)
+        with open(self.filename, "w", newline="") as timeline_file:
+            timeline_writer = csv.writer(timeline_file)
+            timeline_writer.writerow(["Timestep", "Species", "AtomIDs", "BondIDs"])
+            timeline_writer.writerows(self._itermergedrows(self.paths))
+
+    def close(self):
+        shutil.rmtree(self.tempdir, ignore_errors=True)
+
+    @staticmethod
+    def _sortkey(row):
+        return int(row[0])
+
+    def _newpath(self):
+        path = os.path.join(self.tempdir, f"{self.n_chunks}.csv")
+        self.n_chunks += 1
+        return path
+
+    def _mergechunks(self, paths):
+        while len(paths) > self.max_open_chunks:
+            merged_paths = []
+            for i in range(0, len(paths), self.max_open_chunks):
+                group = paths[i : i + self.max_open_chunks]
+                if len(group) == 1:
+                    merged_paths.append(group[0])
+                    continue
+                path = self._newpath()
+                with open(path, "w", newline="") as f:
+                    csv.writer(f).writerows(self._itermergedrows(group))
+                for old_path in group:
+                    os.remove(old_path)
+                merged_paths.append(path)
+            paths = merged_paths
+        return paths
+
+    def _itermergedrows(self, paths):
+        if not paths:
+            return
+        with ExitStack() as stack:
+            readers = []
+            for path in paths:
+                readers.append(csv.reader(stack.enter_context(open(path, newline=""))))
+            yield from heapq.merge(*readers, key=self._sortkey)
 
 
 class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
@@ -48,6 +132,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     originfilename: str
     hmmfilename: str
     moleculefilename: str
+    moleculetimelinefilename: str
     moleculetemp2filename: str
     atomroutefilename: str
     nproc: int
@@ -56,7 +141,12 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     selectatoms: list
     split: int
     miso: int
+    timestep: dict
+    printmoleculetime: bool
+    moleculeframes: list
+    moleculetimesteps: list
     mname: np.ndarray
+    _moleculetimelinebufferrows: int = 10000
 
     def __init__(self, rng):
         SharedRNGData.__init__(
@@ -70,6 +160,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 "originfilename",
                 "hmmfilename",
                 "moleculefilename",
+                "moleculetimelinefilename",
                 "moleculetemp2filename",
                 "atomroutefilename",
                 "nproc",
@@ -78,8 +169,16 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 "selectatoms",
                 "split",
                 "miso",
+                "timestep",
+                "printmoleculetime",
+                "moleculeframes",
+                "moleculetimesteps",
             ],
             ["mname", "atomnames", "allmoleculeroute", "splitmoleculeroute"],
+        )
+        self._moleculeframefilter = self._getmoleculefilterset(self.moleculeframes)
+        self._moleculetimestepfilter = self._getmoleculefilterset(
+            self.moleculetimesteps
         )
 
     @staticmethod
@@ -172,9 +271,11 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """For analysis without HMM, we may not need to use np.unique."""
         with WriteBuffer(
             open(
-                self.atomroutefilename
-                if timeaxis is None
-                else f"{self.atomroutefilename}.{timeaxis}",
+                (
+                    self.atomroutefilename
+                    if timeaxis is None
+                    else f"{self.atomroutefilename}.{timeaxis}"
+                ),
                 "w",
             ),
             sep="\n",
@@ -192,9 +293,11 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 start=1,
                 unordered=False,
                 total=self.N,
-                desc="Collect reaction paths"
-                if timeaxis is None
-                else f"Collect reaction paths {timeaxis}",
+                desc=(
+                    "Collect reaction paths"
+                    if timeaxis is None
+                    else f"Collect reaction paths {timeaxis}"
+                ),
                 unit="atom",
             )
             for ii, (moleculeroute, routestr) in enumerate(results):
@@ -278,6 +381,93 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         bonds = [[*pair, level] for pair, level in zip(pairs, levels)]
         return atoms, bonds
 
+    def _getmoleculeframes(self, line):
+        return np.array(bytestolist(line[-1]), dtype=int)
+
+    def _needmoleculetimeline(self):
+        return (
+            self.printmoleculetime
+            or self._moleculeframefilter is not None
+            or self._moleculetimestepfilter is not None
+        )
+
+    def _getmoleculeframesandtimesteps(self, line, need_timesteps=True):
+        if not self._needmoleculetimeline():
+            return None, None
+        frames = self._getmoleculeframes(line)
+        timesteps = (
+            self._getmoleculetimesteps(frames)
+            if need_timesteps
+            and (self.printmoleculetime or self._moleculetimestepfilter is not None)
+            else None
+        )
+        return frames, timesteps
+
+    def _getmoleculetimesteps(self, frames):
+        return [get_timestep_value(self.timestep[int(frame)]) for frame in frames]
+
+    @staticmethod
+    def _hasmoleculefilter(values):
+        return values is not None and len(values) > 0
+
+    @classmethod
+    def _getmoleculefilterset(cls, values):
+        return set(values) if cls._hasmoleculefilter(values) else None
+
+    def _shouldprintmoleculetimelinerow(self, frame, timestep):
+        if (
+            self._moleculeframefilter is not None
+            and int(frame) not in self._moleculeframefilter
+        ):
+            return False
+        return not (
+            self._moleculetimestepfilter is not None
+            and int(timestep) not in self._moleculetimestepfilter
+        )
+
+    def _formatmoleculename(self, name, atoms, bonds):
+        return listtostirng((name, atoms, bonds), sep=(" ", ";", ","))
+
+    @staticmethod
+    def _formatmoleculeatomids(atoms):
+        return ";".join(str(atom) for atom in atoms)
+
+    @staticmethod
+    def _formatmoleculebondids(bonds):
+        return ";".join("-".join(str(item) for item in bond) for bond in bonds)
+
+    def _getmoleculetimelinerows(self, name, atoms, bonds, frames, timesteps):
+        assert frames is not None
+        atom_ids = self._formatmoleculeatomids(atoms)
+        bond_ids = self._formatmoleculebondids(bonds)
+        if timesteps is None:
+            frame_timestep_pairs = (
+                (frame, get_timestep_value(self.timestep[int(frame)]))
+                for frame in frames
+            )
+        else:
+            frame_timestep_pairs = zip(frames, timesteps)
+        for frame, timestep in frame_timestep_pairs:
+            timestep = int(timestep)
+            if self._shouldprintmoleculetimelinerow(frame, timestep):
+                yield (timestep, name, atom_ids, bond_ids)
+
+    def _writemoleculetimeline(self, rows):
+        if not self._needmoleculetimeline():
+            return
+        timeline = self._openmoleculetimelinespool()
+        try:
+            timeline.extend(rows)
+            timeline.write()
+        finally:
+            timeline.close()
+
+    def _openmoleculetimelinespool(self):
+        return _MoleculeTimelineSpool(
+            self.moleculetimelinefilename,
+            buffer_rows=self._moleculetimelinebufferrows,
+        )
+
 
 class _CollectMolPaths(_CollectPaths):
     """VF2 is used to identify isomers.
@@ -291,29 +481,49 @@ class _CollectMolPaths(_CollectPaths):
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         # idx for unknown SMILES
         self.n_unknown = 0
-        with (
-            WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
-            open(self.moleculetemp2filename, "rb") as ft,
-        ):
-            for line in tqdm(
-                itertools.zip_longest(*[read_compressed_block(ft)] * 4),
-                total=self.hmmit,
-                desc="Indentify isomers",
-                unit="molecule",
-                disable=None,
+        timeline = (
+            self._openmoleculetimelinespool() if self._needmoleculetimeline() else None
+        )
+        try:
+            with (
+                WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+                open(self.moleculetemp2filename, "rb") as ft,
             ):
-                atoms, bonds = self._getatomsandbonds(line)
-                molecule = Molecule(self, atoms, bonds)
-                for isomer in d[str(molecule)]:
-                    if isomer.isomorphic(molecule, em):
-                        molecule.smiles = isomer.smiles
-                        break
-                else:
-                    d[str(molecule)].append(molecule)
-                mname.append(molecule.smiles)
-                fm.append(
-                    listtostirng((molecule.smiles, atoms, bonds), sep=(" ", ";", ","))
-                )
+                for line in tqdm(
+                    itertools.zip_longest(*[read_compressed_block(ft)] * 4),
+                    total=self.hmmit,
+                    desc="Indentify isomers",
+                    unit="molecule",
+                    disable=None,
+                ):
+                    atoms, bonds = self._getatomsandbonds(line)
+                    frames, timesteps = self._getmoleculeframesandtimesteps(
+                        line, need_timesteps=False
+                    )
+                    molecule = Molecule(self, atoms, bonds)
+                    for isomer in d[str(molecule)]:
+                        if isomer.isomorphic(molecule, em):
+                            molecule.smiles = isomer.smiles
+                            break
+                    else:
+                        d[str(molecule)].append(molecule)
+                    mname.append(molecule.smiles)
+                    fm.append(self._formatmoleculename(molecule.smiles, atoms, bonds))
+                    if timeline is not None:
+                        timeline.extend(
+                            self._getmoleculetimelinerows(
+                                molecule.smiles,
+                                atoms,
+                                bonds,
+                                frames,
+                                timesteps,
+                            )
+                        )
+            if timeline is not None:
+                timeline.write()
+        finally:
+            if timeline is not None:
+                timeline.close()
         self.mname = np.array(mname)
 
 
@@ -325,67 +535,83 @@ class _CollectSMILESPaths(_CollectPaths):
         name_mapping_graph = defaultdict(dict)
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         self.n_unknown = 0
-        with (
-            WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
-            open(self.moleculetemp2filename, "rb") as ft,
-        ):
-            results = run_mp(
-                self.nproc,
-                func=self._calmoleculeSMILESname,
-                l=read_compressed_block(ft),
-                unordered=False,
-                nlines=4,
-                total=self.hmmit,
-                desc="Indentify isomers",
-                unit="molecule",
-            )
-            for name, atoms, bonds in results:
-                if name is None:
-                    # SMILES failed, fallback to VF2 identify isomers
-                    molecule = Molecule(self, atoms, bonds)
-
-                    # directly raise ValueError to save time
-                    def _raise_anyway(*args, **kwargs):
-                        raise ValueError("Maximum BFS search size exceeded.")
-
-                    molecule._convertSMILES = _raise_anyway
-                    for isomer in d[str(molecule)]:
-                        if isomer.isomorphic(molecule, em):
-                            molecule.smiles = isomer.smiles
-                            break
-                    else:
-                        d[str(molecule)].append(molecule)
-                    name = molecule.smiles
-                if self.miso > 0:
-                    if name in name_mapping:
-                        name = name_mapping[name]
-                    else:
-                        # check if the name is isomorphic to the previous molecules
+        timeline = (
+            self._openmoleculetimelinespool() if self._needmoleculetimeline() else None
+        )
+        try:
+            with (
+                WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+                open(self.moleculetemp2filename, "rb") as ft,
+            ):
+                results = run_mp(
+                    self.nproc,
+                    func=self._calmoleculeSMILESname,
+                    l=read_compressed_block(ft),
+                    unordered=False,
+                    nlines=4,
+                    total=self.hmmit,
+                    desc="Indentify isomers",
+                    unit="molecule",
+                )
+                for name, atoms, bonds, frames in results:
+                    if name is None:
+                        # SMILES failed, fallback to VF2 identify isomers
                         molecule = Molecule(self, atoms, bonds)
-                        # the formula should be the same
-                        mng = name_mapping_graph[molecule.name]
-                        for isomer, mol in mng.items():
-                            if mol.isomorphic(molecule, em):
-                                # use the previous SMILES
-                                name_mapping[name] = isomer
-                                name = isomer
+
+                        # directly raise ValueError to save time
+                        def _raise_anyway(*args, **kwargs):
+                            raise ValueError("Maximum BFS search size exceeded.")
+
+                        molecule._convertSMILES = _raise_anyway
+                        for isomer in d[str(molecule)]:
+                            if isomer.isomorphic(molecule, em):
+                                molecule.smiles = isomer.smiles
                                 break
                         else:
-                            mng[name] = molecule
-                            name_mapping[name] = name
-                mname.append(name)
-                fm.append(listtostirng((name, atoms, bonds), sep=(" ", ";", ",")))
+                            d[str(molecule)].append(molecule)
+                        name = molecule.smiles
+                    if self.miso > 0:
+                        if name in name_mapping:
+                            name = name_mapping[name]
+                        else:
+                            # check if the name is isomorphic to the previous molecules
+                            molecule = Molecule(self, atoms, bonds)
+                            # the formula should be the same
+                            mng = name_mapping_graph[molecule.name]
+                            for isomer, mol in mng.items():
+                                if mol.isomorphic(molecule, em):
+                                    # use the previous SMILES
+                                    name_mapping[name] = isomer
+                                    name = isomer
+                                    break
+                            else:
+                                mng[name] = molecule
+                                name_mapping[name] = name
+                    mname.append(name)
+                    fm.append(self._formatmoleculename(name, atoms, bonds))
+                    if timeline is not None:
+                        timeline.extend(
+                            self._getmoleculetimelinerows(
+                                name, atoms, bonds, frames, None
+                            )
+                        )
+            if timeline is not None:
+                timeline.write()
+        finally:
+            if timeline is not None:
+                timeline.close()
         self.mname = np.array(mname)
 
     def _calmoleculeSMILESname(self, item):
         line = item
         atoms, bonds = self._getatomsandbonds(line)
+        frames, _ = self._getmoleculeframesandtimesteps(line, need_timesteps=False)
         try:
             name = self.convertSMILES(atoms, bonds)
         except ValueError:
             # fallback to VF2
             name = None
-        return name, atoms, bonds
+        return name, atoms, bonds, frames
 
 
 class Molecule:
