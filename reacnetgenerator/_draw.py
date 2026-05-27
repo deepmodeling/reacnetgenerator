@@ -146,12 +146,15 @@ class _DrawNetwork(SharedRNGData):
                 imagefilename = "".join(
                     (("" if with_labels else "nolabel_"), self.imagefilename)
                 )
-                with StringIO() as stringio, open(
-                    imagefilename
-                    if timeaxis is None
-                    else f"{imagefilename}.{timeaxis}",
-                    "w",
-                ) as f:
+                with (
+                    StringIO() as stringio,
+                    open(
+                        imagefilename
+                        if timeaxis is None
+                        else f"{imagefilename}.{timeaxis}",
+                        "w",
+                    ) as f,
+                ):
                     plt.savefig(stringio, format="svg")
                     f.write(scour.scour.scourString(stringio.getvalue(), SCOUROPTIONS))
                 plt.close()
