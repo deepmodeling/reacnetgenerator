@@ -118,10 +118,11 @@ class _MoleculeTimelineSpool:
         if not paths:
             return
         with ExitStack() as stack:
-            readers = [
-                csv.reader(stack.enter_context(open(path, newline="")))
-                for path in paths
-            ]
+            readers = []
+            for path in paths:
+                readers.append(
+                    csv.reader(stack.enter_context(open(path, newline="")))
+                )
             yield from heapq.merge(*readers, key=self._sortkey)
 
 
