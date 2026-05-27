@@ -53,7 +53,7 @@ dependencies = [
     'pandas',
     'lz4',
     'requests',
-    "openbabel-wheel",
+    "openbabel>=3.2.0",
     "rdkit",
     "packaging",
 ]
