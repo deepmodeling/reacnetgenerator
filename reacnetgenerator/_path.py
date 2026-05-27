@@ -117,9 +117,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Values in atomeach starts from 1."""
         atomeach = np.zeros((self.N, self.step), dtype=int)
         conflict = np.zeros((self.N, self.step), dtype=int)
-        with open(
-            self.hmmfilename if self.runHMM else self.originfilename, "rb"
-        ) as fh, open(self.moleculetemp2filename, "rb") as ft:
+        with (
+            open(self.hmmfilename if self.runHMM else self.originfilename, "rb") as fh,
+            open(self.moleculetemp2filename, "rb") as ft,
+        ):
             for i, (linehz, linetz) in enumerate(
                 tqdm(
                     zip(
@@ -290,9 +291,10 @@ class _CollectMolPaths(_CollectPaths):
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         # idx for unknown SMILES
         self.n_unknown = 0
-        with WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm, open(
-            self.moleculetemp2filename, "rb"
-        ) as ft:
+        with (
+            WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+            open(self.moleculetemp2filename, "rb") as ft,
+        ):
             for line in tqdm(
                 itertools.zip_longest(*[read_compressed_block(ft)] * 4),
                 total=self.hmmit,
@@ -323,9 +325,10 @@ class _CollectSMILESPaths(_CollectPaths):
         name_mapping_graph = defaultdict(dict)
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         self.n_unknown = 0
-        with WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm, open(
-            self.moleculetemp2filename, "rb"
-        ) as ft:
+        with (
+            WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+            open(self.moleculetemp2filename, "rb") as ft,
+        ):
             results = run_mp(
                 self.nproc,
                 func=self._calmoleculeSMILESname,
