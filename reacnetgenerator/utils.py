@@ -9,6 +9,7 @@ import itertools
 import os
 import pickle
 import shutil
+from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
 from multiprocessing import Pool, Semaphore
 from typing import (
@@ -17,14 +18,8 @@ from typing import (
     Any,
     AnyStr,
     BinaryIO,
-    Callable,
-    Generator,
     Generic,
-    Iterable,
-    List,
     Optional,
-    Tuple,
-    Union,
     cast,
     overload,
 )
@@ -61,7 +56,7 @@ class WriteBuffer(Generic[AnyStr]):
     """
 
     def __init__(
-        self, f: IO[AnyStr], linenumber: int = 1200, sep: Optional[AnyStr] = None
+        self, f: IO[AnyStr], linenumber: int = 1200, sep: AnyStr | None = None
     ) -> None:
         self.f = f
         if sep is not None:
@@ -73,7 +68,7 @@ class WriteBuffer(Generic[AnyStr]):
         else:
             raise RuntimeError("File mode should be w or wb!")
         self.linenumber = linenumber
-        self.buff: List[AnyStr] = []
+        self.buff: list[AnyStr] = []
         self.name = self.f.name
 
     def append(self, text: AnyStr) -> None:
@@ -123,16 +118,12 @@ class WriteBuffer(Generic[AnyStr]):
 
 
 @overload
-def appendIfNotNone(
-    f: Union[WriteBuffer[str], ExitStack], wbytes: Optional[str]
-) -> None: ...
+def appendIfNotNone(f: WriteBuffer[str] | ExitStack, wbytes: str | None) -> None: ...
 @overload
 def appendIfNotNone(
-    f: Union[WriteBuffer[bytes], ExitStack], wbytes: Optional[bytes]
+    f: WriteBuffer[bytes] | ExitStack, wbytes: bytes | None
 ) -> None: ...
-def appendIfNotNone(
-    f: Union[WriteBuffer[AnyStr], ExitStack], wbytes: Optional[AnyStr]
-) -> None:
+def appendIfNotNone(f: WriteBuffer[AnyStr] | ExitStack, wbytes: AnyStr | None) -> None:
     """Append a line to a file if the line is not None.
 
     Parameters
@@ -151,7 +142,7 @@ def produce(
     semaphore: "multiprocessing.synchronize.Semaphore",
     plist: Iterable[Any],
     parameter: Any,
-) -> Generator[Tuple[Any, Any], None, None]:
+) -> Generator[tuple[Any, Any], None, None]:
     """Item producer with a semaphore.
 
     Prevent large memory usage due to slow IO.
@@ -179,7 +170,7 @@ def produce(
         yield item
 
 
-def compress(x: Union[str, bytes]) -> bytes:
+def compress(x: str | bytes) -> bytes:
     """Compress the line.
 
     This function reduces IO overhead to speed up the program. The functions will
@@ -206,7 +197,7 @@ def compress(x: Union[str, bytes]) -> bytes:
     return length_bytes + compress_block
 
 
-def decompress(x: bytes, isbytes: bool = False) -> Union[str, bytes]:
+def decompress(x: bytes, isbytes: bool = False) -> str | bytes:
     """Decompress the line.
 
     Parameters
@@ -283,7 +274,7 @@ def bytestolist(x: bytes) -> Any:
 
 
 def listtostirng(
-    l: Union[str, list, tuple, np.ndarray], sep: Union[List[str], Tuple[str, ...]]
+    l: str | list | tuple | np.ndarray, sep: list[str] | tuple[str, ...]
 ) -> str:
     """Convert a list to string, that is easier to store.
 
@@ -311,16 +302,16 @@ def multiopen(
     func: Callable,
     l: IO,
     semaphore: Optional["multiprocessing.synchronize.Semaphore"] = None,
-    nlines: Optional[int] = None,
+    nlines: int | None = None,
     unordered: bool = True,
     return_num: bool = False,
     start: int = 0,
-    extra: Optional[Any] = None,
-    interval: Optional[int] = None,
+    extra: Any | None = None,
+    interval: int | None = None,
     bar: bool = True,
-    desc: Optional[str] = None,
+    desc: str | None = None,
     unit: str = "it",
-    total: Optional[int] = None,
+    total: int | None = None,
 ) -> Iterable:
     """Return an interated object for process a file with multiple processors.
 
@@ -416,9 +407,9 @@ class SharedRNGData:
     def __init__(
         self,
         rng: "reacnetgenerator.ReacNetGenerator",
-        usedRNGKeys: List[str],
-        returnedRNGKeys: List[str],
-        extraNoneKeys: Optional[List[str]] = None,
+        usedRNGKeys: list[str],
+        returnedRNGKeys: list[str],
+        extraNoneKeys: list[str] | None = None,
     ) -> None:
         self.rng = rng
         self.returnedRNGKeys = returnedRNGKeys
@@ -436,7 +427,7 @@ class SharedRNGData:
             setattr(self.rng, key, getattr(self, key))
 
 
-def checksha256(filename: str, sha256_check: Union[str, List[str]]):
+def checksha256(filename: str, sha256_check: str | list[str]):
     """Check sha256 of a file is correct.
 
     Parameters
@@ -469,7 +460,7 @@ def checksha256(filename: str, sha256_check: Union[str, List[str]]):
 
 
 async def download_file(
-    urls: Union[str, List[str]], pathfilename: str, sha256: Optional[str]
+    urls: str | list[str], pathfilename: str, sha256: str | None
 ) -> str:
     """Download files from remote urls if not exists.
 
@@ -511,7 +502,7 @@ async def download_file(
     return pathfilename
 
 
-async def gather_download_files(urls: List[dict]) -> None:
+async def gather_download_files(urls: list[dict]) -> None:
     """Asynchronously download files from remote urls if not exists.
 
     See download_multifiles function for details.
@@ -528,7 +519,7 @@ async def gather_download_files(urls: List[dict]) -> None:
     )
 
 
-def download_multifiles(urls: List[dict]) -> None:
+def download_multifiles(urls: list[dict]) -> None:
     """Download multiple files from dicts.
 
     Parameters
@@ -581,7 +572,7 @@ def run_mp(nproc: int, **kwargs: Any) -> Iterable[Any]:
         pool.join()
 
 
-def must_be_list(obj: Union[Any, List[Any]]) -> List[Any]:
+def must_be_list(obj: Any | list[Any]) -> list[Any]:
     """Convert a object to a list if the object is not a list.
 
     Parameters

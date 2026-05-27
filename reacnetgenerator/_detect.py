@@ -29,7 +29,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum, auto
-from typing import ClassVar, List, Optional, Tuple
+from typing import ClassVar
 
 import numpy as np
 
@@ -179,7 +179,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
+    def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         pass
 
     def _connectmolecule(self, bond, level):
@@ -234,10 +234,10 @@ class _DetectLAMMPSbond(_Detect):
         self.atomtype = atomtype
         return steplinenum
 
-    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
+    def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
-        bond: list[Optional[Tuple[int, ...]]] = [None] * self.N
-        level: list[Optional[Tuple[int, ...]]] = [None] * self.N
+        bond: list[tuple[int, ...] | None] = [None] * self.N
+        level: list[tuple[int, ...] | None] = [None] * self.N
         timestep = None
         for line in lines:
             if line:
@@ -266,7 +266,7 @@ class _DetectLAMMPSbond(_Detect):
 class _DetectCrd(_Detect):
     use_ase: bool
     ase_cutoff_mult: float
-    custom_cutoffs: Optional[str]
+    custom_cutoffs: str | None
 
     def __init__(self, rng):
         SharedRNGData.__init__(
@@ -402,7 +402,7 @@ class _DetectCrd(_Detect):
 
     def _getbondfromcrd(
         self, step_atoms: Atoms, cell: np.ndarray
-    ) -> Tuple[List[List[int]], List[List[int]]]:
+    ) -> tuple[list[list[int]], list[list[int]]]:
         """Perceive bonds from atomic coordinates.
 
         Parameters
@@ -529,7 +529,7 @@ class _DetectLAMMPSdump(_DetectCrd):
         self.atomtype = atomtype
         return steplinenum
 
-    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
+    def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
         step_atoms = []
         ss = []
@@ -616,7 +616,7 @@ class _Detectxyz(_DetectCrd):
         steplinenum = N + 2
         return steplinenum
 
-    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
+    def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
         timestep = step, step
         step_atoms = []
@@ -668,7 +668,7 @@ class _Detectextxyz(_DetectCrd):
         steplinenum = N + 2
         return steplinenum
 
-    def _readstepfunc(self, item) -> Tuple[List[bytes], Tuple[int, int]]:
+    def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
         step_atoms = []
         timestep = step, step  # Use step as timestep fallback

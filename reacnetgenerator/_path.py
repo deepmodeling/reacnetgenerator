@@ -218,9 +218,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Values in atomeach starts from 1."""
         atomeach = np.zeros((self.N, self.step), dtype=int)
         conflict = np.zeros((self.N, self.step), dtype=int)
-        with open(
-            self.hmmfilename if self.runHMM else self.originfilename, "rb"
-        ) as fh, open(self.moleculetemp2filename, "rb") as ft:
+        with (
+            open(self.hmmfilename if self.runHMM else self.originfilename, "rb") as fh,
+            open(self.moleculetemp2filename, "rb") as ft,
+        ):
             for i, (linehz, linetz) in enumerate(
                 tqdm(
                     zip(

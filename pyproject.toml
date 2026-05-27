@@ -1,8 +1,6 @@
 [build-system]
 requires = [
     "scikit-build-core>=0.9.0",
-    # "oldest-supported-numpy; python_version < '3.9'",
-    # "numpy>=2.0.0rc0; python_version >= '3.9'",
     "nodejs-wheel~=20.9",
     "pyyaml",
     "cython>=3.0.1",
@@ -21,9 +19,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -40,8 +35,6 @@ classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
 dependencies = [
-    # "numpy<2; python_version < '3.9'",
-    # "numpy>=1.19,<3; python_version >= '3.9'",
     'numpy',
     'networkx',
     'matplotlib',
@@ -53,11 +46,11 @@ dependencies = [
     'pandas',
     'lz4',
     'requests',
-    "openbabel-wheel",
+    "openbabel>=3.2.0",
     "rdkit",
     "packaging",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 readme = "README.md"
 keywords = ["reaction network"]
 
@@ -101,7 +94,7 @@ docs = [
 
 [tool.scikit-build]
 minimum-version = "0.9"
-wheel.py-api = "cp37"
+wheel.py-api = "cp310"
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 sdist.include = ["reacnetgenerator/_version2.py"]
 sdist.exclude = ["reacnetgenerator/static/webpack/"]
@@ -116,10 +109,10 @@ test-command = [
   "reacnetgenerator -h",
   "reacnetgenerator --version",
 ]
-build = ["cp37-*", "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
+build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]
 # wait for openbabel
-test-skip = "cp37-* *-manylinux_aarch64"
+test-skip = "*-manylinux_aarch64"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux2014"
 
@@ -196,9 +189,6 @@ env_list = [
     "3.12",
     "3.11",
     "3.10",
-    "3.9",
-    "3.8",
-    "3.7",
     "docs",
 ]
 
@@ -248,6 +238,3 @@ allowlist_externals = [
 "3.12" = ["3.12"]
 "3.11" = ["3.11"]
 "3.10" = ["3.10"]
-"3.9" = ["3.9"]
-"3.8" = ["3.8"]
-"3.7" = ["3.7"]

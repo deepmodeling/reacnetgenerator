@@ -48,7 +48,7 @@ import itertools
 import os
 import time
 from enum import Enum
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 
@@ -379,7 +379,7 @@ class ReacNetGenerator:
             """Return describtion of the status."""
             return self.value
 
-    def _process(self, steps: Union[List[Status], Tuple[Status, ...]]) -> None:
+    def _process(self, steps: list[Status] | tuple[Status, ...]) -> None:
         """Process steps in order.
 
         Parameters

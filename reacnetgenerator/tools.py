@@ -3,7 +3,6 @@
 
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
 
 import ase.geometry
 import ase.units
@@ -11,8 +10,8 @@ import numpy as np
 
 
 def read_species(
-    specfile: Union[str, Path],
-) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+    specfile: str | Path,
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
     """Read species from the species file (ends with .species).
 
     For accuracy, HMM filter should be disabled.
@@ -58,7 +57,7 @@ def read_species(
     return np.array(step_idx, dtype=int), n_species2
 
 
-def read_reactions(reacfile: Union[str, Path]) -> List[Tuple[int, Counter, str]]:
+def read_reactions(reacfile: str | Path) -> list[tuple[int, Counter, str]]:
     """Read reactions from the reactions file (ends with .reaction or .reactionsabcd).
 
     For accuracy, HMM filter should be disabled.
@@ -82,11 +81,11 @@ def read_reactions(reacfile: Union[str, Path]) -> List[Tuple[int, Counter, str]]
 
 
 def calculate_rate(
-    specfile: Union[str, Path],
-    reacfile: Union[str, Path],
+    specfile: str | Path,
+    reacfile: str | Path,
     cell: np.ndarray,
     timestep: float,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Calculate the rate constant of each reaction.
 
     The rate constants are calculated by the method developed in [1]_.

@@ -5,7 +5,6 @@
 
 import argparse
 import textwrap
-from typing import List
 
 from . import __version__
 
@@ -241,7 +240,7 @@ def _commandline():
     ).runanddraw()
 
 
-def parm2cmd(pp: dict) -> List[str]:
+def parm2cmd(pp: dict) -> list[str]:
     """Convert a parameter dictionary to command line arguments.
 
     Parameters

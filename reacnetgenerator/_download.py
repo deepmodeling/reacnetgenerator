@@ -3,13 +3,11 @@
 # cython: linetrace=True
 """Download trajectory before running."""
 
-from typing import List
-
 from .utils import SharedRNGData, download_multifiles
 
 
 class DownloadData(SharedRNGData):
-    urls: List[dict]
+    urls: list[dict]
 
     def __init__(self, rng):
         SharedRNGData.__init__(self, rng, ["urls"], [])
