@@ -160,11 +160,11 @@ class TestReacNetGen:
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
         r = _CollectSMILESPaths(reacnetgen)
         r.atomname = np.array(["C", "H", "O", "Na", "Cl"])
-        assert r._re("C"), "[C]"
-        assert r._re("[C]"), "[C]"
-        assert r._re("[CH]"), "[CH]"
-        assert r._re("Na"), "[Na]"
-        assert r._re("[H]c(Cl)C([H])Cl"), "[H][c]([Cl])[C]([H])[Cl]"
+        assert r._re("C") == "[C]"
+        assert r._re("[C]") == "[C]"
+        assert r._re("[CH]") == "[CH]"
+        assert r._re("Na") == "[Na]"
+        assert r._re("[H]c(Cl)C([H])Cl") == "[H][c]([Cl])[C]([H])[Cl]"
 
     def test_re_mo(self, reacnetgen_param):
         """Test regular expression of _HTMLResult."""
