@@ -51,13 +51,11 @@ add_custom_command(
   DEPENDS reacnetgenerator/dps.pyx
   VERBATIM)
 
-# Match the project's Python 3.10 minimum; Cython 3.3 cannot emit Limited API
-# code for the previous Python 3.7 target.
 python_add_library(
   dps
   MODULE
   USE_SABI
-  3.10
+  3.7
   ${CMAKE_CURRENT_BINARY_DIR}/dps.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/c_stack.cpp
   WITH_SOABI)
