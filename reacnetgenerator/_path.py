@@ -292,6 +292,9 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 return_num=True,
                 start=1,
                 unordered=False,
+                chunksize=1,
+                max_inflight=max(2, 2 * self.nproc),
+                disk_ordered=True,
                 total=self.N,
                 desc=(
                     "Collect reaction paths"
@@ -549,6 +552,9 @@ class _CollectSMILESPaths(_CollectPaths):
                     l=read_compressed_block(ft),
                     unordered=False,
                     nlines=4,
+                    chunksize=1,
+                    max_inflight=max(2, 2 * self.nproc),
+                    disk_ordered=True,
                     total=self.hmmit,
                     desc="Indentify isomers",
                     unit="molecule",

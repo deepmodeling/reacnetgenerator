@@ -9,9 +9,12 @@ import itertools
 import os
 import pickle
 import shutil
+import tempfile
 from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
+from functools import partial
 from multiprocessing import Pool, Semaphore
+from queue import Empty, Queue
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -271,6 +274,264 @@ def bytestolist(x: bytes) -> Any:
     data = decompress(x, isbytes=True)
     assert isinstance(data, bytes)
     return pickle.loads(data)
+
+
+class _DiskOrderedResultSpool:
+    """Store completed out-of-order results on disk until they can be yielded."""
+
+    def __init__(self, directory: str | None = None) -> None:
+        self.directory = directory
+        self._temporary_directory: tempfile.TemporaryDirectory | None = None
+        self._paths: dict[int, str] = {}
+
+    def __enter__(self) -> "_DiskOrderedResultSpool":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.close()
+
+    @property
+    def pending_count(self) -> int:
+        """Return the number of results waiting for ordered consumption."""
+        return len(self._paths)
+
+    def has(self, index: int) -> bool:
+        """Return whether a result is available for an input index."""
+        return index in self._paths
+
+    def put(self, index: int, value: Any) -> None:
+        """Write one completed result to the spool."""
+        if self.has(index):
+            raise RuntimeError("Ordered result contains a duplicate index")
+        if self._temporary_directory is None:
+            self._temporary_directory = tempfile.TemporaryDirectory(
+                prefix="reacnetgenerator-ordered-results-",
+                dir=self.directory,
+            )
+        path = os.path.join(self._temporary_directory.name, f"{index}.pickle")
+        try:
+            with open(path, "wb") as f:
+                pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
+        except BaseException:
+            if os.path.exists(path):
+                os.unlink(path)
+            raise
+        self._paths[index] = path
+
+    def pop(self, index: int) -> Any:
+        """Read and remove one result from the spool."""
+        try:
+            path = self._paths.pop(index)
+        except KeyError as e:
+            raise RuntimeError("Ordered result is not available") from e
+        with open(path, "rb") as f:
+            value = pickle.load(f)
+        os.unlink(path)
+        return value
+
+    def close(self) -> None:
+        """Remove every temporary result and its containing directory."""
+        self._paths.clear()
+        if self._temporary_directory is not None:
+            self._temporary_directory.cleanup()
+            self._temporary_directory = None
+
+
+def _record_pool_result(
+    completed: Queue[tuple[int, bool, Any]],
+    index: int,
+    succeeded: bool,
+    value: Any,
+) -> None:
+    """Send an asynchronous pool result to the bounded consumer."""
+    completed.put((index, succeeded, value))
+
+
+def _check_pool_workers(pool, known_workers: dict[int, Any]) -> None:
+    """Raise if a multiprocessing worker exits abnormally."""
+    for worker in getattr(pool, "_pool", ()):
+        known_workers[id(worker)] = worker
+    for worker_id, worker in tuple(known_workers.items()):
+        if worker.exitcode not in (None, 0):
+            raise RuntimeError(
+                f"run_mp worker {worker.pid} exited unexpectedly "
+                f"with code {worker.exitcode}"
+            )
+        if worker.exitcode == 0:
+            del known_workers[worker_id]
+
+
+def _wait_pool_result(
+    pool,
+    completed: Queue[tuple[int, bool, Any]],
+    known_workers: dict[int, Any],
+) -> tuple[int, bool, Any]:
+    """Wait for a result while detecting workers that cannot report an error."""
+    while True:
+        _check_pool_workers(pool, known_workers)
+        try:
+            return completed.get(timeout=0.05)
+        except Empty:
+            pass
+
+
+def _submit_pool_item(pool, completed, pending, func, index, item) -> None:
+    """Submit one item and arrange for success or failure to reach the consumer."""
+    pending[index] = pool.apply_async(
+        func,
+        (item,),
+        callback=partial(_record_pool_result, completed, index, True),
+        error_callback=partial(_record_pool_result, completed, index, False),
+    )
+
+
+def _bounded_pool_results(
+    pool,
+    func: Callable,
+    items: Iterable[Any],
+    max_inflight: int,
+    *,
+    ordered_total: int | None = None,
+    spool: _DiskOrderedResultSpool | None = None,
+) -> Generator[Any, None, None]:
+    """Yield pool results with an explicit submitted-but-not-consumed bound."""
+    source = iter(items)
+    completed: Queue[tuple[int, bool, Any]] = Queue(maxsize=max_inflight)
+    pending: dict[int, Any] = {}
+    known_workers: dict[int, Any] = {}
+    submitted = 0
+
+    if spool is None:
+        outstanding = 0
+        source_exhausted = False
+        while not source_exhausted or outstanding:
+            while not source_exhausted and outstanding < max_inflight:
+                try:
+                    item = next(source)
+                except StopIteration:
+                    source_exhausted = True
+                    break
+                _submit_pool_item(pool, completed, pending, func, submitted, item)
+                submitted += 1
+                outstanding += 1
+            if not outstanding:
+                break
+            index, succeeded, value = _wait_pool_result(pool, completed, known_workers)
+            if pending.pop(index, None) is None:
+                raise RuntimeError("run_mp received an unknown result index")
+            if not succeeded:
+                if isinstance(value, BaseException):
+                    raise value
+                raise RuntimeError("run_mp worker failed without an exception")
+            yield value
+            outstanding -= 1
+        return
+
+    assert ordered_total is not None
+    next_index = 0
+    source_exhausted = False
+    while next_index < ordered_total:
+        while (
+            not source_exhausted
+            and submitted < ordered_total
+            and submitted - next_index < max_inflight
+        ):
+            try:
+                item = next(source)
+            except StopIteration:
+                source_exhausted = True
+                break
+            _submit_pool_item(pool, completed, pending, func, submitted, item)
+            submitted += 1
+
+        if not pending:
+            raise RuntimeError("Ordered result count does not match declared total")
+
+        result_index, succeeded, value = _wait_pool_result(
+            pool, completed, known_workers
+        )
+        if pending.pop(result_index, None) is None:
+            raise RuntimeError("run_mp received an unknown result index")
+        if not succeeded:
+            if isinstance(value, BaseException):
+                raise value
+            raise RuntimeError("run_mp worker failed without an exception")
+        if result_index < next_index or spool.has(result_index):
+            raise RuntimeError("Ordered result contains a duplicate index")
+        if result_index == next_index:
+            yield value
+            next_index += 1
+            while spool.has(next_index):
+                yield spool.pop(next_index)
+                next_index += 1
+        else:
+            spool.put(result_index, value)
+
+    try:
+        next(source)
+    except StopIteration:
+        pass
+    else:
+        raise RuntimeError("Ordered result count does not match declared total")
+    if pending or spool.pending_count:
+        raise RuntimeError("Ordered result count does not match declared total")
+
+
+def _bounded_multiopen(
+    pool,
+    func: Callable,
+    l: IO,
+    *,
+    max_inflight: int,
+    spool: _DiskOrderedResultSpool | None,
+    nlines: int | None = None,
+    unordered: bool = True,
+    return_num: bool = False,
+    start: int = 0,
+    extra: Any | None = None,
+    interval: int | None = None,
+    bar: bool = True,
+    desc: str | None = None,
+    unit: str = "it",
+    total: int | None = None,
+    chunksize: int = 1,
+) -> Iterable[Any]:
+    """Prepare inputs for the opt-in bounded ``run_mp`` execution path."""
+    if chunksize != 1:
+        raise ValueError("bounded run_mp requires chunksize=1")
+    obj = l
+    if nlines:
+        obj = itertools.zip_longest(*[obj] * nlines)
+    if interval:
+        obj = itertools.islice(obj, 0, None, interval)
+    if return_num:
+        obj = enumerate(obj, start)
+    if extra is not None:
+        obj = ((item, extra) for item in obj)
+
+    ordered_total = None
+    if spool is not None:
+        if unordered:
+            raise ValueError("disk_ordered requires unordered=False")
+        if total is None:
+            raise ValueError("disk_ordered requires an exact total")
+        ordered_total = int(total)
+        if ordered_total < 0:
+            raise ValueError("disk_ordered total must be non-negative")
+    elif not unordered:
+        raise ValueError("bounded ordered run_mp requires disk_ordered=True")
+
+    results = _bounded_pool_results(
+        pool,
+        func,
+        obj,
+        max_inflight,
+        ordered_total=ordered_total,
+        spool=spool,
+    )
+    if bar:
+        results = tqdm(results, desc=desc, unit=unit, total=total, disable=None)
+    return results
 
 
 def listtostirng(
@@ -536,13 +797,29 @@ def download_multifiles(urls: list[dict]) -> None:
     asyncio.run(gather_download_files(urls))
 
 
-def run_mp(nproc: int, **kwargs: Any) -> Iterable[Any]:
+def run_mp(
+    nproc: int,
+    *,
+    max_inflight: int | None = None,
+    disk_ordered: bool = False,
+    ordered_spool_dir: str | None = None,
+    **kwargs: Any,
+) -> Iterable[Any]:
     """Process a file with multiple processors.
 
     Parameters
     ----------
     nproc : int
         The number of processors to be used.
+    max_inflight : int, optional
+        Maximum number of submitted inputs not yet delivered to the consumer.
+        If omitted, the existing ``nproc * 150`` semaphore path is unchanged.
+    disk_ordered : bool, optional, default: False
+        Run workers to completion out of order, spool early results to disk, and
+        yield them in input order. This requires ``unordered=False`` and an exact
+        ``total``.
+    ordered_spool_dir : str, optional
+        Parent directory for temporary ordered-result files.
     **kwargs : dict, optional
         Other parameters can be found in the `multiopen` method.
 
@@ -555,13 +832,42 @@ def run_mp(nproc: int, **kwargs: Any) -> Iterable[Any]:
     --------
     multiopen
     """
+    if max_inflight is not None:
+        max_inflight = int(max_inflight)
+        if max_inflight <= 0:
+            raise ValueError("max_inflight must be a positive integer")
+    elif disk_ordered:
+        max_inflight = nproc * 150
+
     pool = Pool(nproc, maxtasksperchild=1000)
-    semaphore = Semaphore(nproc * 150)
+    semaphore = Semaphore(nproc * 150) if max_inflight is None else None
     try:
-        results = multiopen(pool=pool, semaphore=semaphore, **kwargs)
-        for item in results:
-            yield item
-            semaphore.release()
+        if max_inflight is None:
+            results = multiopen(pool=pool, semaphore=semaphore, **kwargs)
+        elif disk_ordered:
+            with _DiskOrderedResultSpool(ordered_spool_dir) as spool:
+                results = _bounded_multiopen(
+                    pool=pool,
+                    max_inflight=max_inflight,
+                    spool=spool,
+                    **kwargs,
+                )
+                for item in results:
+                    yield item
+        else:
+            results = _bounded_multiopen(
+                pool=pool,
+                max_inflight=max_inflight,
+                spool=None,
+                **kwargs,
+            )
+            for item in results:
+                yield item
+        if max_inflight is None:
+            for item in results:
+                yield item
+                if semaphore is not None:
+                    semaphore.release()
     except:
         logger.exception("run_mp failed")
         pool.terminate()
