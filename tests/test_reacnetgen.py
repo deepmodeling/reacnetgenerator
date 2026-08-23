@@ -256,6 +256,34 @@ class TestReacNetGen:
         assert get_timestep_value(np.int64(100)) == 100
         assert get_timestep_value(100) == 100
 
+    @pytest.mark.parametrize(
+        ("cell", "expected"),
+        [
+            (
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+            ),
+            (
+                [1.0, 0.1, 0.2, 0.0, 2.0, 0.3, 0.0, 0.0, 3.0],
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+            ),
+            ([1.0, 2.0, 3.0], np.diag([1.0, 2.0, 3.0])),
+        ],
+    )
+    def test_cell_normalization_preserves_supported_shapes(
+        self, tmp_path, cell, expected
+    ):
+        """Cell normalization should preserve matrices and expand vectors."""
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(tmp_path / "dummy.dump"),
+            atomname=["H"],
+            cell=cell,
+        )
+
+        np.testing.assert_allclose(rng.cell, expected)
+        assert rng.cell.shape == (3, 3)
+
     def test_molecule_time_formatting(self, tmp_path):
         """Molecule timeline rows should be optional and filterable."""
         reacnetgen = ReacNetGenerator(
