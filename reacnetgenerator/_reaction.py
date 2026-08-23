@@ -5,6 +5,7 @@
 
 import csv
 from collections import Counter, defaultdict
+from typing import Any
 
 import numpy as np
 
@@ -59,7 +60,7 @@ class ReactionsFinder(SharedRNGData):
                 listtobytes(x)
                 for x in zip(atomeach[:-1], atomeach[1:], conflict[:-1], conflict[1:])
             )
-        ordered_kwargs = (
+        ordered_kwargs: dict[str, Any] = (
             {
                 "chunksize": 1,
                 "max_inflight": max(2, 2 * self.nproc),
