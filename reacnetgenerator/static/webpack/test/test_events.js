@@ -15,9 +15,7 @@ describe("Report events", function() {
         handlers.set(event, handler);
         return this;
       },
-      trigger(event) {
-        handlers.get(event)();
-      },
+      trigger(event) { handlers.get(event)(); },
     };
     const calls = [];
 
@@ -25,6 +23,6 @@ describe("Report events", function() {
     bindLatestChangeHandler(selection, () => calls.push("current time slice"));
     selection.trigger("change.reacnetgenerator");
 
-    assert.deepEqual(calls, ["current time slice"]);
+    assert.deepEqual(calls, [ "current time slice" ]);
   });
 });
