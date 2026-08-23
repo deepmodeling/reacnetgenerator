@@ -12,7 +12,6 @@ describe("Report data URL", function() {
     assert.equal(getReportDataUrl(search), nestedUrl);
   });
 
-  it("returns null when jdata is absent", function() {
-    assert.equal(getReportDataUrl("?other=value"), null);
-  });
+  it("returns null when jdata is absent",
+     function() { assert.equal(getReportDataUrl("?other=value"), null); });
 });
