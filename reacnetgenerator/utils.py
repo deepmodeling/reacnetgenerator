@@ -325,6 +325,7 @@ class _DiskOrderedResultSpool:
         except KeyError as e:
             raise RuntimeError("Ordered result is not available") from e
         with open(path, "rb") as f:
+            # This file is created and tracked by this process in its private spool.
             value = pickle.load(f)
         os.unlink(path)
         return value
