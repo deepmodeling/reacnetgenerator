@@ -2,10 +2,13 @@
 # cython: language_level=3
 """Test ReacNetGen."""
 
+import copy
 import fileinput
 import itertools
 import json
 import os
+import shutil
+from pathlib import Path
 from tkinter import END, TclError
 from types import SimpleNamespace
 
@@ -21,12 +24,12 @@ from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import (
     checksha256,
-    download_multifiles,
     get_timestep_value,
     listtobytes,
 )
 
-with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
+test_directory = Path(__file__).parent
+with (test_directory / "test.json").open() as f:
     test_data = json.load(f)
 
 
@@ -49,9 +52,16 @@ class TestReacNetGen:
             for param in test_data
         ]
     )
-    def reacnetgen_param(self, request):
-        """Fixture for ReacNetGenerator parameters."""
-        return request.param
+    def reacnetgen_param(self, request, tmp_path):
+        """Copy checked-in inputs into the test's isolated working directory."""
+        param = copy.deepcopy(request.param)
+        inputfilename = Path(param["rngparams"]["inputfilename"])
+        fixture = test_directory / inputfilename
+        if fixture.is_file():
+            local_input = tmp_path / fixture.name
+            shutil.copyfile(fixture, local_input)
+            param["rngparams"]["inputfilename"] = str(local_input)
+        return param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
@@ -99,7 +109,6 @@ class TestReacNetGen:
             "tkinter.filedialog.askopenfilename", return_value=pp["inputfilename"]
         )
         mocker.patch("tkinter.messagebox.showerror")
-        download_multifiles(pp.get("urls", []))
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp["atomname"]))
         if pp["inputfiletype"] in ["lammpsbondfile", "lammpsdumpfile"]:
