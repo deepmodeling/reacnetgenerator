@@ -274,8 +274,7 @@ class ReacNetGenerator:
         self.__dict__.update(kwargs)
         if self.cell is not None:
             cell_error = (
-                "cell must be (3,3) array_like or (3,) array_like or "
-                "(9,) array_like"
+                "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
             )
             try:
                 cell = np.asarray(self.cell)
