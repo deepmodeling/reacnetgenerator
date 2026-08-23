@@ -5,8 +5,8 @@ const path = require("path");
 
 /** Verify that report markup matches the bundled Bootstrap major version. */
 describe("Report template", function() {
-  const template = fs.readFileSync(
-      path.join(__dirname, "..", "template.html"), "utf8");
+  const template =
+      fs.readFileSync(path.join(__dirname, "..", "template.html"), "utf8");
 
   it("uses Bootstrap 5 navbar collapse attributes", function() {
     assert.match(template, /data-bs-toggle="collapse"/);
