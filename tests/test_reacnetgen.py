@@ -173,6 +173,37 @@ class TestReacNetGen:
         r.atomname = np.array(["Mo", "O"])
         assert r._re("[Mo]") == "[Mo]"
 
+    def test_getatomeach_maps_conflicts_to_original_indices(self, tmp_path):
+        """Conflict coordinates should retain their atom and timestep indices."""
+        origin_file = tmp_path / "origin.bin"
+        molecule_file = tmp_path / "molecules.bin"
+
+        with open(origin_file, "wb") as origin:
+            origin.write(listtobytes(np.array([False, False, False, True, False])))
+            origin.write(listtobytes(np.array([False, False, False, True, False])))
+        with open(molecule_file, "wb") as molecules:
+            for _ in range(2):
+                molecules.write(listtobytes(np.array([2])))
+                # _getatomeach only consumes the atom block, but the on-disk
+                # molecule record always contains four compressed blocks.
+                for value in ([], [], []):
+                    molecules.write(listtobytes(value))
+
+        collector = object.__new__(_CollectSMILESPaths)
+        collector.N = 5
+        collector.step = 5
+        collector.runHMM = False
+        collector.originfilename = str(origin_file)
+        collector.hmmfilename = str(tmp_path / "unused-hmm.bin")
+        collector.moleculetemp2filename = str(molecule_file)
+        collector.hmmit = 2
+
+        atomeach, conflict = collector._getatomeach()
+
+        assert atomeach[2, 3] == 2
+        assert conflict[2, 3] == 1
+        assert conflict[0, 0] == 0
+
     def test_reaction_event_details(self, tmp_path):
         """Single reaction events should expose time-resolved CSV fields."""
         finder = ReactionsFinder(
