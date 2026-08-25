@@ -83,6 +83,4 @@ class TestRunItems:
                 test_data[0]["rngparams"]["urls"][0]["url"][0],
             ]
         )
-        assert os.path.exists(
-            f"{test_data[0]['rngparams']['inputfilename']}.species"
-        )
+        assert os.path.exists(f"{test_data[0]['rngparams']['inputfilename']}.species")

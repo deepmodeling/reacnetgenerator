@@ -336,9 +336,7 @@ class ReacNetGenerator:
         valid = set(self.ITEM_REQUIRED_STEPS.keys())
         for item in items:
             if item not in valid:
-                raise ValueError(
-                    f"Unknown item {item!r}. Choose from: {sorted(valid)}"
-                )
+                raise ValueError(f"Unknown item {item!r}. Choose from: {sorted(valid)}")
 
         # Resolve minimal steps
         needed: set[str] = set()
@@ -346,7 +344,15 @@ class ReacNetGenerator:
             needed.update(self.ITEM_REQUIRED_STEPS[item])
 
         # Canonical execution order
-        step_order = ("DOWNLOAD", "DETECT", "HMM", "PATH", "MATRIX", "NETWORK", "REPORT")
+        step_order = (
+            "DOWNLOAD",
+            "DETECT",
+            "HMM",
+            "PATH",
+            "MATRIX",
+            "NETWORK",
+            "REPORT",
+        )
         processthing = []
         if "DOWNLOAD" in needed or self.urls:
             if self.urls:
