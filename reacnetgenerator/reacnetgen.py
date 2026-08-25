@@ -296,6 +296,75 @@ class ReacNetGenerator:
             return None
         return [int(x) for x in value]
 
+    # ------------------------------------------------------------------
+    # Item-based selective execution
+    # ------------------------------------------------------------------
+    #: Available output items and their required processing steps.
+    #: The dependency chain is strictly monotonic: each item requires all
+    #: steps of the preceding items plus its own.
+    ITEM_REQUIRED_STEPS: dict[str, tuple[str, ...]] = {
+        "species": ("DETECT", "HMM"),
+        "reactions": ("DETECT", "HMM", "PATH", "MATRIX"),
+        "network": ("DETECT", "HMM", "PATH", "MATRIX", "NETWORK"),
+        "report": ("DETECT", "HMM", "PATH", "MATRIX", "NETWORK", "REPORT"),
+    }
+
+    def run_items(self, items: list[str] | tuple[str, ...] | None = None) -> None:
+        """Run selected output items only.
+
+        The pipeline resolves the minimal set of processing steps needed to
+        produce the requested *items* and executes them in canonical order.
+
+        Parameters
+        ----------
+        items : list of str or None
+            Output items to produce.  Valid values are ``"species"``,
+            ``"reactions"``, ``"network"``, and ``"report"``.
+            If *None* (default), all items are produced (equivalent to the
+            legacy ``runanddraw()`` behaviour).
+
+        Examples
+        --------
+        >>> rng.run_items(["species"])           # fast: DETECT + HMM only
+        >>> rng.run_items(["species", "reactions"])  # adds PATH + MATRIX
+        >>> rng.run_items()                      # full pipeline (default)
+        """
+        if items is None:
+            items = list(self.ITEM_REQUIRED_STEPS.keys())
+
+        # Validate
+        valid = set(self.ITEM_REQUIRED_STEPS.keys())
+        for item in items:
+            if item not in valid:
+                raise ValueError(
+                    f"Unknown item {item!r}. Choose from: {sorted(valid)}"
+                )
+
+        # Resolve minimal steps
+        needed: set[str] = set()
+        for item in items:
+            needed.update(self.ITEM_REQUIRED_STEPS[item])
+
+        # Canonical execution order
+        step_order = ("DOWNLOAD", "DETECT", "HMM", "PATH", "MATRIX", "NETWORK", "REPORT")
+        processthing = []
+        if "DOWNLOAD" in needed or self.urls:
+            if self.urls:
+                processthing.append(self.Status.DOWNLOAD)
+        for step_name in step_order:
+            if step_name == "DOWNLOAD":
+                continue
+            if step_name in needed:
+                processthing.append(self.Status[step_name])
+
+        # Species output only requires molecule naming + counting, not
+        # the full PATH collect (which builds atom routes and finds reactions).
+        species_only = "species" in items and "PATH" not in needed
+        self._process(processthing, species_only=species_only)
+
+    # ------------------------------------------------------------------
+    # Legacy convenience methods (delegate to run_items)
+    # ------------------------------------------------------------------
     def runanddraw(
         self, run: bool = True, draw: bool = True, report: bool = True
     ) -> None:
@@ -379,13 +448,20 @@ class ReacNetGenerator:
             """Return describtion of the status."""
             return self.value
 
-    def _process(self, steps: list[Status] | tuple[Status, ...]) -> None:
+    def _process(
+        self,
+        steps: list[Status] | tuple[Status, ...],
+        species_only: bool = False,
+    ) -> None:
         """Process steps in order.
 
         Parameters
         ----------
         steps : tuple of ReacNetGenerator.Status
             The process that needs to be processed.
+        species_only : bool, optional, default: False
+            If True, after HMM only perform molecule naming and species
+            counting (skip atom-route construction and reaction finding).
         """
         timearray = [time.perf_counter()]
         for i, runstep in enumerate(steps, 1):
@@ -408,6 +484,19 @@ class ReacNetGenerator:
             timearray.append(time.perf_counter())
             logger.info(
                 f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({runstep})"
+            )
+
+        # Species-only shortcut: molecule naming + per-frame counting
+        if species_only:
+            collector = _CollectPaths.getstype(self)
+            collector.atomnames = collector.atomname[collector.atomtype]
+            collector._printmoleculename()
+            collector.returnkeys()
+            _GenerateMatrix(self)._printspecies()
+            timearray.append(time.perf_counter())
+            logger.info(
+                f"Step {len(timearray) - 1}: Done! Time consumed (s): "
+                f"{timearray[-1] - timearray[-2]:.3f} (Species populations)"
             )
 
         # delete tempfile
