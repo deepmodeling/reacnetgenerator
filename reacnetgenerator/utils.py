@@ -14,6 +14,7 @@ from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
 from functools import partial
 from multiprocessing import Pool, Semaphore, SimpleQueue
+from multiprocessing.reduction import ForkingPickler
 from queue import Empty, Queue
 from typing import (
     IO,
@@ -372,13 +373,19 @@ def _init_bounded_pool_worker(task_events: Any) -> None:
     _POOL_TASK_EVENTS = task_events
 
 
-def _run_bounded_pool_item(func: Callable, index: int, item: Any) -> tuple[bool, bytes]:
-    """Serialize one result before declaring its worker task complete."""
+def _forking_pickle_dumps(value: Any) -> bytes:
+    """Serialize with the same registered reducers used by multiprocessing."""
+    return bytes(ForkingPickler.dumps(value, protocol=pickle.HIGHEST_PROTOCOL))
+
+
+def _run_bounded_pool_item(index: int, call_payload: bytes) -> tuple[bool, bytes]:
+    """Deserialize a safe call payload and serialize its result under tracking."""
     if _POOL_TASK_EVENTS is None:
         raise RuntimeError("Bounded pool worker was not initialized")
     pid = os.getpid()
     _POOL_TASK_EVENTS.put(("started", pid, index))
     try:
+        func, item = pickle.loads(call_payload)
         try:
             value = func(item)
         except Exception as error:
@@ -387,12 +394,12 @@ def _run_bounded_pool_item(func: Callable, index: int, item: Any) -> tuple[bool,
         else:
             succeeded = True
         try:
-            payload = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+            payload = _forking_pickle_dumps(value)
         except Exception as error:
             # Match Pool's behavior for values or exceptions that cannot be
             # serialized by reporting the serialization failure to the parent.
             succeeded = False
-            payload = pickle.dumps(error, protocol=pickle.HIGHEST_PROTOCOL)
+            payload = _forking_pickle_dumps(error)
     except BaseException:
         # This includes SystemExit raised by either the task or an object's
         # reduction method. os._exit bypasses this handler, leaving the task
@@ -481,9 +488,13 @@ def _wait_pool_result(
 
 def _submit_pool_item(pool, completed, pending, func, index, item) -> None:
     """Submit one item and arrange for success or failure to reach the consumer."""
+    # Pool's task feeder normally serializes func/item before the worker can
+    # identify which task it owns. Pre-serialize them so the worker receives
+    # only safe builtins and can mark the task active before deserialization.
+    call_payload = _forking_pickle_dumps((func, item))
     pending[index] = pool.apply_async(
         _run_bounded_pool_item,
-        (func, index, item),
+        (index, call_payload),
         callback=partial(_record_serialized_pool_result, completed, index),
         error_callback=partial(_record_pool_result, completed, index, False),
     )

@@ -3,6 +3,7 @@
 
 import multiprocessing
 import os
+import socket
 import time
 
 import pytest
@@ -102,6 +103,20 @@ def _raise_system_exit_while_pickling(value):
     raise _RaiseSystemExitWhilePicklingError
 
 
+def _raise_system_exit_when_unpickled():
+    raise SystemExit
+
+
+class _ExitWhenUnpickled:
+    def __reduce__(self):
+        return os._exit, (0,)
+
+
+class _RaiseSystemExitWhenUnpickled:
+    def __reduce__(self):
+        return _raise_system_exit_when_unpickled, ()
+
+
 def _run_serialization_exit_case(result_queue, func, disk_ordered, spool_dir):
     """Run the potential hang in a watchdog process and report its outcome."""
     try:
@@ -116,6 +131,34 @@ def _run_serialization_exit_case(result_queue, func, disk_ordered, spool_dir):
                 disk_ordered=disk_ordered,
                 ordered_spool_dir=spool_dir,
                 total=2,
+                bar=False,
+            )
+        )
+    except BaseException as error:
+        result_queue.put((type(error).__name__, str(error)))
+    else:
+        result_queue.put(("success", ""))
+
+
+def _run_input_deserialization_exit_case(result_queue, mode, disk_ordered, spool_dir):
+    """Exercise worker input deserialization inside an outer watchdog."""
+    item = (
+        _ExitWhenUnpickled()
+        if mode == "os-exit-zero"
+        else (_RaiseSystemExitWhenUnpickled())
+    )
+    try:
+        list(
+            run_mp(
+                2,
+                func=_identity,
+                l=[item],
+                unordered=not disk_ordered,
+                chunksize=1,
+                max_inflight=1,
+                disk_ordered=disk_ordered,
+                ordered_spool_dir=spool_dir,
+                total=1,
                 bar=False,
             )
         )
@@ -276,6 +319,56 @@ def test_run_mp_detects_clean_exit_during_result_serialization(
     assert "worker" in message and "exited" in message
     result_queue.close()
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("mode", ["os-exit-zero", "system-exit"])
+@pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
+def test_run_mp_detects_clean_exit_during_input_deserialization(
+    tmp_path, mode, disk_ordered
+):
+    """Track a task before user-controlled input deserialization begins."""
+    context = multiprocessing.get_context("spawn")
+    result_queue = context.Queue()
+    process = context.Process(
+        target=_run_input_deserialization_exit_case,
+        args=(result_queue, mode, disk_ordered, str(tmp_path)),
+    )
+    process.start()
+    process.join(timeout=10)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("run_mp hung after a clean exit during input deserialization")
+
+    assert process.exitcode == 0
+    error_type, message = result_queue.get(timeout=2)
+    assert error_type == "RuntimeError"
+    assert "worker" in message and "exited" in message
+    result_queue.close()
+    assert not list(tmp_path.iterdir())
+
+
+def test_bounded_run_mp_preserves_pool_result_reducers():
+    """Keep support for types registered only with ForkingPickler."""
+    result = next(
+        iter(
+            run_mp(
+                1,
+                func=socket.socket,
+                l=[socket.AF_INET],
+                unordered=True,
+                chunksize=1,
+                max_inflight=1,
+                total=1,
+                bar=False,
+            )
+        )
+    )
+    try:
+        assert isinstance(result, socket.socket)
+        assert result.family == socket.AF_INET
+    finally:
+        result.close()
 
 
 def test_disk_ordered_run_mp_allows_configured_worker_recycling(tmp_path):
