@@ -2,11 +2,15 @@
 # cython: language_level=3
 """Test ReacNetGen."""
 
+import copy
 import fileinput
 import itertools
 import json
 import os
+import shutil
+from pathlib import Path
 from tkinter import END, TclError
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -14,12 +18,18 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
-from reacnetgenerator._path import _CollectSMILESPaths
+from reacnetgenerator._path import _CollectSMILESPaths, _MoleculeTimelineSpool
+from reacnetgenerator._reaction import ReactionsFinder
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
-from reacnetgenerator.utils import checksha256, download_multifiles, listtobytes
+from reacnetgenerator.utils import (
+    checksha256,
+    get_timestep_value,
+    listtobytes,
+)
 
-with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
+test_directory = Path(__file__).parent
+with (test_directory / "test.json").open() as f:
     test_data = json.load(f)
 
 
@@ -42,9 +52,16 @@ class TestReacNetGen:
             for param in test_data
         ]
     )
-    def reacnetgen_param(self, request):
-        """Fixture for ReacNetGenerator parameters."""
-        return request.param
+    def reacnetgen_param(self, request, tmp_path):
+        """Copy checked-in inputs into the test's isolated working directory."""
+        param = copy.deepcopy(request.param)
+        inputfilename = Path(param["rngparams"]["inputfilename"])
+        fixture = test_directory / inputfilename
+        if fixture.is_file():
+            local_input = tmp_path / fixture.name
+            shutil.copyfile(fixture, local_input)
+            param["rngparams"]["inputfilename"] = str(local_input)
+        return param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
@@ -92,7 +109,6 @@ class TestReacNetGen:
             "tkinter.filedialog.askopenfilename", return_value=pp["inputfilename"]
         )
         mocker.patch("tkinter.messagebox.showerror")
-        download_multifiles(pp.get("urls", []))
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp["atomname"]))
         if pp["inputfiletype"] in ["lammpsbondfile", "lammpsdumpfile"]:
@@ -153,11 +169,11 @@ class TestReacNetGen:
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])
         r = _CollectSMILESPaths(reacnetgen)
         r.atomname = np.array(["C", "H", "O", "Na", "Cl"])
-        assert r._re("C"), "[C]"
-        assert r._re("[C]"), "[C]"
-        assert r._re("[CH]"), "[CH]"
-        assert r._re("Na"), "[Na]"
-        assert r._re("[H]c(Cl)C([H])Cl"), "[H][c]([Cl])[C]([H])[Cl]"
+        assert r._re("C") == "[C]"
+        assert r._re("[C]") == "[C]"
+        assert r._re("[CH]") == "[CH]"
+        assert r._re("Na") == "[Na]"
+        assert r._re("[H]c(Cl)C([H])Cl") == "[H][c]([Cl])[C]([H])[Cl]"
 
     def test_re_mo(self, reacnetgen_param):
         """Test regular expression of _HTMLResult."""
@@ -165,3 +181,430 @@ class TestReacNetGen:
         r = _CollectSMILESPaths(reacnetgen)
         r.atomname = np.array(["Mo", "O"])
         assert r._re("[Mo]") == "[Mo]"
+
+    def test_getatomeach_maps_conflicts_to_original_indices(self, tmp_path):
+        """Conflict coordinates should retain their atom and timestep indices."""
+        hmm_file = tmp_path / "hmm.bin"
+        molecule_file = tmp_path / "molecules.bin"
+
+        with open(hmm_file, "wb") as hmm:
+            hmm.write(listtobytes(np.array([False, False, False, True, False])))
+            hmm.write(listtobytes(np.array([False, False, False, True, False])))
+        with open(molecule_file, "wb") as molecules:
+            for _ in range(2):
+                molecules.write(listtobytes(np.array([2])))
+                # _getatomeach only consumes the atom block, but the on-disk
+                # molecule record always contains four compressed blocks.
+                for value in ([], [], []):
+                    molecules.write(listtobytes(value))
+
+        collector = object.__new__(_CollectSMILESPaths)
+        collector.N = 5
+        collector.step = 5
+        collector.runHMM = True
+        collector.originfilename = str(tmp_path / "unused-origin.bin")
+        collector.hmmfilename = str(hmm_file)
+        collector.moleculetemp2filename = str(molecule_file)
+        collector.hmmit = 2
+
+        atomeach, conflict = collector._getatomeach()
+
+        expected_atomeach = np.zeros((5, 5), dtype=int)
+        expected_atomeach[2, 3] = 2
+        expected_conflict = np.zeros((5, 5), dtype=int)
+        expected_conflict[2, 3] = 1
+        np.testing.assert_array_equal(atomeach, expected_atomeach)
+        np.testing.assert_array_equal(conflict, expected_conflict)
+
+    def test_reaction_event_details(self, tmp_path):
+        """Single reaction events should expose time-resolved CSV fields."""
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(tmp_path / "out.reactionevent.csv"),
+                printreactionevent=True,
+                nproc=1,
+            )
+        )
+        item = listtobytes(
+            (
+                0,
+                np.array([1, 1, 2, 2]),
+                np.array([3, 3, 3, 3]),
+                np.zeros(4, dtype=int),
+                np.zeros(4, dtype=int),
+            )
+        )
+
+        assert finder._getstepreaction(item) == [
+            {
+                "Timestep_Index": 0,
+                "Reactant": "A+B",
+                "Product": "C",
+            }
+        ]
+
+    def test_reaction_event_file_is_csv(self, tmp_path):
+        """Reaction event output should use the time-resolved CSV format."""
+        event_file = tmp_path / "out.reactionevent.csv"
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(event_file),
+                printreactionevent=True,
+                nproc=1,
+            )
+        )
+
+        finder.findreactions(
+            np.array([[1, 1, 2, 2], [3, 3, 3, 3]]),
+            np.zeros((2, 4), dtype=int),
+        )
+
+        assert event_file.read_text().splitlines() == [
+            "Timestep_Index,Reactant,Product",
+            "0,A+B,C",
+        ]
+
+    def test_reaction_event_default_is_off(self, tmp_path):
+        """Reaction event details should not be calculated unless requested."""
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(tmp_path / "out.reactionevent.csv"),
+                printreactionevent=False,
+                nproc=1,
+            )
+        )
+        item = listtobytes(
+            (
+                np.array([1, 1, 2, 2]),
+                np.array([3, 3, 3, 3]),
+                np.zeros(4, dtype=int),
+                np.zeros(4, dtype=int),
+            )
+        )
+
+        assert finder._getstepreaction(item) == ["A+B->C"]
+
+    def test_get_timestep_value(self):
+        """Stored timestep metadata should normalize to the timestep value."""
+        assert get_timestep_value((0, 100)) == 100
+        assert get_timestep_value(np.int64(100)) == 100
+        assert get_timestep_value(100) == 100
+
+    @pytest.mark.parametrize(
+        ("cell", "expected"),
+        [
+            (
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+            ),
+            (
+                [1.0, 0.1, 0.2, 0.0, 2.0, 0.3, 0.0, 0.0, 3.0],
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+            ),
+            ([1.0, 2.0, 3.0], np.diag([1.0, 2.0, 3.0])),
+        ],
+    )
+    def test_cell_normalization_preserves_supported_shapes(
+        self, tmp_path, cell, expected
+    ):
+        """Cell normalization should preserve matrices and expand vectors."""
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(tmp_path / "dummy.dump"),
+            atomname=["H"],
+            cell=cell,
+        )
+
+        np.testing.assert_allclose(rng.cell, expected)
+        assert rng.cell.shape == (3, 3)
+
+    def test_cell_normalization_wraps_array_conversion_type_error(self, tmp_path):
+        """Invalid custom array-likes should use the public cell error."""
+
+        class InvalidCellArray:
+            """Represent an array-like object that cannot be converted."""
+
+            def __array__(self, dtype=None, copy=None):
+                raise TypeError("cannot convert cell")
+
+        with pytest.raises(RuntimeError, match="cell must be") as exc_info:
+            ReacNetGenerator(
+                inputfiletype="lammpsdumpfile",
+                inputfilename=str(tmp_path / "dummy.dump"),
+                atomname=["H"],
+                cell=InvalidCellArray(),
+            )
+
+        assert isinstance(exc_info.value.__cause__, TypeError)
+
+    def test_molecule_time_formatting(self, tmp_path):
+        """Molecule timeline rows should be optional and filterable."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename=str(tmp_path / "dummy"),
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            printmoleculetime=True,
+            moleculeframes=[2],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+        collector.timestep = {0: 100, 1: 200, 2: 300}
+
+        frames = np.array([0, 2])
+        timesteps = collector._getmoleculetimesteps(frames)
+
+        assert timesteps == [100, 300]
+        assert reacnetgen.moleculetimelinefilename == str(
+            tmp_path / "dummy.molecules.csv"
+        )
+        assert collector._formatmoleculename("C", np.array([0, 1]), [[0, 1, 1]]) == (
+            "C 0;1 0,1,1"
+        )
+        assert collector._shouldprintmoleculetimelinerow(
+            2, 300
+        ) and not collector._shouldprintmoleculetimelinerow(0, 100)
+        timeline_rows = collector._getmoleculetimelinerows(
+            "C",
+            np.array([0, 1]),
+            [[0, 1, 1]],
+            frames,
+            timesteps,
+        )
+        collector._writemoleculetimeline(timeline_rows)
+        with open(reacnetgen.moleculetimelinefilename) as handle:
+            assert handle.read().splitlines() == [
+                "Timestep,Species,AtomIDs,BondIDs",
+                "300,C,0;1,0-1-1",
+            ]
+
+    def test_molecule_timeline_file_is_sorted_by_timestep(self, tmp_path):
+        """Molecule timeline rows should be grouped by original timestep."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename=str(tmp_path / "dummy"),
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            printmoleculetime=True,
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+        collector._moleculetimelinebufferrows = 2
+
+        collector._writemoleculetimeline(
+            [
+                (300, "C", "0;1", "0-1-1"),
+                (100, "H", "2", ""),
+                (300, "O", "3", ""),
+            ]
+        )
+
+        with open(reacnetgen.moleculetimelinefilename) as handle:
+            assert handle.read().splitlines() == [
+                "Timestep,Species,AtomIDs,BondIDs",
+                "100,H,2,",
+                "300,C,0;1,0-1-1",
+                "300,O,3,",
+            ]
+
+    def test_molecule_timeline_spool_merges_chunk_batches(self, tmp_path):
+        """Large timeline files should be externally sorted in chunk batches."""
+        timeline_file = tmp_path / "timeline.molecules.csv"
+        spool = _MoleculeTimelineSpool(
+            str(timeline_file), buffer_rows=2, max_open_chunks=2
+        )
+        try:
+            spool.extend(
+                [
+                    (500, "E", "4", ""),
+                    (100, "A", "0", ""),
+                    (400, "D", "3", ""),
+                    (200, "B", "1", ""),
+                    (300, "C", "2", ""),
+                ]
+            )
+            spool.write()
+        finally:
+            spool.close()
+
+        assert timeline_file.read_text().splitlines() == [
+            "Timestep,Species,AtomIDs,BondIDs",
+            "100,A,0,",
+            "200,B,1,",
+            "300,C,2,",
+            "400,D,3,",
+            "500,E,4,",
+        ]
+
+    def test_molecule_time_filter_by_timestep(self):
+        """Molecule timeline filtering should accept original timestep values."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculetimesteps=[300],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert reacnetgen.printmoleculetime is True
+        assert collector._shouldprintmoleculetimelinerow(2, 300)
+        assert not collector._shouldprintmoleculetimelinerow(2, 200)
+
+    def test_molecule_time_filters_match_same_occurrence(self):
+        """Combined frame and timestep filters should match the same timeline row."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=[0],
+            moleculetimesteps=[300],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert not collector._shouldprintmoleculetimelinerow(0, 100)
+        assert not collector._shouldprintmoleculetimelinerow(2, 300)
+        assert collector._shouldprintmoleculetimelinerow(0, 300)
+
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=[2],
+            moleculetimesteps=[300],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert not collector._shouldprintmoleculetimelinerow(0, 100)
+        assert collector._shouldprintmoleculetimelinerow(2, 300)
+
+    def test_empty_molecule_filters_are_ignored(self, tmp_path):
+        """Empty frame and timestep filters should behave like omitted filters."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename=str(tmp_path / "dummy"),
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=[],
+            moleculetimesteps=[],
+        )
+        collector = _CollectSMILESPaths(reacnetgen)
+
+        assert reacnetgen.moleculeframes is None
+        assert reacnetgen.moleculetimesteps is None
+        assert reacnetgen.printmoleculetime is False
+        collector._writemoleculetimeline([(100, "H", "0", "")])
+        assert not (tmp_path / "dummy.molecules.csv").exists()
+
+    def test_molecule_filter_normalization_accepts_sequences(self):
+        """Tuple and array molecule filters should normalize to integer lists."""
+        reacnetgen = ReacNetGenerator(
+            inputfilename="dummy",
+            inputfiletype="lammpsbondfile",
+            atomname=["H", "O"],
+            moleculeframes=(1, 2),
+            moleculetimesteps=np.array([100, 300]),
+        )
+
+        assert reacnetgen.moleculeframes == [1, 2]
+        assert reacnetgen.moleculetimesteps == [100, 300]
+
+    def test_parm2cmd_preserves_zero_molecule_filters(self):
+        """Frame and timestep 0 are valid molecule filters."""
+        cmd = parm2cmd(
+            {
+                "inputfilename": "dummy",
+                "inputfiletype": "lammpsbondfile",
+                "atomname": ["H", "O"],
+                "moleculeframes": 0,
+                "moleculetimesteps": 0,
+            }
+        )
+
+        assert "--molecule-frame" in cmd
+        assert cmd[cmd.index("--molecule-frame") + 1] == "0"
+        assert "--molecule-timestep" in cmd
+        assert cmd[cmd.index("--molecule-timestep") + 1] == "0"
+
+    def test_parm2cmd_omits_empty_molecule_filters(self):
+        """Empty molecule filters should not emit value-requiring CLI options."""
+        cmd = parm2cmd(
+            {
+                "inputfilename": "dummy",
+                "inputfiletype": "lammpsbondfile",
+                "atomname": ["H", "O"],
+                "moleculeframes": [],
+                "moleculetimesteps": [],
+            }
+        )
+
+        assert "--molecule-frame" not in cmd
+        assert "--molecule-timestep" not in cmd
+
+
+# Additional test for the auto-enable logic
+class TestAutoEnableLogic:
+    """Test the auto-enable logic for ASE mode."""
+
+    @pytest.fixture(autouse=True)
+    def chdir(self, tmp_path):
+        """Change directory to tmp_path."""
+        start_directory = os.getcwd()
+        os.chdir(tmp_path)
+        yield
+        os.chdir(start_directory)
+
+    def test_auto_enable_with_custom_cutoffs(self, tmp_path):
+        """Test that ASE mode is auto-enabled when custom cutoffs are provided."""
+        # Create a temporary file for input
+        dummy_file = tmp_path / "dummy.dump"
+        dummy_file.write_text("")
+
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(dummy_file),
+            atomname=["H", "O"],
+            use_ase=False,  # Explicitly set to False
+            custom_cutoffs="H-O:1.5",  # But provide custom cutoffs
+        )
+
+        # Should be auto-enabled
+        assert rng.use_ase is True
+
+    def test_auto_enable_with_modified_multiplier(self, tmp_path):
+        """Test that ASE mode is auto-enabled when multiplier is modified."""
+        # Create a temporary file for input
+        dummy_file = tmp_path / "dummy.dump"
+        dummy_file.write_text("")
+
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(dummy_file),
+            atomname=["H", "O"],
+            use_ase=False,  # Explicitly set to False
+            ase_cutoff_mult=1.5,  # But modify multiplier
+        )
+
+        # Should be auto-enabled
+        assert rng.use_ase is True
+
+    def test_no_auto_enable_with_defaults(self, tmp_path):
+        """Test that ASE mode is not auto-enabled when using defaults."""
+        # Create a temporary file for input
+        dummy_file = tmp_path / "dummy.dump"
+        dummy_file.write_text("")
+
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(dummy_file),
+            atomname=["H", "O"],
+            use_ase=False,  # Explicitly set to False
+            ase_cutoff_mult=1.2,  # Default value
+            custom_cutoffs=None,  # Default value
+        )
+
+        # Should remain False
+        assert rng.use_ase is False

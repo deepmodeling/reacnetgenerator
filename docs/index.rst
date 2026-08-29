@@ -8,6 +8,7 @@ Table of contents
 
    guide/index
    tutorial/index
+   agent-skills
    develop
    external
 

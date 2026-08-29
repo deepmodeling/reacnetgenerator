@@ -107,13 +107,16 @@ class _HMMFilter(SharedRNGData):
         return originbytes, hmmbytes, line_c
 
     def _calhmm(self):
-        with WriteBuffer(
-            tempfile.NamedTemporaryFile("wb", delete=False)
-        ) if self.getoriginfile or not self.runHMM else ExitStack() as fo, WriteBuffer(
-            tempfile.NamedTemporaryFile("wb", delete=False)
-        ) if self.runHMM else ExitStack() as fh, open(
-            self.moleculetempfilename, "rb"
-        ) as ft, WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as ft2:
+        with (
+            WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False))
+            if self.getoriginfile or not self.runHMM
+            else ExitStack() as fo,
+            WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False))
+            if self.runHMM
+            else ExitStack() as fh,
+            open(self.moleculetempfilename, "rb") as ft,
+            WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as ft2,
+        ):
             self.moleculetemp2filename = ft2.name
             if self.getoriginfile or not self.runHMM:
                 assert not isinstance(fo, ExitStack)
