@@ -237,7 +237,13 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 atom = np.array(bytestolist(linetz[0]))
                 index = np.where(lineh)[0]
                 if index.size:
-                    conflict[np.nonzero(atomeach[atom[:, None], index])] = 1
+                    # ``np.nonzero`` reports coordinates relative to this sliced
+                    # molecule/timestep grid. Map them back to the full atom and
+                    # timestep axes before recording conflicts.
+                    conflict_atom, conflict_step = np.nonzero(
+                        atomeach[atom[:, None], index]
+                    )
+                    conflict[atom[conflict_atom], index[conflict_step]] = 1
                     atomeach[atom[:, None], index] = i
         return atomeach, conflict
 
