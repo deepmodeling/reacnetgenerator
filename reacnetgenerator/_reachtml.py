@@ -14,7 +14,6 @@ import json
 import os
 import re
 from collections import defaultdict
-from typing import Dict, Union
 
 import numpy as np
 import scour.scour
@@ -50,7 +49,7 @@ class _HTMLResult(SharedRNGData):
             [],
             ["_specs", "_reaction", "_reactionsabcd", "_svgfiles"],
         )
-        self._templatedict: Dict[str, Union[str, int, list, dict]] = {
+        self._templatedict: dict[str, str | int | list | dict] = {
             "speciesshownum": 30,
             "reactionsshownum": 20,
         }

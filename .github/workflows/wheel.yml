@@ -23,15 +23,15 @@ jobs:
         include:
           # linux-64
           - os: ubuntu-latest
-            python: 38
+            python: 310
             platform_id: manylinux_x86_64
           # macos-x86-64
           - os: macos-latest
-            python: 39
+            python: 310
             platform_id: macosx_universal2
           # win-64
           - os: windows-2022
-            python: 39
+            python: 310
             platform_id: win_amd64
           # linux-aarch64
           - os: ubuntu-24.04-arm

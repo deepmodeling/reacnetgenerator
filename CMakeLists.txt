@@ -51,11 +51,13 @@ add_custom_command(
   DEPENDS reacnetgenerator/dps.pyx
   VERBATIM)
 
+# Keep the stable ABI floor aligned with requires-python and wheel.py-api.
+# Cython 3.3 no longer supports Limited API targets older than Python 3.9.
 python_add_library(
   dps
   MODULE
   USE_SABI
-  3.7
+  3.10
   ${CMAKE_CURRENT_BINARY_DIR}/dps.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/c_stack.cpp
   WITH_SOABI)
