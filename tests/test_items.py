@@ -1,32 +1,38 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Tests for --items selective execution."""
 
-import json
 import os
+import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
 from reacnetgenerator import ReacNetGenerator
 
-with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
-    test_data = json.load(f)
+INPUT_NAME = "water.bond"
+INPUT_SOURCE = Path(__file__).parent / "inputs" / INPUT_NAME
 
 
 @pytest.fixture(autouse=True)
-def chdir(tmp_path):
-    """Change directory to tmp_path."""
-    start = os.getcwd()
-    os.chdir(tmp_path)
-    yield
-    os.chdir(start)
+def local_input(tmp_path, monkeypatch):
+    """Run every case against a checked-in trajectory in an isolated directory."""
+    shutil.copyfile(INPUT_SOURCE, tmp_path / INPUT_NAME)
+    monkeypatch.chdir(tmp_path)
 
 
 @pytest.fixture()
 def rng():
-    """Create a ReacNetGenerator instance with the first test param set."""
-    return ReacNetGenerator(**test_data[0]["rngparams"])
+    """Create a generator without downloading any external fixture."""
+    return ReacNetGenerator(
+        inputfilename=INPUT_NAME,
+        atomname=["H", "O"],
+        inputfiletype="lammpsbondfile",
+        runHMM=False,
+        SMILES=False,
+        nproc=1,
+    )
 
 
 class TestRunItems:
@@ -44,6 +50,15 @@ class TestRunItems:
         rng.run_items(["species", "reactions"])
         assert os.path.exists(rng.speciesfilename)
         assert os.path.exists(rng.reactionfilename)
+
+    def test_explicit_species_overrides_legacy_flag_for_one_run(self, rng):
+        """Honor a requested species file and then restore caller configuration."""
+        rng.needprintspecies = False
+
+        rng.run_items(["species", "reactions"])
+
+        assert os.path.exists(rng.speciesfilename)
+        assert rng.needprintspecies is False
 
     def test_all_items_matches_runanddraw(self, rng):
         """Passing all items is equivalent to runanddraw()."""
@@ -72,15 +87,13 @@ class TestRunItems:
                 "-m",
                 "reacnetgenerator",
                 "-i",
-                test_data[0]["rngparams"]["inputfilename"],
+                INPUT_NAME,
                 "-a",
-                *test_data[0]["rngparams"]["atomname"],
+                "H",
+                "O",
                 "--nohmm",
                 "--items",
                 "species",
-                "--urls",
-                test_data[0]["rngparams"]["urls"][0]["fn"],
-                test_data[0]["rngparams"]["urls"][0]["url"][0],
             ]
         )
-        assert os.path.exists(f"{test_data[0]['rngparams']['inputfilename']}.species")
+        assert os.path.exists(f"{INPUT_NAME}.species")

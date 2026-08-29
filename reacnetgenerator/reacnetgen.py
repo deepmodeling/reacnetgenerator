@@ -366,7 +366,15 @@ class ReacNetGenerator:
         # Species output only requires molecule naming + counting, not
         # the full PATH collect (which builds atom routes and finds reactions).
         species_only = "species" in items and "PATH" not in needed
-        self._process(processthing, species_only=species_only)
+        original_needprintspecies = self.needprintspecies
+        try:
+            # An explicitly requested output takes precedence over the legacy
+            # configuration flag for this selective run only.
+            if "species" in items:
+                self.needprintspecies = True
+            self._process(processthing, species_only=species_only)
+        finally:
+            self.needprintspecies = original_needprintspecies
 
     # ------------------------------------------------------------------
     # Legacy convenience methods (delegate to run_items)
