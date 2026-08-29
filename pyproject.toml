@@ -38,6 +38,8 @@ dependencies = [
     'numpy',
     'networkx',
     'matplotlib',
+    # Pillow 12.3 dropped manylinux2014 wheels, which this project still ships.
+    "pillow<12.3; platform_system == 'Linux'",
     'hmmlearn>=0.2.1',
     'ase',
     'scour',
