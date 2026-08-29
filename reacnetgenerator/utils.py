@@ -8,7 +8,6 @@ import hashlib
 import itertools
 import os
 import pickle
-import shutil
 from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
 from multiprocessing import Pool, Semaphore
@@ -497,7 +496,9 @@ async def download_file(
             with s.get(url, stream=True) as r:
                 r.raise_for_status()
                 with open(pathfilename, "wb") as f:
-                    shutil.copyfileobj(r.raw, f)
+                    for chunk in r.iter_content(chunk_size=128 * 1024):
+                        if chunk:
+                            f.write(chunk)
             if sha256 is None or checksha256(pathfilename, sha256):
                 break
             os.remove(pathfilename)

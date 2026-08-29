@@ -7,6 +7,7 @@ from io import BytesIO
 
 import pytest
 import requests
+from urllib3.exceptions import ProtocolError
 
 from reacnetgenerator.utils import download_file
 
@@ -28,6 +29,30 @@ class _DownloadResponse:
         """Raise the configured HTTP status error, if any."""
         if self.status_error is not None:
             raise self.status_error
+
+    def iter_content(self, chunk_size):
+        """Yield the response body using the Requests streaming interface."""
+        while chunk := self.raw.read(chunk_size):
+            yield chunk
+
+
+class _InterruptedRaw:
+    """Simulate an urllib3 stream that fails after yielding partial data."""
+
+    def stream(self, chunk_size, decode_content=True):
+        yield b"partial"
+        raise ProtocolError("connection interrupted")
+
+    def close(self):
+        """Support cleanup by requests.Response's context manager."""
+
+
+def _interrupted_response():
+    """Return a real Requests response backed by an interrupted raw stream."""
+    response = requests.Response()
+    response.status_code = 200
+    response.raw = _InterruptedRaw()
+    return response
 
 
 def _sha256(content):
@@ -67,6 +92,28 @@ def test_download_file_retries_after_hash_mismatch(tmp_path, mocker):
     asyncio.run(
         download_file(
             ["https://corrupt", "https://good"], str(output), _sha256(content)
+        )
+    )
+
+    assert output.read_bytes() == content
+    assert session.get.call_count == 2
+
+
+def test_download_file_retries_after_stream_interruption(tmp_path, mocker):
+    """A partial streaming response should be removed before mirror fallback."""
+    content = b"valid trajectory"
+    session = mocker.patch("reacnetgenerator.utils.requests.Session").return_value
+    session.get.side_effect = [
+        _interrupted_response(),
+        _DownloadResponse(content),
+    ]
+    output = tmp_path / "trajectory.dump"
+
+    asyncio.run(
+        download_file(
+            ["https://interrupted", "https://good"],
+            str(output),
+            _sha256(content),
         )
     )
 
