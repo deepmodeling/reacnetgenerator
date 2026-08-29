@@ -38,8 +38,6 @@ dependencies = [
     'numpy',
     'networkx',
     'matplotlib',
-    # Pillow 12.3 dropped manylinux2014 wheels, which this project still ships.
-    "pillow<12.3; platform_system == 'Linux'",
     'hmmlearn>=0.2.1',
     'ase',
     'scour',
@@ -120,6 +118,9 @@ manylinux-aarch64-image = "manylinux2014"
 
 [tool.cibuildwheel.linux]
 environment-pass = ["CIBW_BUILD"]
+# Pillow 12.3 no longer provides manylinux2014 wheels. Install the last
+# compatible release in the isolated wheel test environment only.
+before-test = "uv pip install 'pillow<12.3'"
 # Use abi3audit to catch issues with Limited API wheels
 repair-wheel-command = [
   "auditwheel repair -w {dest_dir} {wheel}",
