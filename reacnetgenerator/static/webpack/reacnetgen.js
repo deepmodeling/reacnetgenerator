@@ -6,6 +6,8 @@
 
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
+const {clearGraph} = require("./graph.js");
+const {bindLatestChangeHandler} = require("./events.js");
 
 // CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
@@ -275,7 +277,7 @@ function showresults(time) {
       .html(
           $.templates("#optionTmpl").render(specdata_minify),
       );
-  $("select#speciesselect").on("change", function() {
+  bindLatestChangeHandler($("select#speciesselect"), function() {
     const speciessearch = searchspecies($(this).val(), specdata);
     showresult(
         speciessearch,
@@ -285,7 +287,7 @@ function showresults(time) {
         "#speciespager",
     );
   });
-  $("select#reactionsselect").on("change", function() {
+  bindLatestChangeHandler($("select#reactionsselect"), function() {
     const reactionssearch = searchreaction($(this).val(), reactionsdata);
     showresult(
         reactionssearch,
@@ -295,7 +297,7 @@ function showresults(time) {
         "#reactionspager",
     );
   });
-  $("select#reactionsabcdselect").on("change", function() {
+  bindLatestChangeHandler($("select#reactionsabcdselect"), function() {
     const reactionsabcdsearch = searchreaction(
         $(this).val(),
         reactionsabcddata,
@@ -366,7 +368,7 @@ function savesvg() {
   window.URL.revokeObjectURL(svgUrl);
 }
 
-function clearnode() { G.nodes().foreach((node) => G.removeNode(node)); }
+function clearnode() { clearGraph(G); }
 
 function addloadbutton() {
   $("#buttons").html($("#loadTmpl").html());

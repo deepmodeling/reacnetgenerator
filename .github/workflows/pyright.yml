@@ -17,7 +17,7 @@ jobs:
     name: pyright
     runs-on: ubuntu-slim
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v7
     - run: uvx --from ty==0.0.15 --with . ty check --output-format github
