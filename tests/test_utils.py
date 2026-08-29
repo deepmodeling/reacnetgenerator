@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Test multiprocessing utilities."""
 
+import multiprocessing
 import os
 import time
 
@@ -63,6 +64,47 @@ def _raise_system_exit(value):
     if value == 0:
         raise SystemExit
     return value
+
+
+class _ExitWhilePickling:
+    def __reduce__(self):
+        os._exit(0)
+
+
+class _RaiseSystemExitWhilePickling:
+    def __reduce__(self):
+        raise SystemExit
+
+
+def _return_exit_while_pickling(value):
+    return _ExitWhilePickling()
+
+
+def _return_system_exit_while_pickling(value):
+    return _RaiseSystemExitWhilePickling()
+
+
+def _run_serialization_exit_case(result_queue, func, disk_ordered, spool_dir):
+    """Run the potential hang in a watchdog process and report its outcome."""
+    try:
+        list(
+            run_mp(
+                2,
+                func=func,
+                l=range(2),
+                unordered=not disk_ordered,
+                chunksize=1,
+                max_inflight=2,
+                disk_ordered=disk_ordered,
+                ordered_spool_dir=spool_dir,
+                total=2,
+                bar=False,
+            )
+        )
+    except BaseException as error:
+        result_queue.put((type(error).__name__, str(error)))
+    else:
+        result_queue.put(("success", ""))
 
 
 def test_run_mp_default_ordering_is_unchanged():
@@ -174,6 +216,37 @@ def test_disk_ordered_run_mp_detects_clean_worker_exit(tmp_path, func):
             )
         )
 
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(
+    "func",
+    [_return_exit_while_pickling, _return_system_exit_while_pickling],
+    ids=["os-exit-zero", "system-exit"],
+)
+@pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
+def test_run_mp_detects_clean_exit_during_result_serialization(
+    tmp_path, func, disk_ordered
+):
+    """Fail promptly if result serialization terminates a worker cleanly."""
+    context = multiprocessing.get_context("spawn")
+    result_queue = context.Queue()
+    process = context.Process(
+        target=_run_serialization_exit_case,
+        args=(result_queue, func, disk_ordered, str(tmp_path)),
+    )
+    process.start()
+    process.join(timeout=10)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("run_mp hung after a clean exit during result serialization")
+
+    assert process.exitcode == 0
+    error_type, message = result_queue.get(timeout=2)
+    assert error_type == "RuntimeError"
+    assert "worker" in message and "exited" in message
+    result_queue.close()
     assert not list(tmp_path.iterdir())
 
 

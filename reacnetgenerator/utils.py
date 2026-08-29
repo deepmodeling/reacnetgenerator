@@ -348,6 +348,21 @@ def _record_pool_result(
     completed.put((index, succeeded, value))
 
 
+def _record_serialized_pool_result(
+    completed: Queue[tuple[int, bool, Any]],
+    index: int,
+    result: tuple[bool, bytes],
+) -> None:
+    """Deserialize a worker payload only after Pool delivered its safe bytes."""
+    succeeded, payload = result
+    try:
+        value = pickle.loads(payload)
+    except BaseException as error:
+        completed.put((index, False, error))
+    else:
+        completed.put((index, succeeded, value))
+
+
 _POOL_TASK_EVENTS: Any | None = None
 
 
@@ -357,26 +372,38 @@ def _init_bounded_pool_worker(task_events: Any) -> None:
     _POOL_TASK_EVENTS = task_events
 
 
-def _run_bounded_pool_item(func: Callable, index: int, item: Any) -> Any:
-    """Run one item while recording lifecycle events that survive clean exits."""
+def _run_bounded_pool_item(func: Callable, index: int, item: Any) -> tuple[bool, bytes]:
+    """Serialize one result before declaring its worker task complete."""
     if _POOL_TASK_EVENTS is None:
         raise RuntimeError("Bounded pool worker was not initialized")
     pid = os.getpid()
     _POOL_TASK_EVENTS.put(("started", pid, index))
     try:
-        value = func(item)
-    except Exception:
-        # Pool error callbacks can report ordinary exceptions, so this task no
-        # longer needs worker-exit tracking once the exception is serialized.
-        _POOL_TASK_EVENTS.put(("finished", pid, index))
-        raise
+        try:
+            value = func(item)
+        except Exception as error:
+            succeeded = False
+            value = error
+        else:
+            succeeded = True
+        try:
+            payload = pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+        except Exception as error:
+            # Match Pool's behavior for values or exceptions that cannot be
+            # serialized by reporting the serialization failure to the parent.
+            succeeded = False
+            payload = pickle.dumps(error, protocol=pickle.HIGHEST_PROTOCOL)
     except BaseException:
-        # multiprocessing does not catch SystemExit or other BaseException
-        # subclasses, so explicitly tell the parent before the worker exits.
+        # This includes SystemExit raised by either the task or an object's
+        # reduction method. os._exit bypasses this handler, leaving the task
+        # active so the parent can identify the exited worker by PID.
         _POOL_TASK_EVENTS.put(("fatal", pid, index))
         raise
+
+    # Pool now only needs to serialize a bool and bytes. User-controlled
+    # reduction code cannot run after this lifecycle event.
     _POOL_TASK_EVENTS.put(("finished", pid, index))
-    return value
+    return succeeded, payload
 
 
 def _drain_pool_task_events(task_events: Any, active_tasks: dict[int, int]) -> None:
@@ -457,7 +484,7 @@ def _submit_pool_item(pool, completed, pending, func, index, item) -> None:
     pending[index] = pool.apply_async(
         _run_bounded_pool_item,
         (func, index, item),
-        callback=partial(_record_pool_result, completed, index, True),
+        callback=partial(_record_serialized_pool_result, completed, index),
         error_callback=partial(_record_pool_result, completed, index, False),
     )
 
