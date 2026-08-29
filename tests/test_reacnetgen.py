@@ -175,12 +175,12 @@ class TestReacNetGen:
 
     def test_getatomeach_maps_conflicts_to_original_indices(self, tmp_path):
         """Conflict coordinates should retain their atom and timestep indices."""
-        origin_file = tmp_path / "origin.bin"
+        hmm_file = tmp_path / "hmm.bin"
         molecule_file = tmp_path / "molecules.bin"
 
-        with open(origin_file, "wb") as origin:
-            origin.write(listtobytes(np.array([False, False, False, True, False])))
-            origin.write(listtobytes(np.array([False, False, False, True, False])))
+        with open(hmm_file, "wb") as hmm:
+            hmm.write(listtobytes(np.array([False, False, False, True, False])))
+            hmm.write(listtobytes(np.array([False, False, False, True, False])))
         with open(molecule_file, "wb") as molecules:
             for _ in range(2):
                 molecules.write(listtobytes(np.array([2])))
@@ -192,17 +192,20 @@ class TestReacNetGen:
         collector = object.__new__(_CollectSMILESPaths)
         collector.N = 5
         collector.step = 5
-        collector.runHMM = False
-        collector.originfilename = str(origin_file)
-        collector.hmmfilename = str(tmp_path / "unused-hmm.bin")
+        collector.runHMM = True
+        collector.originfilename = str(tmp_path / "unused-origin.bin")
+        collector.hmmfilename = str(hmm_file)
         collector.moleculetemp2filename = str(molecule_file)
         collector.hmmit = 2
 
         atomeach, conflict = collector._getatomeach()
 
-        assert atomeach[2, 3] == 2
-        assert conflict[2, 3] == 1
-        assert conflict[0, 0] == 0
+        expected_atomeach = np.zeros((5, 5), dtype=int)
+        expected_atomeach[2, 3] = 2
+        expected_conflict = np.zeros((5, 5), dtype=int)
+        expected_conflict[2, 3] = 1
+        np.testing.assert_array_equal(atomeach, expected_atomeach)
+        np.testing.assert_array_equal(conflict, expected_conflict)
 
     def test_reaction_event_details(self, tmp_path):
         """Single reaction events should expose time-resolved CSV fields."""
