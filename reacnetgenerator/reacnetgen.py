@@ -278,7 +278,7 @@ class ReacNetGenerator:
             )
             try:
                 cell = np.asarray(self.cell)
-            except ValueError as exc:
+            except (TypeError, ValueError) as exc:
                 raise RuntimeError(cell_error) from exc
             if cell.shape == (3, 3):
                 # Preserve full cell matrices, including triclinic off-diagonal

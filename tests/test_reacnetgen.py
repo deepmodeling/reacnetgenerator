@@ -284,6 +284,25 @@ class TestReacNetGen:
         np.testing.assert_allclose(rng.cell, expected)
         assert rng.cell.shape == (3, 3)
 
+    def test_cell_normalization_wraps_array_conversion_type_error(self, tmp_path):
+        """Invalid custom array-likes should use the public cell error."""
+
+        class InvalidCellArray:
+            """Represent an array-like object that cannot be converted."""
+
+            def __array__(self, dtype=None, copy=None):
+                raise TypeError("cannot convert cell")
+
+        with pytest.raises(RuntimeError, match="cell must be") as exc_info:
+            ReacNetGenerator(
+                inputfiletype="lammpsdumpfile",
+                inputfilename=str(tmp_path / "dummy.dump"),
+                atomname=["H"],
+                cell=InvalidCellArray(),
+            )
+
+        assert isinstance(exc_info.value.__cause__, TypeError)
+
     def test_molecule_time_formatting(self, tmp_path):
         """Molecule timeline rows should be optional and filterable."""
         reacnetgen = ReacNetGenerator(
