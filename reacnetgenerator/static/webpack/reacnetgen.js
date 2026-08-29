@@ -6,6 +6,8 @@
 
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
+const {bindLatestChangeHandler} = require("./events.js");
+const {narrowSpecies} = require("./narrow.js");
 
 // CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
@@ -275,7 +277,7 @@ function showresults(time) {
       .html(
           $.templates("#optionTmpl").render(specdata_minify),
       );
-  $("select#speciesselect").on("change", function() {
+  bindLatestChangeHandler($("select#speciesselect"), function() {
     const speciessearch = searchspecies($(this).val(), specdata);
     showresult(
         speciessearch,
@@ -285,7 +287,7 @@ function showresults(time) {
         "#speciespager",
     );
   });
-  $("select#reactionsselect").on("change", function() {
+  bindLatestChangeHandler($("select#reactionsselect"), function() {
     const reactionssearch = searchreaction($(this).val(), reactionsdata);
     showresult(
         reactionssearch,
@@ -295,7 +297,7 @@ function showresults(time) {
         "#reactionspager",
     );
   });
-  $("select#reactionsabcdselect").on("change", function() {
+  bindLatestChangeHandler($("select#reactionsabcdselect"), function() {
     const reactionsabcdsearch = searchreaction(
         $(this).val(),
         reactionsabcddata,
@@ -323,27 +325,6 @@ function addnode(spec) {
       G.addEdge(rightspec, spec);
     });
   }
-}
-
-/**
- * narrow down results by adding species to selections and filtering
- */
-function narrowSpecies(spec) {
-  // Add species to all relevant selects if not already selected
-  const selectIds = ["#speciesselect", "#reactionsselect", "#reactionsabcdselect"];
-  
-  selectIds.forEach((selectId) => {
-    const selectElement = $(selectId);
-    const currentValues = selectElement.val() || [];
-    
-    // Only add if not already in selection
-    if (!currentValues.includes(spec)) {
-      currentValues.push(spec);
-      selectElement.val(currentValues);
-      selectElement.selectpicker("refresh");
-      selectElement.trigger("change");
-    }
-  });
 }
 
 /**

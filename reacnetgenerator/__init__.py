@@ -19,6 +19,8 @@ __copyright__ = (
     "Copyright 2018-2024, East China Normal University; Copyright 2024, DeepModeling"
 )
 
+from typing import TYPE_CHECKING
+
 from ._version import __version__
 
 
@@ -31,5 +33,8 @@ class ReacNetGenerator:
 
         return RealRNG(*args, **kwargs)
 
+
+if TYPE_CHECKING:
+    from .reacnetgen import ReacNetGenerator
 
 __all__ = ["ReacNetGenerator", "__version__"]
