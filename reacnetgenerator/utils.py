@@ -14,6 +14,7 @@ from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
 from functools import partial
 from multiprocessing import Pool, Semaphore, SimpleQueue
+from multiprocessing.pool import ExceptionWithTraceback  # type: ignore[attr-defined]
 from multiprocessing.reduction import ForkingPickler
 from queue import Empty, Queue
 from typing import (
@@ -300,8 +301,8 @@ class _DiskOrderedResultSpool:
         """Return whether a result is available for an input index."""
         return index in self._paths
 
-    def put(self, index: int, value: Any) -> None:
-        """Write one completed result to the spool."""
+    def put(self, index: int, payload: bytes) -> None:
+        """Write one serialized out-of-order result to the spool."""
         if self.has(index):
             raise RuntimeError("Ordered result contains a duplicate index")
         if self._temporary_directory is None:
@@ -312,7 +313,7 @@ class _DiskOrderedResultSpool:
         path = os.path.join(self._temporary_directory.name, f"{index}.pickle")
         try:
             with open(path, "wb") as f:
-                pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
+                f.write(payload)
         except BaseException:
             if os.path.exists(path):
                 os.unlink(path)
@@ -326,8 +327,9 @@ class _DiskOrderedResultSpool:
         except KeyError as e:
             raise RuntimeError("Ordered result is not available") from e
         with open(path, "rb") as f:
-            # This file is created and tracked by this process in its private spool.
-            value = pickle.load(f)
+            # The worker created this ForkingPickler payload and this process
+            # tracks it inside a private spool directory.
+            value = pickle.loads(f.read())
         os.unlink(path)
         return value
 
@@ -354,14 +356,23 @@ def _record_serialized_pool_result(
     index: int,
     result: tuple[bool, bytes],
 ) -> None:
-    """Deserialize a worker payload only after Pool delivered its safe bytes."""
-    succeeded, payload = result
+    """Forward safe worker bytes so ordered mode can spool before decoding."""
+    completed.put((index, True, result))
+
+
+def _decode_pool_result(
+    callback_succeeded: bool,
+    value: Any,
+) -> tuple[bool, Any]:
+    """Decode a delivered worker result while preserving callback failures."""
+    if not callback_succeeded:
+        return False, value
+    worker_succeeded, payload = value
     try:
-        value = pickle.loads(payload)
+        decoded = pickle.loads(payload)
     except BaseException as error:
-        completed.put((index, False, error))
-    else:
-        completed.put((index, succeeded, value))
+        return False, error
+    return worker_succeeded, decoded
 
 
 _POOL_TASK_EVENTS: Any | None = None
@@ -390,7 +401,9 @@ def _run_bounded_pool_item(index: int, call_payload: bytes) -> tuple[bool, bytes
             value = func(item)
         except Exception as error:
             succeeded = False
-            value = error
+            # Match Pool's legacy error propagation, including the worker-side
+            # traceback restored as the error cause in the parent.
+            value = ExceptionWithTraceback(error, error.__traceback__)
         else:
             succeeded = True
         try:
@@ -552,7 +565,7 @@ def _bounded_pool_results(
                 outstanding += 1
             if not outstanding:
                 break
-            index, succeeded, value = _wait_pool_result(
+            index, callback_succeeded, value = _wait_pool_result(
                 pool,
                 completed,
                 known_workers,
@@ -561,6 +574,7 @@ def _bounded_pool_results(
             )
             if pending.pop(index, None) is None:
                 raise RuntimeError("run_mp received an unknown result index")
+            succeeded, value = _decode_pool_result(callback_succeeded, value)
             if not succeeded:
                 if isinstance(value, BaseException):
                     raise value
@@ -596,7 +610,7 @@ def _bounded_pool_results(
         if not pending:
             raise RuntimeError("Ordered result count does not match declared total")
 
-        result_index, succeeded, value = _wait_pool_result(
+        result_index, callback_succeeded, value = _wait_pool_result(
             pool,
             completed,
             known_workers,
@@ -605,20 +619,31 @@ def _bounded_pool_results(
         )
         if pending.pop(result_index, None) is None:
             raise RuntimeError("run_mp received an unknown result index")
-        if not succeeded:
+        if not callback_succeeded:
             if isinstance(value, BaseException):
                 raise value
+            raise RuntimeError("run_mp worker failed without an exception")
+        worker_succeeded, payload = value
+        if not worker_succeeded:
+            _, error = _decode_pool_result(True, value)
+            if isinstance(error, BaseException):
+                raise error
             raise RuntimeError("run_mp worker failed without an exception")
         if result_index < next_index or spool.has(result_index):
             raise RuntimeError("Ordered result contains a duplicate index")
         if result_index == next_index:
+            succeeded, value = _decode_pool_result(True, value)
+            if not succeeded:
+                if isinstance(value, BaseException):
+                    raise value
+                raise RuntimeError("run_mp worker failed without an exception")
             yield value
             next_index += 1
             while spool.has(next_index):
                 yield spool.pop(next_index)
                 next_index += 1
         else:
-            spool.put(result_index, value)
+            spool.put(result_index, payload)
 
     try:
         next(source)

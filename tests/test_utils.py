@@ -127,12 +127,48 @@ class _SlowWhenUnpickled:
         return _sleep_and_return, ("slow",)
 
 
+class _ExitWhenRepickled:
+    """Exit if a parent process serializes a worker result a second time."""
+
+    def __init__(self, armed=False):
+        self.armed = armed
+
+    def __reduce__(self):
+        if self.armed:
+            os._exit(0)
+        return type(self), (True,)
+
+
 def _return_resource_reducer_at_legacy_boundary(index):
     if index == 998:
         return _SlowWhenUnpickled()
     if index == 999:
         return socket.socket()
     return index
+
+
+def _return_out_of_order_socket(index):
+    if index == 0:
+        time.sleep(0.5)
+        return "first"
+    return socket.socket()
+
+
+def _return_out_of_order_connection(index):
+    if index == 0:
+        time.sleep(0.5)
+        return "first"
+    receiver, sender = multiprocessing.Pipe(duplex=False)
+    sender.send("from worker")
+    sender.close()
+    return receiver
+
+
+def _return_out_of_order_repickle_guard(index):
+    if index == 0:
+        time.sleep(0.5)
+        return "first"
+    return _ExitWhenRepickled()
 
 
 def _worker_pid(value):
@@ -236,7 +272,7 @@ def test_disk_ordered_run_mp_bounds_inflight_and_restores_order(tmp_path):
 
 def test_disk_ordered_run_mp_propagates_error_and_cleans_spool(tmp_path):
     """Propagate ordinary worker errors without retaining temporary files."""
-    with pytest.raises(RuntimeError, match="intentional worker failure"):
+    with pytest.raises(RuntimeError, match="intentional worker failure") as error_info:
         list(
             run_mp(
                 2,
@@ -252,7 +288,29 @@ def test_disk_ordered_run_mp_propagates_error_and_cleans_spool(tmp_path):
             )
         )
 
+    assert type(error_info.value.__cause__).__name__ == "RemoteTraceback"
+    assert "_fail_out_of_order" in str(error_info.value.__cause__)
     assert not list(tmp_path.iterdir())
+
+
+def test_bounded_unordered_run_mp_preserves_remote_traceback():
+    """Keep legacy worker traceback diagnostics in bounded unordered mode."""
+    with pytest.raises(RuntimeError, match="intentional worker failure") as error_info:
+        list(
+            run_mp(
+                2,
+                func=_fail_out_of_order,
+                l=range(8),
+                unordered=True,
+                chunksize=1,
+                max_inflight=4,
+                total=8,
+                bar=False,
+            )
+        )
+
+    assert type(error_info.value.__cause__).__name__ == "RemoteTraceback"
+    assert "_fail_out_of_order" in str(error_info.value.__cause__)
 
 
 def test_disk_ordered_run_mp_detects_worker_exit_and_cleans_spool(tmp_path):
@@ -421,6 +479,82 @@ def test_bounded_run_mp_preserves_reducers_at_legacy_recycle_boundary(
             counts["integer"] += 1
 
     assert counts == {"integer": 998, "slow": 1, "socket": 1}
+    assert not list(tmp_path.iterdir())
+
+
+def test_disk_ordered_run_mp_spools_socket_reducer_bytes(tmp_path):
+    """Spool a genuinely out-of-order socket without re-pickling it."""
+    results = iter(
+        run_mp(
+            2,
+            func=_return_out_of_order_socket,
+            l=range(2),
+            unordered=False,
+            chunksize=1,
+            max_inflight=2,
+            disk_ordered=True,
+            ordered_spool_dir=str(tmp_path),
+            total=2,
+            bar=False,
+        )
+    )
+    assert next(results) == "first"
+    result_socket = next(results)
+    try:
+        assert isinstance(result_socket, socket.socket)
+        assert result_socket.family == socket.AF_INET
+    finally:
+        result_socket.close()
+    with pytest.raises(StopIteration):
+        next(results)
+    assert not list(tmp_path.iterdir())
+
+
+def test_disk_ordered_run_mp_spools_connection_reducer_bytes(tmp_path):
+    """Transfer ownership of an out-of-order Connection exactly once."""
+    results = iter(
+        run_mp(
+            2,
+            func=_return_out_of_order_connection,
+            l=range(2),
+            unordered=False,
+            chunksize=1,
+            max_inflight=2,
+            disk_ordered=True,
+            ordered_spool_dir=str(tmp_path),
+            total=2,
+            bar=False,
+        )
+    )
+    assert next(results) == "first"
+    connection = next(results)
+    try:
+        assert connection.recv() == "from worker"
+    finally:
+        connection.close()
+    with pytest.raises(StopIteration):
+        next(results)
+    assert not list(tmp_path.iterdir())
+
+
+def test_disk_ordered_run_mp_does_not_repickle_out_of_order_results(tmp_path):
+    """Keep user reduction code out of the parent-side spool write path."""
+    context = multiprocessing.get_context("spawn")
+    result_queue = context.Queue()
+    process = context.Process(
+        target=_run_serialization_exit_case,
+        args=(result_queue, _return_out_of_order_repickle_guard, True, str(tmp_path)),
+    )
+    process.start()
+    process.join(timeout=10)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("run_mp hung while spooling an out-of-order result")
+
+    assert process.exitcode == 0
+    assert result_queue.get(timeout=2) == ("success", "")
+    result_queue.close()
     assert not list(tmp_path.iterdir())
 
 
