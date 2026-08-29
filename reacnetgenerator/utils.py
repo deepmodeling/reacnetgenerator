@@ -624,7 +624,8 @@ def check_zero_signal(signal: np.ndarray) -> bool:
     #
     # any() doesn't have short-circuits, but argmax() does for bool.
     # See https://stackoverflow.com/a/45774536/9567349
-    return signal[np.argmax(signal)].item()
+    # ty 0.0.15 cannot resolve NumPy's no-argument argmax overload.
+    return signal[signal.argmax()].item()  # ty: ignore[no-matching-overload]
 
 
 def idx_to_signal(idx: np.ndarray, step: int):
