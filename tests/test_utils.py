@@ -107,6 +107,11 @@ def _raise_system_exit_when_unpickled():
     raise SystemExit
 
 
+def _sleep_and_return(value):
+    time.sleep(0.5)
+    return value
+
+
 class _ExitWhenUnpickled:
     def __reduce__(self):
         return os._exit, (0,)
@@ -115,6 +120,23 @@ class _ExitWhenUnpickled:
 class _RaiseSystemExitWhenUnpickled:
     def __reduce__(self):
         return _raise_system_exit_when_unpickled, ()
+
+
+class _SlowWhenUnpickled:
+    def __reduce__(self):
+        return _sleep_and_return, ("slow",)
+
+
+def _return_resource_reducer_at_legacy_boundary(index):
+    if index == 998:
+        return _SlowWhenUnpickled()
+    if index == 999:
+        return socket.socket()
+    return index
+
+
+def _worker_pid(value):
+    return os.getpid()
 
 
 def _run_serialization_exit_case(result_queue, func, disk_ordered, spool_dir):
@@ -371,12 +393,43 @@ def test_bounded_run_mp_preserves_pool_result_reducers():
         result.close()
 
 
-def test_disk_ordered_run_mp_allows_configured_worker_recycling(tmp_path):
-    """Do not mistake ``maxtasksperchild`` recycling for a worker failure."""
-    assert list(
+@pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
+def test_bounded_run_mp_preserves_reducers_at_legacy_recycle_boundary(
+    tmp_path, disk_ordered
+):
+    """Keep reducer resources alive past the legacy 1000-task boundary."""
+    counts = {"integer": 0, "slow": 0, "socket": 0}
+    results = run_mp(
+        1,
+        func=_return_resource_reducer_at_legacy_boundary,
+        l=range(1000),
+        unordered=not disk_ordered,
+        chunksize=1,
+        max_inflight=4,
+        disk_ordered=disk_ordered,
+        ordered_spool_dir=str(tmp_path),
+        total=1000,
+        bar=False,
+    )
+    for result in results:
+        if isinstance(result, socket.socket):
+            counts["socket"] += 1
+            result.close()
+        elif result == "slow":
+            counts["slow"] += 1
+        else:
+            counts["integer"] += 1
+
+    assert counts == {"integer": 998, "slow": 1, "socket": 1}
+    assert not list(tmp_path.iterdir())
+
+
+def test_disk_ordered_run_mp_keeps_bounded_worker_alive(tmp_path):
+    """Preserve reducer resources by disabling bounded worker recycling."""
+    worker_pids = list(
         run_mp(
             1,
-            func=_identity,
+            func=_worker_pid,
             l=range(1001),
             unordered=False,
             chunksize=1,
@@ -386,7 +439,8 @@ def test_disk_ordered_run_mp_allows_configured_worker_recycling(tmp_path):
             total=1001,
             bar=False,
         )
-    ) == list(range(1001))
+    )
+    assert len(set(worker_pids)) == 1
     assert not list(tmp_path.iterdir())
 
 

@@ -379,7 +379,7 @@ def _forking_pickle_dumps(value: Any) -> bytes:
 
 
 def _run_bounded_pool_item(index: int, call_payload: bytes) -> tuple[bool, bytes]:
-    """Deserialize a safe call payload and serialize its result under tracking."""
+    """Serialize one result before declaring its worker task complete."""
     if _POOL_TASK_EVENTS is None:
         raise RuntimeError("Bounded pool worker was not initialized")
     pid = os.getpid()
@@ -479,14 +479,26 @@ def _wait_pool_result(
 ) -> tuple[int, bool, Any]:
     """Wait for a result while detecting workers that cannot report an error."""
     while True:
-        _check_pool_workers(pool, known_workers, task_events, active_tasks)
+        _check_pool_workers(
+            pool,
+            known_workers,
+            task_events,
+            active_tasks,
+        )
         try:
             return completed.get(timeout=0.05)
         except Empty:
             pass
 
 
-def _submit_pool_item(pool, completed, pending, func, index, item) -> None:
+def _submit_pool_item(
+    pool,
+    completed,
+    pending,
+    func,
+    index,
+    item,
+) -> None:
     """Submit one item and arrange for success or failure to reach the consumer."""
     # Pool's task feeder normally serializes func/item before the worker can
     # identify which task it owns. Pre-serialize them so the worker receives
@@ -528,13 +540,24 @@ def _bounded_pool_results(
                 except StopIteration:
                     source_exhausted = True
                     break
-                _submit_pool_item(pool, completed, pending, func, submitted, item)
+                _submit_pool_item(
+                    pool,
+                    completed,
+                    pending,
+                    func,
+                    submitted,
+                    item,
+                )
                 submitted += 1
                 outstanding += 1
             if not outstanding:
                 break
             index, succeeded, value = _wait_pool_result(
-                pool, completed, known_workers, task_events, active_tasks
+                pool,
+                completed,
+                known_workers,
+                task_events,
+                active_tasks,
             )
             if pending.pop(index, None) is None:
                 raise RuntimeError("run_mp received an unknown result index")
@@ -560,14 +583,25 @@ def _bounded_pool_results(
             except StopIteration:
                 source_exhausted = True
                 break
-            _submit_pool_item(pool, completed, pending, func, submitted, item)
+            _submit_pool_item(
+                pool,
+                completed,
+                pending,
+                func,
+                submitted,
+                item,
+            )
             submitted += 1
 
         if not pending:
             raise RuntimeError("Ordered result count does not match declared total")
 
         result_index, succeeded, value = _wait_pool_result(
-            pool, completed, known_workers, task_events, active_tasks
+            pool,
+            completed,
+            known_workers,
+            task_events,
+            active_tasks,
         )
         if pending.pop(result_index, None) is None:
             raise RuntimeError("run_mp received an unknown result index")
@@ -964,9 +998,12 @@ def run_mp(
     if task_events is None:
         pool = Pool(nproc, maxtasksperchild=1000)
     else:
+        # ForkingPickler reducers such as socket/DupFd can depend on a worker's
+        # resource_sharer until the parent reconstructs the delivered result.
+        # Keep bounded workers alive through consumption instead of recycling
+        # them immediately after the 1000th task.
         pool = Pool(
             nproc,
-            maxtasksperchild=1000,
             initializer=_init_bounded_pool_worker,
             initargs=(task_events,),
         )
@@ -975,6 +1012,7 @@ def run_mp(
         if max_inflight is None:
             results = multiopen(pool=pool, semaphore=semaphore, **kwargs)
         elif disk_ordered:
+            assert task_events is not None
             with _DiskOrderedResultSpool(ordered_spool_dir) as spool:
                 results = _bounded_multiopen(
                     pool=pool,
@@ -986,6 +1024,7 @@ def run_mp(
                 for item in results:
                     yield item
         else:
+            assert task_events is not None
             results = _bounded_multiopen(
                 pool=pool,
                 max_inflight=max_inflight,
