@@ -11,7 +11,6 @@ generated.
 import itertools
 import operator
 from collections import Counter
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -31,7 +30,7 @@ class _GenerateMatrix(SharedRNGData):
     matrix_size: int
     mname: np.ndarray
     timestep: np.ndarray
-    splitmoleculeroute: List[np.ndarray]
+    splitmoleculeroute: list[np.ndarray]
 
     def __init__(self, rng):
         SharedRNGData.__init__(
@@ -73,7 +72,7 @@ class _GenerateMatrix(SharedRNGData):
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
             equations = np.unique(names, return_counts=True, axis=0)
-            return zip(equations[0].tolist(), equations[1].tolist())  # type: ignore
+            return zip(equations[0].tolist(), equations[1].tolist())
         return []
 
     def _printtable(self, allroute, timeaxis=None):
@@ -149,9 +148,10 @@ class _GenerateMatrix(SharedRNGData):
         return searchedspecies
 
     def _printspecies(self):
-        with open(self.moleculetemp2filename, "rb") as ft, WriteBuffer(
-            open(self.speciesfilename, "w")
-        ) as fw:
+        with (
+            open(self.moleculetemp2filename, "rb") as ft,
+            WriteBuffer(open(self.speciesfilename, "w")) as fw,
+        ):
             d = [Counter() for i in range(len(self.timestep))]
             for name, line in zip(
                 self.mname, itertools.zip_longest(*[read_compressed_block(ft)] * 4)
