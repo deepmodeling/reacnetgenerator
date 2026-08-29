@@ -79,6 +79,80 @@ def _system_exit_worker_initializer(_task_events):
     raise SystemExit
 
 
+def _run_worker_initializer_exit_case(
+    result_queue, initializer, disk_ordered, spool_dir
+):
+    """Run an initializer-exit case in a watchdog child process."""
+    import reacnetgenerator.utils as utils
+
+    utils._init_bounded_pool_worker = initializer
+    try:
+        list(
+            run_mp(
+                1,
+                func=_identity,
+                l=[1],
+                unordered=not disk_ordered,
+                chunksize=1,
+                max_inflight=1,
+                disk_ordered=disk_ordered,
+                ordered_spool_dir=spool_dir,
+                total=1,
+                bar=False,
+            )
+        )
+    except BaseException as error:
+        result_queue.put((type(error).__name__, str(error)))
+    else:
+        result_queue.put(("success", ""))
+
+
+_INITIALIZER_ATTEMPTS = None
+_ORIGINAL_BOUNDED_INITIALIZER = None
+
+
+def _exit_first_worker_initializer(task_events):
+    """Exit the first worker once, then let replacement workers initialize."""
+    assert _INITIALIZER_ATTEMPTS is not None
+    with _INITIALIZER_ATTEMPTS.get_lock():
+        first = _INITIALIZER_ATTEMPTS.value == 0
+        _INITIALIZER_ATTEMPTS.value += 1
+    if first:
+        time.sleep(0.2)
+        os._exit(0)
+    assert _ORIGINAL_BOUNDED_INITIALIZER is not None
+    _ORIGINAL_BOUNDED_INITIALIZER(task_events)
+
+
+def _run_reaped_initializer_case(result_queue, disk_ordered, spool_dir):
+    """Run a one-time initializer failure with a healthy replacement worker."""
+    import reacnetgenerator.utils as utils
+
+    global _INITIALIZER_ATTEMPTS, _ORIGINAL_BOUNDED_INITIALIZER
+    _INITIALIZER_ATTEMPTS = multiprocessing.Value("i", 0)
+    _ORIGINAL_BOUNDED_INITIALIZER = utils._init_bounded_pool_worker
+    utils._init_bounded_pool_worker = _exit_first_worker_initializer
+    try:
+        list(
+            run_mp(
+                1,
+                func=_identity,
+                l=[1],
+                unordered=not disk_ordered,
+                chunksize=1,
+                max_inflight=1,
+                disk_ordered=disk_ordered,
+                ordered_spool_dir=spool_dir,
+                total=1,
+                bar=False,
+            )
+        )
+    except BaseException as error:
+        result_queue.put((type(error).__name__, str(error)))
+    else:
+        result_queue.put(("success", ""))
+
+
 class _ExitWhilePickling:
     def __reduce__(self):
         os._exit(0)
@@ -284,21 +358,25 @@ def test_disk_ordered_run_mp_bounds_inflight_and_restores_order(tmp_path):
 
 def test_disk_ordered_run_mp_propagates_error_and_cleans_spool(tmp_path):
     """Propagate ordinary worker errors without retaining temporary files."""
-    with pytest.raises(RuntimeError, match="intentional worker failure") as error_info:
-        list(
-            run_mp(
-                2,
-                func=_fail_out_of_order,
-                l=range(8),
-                unordered=False,
-                chunksize=1,
-                max_inflight=4,
-                disk_ordered=True,
-                ordered_spool_dir=str(tmp_path),
-                total=8,
-                bar=False,
-            )
+    results = iter(
+        run_mp(
+            2,
+            func=_fail_out_of_order,
+            l=range(8),
+            unordered=False,
+            chunksize=1,
+            max_inflight=4,
+            disk_ordered=True,
+            ordered_spool_dir=str(tmp_path),
+            total=8,
+            bar=False,
         )
+    )
+    assert next(results) == 0
+    assert next(results) == 1
+    with pytest.raises(RuntimeError, match="intentional worker failure") as error_info:
+        next(results)
+    results.close()
 
     assert type(error_info.value.__cause__).__name__ == "RemoteTraceback"
     assert "_fail_out_of_order" in str(error_info.value.__cause__)
@@ -383,28 +461,54 @@ def test_disk_ordered_run_mp_detects_clean_worker_exit(tmp_path, func):
 )
 @pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
 def test_bounded_run_mp_detects_worker_initializer_exit(
-    monkeypatch, tmp_path, initializer, disk_ordered
+    tmp_path, initializer, disk_ordered
 ):
     """Report a worker that exits before it can announce its first task."""
-    monkeypatch.setattr(
-        "reacnetgenerator.utils._init_bounded_pool_worker",
-        initializer,
+    if multiprocessing.get_start_method() != "fork":
+        pytest.skip("initializer monkeypatch requires fork")
+    context = multiprocessing.get_context("fork")
+    result_queue = context.Queue()
+    process = context.Process(
+        target=_run_worker_initializer_exit_case,
+        args=(result_queue, initializer, disk_ordered, str(tmp_path)),
     )
-    with pytest.raises(RuntimeError, match=r"worker .* exited unexpectedly"):
-        list(
-            run_mp(
-                1,
-                func=_identity,
-                l=[1],
-                unordered=not disk_ordered,
-                chunksize=1,
-                max_inflight=1,
-                disk_ordered=disk_ordered,
-                ordered_spool_dir=str(tmp_path),
-                total=1,
-                bar=False,
-            )
-        )
+    process.start()
+    process.join(timeout=10)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("run_mp hung after a worker initializer exit")
+
+    assert process.exitcode == 0
+    error_type, message = result_queue.get(timeout=2)
+    assert error_type == "RuntimeError"
+    assert "worker" in message and "exited unexpectedly" in message
+    result_queue.close()
+
+
+@pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
+def test_bounded_run_mp_detects_reaped_initializer_exit(tmp_path, disk_ordered):
+    """Keep a one-time startup failure visible after pool replacement."""
+    if multiprocessing.get_start_method() != "fork":
+        pytest.skip("initializer monkeypatch requires fork")
+    context = multiprocessing.get_context("fork")
+    result_queue = context.Queue()
+    process = context.Process(
+        target=_run_reaped_initializer_case,
+        args=(result_queue, disk_ordered, str(tmp_path)),
+    )
+    process.start()
+    process.join(timeout=10)
+    if process.is_alive():
+        process.terminate()
+        process.join()
+        pytest.fail("run_mp hung after a reaped worker initializer exit")
+
+    assert process.exitcode == 0
+    error_type, message = result_queue.get(timeout=2)
+    assert error_type == "RuntimeError"
+    assert "worker" in message and "exited unexpectedly" in message
+    result_queue.close()
 
 
 @pytest.mark.parametrize(

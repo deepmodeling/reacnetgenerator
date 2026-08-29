@@ -10,10 +10,11 @@ import os
 import pickle
 import shutil
 import tempfile
+import time
 from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
 from functools import partial
-from multiprocessing import Pool, Semaphore, SimpleQueue
+from multiprocessing import Event, Pool, Semaphore, SimpleQueue
 from multiprocessing.pool import ExceptionWithTraceback  # type: ignore[attr-defined]
 from multiprocessing.reduction import ForkingPickler
 from queue import Empty, Queue
@@ -301,7 +302,7 @@ class _DiskOrderedResultSpool:
         """Return whether a result is available for an input index."""
         return index in self._paths
 
-    def put(self, index: int, payload: bytes) -> None:
+    def put(self, index: int, result: tuple[bool, bytes]) -> None:
         """Write one serialized out-of-order result to the spool."""
         if self.has(index):
             raise RuntimeError("Ordered result contains a duplicate index")
@@ -313,6 +314,11 @@ class _DiskOrderedResultSpool:
         path = os.path.join(self._temporary_directory.name, f"{index}.pickle")
         try:
             with open(path, "wb") as f:
+                succeeded, payload = result
+                # The one-byte status header is parent-owned metadata; the
+                # remaining bytes are the worker's untouched ForkingPickler
+                # payload and are decoded only when their index is consumed.
+                f.write(b"\x01" if succeeded else b"\x00")
                 f.write(payload)
         except BaseException:
             if os.path.exists(path):
@@ -327,9 +333,11 @@ class _DiskOrderedResultSpool:
         except KeyError as e:
             raise RuntimeError("Ordered result is not available") from e
         with open(path, "rb") as f:
-            # The worker created this ForkingPickler payload and this process
-            # tracks it inside a private spool directory.
-            value = pickle.loads(f.read())
+            data = f.read()
+        if not data:
+            raise RuntimeError("Ordered result spool entry is empty")
+        succeeded = data[0] == 1
+        value = (succeeded, data[1:])
         os.unlink(path)
         return value
 
@@ -382,6 +390,15 @@ def _init_bounded_pool_worker(task_events: Any) -> None:
     """Give bounded-pool workers a synchronous task-lifecycle channel."""
     global _POOL_TASK_EVENTS
     _POOL_TASK_EVENTS = task_events
+
+
+def _bounded_pool_initializer(
+    task_events: Any, start_gate: Any, startup_events: Any
+) -> None:
+    """Hold workers until the parent records their initial process objects."""
+    start_gate.wait()
+    _init_bounded_pool_worker(task_events)
+    startup_events.put(os.getpid())
 
 
 def _forking_pickle_dumps(value: Any) -> bytes:
@@ -481,6 +498,26 @@ def _check_pool_workers(
             )
 
 
+def _wait_for_pool_initialization(
+    known_workers: dict[int, Any], startup_events: Any
+) -> None:
+    """Wait until every initially captured worker has completed initialization."""
+    pending = {
+        worker.pid for worker in known_workers.values() if worker.pid is not None
+    }
+    while pending:
+        while startup_events._reader.poll():
+            pending.discard(startup_events.get())
+        for worker in known_workers.values():
+            if worker.pid in pending and worker.exitcode is not None:
+                raise RuntimeError(
+                    f"run_mp worker {worker.pid} exited unexpectedly "
+                    f"with code {worker.exitcode} during initialization"
+                )
+        if pending:
+            time.sleep(0.01)
+
+
 def _wait_pool_result(
     pool,
     completed: Queue[tuple[int, bool, Any]],
@@ -532,12 +569,14 @@ def _bounded_pool_results(
     ordered_total: int | None = None,
     spool: _DiskOrderedResultSpool | None = None,
     task_events: Any,
+    known_workers: dict[int, Any] | None = None,
 ) -> Generator[Any, None, None]:
     """Yield pool results with an explicit submitted-but-not-consumed bound."""
     source = iter(items)
     completed: Queue[tuple[int, bool, Any]] = Queue(maxsize=max_inflight)
     pending: dict[int, Any] = {}
-    known_workers: dict[int, Any] = {}
+    if known_workers is None:
+        known_workers = {}
     active_tasks: dict[int, int] = {}
     submitted = 0
     # Capture the initial pool members before task submission can let the
@@ -625,12 +664,6 @@ def _bounded_pool_results(
             if isinstance(value, BaseException):
                 raise value
             raise RuntimeError("run_mp worker failed without an exception")
-        worker_succeeded, payload = value
-        if not worker_succeeded:
-            _, error = _decode_pool_result(True, value)
-            if isinstance(error, BaseException):
-                raise error
-            raise RuntimeError("run_mp worker failed without an exception")
         if result_index < next_index or spool.has(result_index):
             raise RuntimeError("Ordered result contains a duplicate index")
         if result_index == next_index:
@@ -642,10 +675,16 @@ def _bounded_pool_results(
             yield value
             next_index += 1
             while spool.has(next_index):
-                yield spool.pop(next_index)
+                succeeded, payload = spool.pop(next_index)
+                succeeded, value = _decode_pool_result(True, (succeeded, payload))
+                if not succeeded:
+                    if isinstance(value, BaseException):
+                        raise value
+                    raise RuntimeError("run_mp worker failed without an exception")
+                yield value
                 next_index += 1
         else:
-            spool.put(result_index, payload)
+            spool.put(result_index, value)
 
     try:
         next(source)
@@ -665,6 +704,7 @@ def _bounded_multiopen(
     max_inflight: int,
     spool: _DiskOrderedResultSpool | None,
     task_events: Any,
+    known_workers: dict[int, Any] | None = None,
     nlines: int | None = None,
     unordered: bool = True,
     return_num: bool = False,
@@ -710,6 +750,7 @@ def _bounded_multiopen(
         ordered_total=ordered_total,
         spool=spool,
         task_events=task_events,
+        known_workers=known_workers,
     )
     if bar:
         results = tqdm(results, desc=desc, unit=unit, total=total, disable=None)
@@ -1022,6 +1063,8 @@ def run_mp(
         max_inflight = nproc * 150
 
     task_events = SimpleQueue() if max_inflight is not None else None
+    start_gate = Event() if task_events is not None else None
+    startup_events = SimpleQueue() if task_events is not None else None
     if task_events is None:
         pool = Pool(nproc, maxtasksperchild=1000)
     else:
@@ -1031,11 +1074,24 @@ def run_mp(
         # them immediately after the 1000th task.
         pool = Pool(
             nproc,
-            initializer=_init_bounded_pool_worker,
-            initargs=(task_events,),
+            initializer=_bounded_pool_initializer,
+            initargs=(task_events, start_gate, startup_events),
         )
+    known_workers = (
+        {id(worker): worker for worker in getattr(pool, "_pool", ())}
+        if task_events is not None
+        else None
+    )
+    if start_gate is not None:
+        # Workers wait in the initializer so no startup failure can be reaped
+        # before this snapshot preserves its Process object for monitoring.
+        start_gate.set()
     semaphore = Semaphore(nproc * 150) if max_inflight is None else None
     try:
+        if task_events is not None:
+            assert startup_events is not None
+            assert known_workers is not None
+            _wait_for_pool_initialization(known_workers, startup_events)
         if max_inflight is None:
             results = multiopen(pool=pool, semaphore=semaphore, **kwargs)
         elif disk_ordered:
@@ -1046,6 +1102,7 @@ def run_mp(
                     max_inflight=max_inflight,
                     spool=spool,
                     task_events=task_events,
+                    known_workers=known_workers,
                     **kwargs,
                 )
                 for item in results:
@@ -1057,6 +1114,7 @@ def run_mp(
                 max_inflight=max_inflight,
                 spool=None,
                 task_events=task_events,
+                known_workers=known_workers,
                 **kwargs,
             )
             for item in results:
@@ -1076,6 +1134,8 @@ def run_mp(
         pool.join()
         if task_events is not None:
             task_events.close()
+        if startup_events is not None:
+            startup_events.close()
 
 
 def must_be_list(obj: Any | list[Any]) -> list[Any]:
