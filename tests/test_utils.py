@@ -71,6 +71,14 @@ def _exit_worker_initializer(_task_events):
     os._exit(9)
 
 
+def _clean_exit_worker_initializer(_task_events):
+    os._exit(0)
+
+
+def _system_exit_worker_initializer(_task_events):
+    raise SystemExit
+
+
 class _ExitWhilePickling:
     def __reduce__(self):
         os._exit(0)
@@ -364,11 +372,23 @@ def test_disk_ordered_run_mp_detects_clean_worker_exit(tmp_path, func):
     assert not list(tmp_path.iterdir())
 
 
-def test_bounded_run_mp_detects_worker_initializer_exit(monkeypatch):
+@pytest.mark.parametrize(
+    "initializer",
+    [
+        _exit_worker_initializer,
+        _clean_exit_worker_initializer,
+        _system_exit_worker_initializer,
+    ],
+    ids=["nonzero", "clean", "system-exit"],
+)
+@pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
+def test_bounded_run_mp_detects_worker_initializer_exit(
+    monkeypatch, tmp_path, initializer, disk_ordered
+):
     """Report a worker that exits before it can announce its first task."""
     monkeypatch.setattr(
         "reacnetgenerator.utils._init_bounded_pool_worker",
-        _exit_worker_initializer,
+        initializer,
     )
     with pytest.raises(RuntimeError, match=r"worker .* exited unexpectedly"):
         list(
@@ -376,9 +396,11 @@ def test_bounded_run_mp_detects_worker_initializer_exit(monkeypatch):
                 1,
                 func=_identity,
                 l=[1],
-                unordered=True,
+                unordered=not disk_ordered,
                 chunksize=1,
                 max_inflight=1,
+                disk_ordered=disk_ordered,
+                ordered_spool_dir=str(tmp_path),
                 total=1,
                 bar=False,
             )

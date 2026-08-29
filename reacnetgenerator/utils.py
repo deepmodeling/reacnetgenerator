@@ -474,13 +474,11 @@ def _check_pool_workers(
             )
 
     for worker_id, worker in tuple(known_workers.items()):
-        if worker.exitcode not in (None, 0):
+        if worker.exitcode is not None:
             raise RuntimeError(
                 f"run_mp worker {worker.pid} exited unexpectedly "
                 f"with code {worker.exitcode}"
             )
-        if worker.exitcode == 0:
-            del known_workers[worker_id]
 
 
 def _wait_pool_result(
