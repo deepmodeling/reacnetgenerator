@@ -76,12 +76,30 @@ class _RaiseSystemExitWhilePickling:
         raise SystemExit
 
 
+class _ExitWhilePicklingError(Exception):
+    def __reduce__(self):
+        os._exit(0)
+
+
+class _RaiseSystemExitWhilePicklingError(Exception):
+    def __reduce__(self):
+        raise SystemExit
+
+
 def _return_exit_while_pickling(value):
     return _ExitWhilePickling()
 
 
 def _return_system_exit_while_pickling(value):
     return _RaiseSystemExitWhilePickling()
+
+
+def _raise_exit_while_pickling(value):
+    raise _ExitWhilePicklingError
+
+
+def _raise_system_exit_while_pickling(value):
+    raise _RaiseSystemExitWhilePicklingError
 
 
 def _run_serialization_exit_case(result_queue, func, disk_ordered, spool_dir):
@@ -221,8 +239,18 @@ def test_disk_ordered_run_mp_detects_clean_worker_exit(tmp_path, func):
 
 @pytest.mark.parametrize(
     "func",
-    [_return_exit_while_pickling, _return_system_exit_while_pickling],
-    ids=["os-exit-zero", "system-exit"],
+    [
+        _return_exit_while_pickling,
+        _return_system_exit_while_pickling,
+        _raise_exit_while_pickling,
+        _raise_system_exit_while_pickling,
+    ],
+    ids=[
+        "result-os-exit-zero",
+        "result-system-exit",
+        "error-os-exit-zero",
+        "error-system-exit",
+    ],
 )
 @pytest.mark.parametrize("disk_ordered", [False, True], ids=["unordered", "ordered"])
 def test_run_mp_detects_clean_exit_during_result_serialization(
