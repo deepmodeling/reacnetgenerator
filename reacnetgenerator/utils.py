@@ -624,7 +624,7 @@ def check_zero_signal(signal: np.ndarray) -> bool:
     #
     # any() doesn't have short-circuits, but argmax() does for bool.
     # See https://stackoverflow.com/a/45774536/9567349
-    return signal[signal.argmax()].item()
+    return signal[np.argmax(signal)].item()
 
 
 def idx_to_signal(idx: np.ndarray, step: int):
