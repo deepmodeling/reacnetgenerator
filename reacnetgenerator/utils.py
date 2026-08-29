@@ -13,7 +13,7 @@ import tempfile
 from collections.abc import Callable, Generator, Iterable
 from contextlib import ExitStack
 from functools import partial
-from multiprocessing import Pool, Semaphore
+from multiprocessing import Pool, Semaphore, SimpleQueue
 from queue import Empty, Queue
 from typing import (
     IO,
@@ -348,10 +348,84 @@ def _record_pool_result(
     completed.put((index, succeeded, value))
 
 
-def _check_pool_workers(pool, known_workers: dict[int, Any]) -> None:
-    """Raise if a multiprocessing worker exits abnormally."""
+_POOL_TASK_EVENTS: Any | None = None
+
+
+def _init_bounded_pool_worker(task_events: Any) -> None:
+    """Give bounded-pool workers a synchronous task-lifecycle channel."""
+    global _POOL_TASK_EVENTS
+    _POOL_TASK_EVENTS = task_events
+
+
+def _run_bounded_pool_item(func: Callable, index: int, item: Any) -> Any:
+    """Run one item while recording lifecycle events that survive clean exits."""
+    if _POOL_TASK_EVENTS is None:
+        raise RuntimeError("Bounded pool worker was not initialized")
+    pid = os.getpid()
+    _POOL_TASK_EVENTS.put(("started", pid, index))
+    try:
+        value = func(item)
+    except Exception:
+        # Pool error callbacks can report ordinary exceptions, so this task no
+        # longer needs worker-exit tracking once the exception is serialized.
+        _POOL_TASK_EVENTS.put(("finished", pid, index))
+        raise
+    except BaseException:
+        # multiprocessing does not catch SystemExit or other BaseException
+        # subclasses, so explicitly tell the parent before the worker exits.
+        _POOL_TASK_EVENTS.put(("fatal", pid, index))
+        raise
+    _POOL_TASK_EVENTS.put(("finished", pid, index))
+    return value
+
+
+def _drain_pool_task_events(task_events: Any, active_tasks: dict[int, int]) -> None:
+    """Apply all task lifecycle events written synchronously by workers."""
+    while task_events._reader.poll():
+        state, pid, index = task_events.get()
+        if state == "started":
+            active_tasks[pid] = index
+        elif state == "finished":
+            if active_tasks.get(pid) == index:
+                del active_tasks[pid]
+        elif state == "fatal":
+            raise RuntimeError(
+                f"run_mp worker {pid} exited while processing item {index} "
+                "without reporting a result"
+            )
+        else:
+            raise RuntimeError(f"run_mp received an unknown worker event {state!r}")
+
+
+def _check_pool_workers(
+    pool,
+    known_workers: dict[int, Any],
+    task_events: Any,
+    active_tasks: dict[int, int],
+) -> None:
+    """Raise if a worker exits while it still owns an unreported task."""
+    _drain_pool_task_events(task_events, active_tasks)
     for worker in getattr(pool, "_pool", ()):
         known_workers[id(worker)] = worker
+
+    workers_by_pid = {
+        worker.pid: worker
+        for worker in known_workers.values()
+        if worker.pid is not None
+    }
+    for pid, index in active_tasks.items():
+        worker = workers_by_pid.get(pid)
+        if worker is None:
+            raise RuntimeError(
+                f"run_mp worker {pid} exited while processing item {index} "
+                "without reporting a result"
+            )
+        if worker.exitcode is not None:
+            raise RuntimeError(
+                f"run_mp worker {pid} exited unexpectedly with code "
+                f"{worker.exitcode} while processing item {index}"
+            )
+
     for worker_id, worker in tuple(known_workers.items()):
         if worker.exitcode not in (None, 0):
             raise RuntimeError(
@@ -366,10 +440,12 @@ def _wait_pool_result(
     pool,
     completed: Queue[tuple[int, bool, Any]],
     known_workers: dict[int, Any],
+    task_events: Any,
+    active_tasks: dict[int, int],
 ) -> tuple[int, bool, Any]:
     """Wait for a result while detecting workers that cannot report an error."""
     while True:
-        _check_pool_workers(pool, known_workers)
+        _check_pool_workers(pool, known_workers, task_events, active_tasks)
         try:
             return completed.get(timeout=0.05)
         except Empty:
@@ -379,8 +455,8 @@ def _wait_pool_result(
 def _submit_pool_item(pool, completed, pending, func, index, item) -> None:
     """Submit one item and arrange for success or failure to reach the consumer."""
     pending[index] = pool.apply_async(
-        func,
-        (item,),
+        _run_bounded_pool_item,
+        (func, index, item),
         callback=partial(_record_pool_result, completed, index, True),
         error_callback=partial(_record_pool_result, completed, index, False),
     )
@@ -394,12 +470,14 @@ def _bounded_pool_results(
     *,
     ordered_total: int | None = None,
     spool: _DiskOrderedResultSpool | None = None,
+    task_events: Any,
 ) -> Generator[Any, None, None]:
     """Yield pool results with an explicit submitted-but-not-consumed bound."""
     source = iter(items)
     completed: Queue[tuple[int, bool, Any]] = Queue(maxsize=max_inflight)
     pending: dict[int, Any] = {}
     known_workers: dict[int, Any] = {}
+    active_tasks: dict[int, int] = {}
     submitted = 0
 
     if spool is None:
@@ -417,7 +495,9 @@ def _bounded_pool_results(
                 outstanding += 1
             if not outstanding:
                 break
-            index, succeeded, value = _wait_pool_result(pool, completed, known_workers)
+            index, succeeded, value = _wait_pool_result(
+                pool, completed, known_workers, task_events, active_tasks
+            )
             if pending.pop(index, None) is None:
                 raise RuntimeError("run_mp received an unknown result index")
             if not succeeded:
@@ -449,7 +529,7 @@ def _bounded_pool_results(
             raise RuntimeError("Ordered result count does not match declared total")
 
         result_index, succeeded, value = _wait_pool_result(
-            pool, completed, known_workers
+            pool, completed, known_workers, task_events, active_tasks
         )
         if pending.pop(result_index, None) is None:
             raise RuntimeError("run_mp received an unknown result index")
@@ -485,6 +565,7 @@ def _bounded_multiopen(
     *,
     max_inflight: int,
     spool: _DiskOrderedResultSpool | None,
+    task_events: Any,
     nlines: int | None = None,
     unordered: bool = True,
     return_num: bool = False,
@@ -529,6 +610,7 @@ def _bounded_multiopen(
         max_inflight,
         ordered_total=ordered_total,
         spool=spool,
+        task_events=task_events,
     )
     if bar:
         results = tqdm(results, desc=desc, unit=unit, total=total, disable=None)
@@ -840,7 +922,16 @@ def run_mp(
     elif disk_ordered:
         max_inflight = nproc * 150
 
-    pool = Pool(nproc, maxtasksperchild=1000)
+    task_events = SimpleQueue() if max_inflight is not None else None
+    if task_events is None:
+        pool = Pool(nproc, maxtasksperchild=1000)
+    else:
+        pool = Pool(
+            nproc,
+            maxtasksperchild=1000,
+            initializer=_init_bounded_pool_worker,
+            initargs=(task_events,),
+        )
     semaphore = Semaphore(nproc * 150) if max_inflight is None else None
     try:
         if max_inflight is None:
@@ -851,6 +942,7 @@ def run_mp(
                     pool=pool,
                     max_inflight=max_inflight,
                     spool=spool,
+                    task_events=task_events,
                     **kwargs,
                 )
                 for item in results:
@@ -860,6 +952,7 @@ def run_mp(
                 pool=pool,
                 max_inflight=max_inflight,
                 spool=None,
+                task_events=task_events,
                 **kwargs,
             )
             for item in results:
@@ -877,6 +970,8 @@ def run_mp(
         pool.close()
     finally:
         pool.join()
+        if task_events is not None:
+            task_events.close()
 
 
 def must_be_list(obj: Any | list[Any]) -> list[Any]:

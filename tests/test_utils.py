@@ -53,6 +53,18 @@ def _exit_worker(value):
     return value
 
 
+def _exit_worker_cleanly(value):
+    if value == 0:
+        os._exit(0)
+    return value
+
+
+def _raise_system_exit(value):
+    if value == 0:
+        raise SystemExit
+    return value
+
+
 def test_run_mp_default_ordering_is_unchanged():
     """Keep the existing ordered ``run_mp`` behavior without opt-in arguments."""
     assert list(
@@ -125,6 +137,32 @@ def test_disk_ordered_run_mp_detects_worker_exit_and_cleans_spool(tmp_path):
             run_mp(
                 2,
                 func=_exit_worker,
+                l=range(4),
+                unordered=False,
+                chunksize=1,
+                max_inflight=2,
+                disk_ordered=True,
+                ordered_spool_dir=str(tmp_path),
+                total=4,
+                bar=False,
+            )
+        )
+
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(
+    "func",
+    [_exit_worker_cleanly, _raise_system_exit],
+    ids=["os-exit-zero", "system-exit"],
+)
+def test_disk_ordered_run_mp_detects_clean_worker_exit(tmp_path, func):
+    """Do not hang when a task terminates its worker with a zero exit code."""
+    with pytest.raises(RuntimeError, match=r"worker .* exited"):
+        list(
+            run_mp(
+                2,
+                func=func,
                 l=range(4),
                 unordered=False,
                 chunksize=1,
