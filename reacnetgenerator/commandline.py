@@ -5,9 +5,19 @@
 
 import argparse
 import textwrap
-from typing import List
 
 from . import __version__
+
+
+def _to_command_values(value):
+    if value is None:
+        return []
+    if isinstance(value, (str, bytes)):
+        return [value]
+    try:
+        return list(value)
+    except TypeError:
+        return [value]
 
 
 def main_parser() -> argparse.ArgumentParser:
@@ -76,6 +86,23 @@ def main_parser() -> argparse.ArgumentParser:
         choices=["bond", "lammpsbondfile", "dump", "lammpsdumpfile", "xyz", "extxyz"],
         default="lammpsbondfile",
     )
+    parser.add_argument(
+        "--use-ase",
+        help="Enable ASE mode for bond detection",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--ase-cutoff-mult",
+        help="Global multiplier for natural cutoffs",
+        type=float,
+        default=1.2,
+    )
+    parser.add_argument(
+        "--ase-pair-cutoffs",
+        help="Custom cutoffs for specific element pairs in the format 'El1-El2:dist,El3-El4:dist'",
+        type=str,
+        default=None,
+    )
     parser.add_argument("--nopbc", help="Disable PBC.", action="store_true")
     parser.add_argument(
         "--cell",
@@ -111,6 +138,39 @@ def main_parser() -> argparse.ArgumentParser:
         help="Split number for the time axis; the whole trajectroy will be splited into N parts for analysis",
         type=int,
         default=1,
+    )
+    parser.add_argument(
+        "--show-molecule-time",
+        help=(
+            "Write a molecule timeline CSV file with original timestep values, "
+            "atom IDs, and bond IDs."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--molecule-frame",
+        dest="moleculeframes",
+        help=(
+            "Only write molecule timeline CSV rows in the given analyzed frame "
+            "index/indices."
+        ),
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
+        "--molecule-timestep",
+        dest="moleculetimesteps",
+        help=(
+            "Only write molecule timeline CSV rows in the given original "
+            "timestep value(s)."
+        ),
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
+        "--reaction-event",
+        help="Write time-resolved reaction events to the .reactionevent.csv file.",
+        action="store_true",
     )
     parser.add_argument(
         "--maxspecies",
@@ -163,17 +223,24 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
-        urls=[{"fn": url[0], "url": url[1]} for url in args.urls]
-        if args.urls
-        else None,
+        urls=(
+            [{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None
+        ),
         a=np.array(args.matrixa).reshape((2, 2)),
         b=np.array(args.matrixb).reshape((2, 2)),
         pbc=not args.nopbc,
         cell=args.cell,
+        use_ase=args.use_ase,
+        ase_cutoff_mult=args.ase_cutoff_mult,
+        custom_cutoffs=args.ase_pair_cutoffs,
+        printmoleculetime=args.show_molecule_time,
+        moleculeframes=args.moleculeframes,
+        moleculetimesteps=args.moleculetimesteps,
+        printreactionevent=args.reaction_event,
     ).runanddraw()
 
 
-def parm2cmd(pp: dict) -> List[str]:
+def parm2cmd(pp: dict) -> list[str]:
     """Convert a parameter dictionary to command line arguments.
 
     Parameters
@@ -222,4 +289,22 @@ def parm2cmd(pp: dict) -> List[str]:
     for ii in ["nproc", "selectatoms", "stepinterval", "split", "maxspecies"]:
         if pp.get(ii, None):
             commands.extend((f"--{ii}", str(pp[ii])))
+    if pp.get("printmoleculetime", False):
+        commands.append("--show-molecule-time")
+    moleculeframes = _to_command_values(pp.get("moleculeframes"))
+    if moleculeframes:
+        commands.append("--molecule-frame")
+        commands.extend(str(x) for x in moleculeframes)
+    moleculetimesteps = _to_command_values(pp.get("moleculetimesteps"))
+    if moleculetimesteps:
+        commands.append("--molecule-timestep")
+        commands.extend(str(x) for x in moleculetimesteps)
+    if pp.get("printreactionevent", False):
+        commands.append("--reaction-event")
+    if pp.get("use_ase", False):
+        commands.append("--use-ase")
+    if pp.get("ase_cutoff_mult", 1.2) != 1.2:
+        commands.extend(("--ase-cutoff-mult", str(pp["ase_cutoff_mult"])))
+    if pp.get("custom_cutoffs", None):
+        commands.extend(("--ase-pair-cutoffs", str(pp["custom_cutoffs"])))
     return commands
