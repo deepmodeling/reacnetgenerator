@@ -67,6 +67,10 @@ def _raise_system_exit(value):
     return value
 
 
+def _exit_worker_initializer(_task_events):
+    os._exit(9)
+
+
 class _ExitWhilePickling:
     def __reduce__(self):
         os._exit(0)
@@ -358,6 +362,27 @@ def test_disk_ordered_run_mp_detects_clean_worker_exit(tmp_path, func):
         )
 
     assert not list(tmp_path.iterdir())
+
+
+def test_bounded_run_mp_detects_worker_initializer_exit(monkeypatch):
+    """Report a worker that exits before it can announce its first task."""
+    monkeypatch.setattr(
+        "reacnetgenerator.utils._init_bounded_pool_worker",
+        _exit_worker_initializer,
+    )
+    with pytest.raises(RuntimeError, match=r"worker .* exited unexpectedly"):
+        list(
+            run_mp(
+                1,
+                func=_identity,
+                l=[1],
+                unordered=True,
+                chunksize=1,
+                max_inflight=1,
+                total=1,
+                bar=False,
+            )
+        )
 
 
 @pytest.mark.parametrize(

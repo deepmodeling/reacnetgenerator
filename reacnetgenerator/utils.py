@@ -542,6 +542,10 @@ def _bounded_pool_results(
     known_workers: dict[int, Any] = {}
     active_tasks: dict[int, int] = {}
     submitted = 0
+    # Capture the initial pool members before task submission can let the
+    # reaper replace a worker that fails during startup or module import.
+    for worker in getattr(pool, "_pool", ()):
+        known_workers[id(worker)] = worker
 
     if spool is None:
         outstanding = 0
