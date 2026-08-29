@@ -48,7 +48,7 @@ import itertools
 import os
 import time
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 
@@ -302,7 +302,7 @@ class ReacNetGenerator:
     #: Available output items and their required processing steps.
     #: The dependency chain is strictly monotonic: each item requires all
     #: steps of the preceding items plus its own.
-    ITEM_REQUIRED_STEPS: dict[str, tuple[str, ...]] = {
+    ITEM_REQUIRED_STEPS: ClassVar[dict[str, tuple[str, ...]]] = {
         "species": ("DETECT", "HMM"),
         "reactions": ("DETECT", "HMM", "PATH", "MATRIX"),
         "network": ("DETECT", "HMM", "PATH", "MATRIX", "NETWORK"),
