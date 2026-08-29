@@ -6,6 +6,7 @@
 
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
+const {clearGraph} = require("./graph.js");
 const {bindLatestChangeHandler} = require("./events.js");
 const {narrowSpecies} = require("./narrow.js");
 
@@ -376,7 +377,7 @@ function savesvg() {
   window.URL.revokeObjectURL(svgUrl);
 }
 
-function clearnode() { G.nodes().foreach((node) => G.removeNode(node)); }
+function clearnode() { clearGraph(G); }
 
 function addloadbutton() {
   $("#buttons").html($("#loadTmpl").html());

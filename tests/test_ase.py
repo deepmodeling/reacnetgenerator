@@ -180,40 +180,36 @@ class TestASEMode:
             ) == len(neighbors)
 
     def test_ase_with_custom_cutoffs_integration(self):
-        """Integration test for ASE mode with custom cutoffs."""
-        # Create a temporary file with a simple water molecule
-        water_file = "test_water.dump"
-        with open(water_file, "w") as f:
-            f.write("""ITEM: TIMESTEP
+        """A custom cutoff should change molecules detected from a dump."""
+        trajectory_file = Path("custom-cutoff.dump")
+        trajectory_file.write_text("""ITEM: TIMESTEP
 0
 ITEM: NUMBER OF ATOMS
-3
+2
 ITEM: BOX BOUNDS pp pp pp
 0.0 10.0
 0.0 10.0
 0.0 10.0
 ITEM: ATOMS id type x y z
-1 1 0.757 0.586 0.0
-2 1 -0.757 0.586 0.0
-3 2 0.0 0.0 0.0
+1 1 0.0 0.0 0.0
+2 2 1.3 0.0 0.0
 """)
 
         rng = ReacNetGenerator(
             inputfiletype="lammpsdumpfile",
-            inputfilename=water_file,
+            inputfilename=trajectory_file,
             atomname=["H", "O"],
-            pbc=True,
+            pbc=False,
             use_ase=True,
-            custom_cutoffs="H-O:1.5",  # Custom cutoff for H-O bonds
+            custom_cutoffs="H-O:1.5",
         )
 
-        # Run the detection process
         detect_class = _DetectLAMMPSdump.gettype(rng)
         detect_class.detect()
 
-        # Should have processed the file
-        assert hasattr(detect_class, "temp1it")
-        assert detect_class.temp1it > 0
+        # Ignoring the custom cutoff would leave separate H and O molecules,
+        # producing two distinct molecule keys instead of one bonded molecule.
+        assert detect_class.temp1it == 1
 
     def test_ase_warning_on_auto_enable(self, caplog):
         """Test that a warning is logged when ASE mode is auto-enabled."""
