@@ -6,6 +6,7 @@
 
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
+const {getReportDataUrl} = require("./url.js");
 const {clearGraph} = require("./graph.js");
 const {bindLatestChangeHandler} = require("./events.js");
 
@@ -115,11 +116,10 @@ function loadrngdata() {
     return;
   }
   // read from url
-  const parsed = new URLSearchParams(location.search);
-  const jdata = parsed.get("jdata");
+  const jdata = getReportDataUrl(location.search);
   if (jdata) {
     $.get(
-        decodeURIComponent(jdata),
+        jdata,
         function(data) {
           if (!handlejsondata(data)) {
             addloadbutton();
