@@ -7,6 +7,7 @@
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
 const {getReportDataUrl} = require("./url.js");
+const {clearGraph} = require("./graph.js");
 const {bindLatestChangeHandler} = require("./events.js");
 
 // CSS
@@ -21,7 +22,11 @@ global.$ = global.jQuery = require("jquery");
 global.regeneratorRuntime = require("regenerator-runtime");
 window.bootstrap = require("bootstrap");
 require("@popperjs/core");
-global.anime = window.anime = require("animejs");
+// Anime.js 4 exposes named functions instead of the v3 callable default.
+// Keep the global callable for the existing scroll handler and CDN build.
+const animeModule = require("animejs");
+const anime = animeModule.animate || animeModule;
+global.anime = window.anime = anime;
 require("jsrender");
 require("paginationjs");
 require("magnific-popup");
@@ -202,11 +207,10 @@ function loadsection() {
       var target = $(this.hash);
       target = target.length ? target : $(`[name=${this.hash.slice(1)}]`);
       if (target.length) {
-        anime({
-          targets : "html, body",
+        anime("html, body", {
           scrollTop : target.offset().top - 72,
           duration : 1000,
-          easing : "easeInOutExpo",
+          easing : "inOutExpo",
         });
         return false;
       }
@@ -367,7 +371,7 @@ function savesvg() {
   window.URL.revokeObjectURL(svgUrl);
 }
 
-function clearnode() { G.nodes().foreach((node) => G.removeNode(node)); }
+function clearnode() { clearGraph(G); }
 
 function addloadbutton() {
   $("#buttons").html($("#loadTmpl").html());
