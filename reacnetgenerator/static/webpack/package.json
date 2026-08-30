@@ -12,7 +12,7 @@
     "webpack"
   ],
   "author": "Jinzhe Zeng",
-  "license": "LGPL-3.0-only",
+  "license": "LGPL-3.0-or-later",
   "dependencies": {
     "@njzjz/jsnetworkx": "0.3.5",
     "@popperjs/core": "2.11.8",
