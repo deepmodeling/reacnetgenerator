@@ -224,22 +224,33 @@ class TestGetBondFromASE:
                 f"Duplicate bonds found for atom {i}"
             )
 
-    def test_custom_cutoffs_override(self, detect_instance):
-        """Test that custom cutoffs override global settings."""
-        # Modify the detect instance to have custom cutoffs
-        detect_instance.rng.custom_cutoffs = "H-O:1.0"  # Very short cutoff
-
-        # Create a simple water molecule where H-O distance is ~1.0 Angstrom
-        atoms = Atoms(
-            "H2O", positions=[[0.5, 0.0, 0.0], [-0.5, 0.0, 0.0], [0.0, 0.0, 0.0]]
-        )  # H-O distance is 0.5
+    def test_custom_cutoffs_change_bond_graph(self):
+        """A pair cutoff should detect a bond excluded by natural cutoffs."""
+        default_rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename="dummy",
+            atomname=["H", "O"],
+            use_ase=True,
+        )
+        custom_rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename="dummy",
+            atomname=["H", "O"],
+            use_ase=True,
+            custom_cutoffs="H-O:1.5",
+        )
+        default_detector = _DetectLAMMPSdump(default_rng)
+        custom_detector = _DetectLAMMPSdump(custom_rng)
+        # At 1.3 A, H-O is outside the default natural cutoff but inside the
+        # configured pair cutoff.
+        atoms = Atoms("HO", positions=[[0.0, 0.0, 0.0], [1.3, 0.0, 0.0]])
         cell = np.eye(3) * 10
 
-        bond, _bondlevel = detect_instance._getbondfromase(atoms, cell)
+        default_bonds, _ = default_detector._getbondfromase(atoms.copy(), cell)
+        custom_bonds, _ = custom_detector._getbondfromase(atoms.copy(), cell)
 
-        # With a 1.0 cutoff, H-O should still be bonded
-        # Check that oxygen is bonded to at least one hydrogen
-        assert 0 in bond[2] or 1 in bond[2]  # O (index 2) bonded to H (index 0 or 1)
+        assert default_bonds == [[], []]
+        assert custom_bonds == [[1], [0]]
 
 
 @pytest.mark.skipif(not SCIPY_AVAILABLE, reason="Scipy is not available")
