@@ -6,6 +6,8 @@
 
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
+const {clearGraph} = require("./graph.js");
+const {bindLatestChangeHandler} = require("./events.js");
 
 // CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
@@ -19,7 +21,11 @@ global.$ = global.jQuery = require("jquery");
 global.regeneratorRuntime = require("regenerator-runtime");
 window.bootstrap = require("bootstrap");
 require("@popperjs/core");
-global.anime = window.anime = require("animejs");
+// Anime.js 4 exposes named functions instead of the v3 callable default.
+// Keep the global callable for the existing scroll handler and CDN build.
+const animeModule = require("animejs");
+const anime = animeModule.animate || animeModule;
+global.anime = window.anime = anime;
 require("jsrender");
 require("paginationjs");
 require("magnific-popup");
@@ -201,11 +207,10 @@ function loadsection() {
       var target = $(this.hash);
       target = target.length ? target : $(`[name=${this.hash.slice(1)}]`);
       if (target.length) {
-        anime({
-          targets : "html, body",
+        anime("html, body", {
           scrollTop : target.offset().top - 72,
           duration : 1000,
-          easing : "easeInOutExpo",
+          easing : "inOutExpo",
         });
         return false;
       }
@@ -275,7 +280,7 @@ function showresults(time) {
       .html(
           $.templates("#optionTmpl").render(specdata_minify),
       );
-  $("select#speciesselect").on("change", function() {
+  bindLatestChangeHandler($("select#speciesselect"), function() {
     const speciessearch = searchspecies($(this).val(), specdata);
     showresult(
         speciessearch,
@@ -285,7 +290,7 @@ function showresults(time) {
         "#speciespager",
     );
   });
-  $("select#reactionsselect").on("change", function() {
+  bindLatestChangeHandler($("select#reactionsselect"), function() {
     const reactionssearch = searchreaction($(this).val(), reactionsdata);
     showresult(
         reactionssearch,
@@ -295,7 +300,7 @@ function showresults(time) {
         "#reactionspager",
     );
   });
-  $("select#reactionsabcdselect").on("change", function() {
+  bindLatestChangeHandler($("select#reactionsabcdselect"), function() {
     const reactionsabcdsearch = searchreaction(
         $(this).val(),
         reactionsabcddata,
@@ -366,7 +371,7 @@ function savesvg() {
   window.URL.revokeObjectURL(svgUrl);
 }
 
-function clearnode() { G.nodes().foreach((node) => G.removeNode(node)); }
+function clearnode() { clearGraph(G); }
 
 function addloadbutton() {
   $("#buttons").html($("#loadTmpl").html());

@@ -48,7 +48,7 @@ import itertools
 import os
 import time
 from enum import Enum
-from typing import Any, List, Tuple, Union
+from typing import Any, ClassVar
 
 import numpy as np
 
@@ -106,6 +106,16 @@ class ReacNetGenerator:
     split: int, optional, default: None
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
+    printmoleculetime: bool, optional, default: False
+        Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs.
+    moleculeframes: list of int, optional, default: None
+        Only write molecule timeline CSV rows in the given analyzed frame indices.
+        This also enables printmoleculetime.
+    moleculetimesteps: list of int, optional, default: None
+        Only write molecule timeline CSV rows in the given original timestep values.
+        This also enables printmoleculetime.
+    printreactionevent: bool, optional, default: False
+        Write time-resolved reaction events to the reaction event CSV file.
     a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]
         Transition matrix A of HMM parameters. It is recommended for users to choose their own
         parameters. See the paper for details.
@@ -132,11 +142,12 @@ class ReacNetGenerator:
         logger.info(doc_run)
         logger.info(f"Version: {__version__}  Creation date: {__date__}")
 
-        try:
-            nproc = len(os.sched_getaffinity(0))
-        except AttributeError:
+        sched_getaffinity = getattr(os, "sched_getaffinity", None)
+        if sched_getaffinity is None:
             # macos and windows
             nproc = os.cpu_count()
+        else:
+            nproc = len(sched_getaffinity(0))
 
         # process kwargs
         necessary_key = ["inputfiletype", "inputfilename", "atomname"]
@@ -166,10 +177,24 @@ class ReacNetGenerator:
             "miso": 0,
             "getoriginfile": False,
             "needprintspecies": True,
+            "printmoleculetime": False,
+            "printreactionevent": False,
             "urls": [],
             "matrix_size": 100,
+            "use_ase": False,
+            "ase_cutoff_mult": 1.2,
+            "custom_cutoffs": None,
         }
-        none_key = ["selectatoms", "species", "pos", "k", "speciescenter", "cell"]
+        none_key = [
+            "selectatoms",
+            "species",
+            "pos",
+            "k",
+            "speciescenter",
+            "cell",
+            "moleculeframes",
+            "moleculetimesteps",
+        ]
         accept_keys = [
             "atomtype",
             "step",
@@ -196,6 +221,7 @@ class ReacNetGenerator:
         ]
         file_key = {
             "moleculefilename": "moname",
+            "moleculetimelinefilename": "molecules.csv",
             "atomroutefilename": "route",
             "reactionfilename": "reaction",
             "tablefilename": "table",
@@ -204,6 +230,7 @@ class ReacNetGenerator:
             "resultfilename": "html",
             "jsonfilename": "json",
             "reactionabcdfilename": "reactionabcd",
+            "reactioneventfilename": "reactionevent.csv",
         }
         assert set(necessary_key).issubset(set(kwargs)), (
             "Must give neccessary key: {}".format(", ".join(necessary_key))
@@ -222,21 +249,145 @@ class ReacNetGenerator:
             kwargs.setdefault(kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
         for kk in nparray_key:
             kwargs[kk] = np.array(kwargs[kk])
+        for kk in ("moleculeframes", "moleculetimesteps"):
+            kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
+        if (
+            kwargs["moleculeframes"] is not None
+            or kwargs["moleculetimesteps"] is not None
+        ):
+            kwargs["printmoleculetime"] = True
         if not kwargs["runHMM"]:
             kwargs["getoriginfile"] = True
         if kwargs["selectatoms"] is None:
             kwargs["selectatoms"] = kwargs["atomname"]
+
+        # Handle ASE auto-enable logic
+        if kwargs.get("use_ase", False) is False and (
+            kwargs.get("ase_cutoff_mult", 1.2) != 1.2
+            or kwargs.get("custom_cutoffs", None) is not None
+        ):
+            logger.warning(
+                "ASE parameters detected. Automatically enabling --use-ase mode."
+            )
+            kwargs["use_ase"] = True
+
         self.__dict__.update(kwargs)
         if self.cell is not None:
-            if len(self.cell) == 9:
-                self.cell = np.array(self.cell).reshape((3, 3))
-            elif len(self.cell) == 3:
-                self.cell = np.diag(self.cell)
+            cell_error = (
+                "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
+            )
+            try:
+                cell = np.asarray(self.cell)
+            except (TypeError, ValueError) as exc:
+                raise RuntimeError(cell_error) from exc
+            if cell.shape == (3, 3):
+                # Preserve full cell matrices, including triclinic off-diagonal
+                # components supplied through the Python API.
+                self.cell = cell
+            elif cell.shape == (3,):
+                self.cell = np.diag(cell)
+            elif cell.shape == (9,):
+                self.cell = cell.reshape((3, 3))
             else:
-                raise RuntimeError(
-                    "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
-                )
+                raise RuntimeError(cell_error)
 
+    @staticmethod
+    def _normalize_optional_int_filter(value):
+        if value is None:
+            return None
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
+        if isinstance(value, tuple):
+            value = list(value)
+        elif not isinstance(value, list):
+            value = [value]
+        if not value:
+            return None
+        return [int(x) for x in value]
+
+    # ------------------------------------------------------------------
+    # Item-based selective execution
+    # ------------------------------------------------------------------
+    #: Available output items and their required processing steps.
+    #: The dependency chain is strictly monotonic: each item requires all
+    #: steps of the preceding items plus its own.
+    ITEM_REQUIRED_STEPS: ClassVar[dict[str, tuple[str, ...]]] = {
+        "species": ("DETECT", "HMM"),
+        "reactions": ("DETECT", "HMM", "PATH", "MATRIX"),
+        "network": ("DETECT", "HMM", "PATH", "MATRIX", "NETWORK"),
+        "report": ("DETECT", "HMM", "PATH", "MATRIX", "NETWORK", "REPORT"),
+    }
+
+    def run_items(self, items: list[str] | tuple[str, ...] | None = None) -> None:
+        """Run selected output items only.
+
+        The pipeline resolves the minimal set of processing steps needed to
+        produce the requested *items* and executes them in canonical order.
+
+        Parameters
+        ----------
+        items : list of str or None
+            Output items to produce.  Valid values are ``"species"``,
+            ``"reactions"``, ``"network"``, and ``"report"``.
+            If *None* (default), all items are produced (equivalent to the
+            legacy ``runanddraw()`` behaviour).
+
+        Examples
+        --------
+        >>> rng.run_items(["species"])           # fast: DETECT + HMM only
+        >>> rng.run_items(["species", "reactions"])  # adds PATH + MATRIX
+        >>> rng.run_items()                      # full pipeline (default)
+        """
+        if items is None:
+            items = list(self.ITEM_REQUIRED_STEPS.keys())
+
+        # Validate
+        valid = set(self.ITEM_REQUIRED_STEPS.keys())
+        for item in items:
+            if item not in valid:
+                raise ValueError(f"Unknown item {item!r}. Choose from: {sorted(valid)}")
+
+        # Resolve minimal steps
+        needed: set[str] = set()
+        for item in items:
+            needed.update(self.ITEM_REQUIRED_STEPS[item])
+
+        # Canonical execution order
+        step_order = (
+            "DOWNLOAD",
+            "DETECT",
+            "HMM",
+            "PATH",
+            "MATRIX",
+            "NETWORK",
+            "REPORT",
+        )
+        processthing = []
+        if "DOWNLOAD" in needed or self.urls:
+            if self.urls:
+                processthing.append(self.Status.DOWNLOAD)
+        for step_name in step_order:
+            if step_name == "DOWNLOAD":
+                continue
+            if step_name in needed:
+                processthing.append(self.Status[step_name])
+
+        # Species output only requires molecule naming + counting, not
+        # the full PATH collect (which builds atom routes and finds reactions).
+        species_only = "species" in items and "PATH" not in needed
+        original_needprintspecies = self.needprintspecies
+        try:
+            # An explicitly requested output takes precedence over the legacy
+            # configuration flag for this selective run only.
+            if "species" in items:
+                self.needprintspecies = True
+            self._process(processthing, species_only=species_only)
+        finally:
+            self.needprintspecies = original_needprintspecies
+
+    # ------------------------------------------------------------------
+    # Legacy convenience methods (delegate to run_items)
+    # ------------------------------------------------------------------
     def runanddraw(
         self, run: bool = True, draw: bool = True, report: bool = True
     ) -> None:
@@ -320,13 +471,20 @@ class ReacNetGenerator:
             """Return describtion of the status."""
             return self.value
 
-    def _process(self, steps: Union[List[Status], Tuple[Status, ...]]) -> None:
+    def _process(
+        self,
+        steps: list[Status] | tuple[Status, ...],
+        species_only: bool = False,
+    ) -> None:
         """Process steps in order.
 
         Parameters
         ----------
         steps : tuple of ReacNetGenerator.Status
             The process that needs to be processed.
+        species_only : bool, optional, default: False
+            If True, after HMM only perform molecule naming and species
+            counting (skip atom-route construction and reaction finding).
         """
         timearray = [time.perf_counter()]
         for i, runstep in enumerate(steps, 1):
@@ -349,6 +507,19 @@ class ReacNetGenerator:
             timearray.append(time.perf_counter())
             logger.info(
                 f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({runstep})"
+            )
+
+        # Species-only shortcut: molecule naming + per-frame counting
+        if species_only:
+            collector = _CollectPaths.getstype(self)
+            collector.atomnames = collector.atomname[collector.atomtype]
+            collector._printmoleculename()
+            collector.returnkeys()
+            _GenerateMatrix(self)._printspecies()
+            timearray.append(time.perf_counter())
+            logger.info(
+                f"Step {len(timearray) - 1}: Done! Time consumed (s): "
+                f"{timearray[-1] - timearray[-2]:.3f} (Species populations)"
             )
 
         # delete tempfile

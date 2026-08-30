@@ -5,9 +5,19 @@
 
 import argparse
 import textwrap
-from typing import List
 
 from . import __version__
+
+
+def _to_command_values(value):
+    if value is None:
+        return []
+    if isinstance(value, (str, bytes)):
+        return [value]
+    try:
+        return list(value)
+    except TypeError:
+        return [value]
 
 
 def main_parser() -> argparse.ArgumentParser:
@@ -52,7 +62,16 @@ def main_parser() -> argparse.ArgumentParser:
         ),
         action="store_true",
     )
-    parser.add_argument("--miso", help="Merge the isomers", type=int, default=0)
+    parser.add_argument(
+        "--miso",
+        help=(
+            "Merge the isomers, and the highest frequency is used as the representative. 0, off; "
+            "1, merge the isomers with the same atoms and same bond networks but different bond orders; "
+            "2, merge the isomers with the same atoms with different bond networks."
+        ),
+        type=int,
+        default=0,
+    )
     parser_type = parser.add_mutually_exclusive_group()
     parser_type.add_argument(
         "--dump",
@@ -66,6 +85,23 @@ def main_parser() -> argparse.ArgumentParser:
         # manual ensure consistent
         choices=["bond", "lammpsbondfile", "dump", "lammpsdumpfile", "xyz", "extxyz"],
         default="lammpsbondfile",
+    )
+    parser.add_argument(
+        "--use-ase",
+        help="Enable ASE mode for bond detection",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--ase-cutoff-mult",
+        help="Global multiplier for natural cutoffs",
+        type=float,
+        default=1.2,
+    )
+    parser.add_argument(
+        "--ase-pair-cutoffs",
+        help="Custom cutoffs for specific element pairs in the format 'El1-El2:dist,El3-El4:dist'",
+        type=str,
+        default=None,
     )
     parser.add_argument("--nopbc", help="Disable PBC.", action="store_true")
     parser.add_argument(
@@ -104,10 +140,58 @@ def main_parser() -> argparse.ArgumentParser:
         default=1,
     )
     parser.add_argument(
+        "--show-molecule-time",
+        help=(
+            "Write a molecule timeline CSV file with original timestep values, "
+            "atom IDs, and bond IDs."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "--molecule-frame",
+        dest="moleculeframes",
+        help=(
+            "Only write molecule timeline CSV rows in the given analyzed frame "
+            "index/indices."
+        ),
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
+        "--molecule-timestep",
+        dest="moleculetimesteps",
+        help=(
+            "Only write molecule timeline CSV rows in the given original "
+            "timestep value(s)."
+        ),
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
+        "--reaction-event",
+        help="Write time-resolved reaction events to the .reactionevent.csv file.",
+        action="store_true",
+    )
+    parser.add_argument(
         "--maxspecies",
         help="Max number of nodes (species) in the network",
         type=int,
         default=20,
+    )
+    parser.add_argument(
+        "--items",
+        help=(
+            "Comma-separated list of output items to produce. The pipeline "
+            "automatically resolves the minimal processing steps required. "
+            "Available items (cumulative dependencies): "
+            "'species' (DETECT+HMM only, fast), "
+            "'reactions' (adds PATH+MATRIX), "
+            "'network' (adds graph drawing), "
+            "'report' (adds HTML report). "
+            "Default: all items."
+        ),
+        type=str,
+        default=None,
     )
     parser.add_argument(
         "--matrixa",
@@ -143,7 +227,7 @@ def _commandline():
 
     from .reacnetgen import ReacNetGenerator
 
-    ReacNetGenerator(
+    rng = ReacNetGenerator(
         inputfilename=args.inputfilename,
         atomname=args.atomname,
         miso=args.miso,
@@ -154,17 +238,29 @@ def _commandline():
         stepinterval=args.stepinterval,
         split=args.split,
         maxspecies=args.maxspecies,
-        urls=[{"fn": url[0], "url": url[1]} for url in args.urls]
-        if args.urls
-        else None,
+        urls=(
+            [{"fn": url[0], "url": url[1]} for url in args.urls] if args.urls else None
+        ),
         a=np.array(args.matrixa).reshape((2, 2)),
         b=np.array(args.matrixb).reshape((2, 2)),
         pbc=not args.nopbc,
         cell=args.cell,
-    ).runanddraw()
+        use_ase=args.use_ase,
+        ase_cutoff_mult=args.ase_cutoff_mult,
+        custom_cutoffs=args.ase_pair_cutoffs,
+        printmoleculetime=args.show_molecule_time,
+        moleculeframes=args.moleculeframes,
+        moleculetimesteps=args.moleculetimesteps,
+        printreactionevent=args.reaction_event,
+    )
+    if args.items is not None:
+        items = [s.strip() for s in args.items.split(",")]
+        rng.run_items(items)
+    else:
+        rng.runanddraw()
 
 
-def parm2cmd(pp: dict) -> List[str]:
+def parm2cmd(pp: dict) -> list[str]:
     """Convert a parameter dictionary to command line arguments.
 
     Parameters
@@ -213,4 +309,27 @@ def parm2cmd(pp: dict) -> List[str]:
     for ii in ["nproc", "selectatoms", "stepinterval", "split", "maxspecies"]:
         if pp.get(ii, None):
             commands.extend((f"--{ii}", str(pp[ii])))
+    if pp.get("printmoleculetime", False):
+        commands.append("--show-molecule-time")
+    moleculeframes = _to_command_values(pp.get("moleculeframes"))
+    if moleculeframes:
+        commands.append("--molecule-frame")
+        commands.extend(str(x) for x in moleculeframes)
+    moleculetimesteps = _to_command_values(pp.get("moleculetimesteps"))
+    if moleculetimesteps:
+        commands.append("--molecule-timestep")
+        commands.extend(str(x) for x in moleculetimesteps)
+    if pp.get("printreactionevent", False):
+        commands.append("--reaction-event")
+    if pp.get("use_ase", False):
+        commands.append("--use-ase")
+    if pp.get("ase_cutoff_mult", 1.2) != 1.2:
+        commands.extend(("--ase-cutoff-mult", str(pp["ase_cutoff_mult"])))
+    if pp.get("custom_cutoffs", None):
+        commands.extend(("--ase-pair-cutoffs", str(pp["custom_cutoffs"])))
+    if pp.get("items", None):
+        items = pp["items"]
+        if isinstance(items, (list, tuple)):
+            items = ",".join(items)
+        commands.extend(("--items", items))
     return commands
