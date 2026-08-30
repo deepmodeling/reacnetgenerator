@@ -179,6 +179,21 @@ def main_parser() -> argparse.ArgumentParser:
         default=20,
     )
     parser.add_argument(
+        "--items",
+        help=(
+            "Comma-separated list of output items to produce. The pipeline "
+            "automatically resolves the minimal processing steps required. "
+            "Available items (cumulative dependencies): "
+            "'species' (DETECT+HMM only, fast), "
+            "'reactions' (adds PATH+MATRIX), "
+            "'network' (adds graph drawing), "
+            "'report' (adds HTML report). "
+            "Default: all items."
+        ),
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
         "--matrixa",
         help="Transition matrix A of HMM parameters",
         type=float,
@@ -212,7 +227,7 @@ def _commandline():
 
     from .reacnetgen import ReacNetGenerator
 
-    ReacNetGenerator(
+    rng = ReacNetGenerator(
         inputfilename=args.inputfilename,
         atomname=args.atomname,
         miso=args.miso,
@@ -237,7 +252,12 @@ def _commandline():
         moleculeframes=args.moleculeframes,
         moleculetimesteps=args.moleculetimesteps,
         printreactionevent=args.reaction_event,
-    ).runanddraw()
+    )
+    if args.items is not None:
+        items = [s.strip() for s in args.items.split(",")]
+        rng.run_items(items)
+    else:
+        rng.runanddraw()
 
 
 def parm2cmd(pp: dict) -> list[str]:
@@ -307,4 +327,9 @@ def parm2cmd(pp: dict) -> list[str]:
         commands.extend(("--ase-cutoff-mult", str(pp["ase_cutoff_mult"])))
     if pp.get("custom_cutoffs", None):
         commands.extend(("--ase-pair-cutoffs", str(pp["custom_cutoffs"])))
+    if pp.get("items", None):
+        items = pp["items"]
+        if isinstance(items, (list, tuple)):
+            items = ",".join(items)
+        commands.extend(("--items", items))
     return commands
