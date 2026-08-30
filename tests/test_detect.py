@@ -86,7 +86,9 @@ class TestDetect:
             )
             detector._readstepfunc((step, lines))
 
-        for call, expected_cell in zip(get_bonds.call_args_list, frame_cells):
+        for call, expected_cell in zip(
+            get_bonds.call_args_list, frame_cells, strict=True
+        ):
             np.testing.assert_array_equal(call.args[1], expected_cell)
 
 
