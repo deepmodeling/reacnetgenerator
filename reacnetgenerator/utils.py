@@ -8,7 +8,6 @@ import hashlib
 import itertools
 import os
 import pickle
-import shutil
 import tempfile
 import time
 from collections.abc import Callable, Generator, Iterable
@@ -941,7 +940,6 @@ def checksha256(filename: str, sha256_check: str | list[str]):
     if sha256 in must_be_list(sha256_check):
         return True
     logger.warning("SHA256 is not correct.")
-    logger.warning(open(filename).read())
     return False
 
 
@@ -973,15 +971,30 @@ async def download_file(
     ):
         return pathfilename
 
+    # Remove stale output before trying mirrors so an interrupted stream cannot
+    # be mistaken for a valid cached trajectory.
+    if os.path.isfile(pathfilename):
+        os.remove(pathfilename)
+
     # from https://stackoverflow.com/questions/16694907
     for url in must_be_list(urls):
         logger.info(f"Try to download {pathfilename} from {url}")
-        with s.get(url, stream=True) as r, open(pathfilename, "wb") as f:
-            try:
-                shutil.copyfileobj(r.raw, f)
+        try:
+            with s.get(url, stream=True) as r:
+                r.raise_for_status()
+                with open(pathfilename, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=128 * 1024):
+                        if chunk:
+                            f.write(chunk)
+            if sha256 is None or checksha256(pathfilename, sha256):
                 break
-            except requests.exceptions.RequestException as e:
-                logger.warning(f"Request {pathfilename} Error.", exc_info=e)
+            os.remove(pathfilename)
+        except (requests.exceptions.RequestException, OSError) as e:
+            # A partial response must not be mistaken for a usable trajectory
+            # or prevent a subsequent mirror from being attempted.
+            if os.path.isfile(pathfilename):
+                os.remove(pathfilename)
+            logger.warning(f"Request {pathfilename} Error.", exc_info=e)
     else:
         raise RuntimeError(f"Cannot download {pathfilename}.")
 

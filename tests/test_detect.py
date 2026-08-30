@@ -62,6 +62,35 @@ class TestDetect:
         # assert this is a single molecule
         assert reacnetgen.temp1it == 1
 
+    def test_extxyz_uses_each_frames_lattice(self, tmp_path, mocker):
+        """Variable-cell extxyz frames should use their own lattice."""
+        rng = ReacNetGenerator(
+            inputfiletype="extxyz",
+            inputfilename=tmp_path / "variable-cell.extxyz",
+            atomname=["H"],
+            pbc=True,
+        )
+        detector = _Detect.gettype(rng)
+        get_bonds = mocker.patch.object(
+            detector, "_getbondfromcrd", return_value=([[]], [[]])
+        )
+        mocker.patch.object(detector, "_connectmolecule", return_value=[])
+        frame_cells = [np.eye(3) * 5.0, np.eye(3) * 10.0]
+
+        for step, cell in enumerate(frame_cells):
+            lattice = " ".join(str(value) for value in cell.ravel())
+            lines = (
+                "1\n",
+                f'Lattice="{lattice}" Properties=species:S:1:pos:R:3\n',
+                "H 0.0 0.0 0.0\n",
+            )
+            detector._readstepfunc((step, lines))
+
+        for call, expected_cell in zip(
+            get_bonds.call_args_list, frame_cells, strict=True
+        ):
+            np.testing.assert_array_equal(call.args[1], expected_cell)
+
 
 # Additional tests for ASE detection and Scipy clustering features
 try:
