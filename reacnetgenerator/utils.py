@@ -378,7 +378,9 @@ def _decode_pool_result(
     worker_succeeded, payload = value
     try:
         decoded = pickle.loads(payload)
-    except BaseException as error:
+    # Worker payloads may intentionally raise SystemExit during reduction;
+    # preserve that as a worker failure while keeping user interrupts visible.
+    except (Exception, SystemExit) as error:
         return False, error
     return worker_succeeded, decoded
 

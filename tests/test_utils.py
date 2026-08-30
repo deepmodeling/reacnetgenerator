@@ -8,7 +8,9 @@ import time
 
 import pytest
 
-from reacnetgenerator.utils import run_mp
+import reacnetgenerator.utils as utils
+
+run_mp = utils.run_mp
 
 
 class _CountingIterator:
@@ -83,8 +85,6 @@ def _run_worker_initializer_exit_case(
     result_queue, initializer, disk_ordered, spool_dir
 ):
     """Run an initializer-exit case in a watchdog child process."""
-    import reacnetgenerator.utils as utils
-
     utils._init_bounded_pool_worker = initializer
     try:
         list(
@@ -101,7 +101,7 @@ def _run_worker_initializer_exit_case(
                 bar=False,
             )
         )
-    except BaseException as error:
+    except (Exception, SystemExit) as error:
         result_queue.put((type(error).__name__, str(error)))
     else:
         result_queue.put(("success", ""))
@@ -126,8 +126,6 @@ def _exit_first_worker_initializer(task_events):
 
 def _run_reaped_initializer_case(result_queue, disk_ordered, spool_dir):
     """Run a one-time initializer failure with a healthy replacement worker."""
-    import reacnetgenerator.utils as utils
-
     global _INITIALIZER_ATTEMPTS, _ORIGINAL_BOUNDED_INITIALIZER
     _INITIALIZER_ATTEMPTS = multiprocessing.Value("i", 0)
     _ORIGINAL_BOUNDED_INITIALIZER = utils._init_bounded_pool_worker
@@ -147,7 +145,7 @@ def _run_reaped_initializer_case(result_queue, disk_ordered, spool_dir):
                 bar=False,
             )
         )
-    except BaseException as error:
+    except (Exception, SystemExit) as error:
         result_queue.put((type(error).__name__, str(error)))
     else:
         result_queue.put(("success", ""))
@@ -278,7 +276,7 @@ def _run_serialization_exit_case(result_queue, func, disk_ordered, spool_dir):
                 bar=False,
             )
         )
-    except BaseException as error:
+    except (Exception, SystemExit) as error:
         result_queue.put((type(error).__name__, str(error)))
     else:
         result_queue.put(("success", ""))
@@ -306,7 +304,7 @@ def _run_input_deserialization_exit_case(result_queue, mode, disk_ordered, spool
                 bar=False,
             )
         )
-    except BaseException as error:
+    except (Exception, SystemExit) as error:
         result_queue.put((type(error).__name__, str(error)))
     else:
         result_queue.put(("success", ""))
