@@ -273,14 +273,23 @@ class ReacNetGenerator:
 
         self.__dict__.update(kwargs)
         if self.cell is not None:
-            if len(self.cell) == 9:
-                self.cell = np.array(self.cell).reshape((3, 3))
-            elif len(self.cell) == 3:
-                self.cell = np.diag(self.cell)
+            cell_error = (
+                "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
+            )
+            try:
+                cell = np.asarray(self.cell)
+            except (TypeError, ValueError) as exc:
+                raise RuntimeError(cell_error) from exc
+            if cell.shape == (3, 3):
+                # Preserve full cell matrices, including triclinic off-diagonal
+                # components supplied through the Python API.
+                self.cell = cell
+            elif cell.shape == (3,):
+                self.cell = np.diag(cell)
+            elif cell.shape == (9,):
+                self.cell = cell.reshape((3, 3))
             else:
-                raise RuntimeError(
-                    "cell must be (3,3) array_like or (3,) array_like or (9,) array_like"
-                )
+                raise RuntimeError(cell_error)
 
     @staticmethod
     def _normalize_optional_int_filter(value):

@@ -2,10 +2,13 @@
 # cython: language_level=3
 """Test ReacNetGen."""
 
+import copy
 import fileinput
 import itertools
 import json
 import os
+import shutil
+from pathlib import Path
 from tkinter import END, TclError
 from types import SimpleNamespace
 
@@ -21,12 +24,12 @@ from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import (
     checksha256,
-    download_multifiles,
     get_timestep_value,
     listtobytes,
 )
 
-with open(os.path.join(os.path.dirname(__file__), "test.json")) as f:
+test_directory = Path(__file__).parent
+with (test_directory / "test.json").open() as f:
     test_data = json.load(f)
 
 
@@ -49,9 +52,16 @@ class TestReacNetGen:
             for param in test_data
         ]
     )
-    def reacnetgen_param(self, request):
-        """Fixture for ReacNetGenerator parameters."""
-        return request.param
+    def reacnetgen_param(self, request, tmp_path):
+        """Copy checked-in inputs into the test's isolated working directory."""
+        param = copy.deepcopy(request.param)
+        inputfilename = Path(param["rngparams"]["inputfilename"])
+        fixture = test_directory / inputfilename
+        if fixture.is_file():
+            local_input = tmp_path / fixture.name
+            shutil.copyfile(fixture, local_input)
+            param["rngparams"]["inputfilename"] = str(local_input)
+        return param
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
@@ -99,7 +109,6 @@ class TestReacNetGen:
             "tkinter.filedialog.askopenfilename", return_value=pp["inputfilename"]
         )
         mocker.patch("tkinter.messagebox.showerror")
-        download_multifiles(pp.get("urls", []))
         reacnetgengui._atomnameet.delete(0, END)
         reacnetgengui._atomnameet.insert(0, " ".join(pp["atomname"]))
         if pp["inputfiletype"] in ["lammpsbondfile", "lammpsdumpfile"]:
@@ -172,6 +181,40 @@ class TestReacNetGen:
         r = _CollectSMILESPaths(reacnetgen)
         r.atomname = np.array(["Mo", "O"])
         assert r._re("[Mo]") == "[Mo]"
+
+    def test_getatomeach_maps_conflicts_to_original_indices(self, tmp_path):
+        """Conflict coordinates should retain their atom and timestep indices."""
+        hmm_file = tmp_path / "hmm.bin"
+        molecule_file = tmp_path / "molecules.bin"
+
+        with open(hmm_file, "wb") as hmm:
+            hmm.write(listtobytes(np.array([False, False, False, True, False])))
+            hmm.write(listtobytes(np.array([False, False, False, True, False])))
+        with open(molecule_file, "wb") as molecules:
+            for _ in range(2):
+                molecules.write(listtobytes(np.array([2])))
+                # _getatomeach only consumes the atom block, but the on-disk
+                # molecule record always contains four compressed blocks.
+                for value in ([], [], []):
+                    molecules.write(listtobytes(value))
+
+        collector = object.__new__(_CollectSMILESPaths)
+        collector.N = 5
+        collector.step = 5
+        collector.runHMM = True
+        collector.originfilename = str(tmp_path / "unused-origin.bin")
+        collector.hmmfilename = str(hmm_file)
+        collector.moleculetemp2filename = str(molecule_file)
+        collector.hmmit = 2
+
+        atomeach, conflict = collector._getatomeach()
+
+        expected_atomeach = np.zeros((5, 5), dtype=int)
+        expected_atomeach[2, 3] = 2
+        expected_conflict = np.zeros((5, 5), dtype=int)
+        expected_conflict[2, 3] = 1
+        np.testing.assert_array_equal(atomeach, expected_atomeach)
+        np.testing.assert_array_equal(conflict, expected_conflict)
 
     def test_reaction_event_details(self, tmp_path):
         """Single reaction events should expose time-resolved CSV fields."""
@@ -255,6 +298,53 @@ class TestReacNetGen:
         assert get_timestep_value((0, 100)) == 100
         assert get_timestep_value(np.int64(100)) == 100
         assert get_timestep_value(100) == 100
+
+    @pytest.mark.parametrize(
+        ("cell", "expected"),
+        [
+            (
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+            ),
+            (
+                [1.0, 0.1, 0.2, 0.0, 2.0, 0.3, 0.0, 0.0, 3.0],
+                [[1.0, 0.1, 0.2], [0.0, 2.0, 0.3], [0.0, 0.0, 3.0]],
+            ),
+            ([1.0, 2.0, 3.0], np.diag([1.0, 2.0, 3.0])),
+        ],
+    )
+    def test_cell_normalization_preserves_supported_shapes(
+        self, tmp_path, cell, expected
+    ):
+        """Cell normalization should preserve matrices and expand vectors."""
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename=str(tmp_path / "dummy.dump"),
+            atomname=["H"],
+            cell=cell,
+        )
+
+        np.testing.assert_allclose(rng.cell, expected)
+        assert rng.cell.shape == (3, 3)
+
+    def test_cell_normalization_wraps_array_conversion_type_error(self, tmp_path):
+        """Invalid custom array-likes should use the public cell error."""
+
+        class InvalidCellArray:
+            """Represent an array-like object that cannot be converted."""
+
+            def __array__(self, dtype=None, copy=None):
+                raise TypeError("cannot convert cell")
+
+        with pytest.raises(RuntimeError, match="cell must be") as exc_info:
+            ReacNetGenerator(
+                inputfiletype="lammpsdumpfile",
+                inputfilename=str(tmp_path / "dummy.dump"),
+                atomname=["H"],
+                cell=InvalidCellArray(),
+            )
+
+        assert isinstance(exc_info.value.__cause__, TypeError)
 
     def test_molecule_time_formatting(self, tmp_path):
         """Molecule timeline rows should be optional and filterable."""
