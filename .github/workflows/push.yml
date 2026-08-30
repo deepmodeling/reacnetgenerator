@@ -1,9 +1,9 @@
 on:
   push:
     branches:
-    - master
+      - master
     tags:
-    - v*
+      - v*
   pull_request:
   merge_group:
 
@@ -28,4 +28,5 @@ jobs:
       with:
         use_oidc: true
 permissions:
+  contents: read
   id-token: write
