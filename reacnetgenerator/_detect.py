@@ -27,7 +27,7 @@ import fileinput
 import operator
 import tempfile
 from abc import ABCMeta, abstractmethod
-from collections import defaultdict
+from collections import Counter, defaultdict
 from enum import Enum, auto
 from typing import ClassVar
 
@@ -70,12 +70,23 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     nproc: int
     pbc: bool
     cell: np.ndarray
+    max_component_atoms: int
+    max_component_fraction: float
 
     def __init__(self, rng):
         SharedRNGData.__init__(
             self,
             rng,
-            ["inputfilename", "atomname", "stepinterval", "nproc", "pbc", "cell"],
+            [
+                "inputfilename",
+                "atomname",
+                "stepinterval",
+                "nproc",
+                "pbc",
+                "cell",
+                "max_component_atoms",
+                "max_component_fraction",
+            ],
             ["N", "atomtype", "step", "timestep", "temp1it", "moleculetempfilename"],
         )
 
@@ -182,8 +193,63 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         pass
 
-    def _connectmolecule(self, bond, level):
+    def _validate_component_sizes(self, mols, frame=None, timestep=None):
+        if self.max_component_atoms == 0:
+            return
+        limit = max(
+            self.max_component_atoms,
+            int(np.ceil(self.N * self.max_component_fraction)),
+        )
+        largest = max(mols, key=len, default=())
+        if len(largest) <= limit:
+            return
+
+        composition = Counter(
+            str(self.atomname[self.atomtype[atom]]) for atom in largest
+        )
+        composition_text = ", ".join(
+            f"{element}:{count}" for element, count in sorted(composition.items())
+        )
+        location = f"frame {frame}"
+        if timestep is not None:
+            location += f" (timestep {timestep})"
+
+        if hasattr(self, "use_ase"):
+            if self.use_ase:
+                backend = "ASE"
+                cutoffs = self.custom_cutoffs or "none"
+                advice = (
+                    "ASE natural cutoffs can include non-covalent contacts. "
+                    "Inspect the connectivity and use "
+                    "--ase-pair-cutoffs El1-El2:0 to exclude an unintended "
+                    f"element pair. Current ASE pair cutoffs: {cutoffs}."
+                )
+            else:
+                backend = "Open Babel"
+                advice = (
+                    "For coordinate trajectories, consider --use-ase together "
+                    "with --ase-pair-cutoffs El1-El2:0 to control connectivity."
+                )
+        else:
+            backend = "explicit bond input"
+            advice = (
+                "For explicit bond trajectories, revise the upstream bond-order "
+                "cutoff or bonding rule."
+            )
+
+        raise RuntimeError(
+            f"Oversized connected component detected at {location}: "
+            f"{len(largest)} of {self.N} atoms exceed the configured limit of "
+            f"{limit} (max_component_atoms={self.max_component_atoms}, "
+            f"max_component_fraction={self.max_component_fraction}). "
+            f"Composition: {composition_text}. Bond detection backend: {backend}. "
+            f"{advice} If this component is intentional, increase the component "
+            "limits or set --max-component-atoms 0 to disable this guard."
+        )
+
+    def _connectmolecule(self, bond, level, frame=None, timestep=None):
         mols, bondlists = dps(bond, level)
+        self._validate_component_sizes(mols, frame=frame, timestep=timestep)
         return [
             b"".join(
                 (
@@ -250,8 +316,8 @@ class _DetectLAMMPSbond(_Detect):
                     s2 = int(s[2])
                     bond[s0] = tuple(map(self._get_idx, s[3 : 3 + s2]))
                     level[s0] = tuple(map(self._get_bo, s[4 + s2 : 4 + 2 * s2]))
-        molecules = self._connectmolecule(bond, level)
         assert timestep is not None
+        molecules = self._connectmolecule(bond, level, frame=step, timestep=timestep)
         return molecules, (step, timestep)
 
     @staticmethod
@@ -282,6 +348,8 @@ class _DetectCrd(_Detect):
                 "use_ase",
                 "ase_cutoff_mult",
                 "custom_cutoffs",
+                "max_component_atoms",
+                "max_component_fraction",
             ],
             ["N", "atomtype", "step", "timestep", "temp1it", "moleculetempfilename"],
         )
@@ -586,7 +654,9 @@ class _DetectLAMMPSdump(_DetectCrd):
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
-        molecules = self._connectmolecule(bond, level)
+        molecules = self._connectmolecule(
+            bond, level, frame=timestep[0], timestep=timestep[1]
+        )
         return molecules, timestep
 
 
@@ -632,7 +702,9 @@ class _Detectxyz(_DetectCrd):
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
-        molecules = self._connectmolecule(bond, level)
+        molecules = self._connectmolecule(
+            bond, level, frame=timestep[0], timestep=timestep[1]
+        )
         return molecules, timestep
 
 
@@ -694,5 +766,7 @@ class _Detectextxyz(_DetectCrd):
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
-        molecules = self._connectmolecule(bond, level)
+        molecules = self._connectmolecule(
+            bond, level, frame=timestep[0], timestep=timestep[1]
+        )
         return molecules, timestep
