@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 from reacnetgenerator import ReacNetGenerator
+from reacnetgenerator import _detect as detect_module
 from reacnetgenerator._detect import _Detect
 
 p_inputs = Path(__file__).parent / "inputs"
@@ -109,6 +110,299 @@ except ImportError:
     SCIPY_AVAILABLE = False
 
 from reacnetgenerator._detect import _DetectLAMMPSdump
+
+
+@pytest.mark.skipif(not ASE_AVAILABLE, reason="ASE is not available")
+class TestPeriodicOpenBabelCandidates:
+    """Keep periodic cKDTree candidates equivalent to Open Babel."""
+
+    @pytest.fixture
+    def detect_instance(self):
+        """Create a periodic detector that retains Open Babel bond orders."""
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsdumpfile",
+            inputfilename="dummy",
+            atomname=["H", "C", "N", "O", "F", "P", "Cl"],
+            pbc=True,
+            use_ase=False,
+        )
+        return _DetectLAMMPSdump(rng)
+
+    @staticmethod
+    def _molecule_records(detect_instance, result):
+        assert result is not None
+        return detect_instance._connectmolecule(*result)
+
+    def _assert_matches_reference(self, detect_instance, atoms, cell):
+        """Return the accelerated result after checking molecule semantics."""
+        reference = detect_instance._getbondfromopenbabel(atoms, cell)
+        accelerated = detect_instance._getbondfromperiodicneighborlist(atoms, cell)
+
+        assert accelerated is not None
+        assert self._molecule_records(
+            detect_instance, accelerated
+        ) == self._molecule_records(detect_instance, reference)
+        return accelerated
+
+    def test_matches_reference_across_periodic_boundary(self, detect_instance):
+        """Find neighbors on opposite faces without changing molecule records."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "CHOH",
+            positions=[
+                [0.2, 1.0, 1.0],
+                [11.3, 1.0, 1.01],
+                [6.0, 6.0, 6.0],
+                [6.8, 6.0, 6.01],
+            ],
+            cell=cell,
+            pbc=True,
+        )
+
+        accelerated = self._assert_matches_reference(detect_instance, atoms, cell)
+        assert 1 in accelerated[0][0]
+
+    def test_matches_reference_when_openbabel_removes_excess_bonds(
+        self,
+        detect_instance,
+    ):
+        """Reuse Open Babel's valence and angle cleanup after candidate search."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "CHHHHH",
+            positions=np.array(
+                [
+                    [6.00, 6.00, 6.000],
+                    [6.90, 6.00, 6.001],
+                    [5.05, 6.00, 6.002],
+                    [6.00, 7.00, 6.003],
+                    [6.00, 4.95, 6.004],
+                    [6.00, 6.00, 7.080],
+                ]
+            ),
+            cell=cell,
+            pbc=True,
+        )
+
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
+    def test_matches_reference_for_equal_z_coordinates(self, detect_instance):
+        """Keep rounded equal-z coordinates on the accelerated path."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "CHHHHH",
+            positions=np.array(
+                [
+                    [6.00, 6.00, 6.00],
+                    [6.90, 6.00, 6.00],
+                    [5.05, 6.00, 6.00],
+                    [6.00, 7.00, 6.00],
+                    [6.00, 4.95, 6.00],
+                    [6.00, 6.00, 7.08],
+                ]
+            ),
+            cell=cell,
+            pbc=True,
+        )
+
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
+    def test_matches_reference_for_phosphorus_sixth_bond_rule(
+        self,
+        detect_instance,
+    ):
+        """Preserve Open Babel's element-specific phosphorus insertion rule."""
+        cell = np.eye(3) * 12.0
+        angles = np.arange(6) * np.pi / 3.0
+        positions = np.concatenate(
+            (
+                [[6.0, 6.0, 6.0]],
+                np.column_stack(
+                    (
+                        6.0 + 1.6 * np.cos(angles),
+                        6.0 + 1.6 * np.sin(angles),
+                        6.01 + np.arange(6) * 0.01,
+                    )
+                ),
+            )
+        )
+        atoms = Atoms("PFFFFFH", positions=positions, cell=cell, pbc=True)
+
+        accelerated = self._assert_matches_reference(detect_instance, atoms, cell)
+        assert accelerated[0][0] == [1, 2, 3, 4, 5]
+        assert accelerated[0][6] == []
+
+    @pytest.mark.parametrize("seed", range(3))
+    def test_matches_reference_for_seeded_mixed_elements(
+        self,
+        detect_instance,
+        seed,
+    ):
+        """Differentially cover insertion, cleanup, and bond-order perception."""
+        random = np.random.default_rng(seed)
+        atomic_numbers = random.choice(
+            np.array([1, 6, 7, 8, 9, 15, 17]),
+            size=96,
+        )
+        positions = random.uniform(0.0, 18.0, size=(96, 3))
+        cell = np.eye(3) * 18.0
+        atoms = Atoms(
+            numbers=atomic_numbers,
+            positions=positions,
+            cell=cell,
+            pbc=True,
+        )
+
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
+    @pytest.mark.parametrize(
+        ("atoms", "cell"),
+        [
+            (
+                Atoms("HH", positions=[[0, 0, 0], [0, 0, 1.07]]),
+                np.eye(3) * 10.0,
+            ),
+            (
+                Atoms("CH", positions=[[0, 0, 0], [1, 0, 0.1]]),
+                np.eye(3) * 2.0,
+            ),
+            (
+                Atoms("HH", positions=[[0, 0, 0], [np.nan, 0, 1.0]]),
+                np.eye(3) * 10.0,
+            ),
+            (
+                Atoms(numbers=[0, 1], positions=[[0, 0, 0], [0, 0, 1.0]]),
+                np.eye(3) * 10.0,
+            ),
+        ],
+        ids=[
+            "cutoff-boundary",
+            "narrow-cell",
+            "invalid-coordinate",
+            "invalid-radius",
+        ],
+    )
+    def test_falls_back_for_ambiguous_or_unsupported_geometry(
+        self,
+        detect_instance,
+        atoms,
+        cell,
+    ):
+        """Leave unsafe geometries to the historical Open Babel path."""
+        atoms.set_cell(cell)
+        atoms.set_pbc(True)
+
+        assert detect_instance._getbondfromperiodicneighborlist(atoms, cell) is None
+
+    @pytest.mark.parametrize(
+        "cell",
+        [
+            np.array(
+                [
+                    [10.0, 0.0, 0.0],
+                    [2.0, 9.0, 0.0],
+                    [1.0, 1.5, 8.0],
+                ]
+            ),
+            np.array(
+                [
+                    [0.0, 10.0, 0.0],
+                    [-9.0, 0.0, 0.0],
+                    [0.0, 0.0, 8.0],
+                ]
+            ),
+            np.diag([10.0, 0.0, 10.0]),
+            np.diag([10.0, -9.0, 8.0]),
+            np.array(
+                [
+                    [np.nan, 0.0, 0.0],
+                    [0.0, 9.0, 0.0],
+                    [0.0, 0.0, 8.0],
+                ]
+            ),
+        ],
+        ids=["triclinic", "rotated", "zero-length", "negative-length", "nonfinite"],
+    )
+    def test_falls_back_for_unsupported_cells(self, detect_instance, cell):
+        """Leave unsupported cells to the reference implementation."""
+        atoms = Atoms("CHOH", positions=np.zeros((4, 3)), pbc=True)
+
+        assert detect_instance._getbondfromperiodicneighborlist(atoms, cell) is None
+
+    def test_dispatches_only_safe_large_periodic_frames(
+        self,
+        detect_instance,
+        monkeypatch,
+    ):
+        """Use cKDTree only above its crossover and preserve every fallback."""
+        atoms = Atoms("HH", positions=[[0, 0, 0], [0, 0, 1]], cell=np.eye(3) * 10)
+        accelerated = ([[1], [0]], [[1], [1]])
+        reference = ([[], []], [[], []])
+        calls = []
+        monkeypatch.setattr(
+            detect_module,
+            "_OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS",
+            2,
+        )
+        monkeypatch.setattr(
+            detect_instance,
+            "_getbondfromperiodicneighborlist",
+            lambda *args: calls.append("fast") or accelerated,
+        )
+        monkeypatch.setattr(
+            detect_instance,
+            "_getbondfromopenbabel",
+            lambda *args: calls.append("reference") or reference,
+        )
+
+        assert detect_instance._getbondfromcrd(atoms, np.eye(3) * 10) == accelerated
+        assert calls == ["fast"]
+
+        calls.clear()
+        monkeypatch.setattr(
+            detect_instance,
+            "_getbondfromperiodicneighborlist",
+            lambda *args: calls.append("fast") or None,
+        )
+        assert detect_instance._getbondfromcrd(atoms, np.eye(3) * 10) == reference
+        assert calls == ["fast", "reference"]
+
+        calls.clear()
+        monkeypatch.setattr(
+            detect_module,
+            "_OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS",
+            3,
+        )
+        assert detect_instance._getbondfromcrd(atoms, np.eye(3) * 10) == reference
+        assert calls == ["reference"]
+
+        calls.clear()
+        monkeypatch.setattr(
+            detect_module,
+            "_OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS",
+            2,
+        )
+        triclinic_cell = np.array(
+            [[10.0, 0.0, 0.0], [1.0, 10.0, 0.0], [0.0, 0.0, 10.0]]
+        )
+        assert detect_instance._getbondfromcrd(atoms, triclinic_cell) == reference
+        assert calls == ["reference"]
+
+        calls.clear()
+        detect_instance.pbc = False
+        assert detect_instance._getbondfromcrd(atoms, np.eye(3) * 10) == reference
+        assert calls == ["reference"]
+
+        calls.clear()
+        detect_instance.pbc = True
+        detect_instance.use_ase = True
+        monkeypatch.setattr(
+            detect_instance,
+            "_getbondfromase",
+            lambda *args: calls.append("ase") or accelerated,
+        )
+        assert detect_instance._getbondfromcrd(atoms, np.eye(3) * 10) == accelerated
+        assert calls == ["ase"]
 
 
 class TestParseCustomCutoffs:
