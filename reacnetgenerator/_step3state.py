@@ -300,19 +300,27 @@ class _AtomFrameStore:
         if len(self.shape) != 2 or min(self.shape) <= 0:
             raise ValueError("Atom-frame matrix shape must be two positive values")
         self.molecule_dtype = _unsigned_dtype_for_maximum(maximum_molecule_id)
-        atom_handle, self.atomeach_path = tempfile.mkstemp(
-            prefix="reacnetgenerator-atomeach-",
-            suffix=".mmap",
-            dir=directory,
-        )
-        os.close(atom_handle)
-        conflict_handle, conflict_path = tempfile.mkstemp(
-            prefix="reacnetgenerator-conflict-",
-            suffix=".mmap",
-            dir=directory,
-        )
-        os.close(conflict_handle)
+        self._closed = True
+        atom_handle = None
+        conflict_handle = None
+        atomeach_path = None
+        conflict_path = None
         try:
+            atom_handle, atomeach_path = tempfile.mkstemp(
+                prefix="reacnetgenerator-atomeach-",
+                suffix=".mmap",
+                dir=directory,
+            )
+            os.close(atom_handle)
+            atom_handle = None
+            conflict_handle, conflict_path = tempfile.mkstemp(
+                prefix="reacnetgenerator-conflict-",
+                suffix=".mmap",
+                dir=directory,
+            )
+            os.close(conflict_handle)
+            conflict_handle = None
+            self.atomeach_path = atomeach_path
             self.atomeach = np.memmap(
                 self.atomeach_path,
                 mode="w+",
@@ -323,6 +331,10 @@ class _AtomFrameStore:
             self.conflict = _PackedBoolMatrix(conflict_path, self.shape)
             self._closed = False
         except BaseException:
+            for handle in (atom_handle, conflict_handle):
+                if handle is not None:
+                    with suppress(OSError):
+                        os.close(handle)
             atomeach = getattr(self, "atomeach", None)
             if atomeach is not None:
                 mmap = getattr(atomeach, "_mmap", None)
@@ -331,10 +343,11 @@ class _AtomFrameStore:
             conflict = getattr(self, "conflict", None)
             if conflict is not None:
                 conflict.close()
-            for path in (self.atomeach_path, conflict_path):
+            for path in (atomeach_path, conflict_path):
+                if path is None:
+                    continue
                 with suppress(FileNotFoundError):
                     os.unlink(path)
-            self._closed = True
             raise
 
     @property

@@ -2,6 +2,7 @@
 """Test compact temporary state used by Step 3."""
 
 import os
+import tempfile
 
 import numpy as np
 import pytest
@@ -111,3 +112,33 @@ def test_packed_conflict_marks_sparse_selection(tmp_path):
         expected = np.zeros((3, 10), dtype=np.bool_)
         expected[2, 9] = True
         np.testing.assert_array_equal(store.conflict, expected)
+
+
+def test_atom_frame_store_cleans_up_after_second_allocation_failure(
+    tmp_path, monkeypatch
+):
+    """A failed conflict allocation should remove the atom mapping file."""
+    original_mkstemp = tempfile.mkstemp
+    created_paths = []
+    allocation_count = 0
+
+    def fail_second_mkstemp(*args, **kwargs):
+        nonlocal allocation_count
+        allocation_count += 1
+        if allocation_count == 2:
+            raise OSError("simulated conflict allocation failure")
+        handle, path = original_mkstemp(*args, **kwargs)
+        created_paths.append(path)
+        return handle, path
+
+    monkeypatch.setattr(
+        "reacnetgenerator._step3state.tempfile.mkstemp",
+        fail_second_mkstemp,
+    )
+
+    with pytest.raises(OSError, match="simulated conflict allocation failure"):
+        _AtomFrameStore((3, 10), 4, directory=tmp_path)
+
+    assert allocation_count == 2
+    assert len(created_paths) == 1
+    assert not os.path.exists(created_paths[0])
