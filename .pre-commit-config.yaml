@@ -17,7 +17,7 @@ repos:
       - id: mixed-line-ending
   # Python
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.4
+    rev: v0.16.5
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -36,14 +36,14 @@ repos:
         args: ["--write"]
   # C++
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v22.1.8
+    rev: v23.1.0
     hooks:
       - id: clang-format
         exclude: \.ipynb$
 
   # Cython
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.21.0
+    rev: v0.21.1
     hooks:
       - id: cython-lint
       - id: double-quote-cython-strings
