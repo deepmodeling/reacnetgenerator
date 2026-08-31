@@ -99,3 +99,15 @@ def test_atom_frame_store_is_compact_transposable_and_recoverable(tmp_path):
 
     assert not os.path.exists(atomeach_path)
     assert not os.path.exists(conflict_path)
+
+
+def test_packed_conflict_marks_sparse_selection(tmp_path):
+    """Sparse overlap masks should mark only their selected cells."""
+    with _AtomFrameStore((3, 10), 4, directory=tmp_path) as store:
+        overlap = np.zeros((3, 10), dtype=np.bool_)
+        overlap[2, 9] = True
+        store.conflict.mark(np.arange(3), np.arange(10), overlap)
+
+        expected = np.zeros((3, 10), dtype=np.bool_)
+        expected[2, 9] = True
+        np.testing.assert_array_equal(store.conflict, expected)

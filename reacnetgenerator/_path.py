@@ -202,8 +202,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Collect paths."""
         self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
-        matrix_store = self._getatomeach()
-        try:
+        with self._getatomeach() as matrix_store:
             atomeach = matrix_store.atomeach
             self.allmoleculeroute = self._printatomroute(atomeach)
             if self.split > 1:
@@ -217,8 +216,6 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 atomeach.T,
                 matrix_store.conflict.T,
             )
-        finally:
-            matrix_store.close()
 
     @abstractmethod
     def _printmoleculename(self):
@@ -226,7 +223,11 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _getatomeach(self):
         """Build compact atom-frame matrices; molecule IDs start from 1."""
-        store = _AtomFrameStore((self.N, self.step), self.hmmit)
+        store = _AtomFrameStore(
+            (self.N, self.step),
+            self.hmmit,
+            directory=os.path.dirname(os.path.abspath(self.atomroutefilename)),
+        )
         try:
             with (
                 open(
@@ -240,6 +241,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                         zip(
                             read_compressed_block(fh),
                             itertools.zip_longest(*[read_compressed_block(ft)] * 4),
+                            strict=True,
                         ),
                         total=self.hmmit,
                         desc="Analyze atoms",

@@ -6,6 +6,7 @@ from __future__ import annotations
 import operator
 import os
 import tempfile
+from contextlib import suppress
 from typing import Literal
 
 import numpy as np
@@ -287,10 +288,8 @@ class _PackedBoolMatrix:
                 if mmap is not None:
                     mmap.close()
         finally:
-            try:
+            with suppress(FileNotFoundError):
                 os.unlink(self.path)
-            except FileNotFoundError:
-                pass
 
 
 class _AtomFrameStore:
@@ -333,10 +332,8 @@ class _AtomFrameStore:
             if conflict is not None:
                 conflict.close()
             for path in (self.atomeach_path, conflict_path):
-                try:
+                with suppress(FileNotFoundError):
                     os.unlink(path)
-                except FileNotFoundError:
-                    pass
             self._closed = True
             raise
 
@@ -364,9 +361,8 @@ class _AtomFrameStore:
                     mmap.close()
         finally:
             try:
-                os.unlink(self.atomeach_path)
-            except FileNotFoundError:
-                pass
+                with suppress(FileNotFoundError):
+                    os.unlink(self.atomeach_path)
             finally:
                 self.conflict.close()
 
@@ -377,7 +373,5 @@ class _AtomFrameStore:
         self.close()
 
     def __del__(self):
-        try:
+        with suppress(Exception):
             self.close()
-        except BaseException:
-            pass
