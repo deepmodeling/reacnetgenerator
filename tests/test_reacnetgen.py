@@ -18,6 +18,7 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
+from reacnetgenerator._matrix import _GenerateMatrix
 from reacnetgenerator._path import _CollectSMILESPaths, _MoleculeTimelineSpool
 from reacnetgenerator._reaction import ReactionsFinder
 from reacnetgenerator.commandline import parm2cmd
@@ -215,6 +216,16 @@ class TestReacNetGen:
         expected_conflict[2, 3] = 1
         np.testing.assert_array_equal(atomeach, expected_atomeach)
         np.testing.assert_array_equal(conflict, expected_conflict)
+        assert atomeach.dtype == np.int32
+        assert conflict.dtype == np.bool_
+
+    def test_object_molecule_names_support_reaction_matrix(self):
+        """Variable-length names should retain reaction-route counts."""
+        matrix = object.__new__(_GenerateMatrix)
+        matrix.mname = np.asarray(["A", "B", "C"], dtype=object)
+        routes = np.array([[1, 2], [1, 2], [2, 3], [3, 3]])
+
+        assert dict(matrix._getallroute(routes)) == {("A", "B"): 2, ("B", "C"): 1}
 
     def test_reaction_event_details(self, tmp_path):
         """Single reaction events should expose time-resolved CSV fields."""
@@ -269,6 +280,7 @@ class TestReacNetGen:
             "Timestep_Index,Reactant,Product",
             "0,A+B,C",
         ]
+        assert (tmp_path / "out.reactionabcd").read_text().splitlines() == ["1 A+B->C"]
 
     def test_reaction_event_default_is_off(self, tmp_path):
         """Reaction event details should not be calculated unless requested."""
