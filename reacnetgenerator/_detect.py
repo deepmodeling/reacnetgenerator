@@ -41,6 +41,7 @@ except ImportError:  # pragma: no cover
 from ase import Atom, Atoms
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
+from scipy.spatial import cKDTree  # ty: ignore[unresolved-import]
 
 from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
@@ -49,6 +50,12 @@ if version.parse(obversion) < version.parse("3.1.0"):  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
 
 openbabel.obErrorLog.StopLogging()
+
+_OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS = 2048
+_OPENBABEL_COVALENT_RADIUS_TOLERANCE = 0.45
+_OPENBABEL_MIN_BOND_DISTANCE = 0.4
+_OPENBABEL_MIN_BOND_ANGLE = 45.0
+_OPENBABEL_DISTANCE_AMBIGUITY = 1e-7
 
 
 class _Detect(SharedRNGData, metaclass=ABCMeta):
@@ -400,6 +407,236 @@ class _DetectCrd(_Detect):
 
         return bond, bondlevel
 
+    def _new_openbabel_molecule(
+        self,
+        step_atoms: Atoms,
+        cell: np.ndarray,
+    ):
+        """Create an Open Babel molecule while preserving input atom IDs."""
+        mol = openbabel.OBMol()
+        mol.BeginModify()
+        for idx, (num, position) in enumerate(
+            zip(step_atoms.get_atomic_numbers(), step_atoms.positions)
+        ):
+            atom = mol.NewAtom(idx)
+            atom.SetAtomicNum(int(num))
+            atom.SetVector(*position)
+        if self.pbc:
+            unit_cell = openbabel.OBUnitCell()
+            unit_cell.SetData(
+                openbabel.vector3(*cell[0]),
+                openbabel.vector3(*cell[1]),
+                openbabel.vector3(*cell[2]),
+            )
+            mol.CloneData(unit_cell)
+            mol.SetPeriodicMol()
+        return mol
+
+    @staticmethod
+    def _getbondlistsfromopenbabel(mol, atomnumber):
+        """Convert one perceived Open Babel molecule to adjacency lists."""
+        bond = [[] for _ in range(atomnumber)]
+        bondlevel = [[] for _ in range(atomnumber)]
+        for obbond in openbabel.OBMolBondIter(mol):
+            atom1 = obbond.GetBeginAtom().GetId()
+            atom2 = obbond.GetEndAtom().GetId()
+            level = obbond.GetBondOrder()
+            if level == 5:
+                # aromatic, 5 in openbabel but 12 in rdkit
+                level = 12
+            bond[atom1].append(atom2)
+            bond[atom2].append(atom1)
+            bondlevel[atom1].append(level)
+            bondlevel[atom2].append(level)
+        return bond, bondlevel
+
+    def _getbondfromopenbabel(
+        self,
+        step_atoms: Atoms,
+        cell: np.ndarray,
+    ) -> tuple[list[list[int]], list[list[int]]]:
+        """Run the original Open Babel coordinate-bond perception path."""
+        mol = self._new_openbabel_molecule(step_atoms, cell)
+        mol.ConnectTheDots()
+        mol.PerceiveBondOrders()
+        mol.EndModify()
+        return self._getbondlistsfromopenbabel(mol, len(step_atoms))
+
+    @staticmethod
+    def _orthorhombic_cell_lengths(cell):
+        """Return positive axis-aligned cell lengths when safely supported."""
+        cell = np.asarray(cell, dtype=np.float64)
+        if cell.shape != (3, 3) or not np.all(np.isfinite(cell)):
+            return None
+        lengths = np.diag(cell)
+        if np.any(lengths <= 0.0) or not np.allclose(
+            cell,
+            np.diag(lengths),
+            rtol=0.0,
+            atol=1e-12,
+        ):
+            return None
+        return lengths
+
+    def _getperiodicbondcandidates(
+        self,
+        step_atoms: Atoms,
+        cell: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray] | None:
+        """Return Open Babel-ordered periodic bond candidates when safe."""
+        atomnumber = len(step_atoms)
+        positions = np.asarray(step_atoms.positions, dtype=np.float64)
+        atomic_numbers = np.asarray(step_atoms.get_atomic_numbers())
+        if (
+            positions.shape != (atomnumber, 3)
+            or not np.all(np.isfinite(positions))
+            or atomic_numbers.shape != (atomnumber,)
+        ):
+            return None
+        radii = np.fromiter(
+            (
+                openbabel.GetCovalentRad(int(atomic_number))
+                for atomic_number in atomic_numbers
+            ),
+            dtype=np.float64,
+            count=atomnumber,
+        )
+        if not np.all(np.isfinite(radii)) or np.any(radii <= 0.0):
+            return None
+
+        cell_lengths = self._orthorhombic_cell_lengths(cell)
+        maximum_pair_cutoff = (
+            2.0 * float(np.max(radii)) + _OPENBABEL_COVALENT_RADIUS_TOLERANCE
+        )
+        if cell_lengths is None:
+            return None
+        if np.min(cell_lengths) <= 2.0 * (
+            maximum_pair_cutoff + _OPENBABEL_DISTANCE_AMBIGUITY
+        ):
+            # Avoid duplicate lattice images and unbounded neighbor-list growth
+            # in cells narrower than twice the largest possible bond distance.
+            return None
+
+        z_order = np.argsort(positions[:, 2], kind="stable")
+        # Open Babel compares only z and leaves equal-z ordering to the C++
+        # standard library. Use atom ID as a stable tie-breaker so rounded
+        # trajectory coordinates behave deterministically across platforms.
+
+        wrapped_positions = np.mod(positions, cell_lengths)
+        candidate_pairs = cKDTree(
+            wrapped_positions,
+            boxsize=cell_lengths,
+        ).query_pairs(
+            maximum_pair_cutoff + _OPENBABEL_DISTANCE_AMBIGUITY,
+            output_type="ndarray",
+        )
+        atom_indices = candidate_pairs[:, 0]
+        neighbor_indices = candidate_pairs[:, 1]
+        distance_vectors = (
+            wrapped_positions[neighbor_indices] - wrapped_positions[atom_indices]
+        )
+        distance_vectors -= np.rint(distance_vectors / cell_lengths) * cell_lengths
+        distances = np.sqrt(np.einsum("ij,ij->i", distance_vectors, distance_vectors))
+
+        pair_cutoffs = (
+            radii[atom_indices]
+            + radii[neighbor_indices]
+            + _OPENBABEL_COVALENT_RADIUS_TOLERANCE
+        )
+        boundary_ambiguous = (
+            np.abs(distances - pair_cutoffs) <= _OPENBABEL_DISTANCE_AMBIGUITY
+        ) | (
+            np.abs(distances - _OPENBABEL_MIN_BOND_DISTANCE)
+            <= _OPENBABEL_DISTANCE_AMBIGUITY
+        )
+        if np.any(boundary_ambiguous):
+            return None
+
+        accepted = (distances <= pair_cutoffs) & (
+            distances >= _OPENBABEL_MIN_BOND_DISTANCE
+        )
+        atom_indices = atom_indices[accepted]
+        neighbor_indices = neighbor_indices[accepted]
+
+        z_rank = np.empty(atomnumber, dtype=np.intp)
+        z_rank[z_order] = np.arange(atomnumber, dtype=np.intp)
+        reverse_pair = z_rank[atom_indices] > z_rank[neighbor_indices]
+        first_atoms = np.where(reverse_pair, neighbor_indices, atom_indices)
+        second_atoms = np.where(reverse_pair, atom_indices, neighbor_indices)
+        insertion_order = np.lexsort((z_rank[second_atoms], z_rank[first_atoms]))
+        return first_atoms[insertion_order], second_atoms[insertion_order]
+
+    @staticmethod
+    def _add_openbabel_candidate_bonds(mol, first_atoms, second_atoms):
+        """Insert candidates and preserve Open Babel's connectivity cleanup."""
+        for atom_index, neighbor_index in zip(first_atoms, second_atoms):
+            atom = mol.GetAtom(int(atom_index) + 1)
+            neighbor = mol.GetAtom(int(neighbor_index) + 1)
+            if atom.GetAtomicNum() == 15 and atom.GetExplicitValence() == 5:
+                if neighbor.GetAtomicNum() not in (9, 17):
+                    continue
+            if neighbor.GetAtomicNum() == 15 and neighbor.GetExplicitValence() == 5:
+                if atom.GetAtomicNum() not in (9, 17):
+                    continue
+            mol.AddBond(int(atom_index) + 1, int(neighbor_index) + 1, 1)
+
+        for atom in openbabel.OBMolAtomIter(mol):
+            while (
+                atom.GetExplicitValence() > openbabel.GetMaxBonds(atom.GetAtomicNum())
+                or atom.SmallestBondAngle() < _OPENBABEL_MIN_BOND_ANGLE
+            ):
+                bonds = list(openbabel.OBAtomBondIter(atom))
+                if not bonds:
+                    break
+                if atom.GetAtomicNum() == 1:
+                    hydrogen_bond = next(
+                        (
+                            bond
+                            for bond in bonds
+                            if bond.GetNbrAtom(atom).GetAtomicNum() == 1
+                        ),
+                        None,
+                    )
+                    if hydrogen_bond is not None:
+                        mol.DeleteBond(hydrogen_bond)
+                        continue
+                longest_bond = bonds[0]
+                longest_length = longest_bond.GetLength()
+                for bond in bonds[1:]:
+                    length = bond.GetLength()
+                    if length > longest_length:
+                        longest_bond = bond
+                        longest_length = length
+                mol.DeleteBond(longest_bond)
+
+    def _getbondfromperiodicneighborlist(
+        self,
+        step_atoms: Atoms,
+        cell: np.ndarray,
+    ) -> tuple[list[list[int]], list[list[int]]] | None:
+        """Accelerate periodic Open Babel connectivity with bounded candidates.
+
+        A periodic cKDTree supplies nearby atom pairs for axis-aligned cells,
+        then Open Babel retains responsibility for insertion rules,
+        valence/angle cleanup, and bond-order perception. Unsupported or
+        numerically ambiguous geometries return ``None`` so the caller can use
+        ``ConnectTheDots`` without changing its historical result.
+        """
+        atomnumber = len(step_atoms)
+        if atomnumber < 2:
+            return ([[] for _ in range(atomnumber)], [[] for _ in range(atomnumber)])
+
+        candidates = self._getperiodicbondcandidates(step_atoms, cell)
+        if candidates is None:
+            return None
+
+        mol = self._new_openbabel_molecule(step_atoms, cell)
+        self._add_openbabel_candidate_bonds(mol, *candidates)
+
+        mol.PerceiveBondOrders()
+        mol.EndModify()
+        return self._getbondlistsfromopenbabel(mol, atomnumber)
+
     def _getbondfromcrd(
         self, step_atoms: Atoms, cell: np.ndarray
     ) -> tuple[list[list[int]], list[list[int]]]:
@@ -423,45 +660,16 @@ class _DetectCrd(_Detect):
         if self.use_ase:
             return self._getbondfromase(step_atoms, cell)
 
-        # Otherwise, use the original OpenBabel logic
         atomnumber = len(step_atoms)
-        # Use openbabel to connect atoms
-        mol = openbabel.OBMol()
-        mol.BeginModify()
-        for idx, (num, position) in enumerate(
-            zip(step_atoms.get_atomic_numbers(), step_atoms.positions)
+        if (
+            self.pbc
+            and atomnumber >= _OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS
+            and self._orthorhombic_cell_lengths(cell) is not None
         ):
-            a = mol.NewAtom(idx)
-            a.SetAtomicNum(int(num))
-            a.SetVector(*position)
-        # Apply period boundary conditions
-        # openbabel#1853, supported in v3.1.0
-        if self.pbc:
-            uc = openbabel.OBUnitCell()
-            uc.SetData(
-                openbabel.vector3(cell[0][0], cell[0][1], cell[0][2]),
-                openbabel.vector3(cell[1][0], cell[1][1], cell[1][2]),
-                openbabel.vector3(cell[2][0], cell[2][1], cell[2][2]),
-            )
-            mol.CloneData(uc)
-            mol.SetPeriodicMol()
-        mol.ConnectTheDots()
-        mol.PerceiveBondOrders()
-        mol.EndModify()
-        bond = [[] for i in range(atomnumber)]
-        bondlevel = [[] for i in range(atomnumber)]
-        for b in openbabel.OBMolBondIter(mol):
-            s1 = b.GetBeginAtom().GetId()
-            s2 = b.GetEndAtom().GetId()
-            level = b.GetBondOrder()
-            if level == 5:
-                # aromatic, 5 in openbabel but 12 in rdkit
-                level = 12
-            bond[s1].append(s2)
-            bond[s2].append(s1)
-            bondlevel[s1].append(level)
-            bondlevel[s2].append(level)
-        return bond, bondlevel
+            accelerated = self._getbondfromperiodicneighborlist(step_atoms, cell)
+            if accelerated is not None:
+                return accelerated
+        return self._getbondfromopenbabel(step_atoms, cell)
 
 
 @_Detect.register_subclass("dump")

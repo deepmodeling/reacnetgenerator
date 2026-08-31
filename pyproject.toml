@@ -48,6 +48,7 @@ dependencies = [
     "openbabel>=3.2.0",
     "rdkit",
     "packaging",
+    "scipy",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
