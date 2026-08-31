@@ -9,6 +9,7 @@ const {getFormula} = require("./formula.js");
 const {getReportDataUrl} = require("./url.js");
 const {clearGraph} = require("./graph.js");
 const {bindLatestChangeHandler} = require("./events.js");
+const {narrowSpecies} = require("./narrow.js");
 
 // CSS
 /// #if process.env.REACNETGENERATOR_BUILDWEB
@@ -330,6 +331,14 @@ function addnode(spec) {
   }
 }
 
+/**
+ * add node and narrow results when clicking on species
+ */
+function addnodeAndNarrow(spec) {
+  addnode(spec);
+  narrowSpecies(spec);
+}
+
 function storeSVG(spec, callback) {
   // load smiles svg
   if (spec in svgs) {
@@ -391,6 +400,8 @@ function SimpleLightbox(config) {}
 // define global
 window.$ = $;
 window.addnode = addnode;
+window.narrowSpecies = narrowSpecies;
+window.addnodeAndNarrow = addnodeAndNarrow;
 window.savesvg = savesvg;
 window.clearnode = clearnode;
 window.G = G;
