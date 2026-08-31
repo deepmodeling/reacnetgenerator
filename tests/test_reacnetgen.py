@@ -293,6 +293,35 @@ class TestReacNetGen:
 
         assert finder._getstepreaction(item) == ["A+B->C"]
 
+    def test_default_reaction_flow_uses_legacy_run_mp(self, tmp_path, monkeypatch):
+        """The default reaction path should not opt into bounded execution."""
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(tmp_path / "out.reactionevent.csv"),
+                printreactionevent=False,
+                nproc=1,
+            )
+        )
+        run_mp_kwargs = {}
+
+        def fake_run_mp(nproc, **kwargs):
+            run_mp_kwargs.update(kwargs)
+            return [["A+B->C"]]
+
+        monkeypatch.setattr("reacnetgenerator._reaction.run_mp", fake_run_mp)
+        finder.findreactions(
+            np.array([[1, 1, 2, 2], [3, 3, 3, 3]]),
+            np.zeros((2, 4), dtype=int),
+        )
+
+        assert run_mp_kwargs["unordered"] is True
+        assert "chunksize" not in run_mp_kwargs
+        assert "max_inflight" not in run_mp_kwargs
+        assert "disk_ordered" not in run_mp_kwargs
+
     def test_get_timestep_value(self):
         """Stored timestep metadata should normalize to the timestep value."""
         assert get_timestep_value((0, 100)) == 100

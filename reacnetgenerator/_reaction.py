@@ -5,6 +5,7 @@
 
 import csv
 from collections import Counter, defaultdict
+from typing import Any
 
 import numpy as np
 
@@ -59,6 +60,15 @@ class ReactionsFinder(SharedRNGData):
                 listtobytes(x)
                 for x in zip(atomeach[:-1], atomeach[1:], conflict[:-1], conflict[1:])
             )
+        ordered_kwargs: dict[str, Any] = (
+            {
+                "chunksize": 1,
+                "max_inflight": max(2, 2 * self.nproc),
+                "disk_ordered": True,
+            }
+            if self.printreactionevent
+            else {}
+        )
         results = run_mp(
             self.nproc,
             func=self._getstepreaction,
@@ -67,6 +77,7 @@ class ReactionsFinder(SharedRNGData):
             total=self.step - 1,
             desc="Analyze reactions (A+B->C+D)",
             unit="timestep",
+            **ordered_kwargs,
         )
         if self.printreactionevent:
             with open(self.reactioneventfilename, "w", newline="") as f_event:
