@@ -29,4 +29,7 @@ jobs:
     - run: yarn coverage
     - uses: codecov/codecov-action@v7
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        use_oidc: true
+permissions:
+  contents: read
+  id-token: write

@@ -6,6 +6,7 @@
 
 const {searchspecies, searchreaction} = require("./select.js");
 const {getFormula} = require("./formula.js");
+const {getReportDataUrl} = require("./url.js");
 const {clearGraph} = require("./graph.js");
 const {bindLatestChangeHandler} = require("./events.js");
 const {narrowSpecies} = require("./narrow.js");
@@ -22,7 +23,11 @@ global.$ = global.jQuery = require("jquery");
 global.regeneratorRuntime = require("regenerator-runtime");
 window.bootstrap = require("bootstrap");
 require("@popperjs/core");
-global.anime = window.anime = require("animejs");
+// Anime.js 4 exposes named functions instead of the v3 callable default.
+// Keep the global callable for the existing scroll handler and CDN build.
+const animeModule = require("animejs");
+const anime = animeModule.animate || animeModule;
+global.anime = window.anime = anime;
 require("jsrender");
 require("paginationjs");
 require("magnific-popup");
@@ -112,11 +117,10 @@ function loadrngdata() {
     return;
   }
   // read from url
-  const parsed = new URLSearchParams(location.search);
-  const jdata = parsed.get("jdata");
+  const jdata = getReportDataUrl(location.search);
   if (jdata) {
     $.get(
-        decodeURIComponent(jdata),
+        jdata,
         function(data) {
           if (!handlejsondata(data)) {
             addloadbutton();
@@ -204,11 +208,10 @@ function loadsection() {
       var target = $(this.hash);
       target = target.length ? target : $(`[name=${this.hash.slice(1)}]`);
       if (target.length) {
-        anime({
-          targets : "html, body",
+        anime("html, body", {
           scrollTop : target.offset().top - 72,
           duration : 1000,
-          easing : "easeInOutExpo",
+          easing : "inOutExpo",
         });
         return false;
       }

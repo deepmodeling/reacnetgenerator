@@ -640,6 +640,18 @@ class _Detectxyz(_DetectCrd):
 class _Detectextxyz(_DetectCrd):
     """extxyz file. xyz with extended metadata support like cell, force, etc."""
 
+    @staticmethod
+    def _parse_lattice(comment: str) -> np.ndarray:
+        """Parse the 3x3 lattice stored in an extxyz comment line."""
+        try:
+            lattice_str = comment.split("Lattice=", 1)[1].split('"', 2)[1]
+            lattice = np.array(list(map(float, lattice_str.split())))
+            return lattice.reshape((3, 3))
+        except (IndexError, ValueError) as exc:
+            raise RuntimeError(
+                "Missing or invalid Lattice= information in extxyz."
+            ) from exc
+
     def _readNfunc(self, f):
         atomname_dict = dict(zip(self.atomname.tolist(), range(self.atomname.size)))
         N = None
@@ -649,13 +661,7 @@ class _Detectextxyz(_DetectCrd):
                 N = int(line.strip())
                 atomtype = np.zeros(N, dtype=int)
             elif index == 1:
-                # Extract lattice (cell) from comment line
-                if "Lattice=" in line:
-                    lattice_str = line.split("Lattice=")[1].split('"')[1]
-                    lattice_floats = list(map(float, lattice_str.split()))
-                    self.cell = np.array(lattice_floats).reshape((3, 3))
-                else:
-                    raise RuntimeError("Missing Lattice= information in extxyz.")
+                self.cell = self._parse_lattice(line)
             elif (N is not None) and (index > N + 1):
                 break
             elif index > 1:
@@ -672,15 +678,19 @@ class _Detectextxyz(_DetectCrd):
         step, lines = item
         step_atoms = []
         timestep = step, step  # Use step as timestep fallback
-        boxsize = self.cell
-        if self.pbc and boxsize is None:
-            raise RuntimeError("No cell information is given in extxyz.")
+        boxsize = None
         for index, line in enumerate(lines):
-            if index > 1:
+            if index == 1:
+                # Extxyz trajectories may change their cell between frames,
+                # so bond detection must use this frame's metadata.
+                boxsize = self._parse_lattice(line)
+            elif index > 1:
                 s = line.split()
                 step_atoms.append(
                     (index - 1, Atom(s[0], tuple(float(x) for x in s[1:4])))
                 )
+        if boxsize is None:
+            raise RuntimeError("No cell information is given in extxyz.")
         _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
         step_atoms = Atoms(step_atoms)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
