@@ -265,6 +265,7 @@ class TestScipyClustering:
             inputfilename="dummy",
             atomname=["H", "O"],
             use_ase=True,
+            max_component_atoms=0,
         )
         return _DetectLAMMPSdump(rng)
 
