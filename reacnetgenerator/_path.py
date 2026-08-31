@@ -36,6 +36,11 @@ from rdkit import Chem
 from tqdm.auto import tqdm
 
 from ._reaction import ReactionsFinder
+from ._step3state import (
+    _AtomFrameStore,
+    _MoleculeNameBuilder,
+    _MoleculeNameTable,
+)
 from .utils import (
     SharedRNGData,
     WriteBuffer,
@@ -145,7 +150,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
     printmoleculetime: bool
     moleculeframes: list
     moleculetimesteps: list
-    mname: np.ndarray
+    mname: _MoleculeNameTable
     _moleculetimelinebufferrows: int = 10000
 
     def __init__(self, rng):
@@ -197,55 +202,73 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         """Collect paths."""
         self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
-        atomeach, conflict = self._getatomeach()
-        self.allmoleculeroute = self._printatomroute(atomeach)
-        if self.split > 1:
-            splittime = np.array_split(np.arange(self.step), self.split)
-            self.splitmoleculeroute = [
-                self._printatomroute(atomeach[:, st], timeaxis=i)
-                for i, st in enumerate(splittime)
-            ]
-        self.returnkeys()
-        ReactionsFinder(self.rng).findreactions(atomeach.T, conflict.T)
+        with self._getatomeach() as matrix_store:
+            atomeach = matrix_store.atomeach
+            self.allmoleculeroute = self._printatomroute(atomeach)
+            if self.split > 1:
+                splittime = np.array_split(np.arange(self.step), self.split)
+                self.splitmoleculeroute = [
+                    self._printatomroute(atomeach[:, st], timeaxis=i)
+                    for i, st in enumerate(splittime)
+                ]
+            self.returnkeys()
+            ReactionsFinder(self.rng).findreactions(
+                atomeach.T,
+                matrix_store.conflict.T,
+            )
 
     @abstractmethod
     def _printmoleculename(self):
         pass
 
     def _getatomeach(self):
-        """Values in atomeach starts from 1."""
-        atomeach = np.zeros((self.N, self.step), dtype=int)
-        conflict = np.zeros((self.N, self.step), dtype=int)
-        with (
-            open(self.hmmfilename if self.runHMM else self.originfilename, "rb") as fh,
-            open(self.moleculetemp2filename, "rb") as ft,
-        ):
-            for i, (linehz, linetz) in enumerate(
-                tqdm(
-                    zip(
-                        read_compressed_block(fh),
-                        itertools.zip_longest(*[read_compressed_block(ft)] * 4),
-                    ),
-                    total=self.hmmit,
-                    desc="Analyze atoms",
-                    unit="molecule",
-                    disable=None,
-                ),
-                start=1,
+        """Build compact atom-frame matrices; molecule IDs start from 1."""
+        store = _AtomFrameStore(
+            (self.N, self.step),
+            self.hmmit,
+            directory=os.path.dirname(os.path.abspath(self.atomroutefilename)),
+        )
+        try:
+            with (
+                open(
+                    self.hmmfilename if self.runHMM else self.originfilename,
+                    "rb",
+                ) as fh,
+                open(self.moleculetemp2filename, "rb") as ft,
             ):
-                lineh = bytestolist(linehz)
-                atom = np.array(bytestolist(linetz[0]))
-                index = np.where(lineh)[0]
-                if index.size:
-                    # ``np.nonzero`` reports coordinates relative to this sliced
-                    # molecule/timestep grid. Map them back to the full atom and
-                    # timestep axes before recording conflicts.
-                    conflict_atom, conflict_step = np.nonzero(
-                        atomeach[atom[:, None], index]
-                    )
-                    conflict[atom[conflict_atom], index[conflict_step]] = 1
-                    atomeach[atom[:, None], index] = i
-        return atomeach, conflict
+                for molecule_id, (linehz, linetz) in enumerate(
+                    tqdm(
+                        zip(
+                            read_compressed_block(fh),
+                            itertools.zip_longest(*[read_compressed_block(ft)] * 4),
+                            strict=True,
+                        ),
+                        total=self.hmmit,
+                        desc="Analyze atoms",
+                        unit="molecule",
+                        disable=None,
+                    ),
+                    start=1,
+                ):
+                    if molecule_id > self.hmmit:
+                        raise RuntimeError(
+                            "More molecule records than the declared count"
+                        )
+                    lineh = bytestolist(linehz)
+                    atoms = np.asarray(bytestolist(linetz[0]), dtype=np.int64)
+                    frames = np.flatnonzero(lineh)
+                    if frames.size:
+                        overlap = np.not_equal(
+                            store.atomeach[atoms[:, None], frames],
+                            0,
+                        )
+                        store.conflict.mark(atoms, frames, overlap)
+                        store.atomeach[atoms[:, None], frames] = molecule_id
+            store.flush()
+            return store
+        except BaseException:
+            store.close()
+            raise
 
     def _getatomroute(self, item):
         i, (atomeachi, atomtypei) = item
@@ -485,7 +508,7 @@ class _CollectMolPaths(_CollectPaths):
     """
 
     def _printmoleculename(self):
-        mname = []
+        mname = _MoleculeNameBuilder(self.hmmit)
         d = defaultdict(list)
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         # idx for unknown SMILES
@@ -533,12 +556,12 @@ class _CollectMolPaths(_CollectPaths):
         finally:
             if timeline is not None:
                 timeline.close()
-        self.mname = np.array(mname)
+        self.mname = mname.finish()
 
 
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
-        mname = []
+        mname = _MoleculeNameBuilder(self.hmmit)
         d = defaultdict(list)
         name_mapping = {}
         name_mapping_graph = defaultdict(dict)
@@ -612,7 +635,7 @@ class _CollectSMILESPaths(_CollectPaths):
         finally:
             if timeline is not None:
                 timeline.close()
-        self.mname = np.array(mname)
+        self.mname = mname.finish()
 
     def _calmoleculeSMILESname(self, item):
         line = item
