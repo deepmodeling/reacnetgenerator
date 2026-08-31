@@ -20,6 +20,7 @@ from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
 from reacnetgenerator._path import _CollectSMILESPaths, _MoleculeTimelineSpool
 from reacnetgenerator._reaction import ReactionsFinder
+from reacnetgenerator._step3state import _AtomFrameStore
 from reacnetgenerator.commandline import parm2cmd
 from reacnetgenerator.gui import GUI
 from reacnetgenerator.utils import (
@@ -207,14 +208,24 @@ class TestReacNetGen:
         collector.moleculetemp2filename = str(molecule_file)
         collector.hmmit = 2
 
-        atomeach, conflict = collector._getatomeach()
+        store = collector._getatomeach()
+        atomeach_path = store.atomeach_path
+        conflict_path = store.conflict.path
+        try:
+            expected_atomeach = np.zeros((5, 5), dtype=np.uint8)
+            expected_atomeach[2, 3] = 2
+            expected_conflict = np.zeros((5, 5), dtype=np.bool_)
+            expected_conflict[2, 3] = True
+            assert isinstance(store.atomeach, np.memmap)
+            assert store.atomeach.dtype == np.dtype(np.uint8)
+            assert store.conflict.nbytes == 5
+            np.testing.assert_array_equal(store.atomeach, expected_atomeach)
+            np.testing.assert_array_equal(store.conflict, expected_conflict)
+        finally:
+            store.close()
 
-        expected_atomeach = np.zeros((5, 5), dtype=int)
-        expected_atomeach[2, 3] = 2
-        expected_conflict = np.zeros((5, 5), dtype=int)
-        expected_conflict[2, 3] = 1
-        np.testing.assert_array_equal(atomeach, expected_atomeach)
-        np.testing.assert_array_equal(conflict, expected_conflict)
+        assert not os.path.exists(atomeach_path)
+        assert not os.path.exists(conflict_path)
 
     def test_reaction_event_details(self, tmp_path):
         """Single reaction events should expose time-resolved CSV fields."""
@@ -264,6 +275,36 @@ class TestReacNetGen:
             np.array([[1, 1, 2, 2], [3, 3, 3, 3]]),
             np.zeros((2, 4), dtype=int),
         )
+
+        assert event_file.read_text().splitlines() == [
+            "Timestep_Index,Reactant,Product",
+            "0,A+B,C",
+        ]
+
+    def test_reaction_event_accepts_compact_frame_store(self, tmp_path):
+        """Packed conflict columns should preserve ordered reaction events."""
+        event_file = tmp_path / "out.reactionevent.csv"
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=2,
+                mname=np.array(["A", "B", "C"]),
+                reactionabcdfilename=str(tmp_path / "out.reactionabcd"),
+                reactioneventfilename=str(event_file),
+                printreactionevent=True,
+                nproc=1,
+            )
+        )
+        with _AtomFrameStore((4, 2), 3, directory=tmp_path) as store:
+            store.atomeach[:] = np.array(
+                [
+                    [1, 3],
+                    [1, 3],
+                    [2, 3],
+                    [2, 3],
+                ]
+            )
+            store.flush()
+            finder.findreactions(store.atomeach.T, store.conflict.T)
 
         assert event_file.read_text().splitlines() == [
             "Timestep_Index,Reactant,Product",
