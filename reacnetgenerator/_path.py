@@ -214,8 +214,8 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _getatomeach(self):
         """Values in atomeach starts from 1."""
-        atomeach = np.zeros((self.N, self.step), dtype=int)
-        conflict = np.zeros((self.N, self.step), dtype=int)
+        atomeach = np.zeros((self.N, self.step), dtype=np.int32)
+        conflict = np.zeros((self.N, self.step), dtype=np.bool_)
         with (
             open(self.hmmfilename if self.runHMM else self.originfilename, "rb") as fh,
             open(self.moleculetemp2filename, "rb") as ft,
@@ -533,7 +533,7 @@ class _CollectMolPaths(_CollectPaths):
         finally:
             if timeline is not None:
                 timeline.close()
-        self.mname = np.array(mname)
+        self.mname = np.asarray(mname, dtype=object)
 
 
 class _CollectSMILESPaths(_CollectPaths):
@@ -612,7 +612,7 @@ class _CollectSMILESPaths(_CollectPaths):
         finally:
             if timeline is not None:
                 timeline.close()
-        self.mname = np.array(mname)
+        self.mname = np.asarray(mname, dtype=object)
 
     def _calmoleculeSMILESname(self, item):
         line = item

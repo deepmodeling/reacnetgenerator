@@ -100,6 +100,13 @@ class ReacNetGenerator:
     nproc: int, optional, default: None
         The number of processors used for analysis. If None (default), the program will try to use
         all processors.
+    max_component_atoms: int, optional, default: 256
+        Minimum atom-count limit for a connected component. The effective limit is the larger of
+        this value and ``ceil(total_atoms * max_component_fraction)``. Set to 0 to disable the
+        connected-component guard.
+    max_component_fraction: float, optional, default: 0.1
+        Fractional connected-component limit in the interval [0, 1]. Set to 0 to use only
+        ``max_component_atoms``.
     selectatoms: str, optional, default: None
         Select an element from the atomic names, such as `C`, and only show species with this
         element in the reaction network. If None (default), the network will show all elements.
@@ -184,6 +191,8 @@ class ReacNetGenerator:
             "use_ase": False,
             "ase_cutoff_mult": 1.2,
             "custom_cutoffs": None,
+            "max_component_atoms": 256,
+            "max_component_fraction": 0.1,
         }
         none_key = [
             "selectatoms",
@@ -249,6 +258,22 @@ class ReacNetGenerator:
             kwargs.setdefault(kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
         for kk in nparray_key:
             kwargs[kk] = np.array(kwargs[kk])
+        max_component_atoms = kwargs["max_component_atoms"]
+        if isinstance(max_component_atoms, (bool, np.bool_)) or not isinstance(
+            max_component_atoms, (int, np.integer)
+        ):
+            raise ValueError("max_component_atoms must be a non-negative integer")
+        if max_component_atoms < 0:
+            raise ValueError("max_component_atoms must be a non-negative integer")
+        kwargs["max_component_atoms"] = int(max_component_atoms)
+        max_component_fraction = kwargs["max_component_fraction"]
+        if isinstance(max_component_fraction, (bool, np.bool_)) or not isinstance(
+            max_component_fraction, (int, float, np.integer, np.floating)
+        ):
+            raise ValueError("max_component_fraction must be between 0 and 1")
+        if not 0 <= max_component_fraction <= 1:
+            raise ValueError("max_component_fraction must be between 0 and 1")
+        kwargs["max_component_fraction"] = float(max_component_fraction)
         for kk in ("moleculeframes", "moleculetimesteps"):
             kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
         if (
