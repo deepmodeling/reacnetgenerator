@@ -206,7 +206,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         )
         if not mols:
             return
-        largest = max(mols, key=lambda component: len(component))
+        largest = max(mols, key=list.__len__)
         if len(largest) <= limit:
             return
 
