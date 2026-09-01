@@ -204,7 +204,9 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             self.max_component_atoms,
             int(np.ceil(self.N * self.max_component_fraction)),
         )
-        largest = max(mols, key=len, default=())
+        if not mols:
+            return
+        largest = max(mols, key=lambda component: len(component))
         if len(largest) <= limit:
             return
 
