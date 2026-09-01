@@ -72,6 +72,8 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     cell: np.ndarray
     max_component_atoms: int
     max_component_fraction: float
+    N: int
+    atomtype: np.ndarray
 
     def __init__(self, rng):
         SharedRNGData.__init__(
@@ -193,7 +195,9 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         pass
 
-    def _validate_component_sizes(self, mols, frame=None, timestep=None):
+    def _validate_component_sizes(
+        self, mols: list[list[int]], frame=None, timestep=None
+    ):
         if self.max_component_atoms == 0:
             return
         limit = max(
@@ -214,7 +218,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         if timestep is not None:
             location += f" (timestep {timestep})"
 
-        if hasattr(self, "use_ase"):
+        if isinstance(self, _DetectCrd):
             if self.use_ase:
                 backend = "ASE"
                 cutoffs = self.custom_cutoffs or "none"
