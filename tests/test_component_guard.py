@@ -127,6 +127,13 @@ def test_zero_atom_limit_disables_guard():
     detector._connectmolecule(bond, level, frame=0, timestep=0)
 
 
+def test_empty_component_list_is_allowed():
+    """Allow an empty component collection without raising an error."""
+    detector = make_detector(max_component_fraction=0)
+
+    detector._validate_component_sizes([], frame=0, timestep=0)
+
+
 @pytest.mark.parametrize(
     ("key", "value", "message"),
     [
