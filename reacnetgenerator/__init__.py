@@ -37,4 +37,56 @@ class ReacNetGenerator:
 if TYPE_CHECKING:
     from .reacnetgen import ReacNetGenerator
 
-__all__ = ["ReacNetGenerator", "__version__"]
+def run(
+    *,
+    input_path,
+    output_dir,
+    input_type,
+    atomname,
+    items=("species", "reactions", "network", "report"),
+    **kwargs,
+):
+    """Run ReacNetGenerator and return semantic artifact paths.
+
+    Parameters
+    ----------
+    input_path : str or pathlib.Path or sequence
+        Input trajectory or bond file(s).
+    output_dir : str or pathlib.Path
+        Directory receiving all default-generated artifacts.
+    input_type : str
+        ReacNetGenerator input type, such as "dump" or "bond".
+    atomname : sequence of str
+        Element names in the input trajectory.
+    items : sequence of str, optional
+        Requested stages. "species" and "reactions" are produced by
+        the core run; "network" and "report" control the optional
+        drawing/report stages.
+    **kwargs
+        Additional arguments forwarded to ReacNetGenerator.
+    """
+    if isinstance(items, str):
+        items = (items,)
+    requested = set(items)
+    allowed = {"species", "reactions", "network", "report"}
+    unknown = requested - allowed
+    if unknown:
+        raise ValueError(f"Unsupported output items: {sorted(unknown)}")
+    if not requested:
+        raise ValueError("items must contain at least one output stage")
+
+    generator = ReacNetGenerator(
+        inputfilename=input_path,
+        output_dir=output_dir,
+        inputfiletype=input_type,
+        atomname=atomname,
+        **kwargs,
+    )
+    return generator.runanddraw(
+        run=True,
+        draw="network" in requested,
+        report="report" in requested,
+    )
+
+
+__all__ = ["ReacNetGenerator", "__version__", "run"]
