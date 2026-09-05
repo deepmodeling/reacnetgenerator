@@ -37,6 +37,7 @@ class ReacNetGenerator:
 if TYPE_CHECKING:
     from .reacnetgen import ReacNetGenerator
 
+
 def run(
     *,
     input_path,

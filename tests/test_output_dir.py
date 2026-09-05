@@ -81,4 +81,6 @@ def test_run_wrapper_returns_artifacts_without_running(tmp_path, monkeypatch):
         atomname=["H"],
         items=("species", "network"),
     )
-    assert artifacts["report"].endswith("/html") or artifacts["report"].endswith("\\html")
+    assert artifacts["report"].endswith("/html") or artifacts["report"].endswith(
+        "\\html"
+    )
