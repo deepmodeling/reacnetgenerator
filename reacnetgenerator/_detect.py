@@ -158,6 +158,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 self.nproc,
                 func=self._readstepfunc,
                 l=f,
+                max_inflight=max(1, self.nproc * 2),
                 nlines=_steplinenum,
                 return_num=True,
                 interval=self.stepinterval,

@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Test oversized connected-component protection."""
 
+import concurrent.futures
+
 import numpy as np
 import pytest
 from ase import Atoms
@@ -43,6 +45,51 @@ def chain_graph(atom_count, component_size):
         level[atom].append(1)
         level[atom + 1].append(1)
     return bond, level
+
+
+def write_bond_trajectory(path, frame_count=151, atom_count=300, component_size=257):
+    """Write a multi-batch explicit-bond trajectory with one oversized chain."""
+    with path.open("w", encoding="utf-8") as handle:
+        for frame in range(frame_count):
+            handle.write(
+                f"# Timestep {frame}\n"
+                "#\n"
+                f"# Number of particles {atom_count}\n"
+                "#\n"
+                "# Max number of bonds per atom 2 with coarse bond order cutoff 0.300\n"
+                "# Particle connection table and bond orders\n"
+                "# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q\n"
+            )
+            for atom in range(atom_count):
+                neighbors = []
+                if atom < component_size:
+                    if atom > 0:
+                        neighbors.append(atom)
+                    if atom < component_size - 1:
+                        neighbors.append(atom + 2)
+                fields = [
+                    str(atom + 1),
+                    "1",
+                    str(len(neighbors)),
+                    *(str(neighbor) for neighbor in neighbors),
+                    "0",
+                    *("1.0" for _ in neighbors),
+                    "1.0",
+                    "0.0",
+                    "0.0",
+                ]
+                handle.write(" ".join(fields) + "\n")
+
+
+def detect_bond_trajectory(path):
+    """Run detection in a subprocess so the regression has a hard timeout."""
+    rng = ReacNetGenerator(
+        inputfiletype="lammpsbondfile",
+        inputfilename=path,
+        atomname=["H"],
+        nproc=1,
+    )
+    _DetectLAMMPSbond(rng).detect()
 
 
 def test_default_component_limits():
@@ -245,6 +292,17 @@ ITEM: ATOMS id type x y z
     with pytest.raises(RuntimeError, match=r"frame 0 \(timestep 50\)"):
         detector.detect()
     assert detector.moleculetempfilename is None
+
+
+def test_multibatch_guard_error_reaches_caller_without_hanging(tmp_path):
+    """Propagate a worker guard failure after more than one legacy input batch."""
+    trajectory = tmp_path / "oversized.bond"
+    write_bond_trajectory(trajectory)
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(detect_bond_trajectory, trajectory)
+        with pytest.raises(RuntimeError, match=r"frame 0 \(timestep 0\)"):
+            future.result(timeout=10)
 
 
 def test_ase_pair_cutoff_can_remove_oversized_component():
