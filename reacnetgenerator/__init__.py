@@ -41,9 +41,9 @@ if TYPE_CHECKING:
 def run(
     *,
     input_path,
-    output_dir,
     input_type,
     atomname,
+    output_dir=None,
     items=("species", "reactions", "network", "report"),
     **kwargs,
 ):
@@ -85,7 +85,7 @@ def run(
     )
     return generator.runanddraw(
         run=True,
-        draw="network" in requested,
+        draw="network" in requested or "report" in requested,
         report="report" in requested,
     )
 
