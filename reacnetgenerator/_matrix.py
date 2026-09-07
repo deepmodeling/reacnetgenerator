@@ -71,8 +71,7 @@ class _GenerateMatrix(SharedRNGData):
         names = self.mname[allmoleculeroute - 1]
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
-            equations = np.unique(names, return_counts=True, axis=0)
-            return zip(equations[0].tolist(), equations[1].tolist())
+            return Counter(map(tuple, names)).items()
         return []
 
     def _printtable(self, allroute, timeaxis=None):

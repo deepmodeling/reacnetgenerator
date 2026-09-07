@@ -25,3 +25,24 @@ reacnetgenerator -h
 ```
 
 See [here](cli.md) for the usage of the command line.
+
+## Oversized connected components
+
+ReacNetGenerator stops before molecule naming when a connected component is
+larger than both 256 atoms and 10% of the analyzed system. Large components can
+be physically meaningful, but they can also indicate that a coordinate-based
+bond detector has interpreted non-covalent contacts as bonds. Continuing with
+an unintended system-spanning graph can produce extremely large molecule names
+and reaction-path output.
+
+For coordinate trajectories, ASE provides explicit control over element-pair
+cutoffs:
+
+```bash
+reacnetgenerator --type dump -i trajectory.dump -a Na Cl --use-ase \
+    --ase-pair-cutoffs Na-Cl:0
+```
+
+Use `--max-component-atoms` and `--max-component-fraction` to adjust the limits.
+Set `--max-component-atoms 0` to disable the guard when a large covalent
+component is intentional.
