@@ -95,7 +95,7 @@ class _MoleculeNameBuilder:
         """Return the completed compact table."""
         if self._count != len(self.ids):
             raise RuntimeError("Fewer molecule names than the declared count")
-        names = np.asarray(self.names, dtype=str)
+        names = np.asarray(self.names, dtype=object)
         target_dtype = _unsigned_dtype_for_maximum(max(0, len(names) - 1))
         ids = (
             self.ids

@@ -45,6 +45,7 @@ def test_molecule_name_builder_deduplicates_species():
     table = builder.finish()
 
     assert table.ids.dtype == np.dtype(np.uint8)
+    assert table.names.dtype == np.dtype(object)
     assert table.ids.tolist() == [0, 1, 0, 2]
     assert table.names.tolist() == ["A", "B", "C"]
     assert list(table) == ["A", "B", "A", "C"]
