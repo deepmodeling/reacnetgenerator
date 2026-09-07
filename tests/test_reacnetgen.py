@@ -18,6 +18,7 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
 from reacnetgenerator._hmmfilter import _HMMFilter
+from reacnetgenerator._matrix import _GenerateMatrix
 from reacnetgenerator._path import _CollectSMILESPaths, _MoleculeTimelineSpool
 from reacnetgenerator._reaction import ReactionsFinder
 from reacnetgenerator._step3state import _AtomFrameStore
@@ -258,6 +259,14 @@ class TestReacNetGen:
 
         assert not list(tmp_path.glob("reacnetgenerator-*.mmap"))
 
+    def test_object_molecule_names_support_reaction_matrix(self):
+        """Variable-length names should retain reaction-route counts."""
+        matrix = object.__new__(_GenerateMatrix)
+        matrix.mname = np.asarray(["A", "B", "C"], dtype=object)
+        routes = np.array([[1, 2], [1, 2], [2, 3], [3, 3]])
+
+        assert dict(matrix._getallroute(routes)) == {("A", "B"): 2, ("B", "C"): 1}
+
     def test_reaction_event_details(self, tmp_path):
         """Single reaction events should expose time-resolved CSV fields."""
         finder = ReactionsFinder(
@@ -311,6 +320,7 @@ class TestReacNetGen:
             "Timestep_Index,Reactant,Product",
             "0,A+B,C",
         ]
+        assert (tmp_path / "out.reactionabcd").read_text().splitlines() == ["1 A+B->C"]
 
     def test_reaction_event_accepts_compact_frame_store(self, tmp_path):
         """Packed conflict columns should preserve ordered reaction events."""

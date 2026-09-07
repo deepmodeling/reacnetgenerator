@@ -20,6 +20,20 @@ def _to_command_values(value):
         return [value]
 
 
+def _nonnegative_int(value):
+    value = int(value)
+    if value < 0:
+        raise argparse.ArgumentTypeError("must be a non-negative integer")
+    return value
+
+
+def _fraction(value):
+    value = float(value)
+    if not 0 <= value <= 1:
+        raise argparse.ArgumentTypeError("must be between 0 and 1")
+    return value
+
+
 def main_parser() -> argparse.ArgumentParser:
     """Return main parser.
 
@@ -102,6 +116,18 @@ def main_parser() -> argparse.ArgumentParser:
         help="Custom cutoffs for specific element pairs in the format 'El1-El2:dist,El3-El4:dist'",
         type=str,
         default=None,
+    )
+    parser.add_argument(
+        "--max-component-atoms",
+        help="Minimum atom-count limit for oversized connected components; 0 disables the guard",
+        type=_nonnegative_int,
+        default=256,
+    )
+    parser.add_argument(
+        "--max-component-fraction",
+        help="Fractional limit for oversized connected components; 0 uses only the atom limit",
+        type=_fraction,
+        default=0.1,
     )
     parser.add_argument("--nopbc", help="Disable PBC.", action="store_true")
     parser.add_argument(
@@ -248,6 +274,8 @@ def _commandline():
         use_ase=args.use_ase,
         ase_cutoff_mult=args.ase_cutoff_mult,
         custom_cutoffs=args.ase_pair_cutoffs,
+        max_component_atoms=args.max_component_atoms,
+        max_component_fraction=args.max_component_fraction,
         printmoleculetime=args.show_molecule_time,
         moleculeframes=args.moleculeframes,
         moleculetimesteps=args.moleculetimesteps,
@@ -327,6 +355,14 @@ def parm2cmd(pp: dict) -> list[str]:
         commands.extend(("--ase-cutoff-mult", str(pp["ase_cutoff_mult"])))
     if pp.get("custom_cutoffs", None):
         commands.extend(("--ase-pair-cutoffs", str(pp["custom_cutoffs"])))
+    component_options = (
+        ("max_component_atoms", "--max-component-atoms", 256),
+        ("max_component_fraction", "--max-component-fraction", 0.1),
+    )
+    for key, option, default in component_options:
+        value = pp.get(key)
+        if value is not None and value != default:
+            commands.extend((option, str(value)))
     if pp.get("items", None):
         items = pp["items"]
         if isinstance(items, (list, tuple)):
