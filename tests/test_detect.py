@@ -360,6 +360,29 @@ class TestPeriodicOpenBabelCandidates:
 
         self._assert_matches_reference(detect_instance, atoms, cell)
 
+    def test_benchmark_large_periodic_frame(self, detect_instance, benchmark):
+        """Benchmark real periodic dispatch after verifying molecule equivalence."""
+        random = np.random.default_rng(2026)
+        cell = np.eye(3) * 40.0
+        atoms = Atoms(
+            numbers=random.choice([1, 6, 7, 8], size=2048),
+            positions=random.uniform(0.0, 40.0, size=(2048, 3)),
+            cell=cell,
+            pbc=True,
+        )
+
+        assert len(atoms) >= detect_module._OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS
+        assert detect_instance._getperiodicbondcandidates(atoms, cell) is not None
+        reference = detect_instance._getbondfromopenbabel(atoms, cell)
+        result = detect_instance._getbondfromcrd(atoms, cell)
+        assert self._molecule_records(
+            detect_instance, result
+        ) == self._molecule_records(detect_instance, reference)
+
+        @benchmark
+        def bench():
+            return detect_instance._getbondfromcrd(atoms, cell)
+
     @pytest.mark.parametrize(
         ("atoms", "cell"),
         [
