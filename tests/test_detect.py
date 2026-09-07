@@ -125,6 +125,7 @@ class TestPeriodicOpenBabelCandidates:
             atomname=["H", "C", "N", "O", "F", "P", "Cl"],
             pbc=True,
             use_ase=False,
+            max_component_atoms=0,
         )
         return _DetectLAMMPSdump(rng)
 
@@ -143,6 +144,32 @@ class TestPeriodicOpenBabelCandidates:
             detect_instance, accelerated
         ) == self._molecule_records(detect_instance, reference)
         return accelerated
+
+    @staticmethod
+    def _pad_to_acceleration_threshold(atoms, cell):
+        """Add isolated atoms with unique z values up to the dispatch threshold."""
+        padding_count = detect_module._OPENBABEL_PERIODIC_NEIGHBOR_MIN_ATOMS - len(
+            atoms
+        )
+        padding_indices = np.arange(padding_count)
+        grid_width = 13
+        padding_positions = np.column_stack(
+            (
+                100.0 + 5.0 * (padding_indices % grid_width),
+                100.0 + 5.0 * ((padding_indices // grid_width) % grid_width),
+                100.0
+                + 5.0 * (padding_indices // grid_width**2)
+                + 1e-6 * padding_indices,
+            )
+        )
+        return Atoms(
+            numbers=np.concatenate(
+                (atoms.get_atomic_numbers(), np.ones(padding_count, dtype=int))
+            ),
+            positions=np.vstack((atoms.positions, padding_positions)),
+            cell=cell,
+            pbc=True,
+        )
 
     def test_matches_reference_across_periodic_boundary(self, detect_instance):
         """Find neighbors on opposite faces without changing molecule records."""
@@ -186,8 +213,8 @@ class TestPeriodicOpenBabelCandidates:
 
         self._assert_matches_reference(detect_instance, atoms, cell)
 
-    def test_matches_reference_for_equal_z_coordinates(self, detect_instance):
-        """Keep rounded equal-z coordinates on the accelerated path."""
+    def test_falls_back_for_equal_z_coordinates(self, detect_instance):
+        """Leave backend-dependent equal-z insertion order to Open Babel."""
         cell = np.eye(3) * 12.0
         atoms = Atoms(
             "CHHHHH",
@@ -205,7 +232,85 @@ class TestPeriodicOpenBabelCandidates:
             pbc=True,
         )
 
-        self._assert_matches_reference(detect_instance, atoms, cell)
+        assert detect_instance._getbondfromperiodicneighborlist(atoms, cell) is None
+
+    def test_large_equal_z_frame_matches_reference_through_fallback(
+        self,
+        detect_instance,
+    ):
+        """Preserve backend connectivity when a large frame contains z ties."""
+        cell = np.eye(3) * 200.0
+        angles = np.arange(6) * np.pi / 3.0
+        positions = np.concatenate(
+            (
+                [[20.0, 20.0, 20.0]],
+                np.column_stack(
+                    (
+                        20.0 + 1.6 * np.cos(angles),
+                        20.0 + 1.6 * np.sin(angles),
+                        np.full(6, 20.0),
+                    )
+                ),
+            )
+        )
+        atoms = self._pad_to_acceleration_threshold(
+            Atoms("PFFFFFH", positions=positions),
+            cell,
+        )
+
+        reference = detect_instance._getbondfromopenbabel(atoms, cell)
+        result = detect_instance._getbondfromcrd(atoms, cell)
+
+        assert detect_instance._getperiodicbondcandidates(atoms, cell) is None
+        assert self._molecule_records(
+            detect_instance, result
+        ) == self._molecule_records(detect_instance, reference)
+
+    def test_large_frame_with_zero_valence_atom_matches_reference(
+        self,
+        detect_instance,
+    ):
+        """Do not let a temporary argon bond remove a valid hydrogen bond."""
+        cell = np.eye(3) * 200.0
+        atoms = self._pad_to_acceleration_threshold(
+            Atoms(
+                "HHAr",
+                positions=[
+                    [20.0, 20.0, 20.000],
+                    [20.0, 20.0, 20.740],
+                    [20.0, 20.0, 18.300],
+                ],
+            ),
+            cell,
+        )
+
+        accelerated = self._assert_matches_reference(detect_instance, atoms, cell)
+        assert 1 in accelerated[0][0]
+
+    def test_large_frame_with_rounded_upper_boundary_falls_back(
+        self,
+        detect_instance,
+    ):
+        """Fall back when modulo rounding reaches cKDTree's excluded upper edge."""
+        cell = np.eye(3) * 200.0
+        atoms = self._pad_to_acceleration_threshold(
+            Atoms(
+                "HH",
+                positions=[
+                    [-1e-16, 20.0, 20.000],
+                    [0.74, 20.0, 20.001],
+                ],
+            ),
+            cell,
+        )
+
+        reference = detect_instance._getbondfromopenbabel(atoms, cell)
+        result = detect_instance._getbondfromcrd(atoms, cell)
+
+        assert detect_instance._getperiodicbondcandidates(atoms, cell) is None
+        assert self._molecule_records(
+            detect_instance, result
+        ) == self._molecule_records(detect_instance, reference)
 
     def test_matches_reference_for_phosphorus_sixth_bond_rule(
         self,

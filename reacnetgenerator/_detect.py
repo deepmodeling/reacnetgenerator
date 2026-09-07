@@ -491,7 +491,7 @@ class _DetectCrd(_Detect):
         mol = openbabel.OBMol()
         mol.BeginModify()
         for idx, (num, position) in enumerate(
-            zip(step_atoms.get_atomic_numbers(), step_atoms.positions)
+            zip(step_atoms.get_atomic_numbers(), step_atoms.positions, strict=True)
         ):
             atom = mol.NewAtom(idx)
             atom.SetAtomicNum(int(num))
@@ -593,11 +593,17 @@ class _DetectCrd(_Detect):
             return None
 
         z_order = np.argsort(positions[:, 2], kind="stable")
-        # Open Babel compares only z and leaves equal-z ordering to the C++
-        # standard library. Use atom ID as a stable tie-breaker so rounded
-        # trajectory coordinates behave deterministically across platforms.
+        # Open Babel leaves equal-z ordering to the C++ standard library, and
+        # bond insertion order can affect its later connectivity cleanup.
+        sorted_z = positions[z_order, 2]
+        if np.any(sorted_z[1:] == sorted_z[:-1]):
+            return None
 
         wrapped_positions = np.mod(positions, cell_lengths)
+        # Floating-point modulo can round a tiny negative coordinate to the
+        # excluded upper edge of cKDTree's periodic box.
+        if np.any(wrapped_positions >= cell_lengths):
+            return None
         candidate_pairs = cKDTree(
             wrapped_positions,
             boxsize=cell_lengths,
@@ -644,9 +650,14 @@ class _DetectCrd(_Detect):
     @staticmethod
     def _add_openbabel_candidate_bonds(mol, first_atoms, second_atoms):
         """Insert candidates and preserve Open Babel's connectivity cleanup."""
-        for atom_index, neighbor_index in zip(first_atoms, second_atoms):
+        for atom_index, neighbor_index in zip(first_atoms, second_atoms, strict=True):
             atom = mol.GetAtom(int(atom_index) + 1)
             neighbor = mol.GetAtom(int(neighbor_index) + 1)
+            if (
+                openbabel.GetMaxBonds(atom.GetAtomicNum()) == 0
+                or openbabel.GetMaxBonds(neighbor.GetAtomicNum()) == 0
+            ):
+                continue
             if atom.GetAtomicNum() == 15 and atom.GetExplicitValence() == 5:
                 if neighbor.GetAtomicNum() not in (9, 17):
                     continue
