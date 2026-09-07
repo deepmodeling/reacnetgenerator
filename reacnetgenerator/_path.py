@@ -223,11 +223,15 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _getatomeach(self):
         """Build compact atom-frame matrices; molecule IDs start from 1."""
-        store = _AtomFrameStore(
-            (self.N, self.step),
-            self.hmmit,
-            directory=os.path.dirname(os.path.abspath(self.atomroutefilename)),
-        )
+        try:
+            store = _AtomFrameStore(
+                (self.N, self.step),
+                self.hmmit,
+                directory=os.path.dirname(os.path.abspath(self.atomroutefilename)),
+            )
+        except PermissionError:
+            # Writable outputs such as /dev/null can have unwritable parents.
+            store = _AtomFrameStore((self.N, self.step), self.hmmit)
         try:
             with (
                 open(
