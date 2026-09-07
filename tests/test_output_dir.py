@@ -70,6 +70,17 @@ def test_run_rejects_unknown_items(tmp_path):
         )
 
 
+def test_run_rejects_empty_items():
+    """Reject an empty semantic output request."""
+    with pytest.raises(ValueError, match="at least one output stage"):
+        run(
+            input_path="trajectory.dump",
+            input_type="dump",
+            atomname=["H"],
+            items=(),
+        )
+
+
 def test_run_wrapper_returns_artifacts_without_running(tmp_path, monkeypatch):
     """Return the generator artifact mapping from the run convenience API."""
 

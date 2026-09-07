@@ -143,7 +143,18 @@ class ReacNetGenerator:
     moleculetemp2filename: str
     originfilename: str
     hmmfilename: str
+    # Output paths are populated from normalized constructor kwargs.
+    moleculefilename: str
+    moleculetimelinefilename: str
+    atomroutefilename: str
+    reactionfilename: str
+    tablefilename: str
+    imagefilename: str
+    speciesfilename: str
     resultfilename: str
+    jsonfilename: str
+    reactionabcdfilename: str
+    reactioneventfilename: str
 
     def __init__(self, **kwargs: Any) -> None:
         """Init ReacNetGenerator."""

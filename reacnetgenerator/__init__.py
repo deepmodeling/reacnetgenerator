@@ -76,7 +76,9 @@ def run(
     if not requested:
         raise ValueError("items must contain at least one output stage")
 
-    generator = ReacNetGenerator(
+    from .reacnetgen import ReacNetGenerator as RealRNG
+
+    generator = RealRNG(
         inputfilename=input_path,
         output_dir=output_dir,
         inputfiletype=input_type,
