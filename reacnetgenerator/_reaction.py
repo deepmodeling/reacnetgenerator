@@ -5,6 +5,7 @@
 
 import csv
 from collections import Counter, defaultdict
+from contextlib import nullcontext
 from itertools import islice
 from multiprocessing.util import Finalize
 from typing import Any
@@ -95,8 +96,24 @@ class ReactionsFinder(SharedRNGData):
             [],
         )
 
-    def findreactions(self, atomeach, conflict, *, matrix_store=None):
+    def findreactions(
+        self, atomeach, conflict, *, matrix_store=None, timed_writer=None
+    ):
         """Analyze indexed shared state, or accept the legacy array inputs."""
+        self._timed_writer = timed_writer
+        self._csv_events = self.printreactionevent
+        # Request indexed events from workers, but retain the user's independent
+        # CSV choice. Only the parent owns the HDF5 writer.
+        if timed_writer is not None:
+            self.printreactionevent = True
+        try:
+            self._findreactions(atomeach, conflict, matrix_store=matrix_store)
+        finally:
+            self.printreactionevent = self._csv_events
+            self._timed_writer = None
+
+    def _findreactions(self, atomeach, conflict, *, matrix_store):
+        """Dispatch without transferring the parent-only writer to workers."""
         if matrix_store is not None:
             total = matrix_store.active_transition_count
             indices = matrix_store.iter_active_transitions()
@@ -158,9 +175,12 @@ class ReactionsFinder(SharedRNGData):
             if self.printreactionevent
             else {}
         )
+        worker = object.__new__(ReactionsFinder)
+        worker.mname = self.mname
+        worker.printreactionevent = self.printreactionevent
         results = run_mp(
             self.nproc,
-            func=self._getstepreaction,
+            func=worker._getstepreaction,
             l=givenarray,
             unordered=not self.printreactionevent,
             total=self.step - 1,
@@ -168,26 +188,41 @@ class ReactionsFinder(SharedRNGData):
             unit="timestep",
             **ordered_kwargs,
         )
-        self._write_reactions(results)
+        try:
+            self._write_reactions(results)
+        finally:
+            close = getattr(results, "close", None)
+            if close is not None:
+                close()
 
     def _write_reactions(self, results):
         """Consume results incrementally in the existing text/CSV formats."""
         reaction_counts = Counter()
         if self.printreactionevent:
-            with open(self.reactioneventfilename, "w", newline="") as f_event:
-                event_writer = csv.writer(f_event)
-                event_writer.writerow(["Timestep_Index", "Reactant", "Product"])
+            context = (
+                open(self.reactioneventfilename, "w", newline="")
+                if getattr(self, "_csv_events", True)
+                else nullcontext()
+            )
+            with context as f_event:
+                event_writer = csv.writer(f_event) if f_event is not None else None
+                if event_writer is not None:
+                    event_writer.writerow(["Timestep_Index", "Reactant", "Product"])
                 for events in results:
+                    writer = getattr(self, "_timed_writer", None)
+                    if writer is not None:
+                        writer.write_events(events)
                     for event in events:
                         reaction = "->".join((event["Reactant"], event["Product"]))
                         reaction_counts[reaction] += 1
-                        event_writer.writerow(
-                            [
-                                event["Timestep_Index"],
-                                event["Reactant"],
-                                event["Product"],
-                            ]
-                        )
+                        if event_writer is not None:
+                            event_writer.writerow(
+                                [
+                                    event["Timestep_Index"],
+                                    event["Reactant"],
+                                    event["Product"],
+                                ]
+                            )
         else:
             for reactions in results:
                 reaction_counts.update(

@@ -10,6 +10,7 @@ User Guide
    format
    run
    report
+   timed-output-schema
    gui
    faq
 
