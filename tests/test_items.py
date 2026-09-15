@@ -50,7 +50,7 @@ class TestRunItems:
         rng.run_items(["species", "reactions"])
         assert os.path.exists(rng.speciesfilename)
         assert os.path.exists(rng.reactionfilename)
-        assert rng.mname.dtype == object
+        assert rng.mname.names.dtype == object
 
     def test_smiles_molecule_names_use_object_dtype(self):
         """SMILES names should not expand to the longest fixed-width string."""
@@ -63,7 +63,7 @@ class TestRunItems:
             nproc=1,
         )
         rng.run_items(["species", "reactions"])
-        assert rng.mname.dtype == object
+        assert rng.mname.names.dtype == object
 
     def test_explicit_species_overrides_legacy_flag_for_one_run(self, rng):
         """Honor a requested species file and then restore caller configuration."""

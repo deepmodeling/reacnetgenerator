@@ -102,7 +102,12 @@ class _HMMFilter(SharedRNGData):
         hmmbytes = None
         if self.runHMM:
             hmmsignal = self._model.predict(origin).astype(bool)
-            if check_zero_signal(hmmsignal) or self.printfiltersignal:
+            # Origin output retains metadata even for filtered-out molecules.
+            if (
+                check_zero_signal(hmmsignal)
+                or self.printfiltersignal
+                or self.getoriginfile
+            ):
                 hmmbytes = listtobytes(hmmsignal)
         return originbytes, hmmbytes, line_c
 
