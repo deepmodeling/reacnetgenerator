@@ -56,6 +56,9 @@ from .utils import (
 )
 
 _ROUTE_WORKER_STATE = None
+# Starting workers and attaching three mappings costs more than scanning a
+# single block in the parent. Larger workloads retain the indexed worker path.
+_STEP3_SERIAL_ATOM_FRAMES = _STEP3_SCAN_ROWS
 
 
 def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS):
@@ -394,6 +397,21 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             i - 1, atomeachi, name, name in self.selectatoms, self.mname
         )
 
+    def _iter_local_atom_routes(self, matrix_store, frame_range, mark_active):
+        """Read small routes directly without changing parent mapping ownership."""
+        start, stop = frame_range
+        active = matrix_store.active_transitions if mark_active else None
+        for atom_index in range(self.N):
+            name = self.atomname[self.atomtype[atom_index]]
+            yield _atom_route_result(
+                atom_index,
+                matrix_store.atomeach[atom_index, start:stop],
+                name,
+                name in self.selectatoms,
+                self.mname,
+                active,
+            )
+
     def _printatomroute(self, matrix_store, timeaxis=None, frame_range=None):
         """For analysis without HMM, we may not need to use np.unique."""
         if frame_range is None:
@@ -414,32 +432,40 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 have_added = {}
             else:
                 have_added = None
-            results = run_mp(
-                self.nproc,
-                func=_get_atom_route_by_index,
-                l=range(self.N),
-                initializer=_initialize_route_worker,
-                initargs=(
-                    matrix_store.reader_args,
-                    self.atomtype,
-                    self.atomname,
-                    self.selectatoms,
-                    self.mname,
-                    frame_range,
-                    matrix_store.active_transition_path if timeaxis is None else None,
-                ),
-                unordered=False,
-                chunksize=1,
-                max_inflight=max(2, 2 * self.nproc),
-                disk_ordered=True,
-                total=self.N,
-                desc=(
-                    "Collect reaction paths"
-                    if timeaxis is None
-                    else f"Collect reaction paths {timeaxis}"
-                ),
-                unit="atom",
-            )
+            scan_size = self.N * (frame_range[1] - frame_range[0])
+            if scan_size <= _STEP3_SERIAL_ATOM_FRAMES:
+                results = self._iter_local_atom_routes(
+                    matrix_store, frame_range, mark_active=timeaxis is None
+                )
+            else:
+                results = run_mp(
+                    self.nproc,
+                    func=_get_atom_route_by_index,
+                    l=range(self.N),
+                    initializer=_initialize_route_worker,
+                    initargs=(
+                        matrix_store.reader_args,
+                        self.atomtype,
+                        self.atomname,
+                        self.selectatoms,
+                        self.mname,
+                        frame_range,
+                        matrix_store.active_transition_path
+                        if timeaxis is None
+                        else None,
+                    ),
+                    unordered=False,
+                    chunksize=1,
+                    max_inflight=max(2, 2 * self.nproc),
+                    disk_ordered=True,
+                    total=self.N,
+                    desc=(
+                        "Collect reaction paths"
+                        if timeaxis is None
+                        else f"Collect reaction paths {timeaxis}"
+                    ),
+                    unit="atom",
+                )
             # Finish or terminate workers before the parent releases mappings,
             # including when writing a route or consuming a result fails.
             with closing(results):

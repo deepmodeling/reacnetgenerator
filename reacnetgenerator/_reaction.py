@@ -5,6 +5,7 @@
 
 import csv
 from collections import Counter, defaultdict
+from itertools import islice
 from multiprocessing.util import Finalize
 from typing import Any
 
@@ -54,6 +55,20 @@ def _get_step_reaction_by_index(transition_index):
     )
 
 
+def _iter_transition_batches(indices, batch_size):
+    """Group only bounded integer indices, never trajectory arrays."""
+    source = iter(indices)
+    while batch := tuple(islice(source, batch_size)):
+        yield batch
+
+
+def _get_step_reactions_by_index_batch(indices):
+    """Amortize IPC for small count-only transitions without retaining graphs."""
+    return [
+        reaction for index in indices for reaction in _get_step_reaction_by_index(index)
+    ]
+
+
 class ReactionsFinder(SharedRNGData):
     CONFLICT = -1
     EMPTY = 0
@@ -83,10 +98,22 @@ class ReactionsFinder(SharedRNGData):
     def findreactions(self, atomeach, conflict, *, matrix_store=None):
         """Analyze indexed shared state, or accept the legacy array inputs."""
         if matrix_store is not None:
+            total = matrix_store.active_transition_count
+            indices = matrix_store.iter_active_transitions()
+            func = _get_step_reaction_by_index
+            if not self.printreactionevent:
+                # Match the legacy task cap while limiting batch result growth
+                # to one atom scan block across the batched transitions.
+                batch_size = max(
+                    1, min(100, _STEP3_SCAN_ROWS // max(1, matrix_store.shape[0]))
+                )
+                indices = _iter_transition_batches(indices, batch_size)
+                func = _get_step_reactions_by_index_batch
+                total = (total + batch_size - 1) // batch_size
             results = run_mp(
                 self.nproc,
-                func=_get_step_reaction_by_index,
-                l=matrix_store.iter_active_transitions(),
+                func=func,
+                l=indices,
                 initializer=_initialize_reaction_worker,
                 initargs=(
                     matrix_store.reader_args,
@@ -99,9 +126,9 @@ class ReactionsFinder(SharedRNGData):
                 chunksize=1,
                 max_inflight=max(2, 2 * self.nproc),
                 disk_ordered=self.printreactionevent,
-                total=matrix_store.active_transition_count,
+                total=total,
                 desc="Analyze reactions (A+B->C+D)",
-                unit="timestep",
+                unit="timestep" if self.printreactionevent else "batch",
             )
             try:
                 self._write_reactions(results)

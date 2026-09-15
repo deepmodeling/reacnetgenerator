@@ -103,6 +103,8 @@ def test_indexed_workers_preserve_routes_events_and_shared_file_ownership(
     if method not in multiprocessing.get_all_start_methods():
         pytest.skip(f"{method} is unavailable")
     _use_context(monkeypatch, method)
+    # Keep this lifecycle test on the worker path even for its tiny fixture.
+    monkeypatch.setattr("reacnetgenerator._path._STEP3_SERIAL_ATOM_FRAMES", 0)
     names = _MoleculeNameTable.from_names(["A", "B", "C", "D", "E", "X", "Y"])
     matrix = np.array(
         [
@@ -126,8 +128,9 @@ def test_indexed_workers_preserve_routes_events_and_shared_file_ownership(
             def indices():
                 """Reject array payloads and record each dispatched integer index."""
                 for value in inputs:
-                    assert type(value) is int
-                    seen_tasks[kind].append(value)
+                    indices = value if isinstance(value, tuple) else (value,)
+                    assert all(type(index) is int for index in indices)
+                    seen_tasks[kind].extend(indices)
                     yield value
 
             yield from original_run_mp(nproc, l=indices(), **kwargs)
@@ -259,6 +262,7 @@ def test_atom_blocks_join_one_reaction_and_preserve_conflict_suppression(conflic
 
 def test_route_write_failure_stops_workers_before_store_cleanup(tmp_path, monkeypatch):
     """A parent-side output failure must not leave workers using deleted files."""
+    monkeypatch.setattr("reacnetgenerator._path._STEP3_SERIAL_ATOM_FRAMES", 0)
     names = _MoleculeNameTable.from_names(["A", "B"])
     collector = _collector(tmp_path, names, 2, (4, 5))
     children_before = {child.pid for child in multiprocessing.active_children()}
@@ -465,4 +469,83 @@ def test_unprepared_activity_index_analyzes_every_transition(tmp_path, frames):
         assert Path(finder.reactioneventfilename).read_text() == (
             "Timestep_Index,Reactant,Product\n" + ("1,A,B\n" if frames > 1 else "")
         )
+    assert not list(tmp_path.glob("*.mmap"))
+
+
+def test_small_route_scan_avoids_worker_startup_and_retains_activity(
+    tmp_path, monkeypatch
+):
+    """One-block route workloads should not pay for a pool and extra file mappings."""
+    names = _MoleculeNameTable.from_names(["A", "B"])
+    collector = _collector(tmp_path, names, 2, (4, 5))
+
+    def reject_pool(*args, **kwargs):
+        """Fail if a small workload starts the expensive multiprocessing path."""
+        raise AssertionError("small route workload started a worker pool")
+
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", reject_pool)
+    with _AtomFrameStore((4, 5), 2, directory=tmp_path) as store:
+        store.atomeach[:] = [1, 0, 1, 2, 2]
+        store.prepare_active_transitions()
+        collector._printatomroute(store)
+        np.testing.assert_array_equal(store.active_transitions, [1, 1, 1, 0])
+        assert Path(collector.atomroutefilename).read_text().splitlines()[0] == (
+            "Atom 1 H: 0 A -> 2 B"
+        )
+        collector._printatomroute(store, timeaxis=0, frame_range=(2, 5))
+        assert Path(collector.atomroutefilename + ".0").read_text().splitlines()[0] == (
+            "Atom 1 H: 0 A -> 1 B"
+        )
+        np.testing.assert_array_equal(store.active_transitions, [1, 1, 1, 0])
+    assert not list(tmp_path.glob("*.mmap"))
+
+
+@pytest.mark.parametrize("atoms,expected_batches", [(4, 3), (1024, 4)])
+def test_dense_count_only_tasks_are_batched_with_bounded_results(
+    tmp_path, monkeypatch, atoms, expected_batches
+):
+    """Dense small transitions must not incur one IPC round trip per frame."""
+    frames = 205
+    submitted = []
+    original_run_mp = utils.run_mp
+
+    def observe(nproc, **kwargs):
+        """Check real dispatched work while retaining worker execution and cleanup."""
+        inputs = kwargs.pop("l")
+
+        def batches():
+            """Reject copied arrays, unbounded batches and scalar-only scheduling."""
+            for batch in inputs:
+                assert isinstance(batch, tuple)
+                assert all(type(index) is int for index in batch)
+                assert 1 <= len(batch) <= 100
+                assert len(batch) * atoms <= 65536
+                submitted.append(batch)
+                yield batch
+
+        yield from original_run_mp(nproc, l=batches(), **kwargs)
+
+    monkeypatch.setattr("reacnetgenerator._reaction.run_mp", observe)
+    with _AtomFrameStore((atoms, frames), 2, directory=tmp_path) as store:
+        store.atomeach[:] = np.resize([1, 2], frames)
+        store.prepare_active_transitions()
+        store.active_transitions[:] = 1
+        store.flush()
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=frames,
+                mname=np.array(["A", "B"]),
+                nproc=2,
+                printreactionevent=False,
+                reactionabcdfilename=str(tmp_path / "counts"),
+                reactioneventfilename=str(tmp_path / "events"),
+            )
+        )
+        finder.findreactions(store.atomeach.T, store.conflict.T, matrix_store=store)
+        assert sorted(Path(finder.reactionabcdfilename).read_text().splitlines()) == [
+            "102 A->B",
+            "102 B->A",
+        ]
+    assert len(submitted) == expected_batches
+    assert [index for batch in submitted for index in batch] == list(range(frames - 1))
     assert not list(tmp_path.glob("*.mmap"))
