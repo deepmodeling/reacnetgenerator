@@ -23,6 +23,7 @@ References
 import math
 from io import StringIO
 from itertools import permutations
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -143,8 +144,11 @@ class _DrawNetwork(SharedRNGData):
                     edge_color=colors,
                     node_color=[self.node_color] * len(pos),
                 )
-                imagefilename = "".join(
-                    (("" if with_labels else "nolabel_"), self.imagefilename)
+                image_path = Path(self.imagefilename)
+                imagefilename = str(
+                    image_path.with_name(
+                        ("" if with_labels else "nolabel_") + image_path.name
+                    )
                 )
                 with (
                     StringIO() as stringio,

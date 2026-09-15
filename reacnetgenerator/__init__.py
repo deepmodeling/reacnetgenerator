@@ -37,4 +37,71 @@ class ReacNetGenerator:
 if TYPE_CHECKING:
     from .reacnetgen import ReacNetGenerator
 
-__all__ = ["ReacNetGenerator", "__version__"]
+
+def run(
+    *,
+    input_path,
+    input_type,
+    atomname,
+    output_dir=None,
+    items=("species", "reactions", "network", "report"),
+    **kwargs,
+):
+    """Run ReacNetGenerator and return artifacts with parameter provenance.
+
+    Parameters
+    ----------
+    input_path : str or pathlib.Path or sequence
+        Input trajectory or bond file(s).
+    output_dir : str or pathlib.Path
+        Directory receiving all default-generated artifacts.
+    input_type : str
+        ReacNetGenerator input type, such as "dump" or "bond".
+    atomname : sequence of str
+        Element names in the input trajectory.
+    items : sequence of str, optional
+        Requested stages. "species" and "reactions" are produced by
+        the core run; "network" and "report" control the optional
+        drawing/report stages.
+    **kwargs
+        Additional arguments forwarded to ReacNetGenerator.
+
+    Returns
+    -------
+    dict
+        ``artifacts`` maps semantic names to output path strings.
+        ``provenance`` contains the JSON-serializable normalized parameters,
+        explicitly supplied parameter names, and requested items.
+    """
+    if isinstance(items, str):
+        items = (items,)
+    requested = set(items)
+    allowed = {"species", "reactions", "network", "report"}
+    unknown = requested - allowed
+    if unknown:
+        raise ValueError(f"Unsupported output items: {sorted(unknown)}")
+    if not requested:
+        raise ValueError("items must contain at least one output stage")
+
+    from .reacnetgen import ReacNetGenerator as RealRNG
+
+    generator_kwargs = dict(
+        inputfilename=input_path,
+        inputfiletype=input_type,
+        atomname=atomname,
+        **kwargs,
+    )
+    if output_dir is not None:
+        generator_kwargs["output_dir"] = output_dir
+    generator = RealRNG(**generator_kwargs)
+    artifacts = generator.runanddraw(
+        run=True,
+        draw="network" in requested or "report" in requested,
+        report="report" in requested,
+    )
+    provenance = generator.parameter_provenance()
+    provenance["items"] = list(items)
+    return {"artifacts": artifacts, "provenance": provenance}
+
+
+__all__ = ["ReacNetGenerator", "__version__", "run"]

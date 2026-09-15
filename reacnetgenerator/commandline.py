@@ -69,6 +69,10 @@ def main_parser() -> argparse.ArgumentParser:
         required=True,
     )
     parser.add_argument(
+        "--output-dir",
+        help="Write generated artifacts below this directory using semantic filenames.",
+    )
+    parser.add_argument(
         "--nohmm",
         help=(
             "Process trajectory without Hidden Markov Model (HMM). If one wants to enable HMM, firstly "
@@ -256,6 +260,7 @@ def _commandline():
     rng = ReacNetGenerator(
         inputfilename=args.inputfilename,
         atomname=args.atomname,
+        output_dir=args.output_dir,
         miso=args.miso,
         runHMM=not args.nohmm,
         inputfiletype=("lammpsdumpfile" if args.dump else args.type),
@@ -302,6 +307,8 @@ def parm2cmd(pp: dict) -> list[str]:
         Command line arguments
     """
     commands = ["reacnetgenerator", "-i", pp["inputfilename"], "-a", *pp["atomname"]]
+    if pp.get("output_dir"):
+        commands.extend(("--output-dir", str(pp["output_dir"])))
     if not pp.get("runHMM", True):
         commands.append("--nohmm")
     if pp["inputfiletype"]:

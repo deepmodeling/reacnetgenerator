@@ -48,6 +48,7 @@ import itertools
 import os
 import time
 from enum import Enum
+from pathlib import Path
 from typing import Any, ClassVar
 
 import numpy as np
@@ -62,6 +63,21 @@ from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
 from .utils import must_be_list
+
+
+def _json_compatible(value: Any) -> Any:
+    """Convert normalized constructor values to JSON-compatible builtins."""
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, dict):
+        return {str(key): _json_compatible(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_compatible(item) for item in value]
+    return value
 
 
 class ReacNetGenerator:
@@ -142,12 +158,26 @@ class ReacNetGenerator:
     moleculetemp2filename: str
     originfilename: str
     hmmfilename: str
+    # Output paths are populated from normalized constructor kwargs.
+    moleculefilename: str
+    moleculetimelinefilename: str
+    atomroutefilename: str
+    reactionfilename: str
+    tablefilename: str
+    imagefilename: str
+    speciesfilename: str
     resultfilename: str
+    jsonfilename: str
+    reactionabcdfilename: str
+    reactioneventfilename: str
+    parameters: dict[str, Any]
+    explicit_parameters: list[str]
 
     def __init__(self, **kwargs: Any) -> None:
         """Init ReacNetGenerator."""
         logger.info(doc_run)
         logger.info(f"Version: {__version__}  Creation date: {__date__}")
+        explicit_parameters = sorted(kwargs)
 
         sched_getaffinity = getattr(os, "sched_getaffinity", None)
         if sched_getaffinity is None:
@@ -193,6 +223,7 @@ class ReacNetGenerator:
             "custom_cutoffs": None,
             "max_component_atoms": 256,
             "max_component_fraction": 0.1,
+            "output_dir": None,
         }
         none_key = [
             "selectatoms",
@@ -254,8 +285,19 @@ class ReacNetGenerator:
                 kwargs[kk] = default_value[kk]
         for kk in itertools.chain(none_key, accept_keys):
             kwargs.setdefault(kk, None)
+        output_dir = kwargs.get("output_dir")
+        output_path = None
+        if output_dir is not None:
+            output_path = Path(output_dir).expanduser()
+            output_path.mkdir(parents=True, exist_ok=True)
+            kwargs["output_dir"] = str(output_path)
         for kk in file_key:
-            kwargs.setdefault(kk, f"{kwargs['inputfilename'][0]}.{file_key[kk]}")
+            default_filename = (
+                str(output_path / file_key[kk])
+                if output_path is not None
+                else f"{kwargs['inputfilename'][0]}.{file_key[kk]}"
+            )
+            kwargs.setdefault(kk, default_filename)
         for kk in nparray_key:
             kwargs[kk] = np.array(kwargs[kk])
         max_component_atoms = kwargs["max_component_atoms"]
@@ -315,6 +357,37 @@ class ReacNetGenerator:
                 self.cell = cell.reshape((3, 3))
             else:
                 raise RuntimeError(cell_error)
+        parameter_keys = (
+            set(necessary_key) | set(default_value) | set(none_key) | set(file_key)
+        )
+        self.parameters = {
+            key: _json_compatible(getattr(self, key)) for key in sorted(parameter_keys)
+        }
+        self.explicit_parameters = explicit_parameters
+        self.artifacts = self._build_artifact_map()
+
+    def parameter_provenance(self) -> dict[str, Any]:
+        """Return normalized parameters and the names explicitly supplied by the caller."""
+        return {
+            "parameters": dict(self.parameters),
+            "explicit_parameters": list(self.explicit_parameters),
+        }
+
+    def _build_artifact_map(self) -> dict[str, str]:
+        """Return the semantic artifact paths for this analysis."""
+        return {
+            "moname": str(self.moleculefilename),
+            "molecules": str(self.moleculetimelinefilename),
+            "route": str(self.atomroutefilename),
+            "reactions": str(self.reactionfilename),
+            "table": str(self.tablefilename),
+            "network": str(self.imagefilename),
+            "species": str(self.speciesfilename),
+            "report": str(self.resultfilename),
+            "json": str(self.jsonfilename),
+            "reactionabcd": str(self.reactionabcdfilename),
+            "reactionevent": str(self.reactioneventfilename),
+        }
 
     @staticmethod
     def _normalize_optional_int_filter(value):
@@ -415,7 +488,7 @@ class ReacNetGenerator:
     # ------------------------------------------------------------------
     def runanddraw(
         self, run: bool = True, draw: bool = True, report: bool = True
-    ) -> None:
+    ) -> dict[str, str]:
         """Analyze the trajectory from MD simulation.
 
         Parameters
@@ -444,8 +517,9 @@ class ReacNetGenerator:
         if report:
             processthing.append(self.Status.REPORT)
         self._process(processthing)
+        return dict(self.artifacts)
 
-    def run(self) -> None:
+    def run(self) -> dict[str, str]:
         """Process MD trajectory, including DOWNLOAD, DETECT, HMM, PATH, and MATRIX steps."""
         processthing = []
         if self.urls:
@@ -459,6 +533,7 @@ class ReacNetGenerator:
             )
         )
         self._process(processthing)
+        return dict(self.artifacts)
 
     def draw(self) -> None:
         """Draw the reaction network, i.e. NETWORK step."""
