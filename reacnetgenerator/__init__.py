@@ -47,7 +47,7 @@ def run(
     items=("species", "reactions", "network", "report"),
     **kwargs,
 ):
-    """Run ReacNetGenerator and return semantic artifact paths.
+    """Run ReacNetGenerator and return artifacts with parameter provenance.
 
     Parameters
     ----------
@@ -65,6 +65,13 @@ def run(
         drawing/report stages.
     **kwargs
         Additional arguments forwarded to ReacNetGenerator.
+
+    Returns
+    -------
+    dict
+        ``artifacts`` maps semantic names to output path strings.
+        ``provenance`` contains the JSON-serializable normalized parameters,
+        explicitly supplied parameter names, and requested items.
     """
     if isinstance(items, str):
         items = (items,)
@@ -78,18 +85,23 @@ def run(
 
     from .reacnetgen import ReacNetGenerator as RealRNG
 
-    generator = RealRNG(
+    generator_kwargs = dict(
         inputfilename=input_path,
-        output_dir=output_dir,
         inputfiletype=input_type,
         atomname=atomname,
         **kwargs,
     )
-    return generator.runanddraw(
+    if output_dir is not None:
+        generator_kwargs["output_dir"] = output_dir
+    generator = RealRNG(**generator_kwargs)
+    artifacts = generator.runanddraw(
         run=True,
         draw="network" in requested or "report" in requested,
         report="report" in requested,
     )
+    provenance = generator.parameter_provenance()
+    provenance["items"] = list(items)
+    return {"artifacts": artifacts, "provenance": provenance}
 
 
 __all__ = ["ReacNetGenerator", "__version__", "run"]

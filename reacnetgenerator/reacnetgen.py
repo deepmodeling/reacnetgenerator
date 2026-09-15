@@ -65,6 +65,21 @@ from ._reachtml import _HTMLResult
 from .utils import must_be_list
 
 
+def _json_compatible(value: Any) -> Any:
+    """Convert normalized constructor values to JSON-compatible builtins."""
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, dict):
+        return {str(key): _json_compatible(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_compatible(item) for item in value]
+    return value
+
+
 class ReacNetGenerator:
     """Use ReacNetGenerator for trajectory analysis.
 
@@ -155,11 +170,14 @@ class ReacNetGenerator:
     jsonfilename: str
     reactionabcdfilename: str
     reactioneventfilename: str
+    parameters: dict[str, Any]
+    explicit_parameters: list[str]
 
     def __init__(self, **kwargs: Any) -> None:
         """Init ReacNetGenerator."""
         logger.info(doc_run)
         logger.info(f"Version: {__version__}  Creation date: {__date__}")
+        explicit_parameters = sorted(kwargs)
 
         sched_getaffinity = getattr(os, "sched_getaffinity", None)
         if sched_getaffinity is None:
@@ -339,22 +357,36 @@ class ReacNetGenerator:
                 self.cell = cell.reshape((3, 3))
             else:
                 raise RuntimeError(cell_error)
+        parameter_keys = (
+            set(necessary_key) | set(default_value) | set(none_key) | set(file_key)
+        )
+        self.parameters = {
+            key: _json_compatible(getattr(self, key)) for key in sorted(parameter_keys)
+        }
+        self.explicit_parameters = explicit_parameters
         self.artifacts = self._build_artifact_map()
+
+    def parameter_provenance(self) -> dict[str, Any]:
+        """Return normalized parameters and the names explicitly supplied by the caller."""
+        return {
+            "parameters": dict(self.parameters),
+            "explicit_parameters": list(self.explicit_parameters),
+        }
 
     def _build_artifact_map(self) -> dict[str, str]:
         """Return the semantic artifact paths for this analysis."""
         return {
-            "moname": self.moleculefilename,
-            "molecules": self.moleculetimelinefilename,
-            "route": self.atomroutefilename,
-            "reactions": self.reactionfilename,
-            "table": self.tablefilename,
-            "network": self.imagefilename,
-            "species": self.speciesfilename,
-            "report": self.resultfilename,
-            "json": self.jsonfilename,
-            "reactionabcd": self.reactionabcdfilename,
-            "reactionevent": self.reactioneventfilename,
+            "moname": str(self.moleculefilename),
+            "molecules": str(self.moleculetimelinefilename),
+            "route": str(self.atomroutefilename),
+            "reactions": str(self.reactionfilename),
+            "table": str(self.tablefilename),
+            "network": str(self.imagefilename),
+            "species": str(self.speciesfilename),
+            "report": str(self.resultfilename),
+            "json": str(self.jsonfilename),
+            "reactionabcd": str(self.reactionabcdfilename),
+            "reactionevent": str(self.reactioneventfilename),
         }
 
     @staticmethod

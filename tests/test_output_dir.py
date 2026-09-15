@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Tests for explicit output-directory contracts."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -91,13 +92,14 @@ def test_run_wrapper_returns_artifacts_without_running(tmp_path, monkeypatch):
     monkeypatch.setattr(
         "reacnetgenerator.reacnetgen.ReacNetGenerator.runanddraw", fake_runanddraw
     )
-    artifacts = run(
+    result = run(
         input_path="trajectory.dump",
         output_dir=tmp_path / "artifacts",
         input_type="dump",
         atomname=["H"],
         items=("species", "network"),
     )
+    artifacts = result["artifacts"]
     assert artifacts["report"].endswith("/html") or artifacts["report"].endswith(
         "\\html"
     )
@@ -114,13 +116,13 @@ def test_run_wrapper_preserves_legacy_paths_without_output_dir(tmp_path, monkeyp
         "reacnetgenerator.reacnetgen.ReacNetGenerator.runanddraw", fake_runanddraw
     )
     input_path = tmp_path / "trajectory.dump"
-    artifacts = run(
+    result = run(
         input_path=input_path,
         input_type="dump",
         atomname=["H"],
         items=("species",),
     )
-    assert artifacts["species"] == f"{input_path}.species"
+    assert result["artifacts"]["species"] == f"{input_path}.species"
 
 
 def test_run_report_includes_network_dependency(tmp_path, monkeypatch):
@@ -140,6 +142,43 @@ def test_run_report_includes_network_dependency(tmp_path, monkeypatch):
         atomname=["H"],
         items=("report",),
     )
+
+
+def test_run_returns_serializable_normalized_parameter_provenance(
+    tmp_path, monkeypatch
+):
+    """Return defaults and caller overrides alongside the artifact mapping."""
+
+    def fake_runanddraw(self, *, run, draw, report):
+        return dict(self.artifacts)
+
+    monkeypatch.setattr(
+        "reacnetgenerator.reacnetgen.ReacNetGenerator.runanddraw", fake_runanddraw
+    )
+    species_path = tmp_path / "custom.species"
+    result = run(
+        input_path=tmp_path / "trajectory.dump",
+        input_type="dump",
+        atomname=["H"],
+        items=("species",),
+        runHMM=False,
+        max_component_atoms=512,
+        speciesfilename=species_path,
+    )
+
+    parameters = result["provenance"]["parameters"]
+    assert parameters["stepinterval"] == 1
+    assert parameters["max_component_fraction"] == 0.1
+    assert parameters["max_component_atoms"] == 512
+    assert parameters["runHMM"] is False
+    assert parameters["output_dir"] is None
+    assert parameters["speciesfilename"] == str(species_path)
+    assert parameters["inputfilename"] == [str(tmp_path / "trajectory.dump")]
+    assert result["artifacts"]["species"] == str(species_path)
+    assert "output_dir" not in result["provenance"]["explicit_parameters"]
+    assert "speciesfilename" in result["provenance"]["explicit_parameters"]
+    assert result["provenance"]["items"] == ["species"]
+    json.dumps(result)
 
 
 def test_nolabel_network_stays_inside_output_dir(tmp_path, monkeypatch):
