@@ -27,7 +27,8 @@ import shutil
 import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
-from contextlib import ExitStack
+from contextlib import ExitStack, closing
+from multiprocessing.util import Finalize
 
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
@@ -37,7 +38,10 @@ from tqdm.auto import tqdm
 
 from ._reaction import ReactionsFinder
 from ._step3state import (
+    _STEP3_SCAN_ROWS,
+    _AtomFrameReader,
     _AtomFrameStore,
+    _close_mapping,
     _MoleculeNameBuilder,
     _MoleculeNameTable,
 )
@@ -50,6 +54,103 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
+
+_ROUTE_WORKER_STATE = None
+
+
+def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS):
+    """Compress a route in bounded blocks while marking raw-frame changes.
+
+    Legacy route positions count only nonzero observations. Reaction indices
+    instead refer to adjacent original frames, including transitions to/from 0.
+    Keep these two coordinate systems separate across block boundaries.
+    """
+    if block_rows <= 0:
+        raise ValueError("Scan block size must be positive")
+    times, routes = [], []
+    nonzero_count = 0
+    previous = 0
+    for start in range(0, len(timeline), block_rows):
+        stop = min(start + block_rows, len(timeline))
+        if active_transitions is not None:
+            first = max(1, start)
+            changed = timeline[first:stop] != timeline[first - 1 : stop - 1]
+            active_transitions[first - 1 : stop - 1][changed] = 1
+        block = timeline[start:stop]
+        values = block[block != 0]
+        if not len(values):
+            continue
+        changed = np.empty(len(values), dtype=np.bool_)
+        changed[0] = values[0] != previous
+        changed[1:] = values[1:] != values[:-1]
+        indices = np.flatnonzero(changed)
+        if len(indices):
+            times.append(nonzero_count + indices)
+            routes.append(values[indices])
+        nonzero_count += len(values)
+        previous = values[-1]
+    if not routes:
+        return np.zeros(0, dtype=int), np.zeros(0, dtype=int)
+    return np.concatenate(times), np.concatenate(routes)
+
+
+def _atom_route_result(atom_index, timeline, atom_name, selected, names, active=None):
+    """Format one atom's route with the historical nonzero-position semantics."""
+    time, route = _route_changes(timeline, active)
+    molecule_route = (
+        np.column_stack((route[:-1], route[1:]))
+        if selected
+        else np.zeros((0, 2), dtype=int)
+    )
+    route_string = f"Atom {atom_index + 1} {atom_name}: " + " -> ".join(
+        f"{tt} {name}" for tt, name in zip(time, names[route - 1])
+    )
+    return molecule_route, route_string
+
+
+def _initialize_route_worker(
+    reader_args, atomtype, atomname, selectatoms, names, frame_range, active_path
+):
+    """Attach mappings once; no trajectory arrays travel with atom tasks."""
+    global _ROUTE_WORKER_STATE
+    reader = _AtomFrameReader(*reader_args)
+    Finalize(None, reader.close, exitpriority=10)
+    active = None
+    if active_path is not None:
+        active = np.memmap(
+            active_path,
+            mode="r+",
+            dtype=np.uint8,
+            shape=(reader.atomeach.shape[1] - 1,),
+        )
+        Finalize(None, _close_mapping, args=(active,), exitpriority=10)
+    _ROUTE_WORKER_STATE = (
+        reader,
+        atomtype,
+        atomname,
+        selectatoms,
+        names,
+        frame_range,
+        active,
+    )
+
+
+def _get_atom_route_by_index(atom_index):
+    """Process a zero-based atom index using this worker's attached matrices."""
+    assert _ROUTE_WORKER_STATE is not None
+    reader, atomtype, atomname, selectatoms, names, frame_range, active = (
+        _ROUTE_WORKER_STATE
+    )
+    start, stop = frame_range
+    name = atomname[atomtype[atom_index]]
+    return _atom_route_result(
+        atom_index,
+        reader.atomeach[atom_index, start:stop],
+        name,
+        name in selectatoms,
+        names,
+        active,
+    )
 
 
 class _MoleculeTimelineSpool:
@@ -204,17 +305,28 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         self._printmoleculename()
         with self._getatomeach() as matrix_store:
             atomeach = matrix_store.atomeach
-            self.allmoleculeroute = self._printatomroute(atomeach)
+            matrix_store.prepare_active_transitions()
+            self.allmoleculeroute = self._printatomroute(matrix_store)
             if self.split > 1:
-                splittime = np.array_split(np.arange(self.step), self.split)
-                self.splitmoleculeroute = [
-                    self._printatomroute(atomeach[:, st], timeaxis=i)
-                    for i, st in enumerate(splittime)
-                ]
+                # Integer ranges match array_split, including empty trailing
+                # splits, without allocating frame indices or copying matrices.
+                size, remainder = divmod(self.step, self.split)
+                start = 0
+                self.splitmoleculeroute = []
+                for i in range(self.split):
+                    stop = start + size + (i < remainder)
+                    self.splitmoleculeroute.append(
+                        self._printatomroute(
+                            matrix_store, timeaxis=i, frame_range=(start, stop)
+                        )
+                    )
+                    start = stop
             self.returnkeys()
+            matrix_store.flush()
             ReactionsFinder(self.rng).findreactions(
                 atomeach.T,
                 matrix_store.conflict.T,
+                matrix_store=matrix_store,
             )
 
     @abstractmethod
@@ -276,32 +388,15 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def _getatomroute(self, item):
         i, (atomeachi, atomtypei) = item
-        atomeachi = atomeachi[np.nonzero(atomeachi)[0]]
-        if atomeachi.size:
-            time = np.concatenate(
-                [
-                    np.zeros((1,), dtype=int),
-                    np.nonzero(np.diff(atomeachi))[0] + 1,
-                ]
-            )
-            route = atomeachi[time]
-        else:
-            time = np.zeros(0, dtype=int)
-            route = np.zeros(0, dtype=int)
-        moleculeroute = (
-            np.dstack((route[:-1], route[1:]))[0]
-            if self.atomname[atomtypei] in self.selectatoms
-            else np.zeros((0, 2), dtype=int)
+        name = self.atomname[atomtypei]
+        return _atom_route_result(
+            i - 1, atomeachi, name, name in self.selectatoms, self.mname
         )
-        names = self.mname[route - 1]
-        # Atom {idx}: {time} {SMILES} -> {time} {SMILES} -> ...
-        routestr = f"Atom {i} {self.atomname[atomtypei]}: " + " -> ".join(
-            [f"{tt} {name}" for tt, name in zip(time, names)]
-        )
-        return moleculeroute, routestr
 
-    def _printatomroute(self, atomeach, timeaxis=None):
+    def _printatomroute(self, matrix_store, timeaxis=None, frame_range=None):
         """For analysis without HMM, we may not need to use np.unique."""
+        if frame_range is None:
+            frame_range = (0, self.step)
         with WriteBuffer(
             open(
                 (
@@ -320,10 +415,18 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 have_added = None
             results = run_mp(
                 self.nproc,
-                func=self._getatomroute,
-                l=zip(atomeach, self.atomtype),
-                return_num=True,
-                start=1,
+                func=_get_atom_route_by_index,
+                l=range(self.N),
+                initializer=_initialize_route_worker,
+                initargs=(
+                    matrix_store.reader_args,
+                    self.atomtype,
+                    self.atomname,
+                    self.selectatoms,
+                    self.mname,
+                    frame_range,
+                    matrix_store.active_transition_path if timeaxis is None else None,
+                ),
                 unordered=False,
                 chunksize=1,
                 max_inflight=max(2, 2 * self.nproc),
@@ -336,19 +439,22 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 ),
                 unit="atom",
             )
-            for ii, (moleculeroute, routestr) in enumerate(results):
-                f.append(routestr)
-                if moleculeroute.size > 0:
-                    if not self.runHMM:
-                        # check whether repeated or not if analyzing without HMM
-                        for rr in moleculeroute:
-                            tpr = tuple(rr)
-                            assert have_added is not None
-                            if have_added.get(tpr, atomeach.shape[0]) >= ii:
-                                have_added[tpr] = ii
-                                allmoleculeroute.append(rr.reshape(1, 2))
-                    else:
-                        allmoleculeroute.append(moleculeroute)
+            # Finish or terminate workers before the parent releases mappings,
+            # including when writing a route or consuming a result fails.
+            with closing(results):
+                for ii, (moleculeroute, routestr) in enumerate(results):
+                    f.append(routestr)
+                    if moleculeroute.size > 0:
+                        if not self.runHMM:
+                            # Deduplicate atom routes exactly as in the legacy path.
+                            for rr in moleculeroute:
+                                tpr = tuple(rr)
+                                assert have_added is not None
+                                if have_added.get(tpr, self.N) >= ii:
+                                    have_added[tpr] = ii
+                                    allmoleculeroute.append(rr.reshape(1, 2))
+                        else:
+                            allmoleculeroute.append(moleculeroute)
         allmoleculeroute = (
             np.concatenate(allmoleculeroute)
             if allmoleculeroute

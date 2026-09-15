@@ -5,10 +5,12 @@
 
 import csv
 from collections import Counter, defaultdict
+from multiprocessing.util import Finalize
 from typing import Any
 
 import numpy as np
 
+from ._step3state import _STEP3_SCAN_ROWS, _AtomFrameReader
 from .dps import dps_reaction  # type:ignore
 from .utils import (
     SharedRNGData,
@@ -17,6 +19,39 @@ from .utils import (
     listtobytes,
     run_mp,
 )
+
+_REACTION_WORKER_STATE = None
+
+
+def _initialize_reaction_worker(reader_args, names, printreactionevent):
+    """Attach shared matrices and compact metadata once per worker."""
+    global _REACTION_WORKER_STATE
+    reader = _AtomFrameReader(*reader_args)
+    Finalize(None, reader.close, exitpriority=10)
+    # Workers need only species lookup and reaction formatting, not the RNG
+    # object or the output paths retained by the parent-side finder.
+    finder = object.__new__(ReactionsFinder)
+    finder.mname = names
+    finder.printreactionevent = printreactionevent
+    _REACTION_WORKER_STATE = reader, finder
+
+
+def _get_step_reaction_by_index(transition_index):
+    """Read one transition in bounded atom blocks from the shared files."""
+    assert _REACTION_WORKER_STATE is not None
+    reader, finder = _REACTION_WORKER_STATE
+    blocks = (
+        (
+            reader.atomeach[start : start + _STEP3_SCAN_ROWS, transition_index],
+            reader.atomeach[start : start + _STEP3_SCAN_ROWS, transition_index + 1],
+            reader.conflict[start : start + _STEP3_SCAN_ROWS, transition_index],
+            reader.conflict[start : start + _STEP3_SCAN_ROWS, transition_index + 1],
+        )
+        for start in range(0, reader.atomeach.shape[0], _STEP3_SCAN_ROWS)
+    )
+    return finder._reactions_from_blocks(
+        blocks, transition_index if finder.printreactionevent else None
+    )
 
 
 class ReactionsFinder(SharedRNGData):
@@ -45,8 +80,35 @@ class ReactionsFinder(SharedRNGData):
             [],
         )
 
-    def findreactions(self, atomeach, conflict):
-        reaction_counts = Counter()
+    def findreactions(self, atomeach, conflict, *, matrix_store=None):
+        """Analyze indexed shared state, or accept the legacy array inputs."""
+        if matrix_store is not None:
+            results = run_mp(
+                self.nproc,
+                func=_get_step_reaction_by_index,
+                l=matrix_store.iter_active_transitions(),
+                initializer=_initialize_reaction_worker,
+                initargs=(
+                    matrix_store.reader_args,
+                    self.mname,
+                    self.printreactionevent,
+                ),
+                # Preserve the legacy reduction policy: event rows are ordered;
+                # count-only output consumes completed workers without ordering.
+                unordered=not self.printreactionevent,
+                chunksize=1,
+                max_inflight=max(2, 2 * self.nproc),
+                disk_ordered=self.printreactionevent,
+                total=matrix_store.active_transition_count,
+                desc="Analyze reactions (A+B->C+D)",
+                unit="timestep",
+            )
+            try:
+                self._write_reactions(results)
+            finally:
+                # Close workers before collect() removes their shared files.
+                results.close()
+            return
         # atomeach j, atomeach j+1, conflict j, conflict j+1
         if self.printreactionevent:
             givenarray = (
@@ -79,6 +141,11 @@ class ReactionsFinder(SharedRNGData):
             unit="timestep",
             **ordered_kwargs,
         )
+        self._write_reactions(results)
+
+    def _write_reactions(self, results):
+        """Consume results incrementally in the existing text/CSV formats."""
+        reaction_counts = Counter()
         if self.printreactionevent:
             with open(self.reactioneventfilename, "w", newline="") as f_event:
                 event_writer = csv.writer(f_event)
@@ -116,18 +183,32 @@ class ReactionsFinder(SharedRNGData):
         else:
             stepidx = None
             atomeachj, atomeachjp1, conflictj, conflictjp1 = item
-        modifiedatoms = np.not_equal(atomeachj, atomeachjp1)
-        # covert to dict
+        blocks = (
+            tuple(
+                values[start : start + _STEP3_SCAN_ROWS]
+                for values in (atomeachj, atomeachjp1, conflictj, conflictjp1)
+            )
+            for start in range(0, len(atomeachj), _STEP3_SCAN_ROWS)
+        )
+        return self._reactions_from_blocks(blocks, stepidx)
+
+    def _reactions_from_blocks(self, blocks, stepidx):
+        """Build the same reaction graph without full-frame temporary arrays.
+
+        Blocks visit atoms in their original order. The graph for one transition
+        can still grow with its participating atoms; only the scan temporaries
+        have a fixed bound.
+        """
         reactdict = [defaultdict(list), defaultdict(list)]
-        for mol in np.array((atomeachj, atomeachjp1, conflictj, conflictjp1))[
-            :, modifiedatoms
-        ].T:
-            reactdict[0][mol[0]].append(mol[1])
-            reactdict[1][mol[1]].append(mol[0])
-            if mol[2]:
-                reactdict[0][mol[0]].append(self.CONFLICT)
-            if mol[3]:
-                reactdict[1][mol[1]].append(self.CONFLICT)
+        for before, after, before_conflict, after_conflict in blocks:
+            for atom in np.flatnonzero(before != after):
+                left, right = int(before[atom]), int(after[atom])
+                reactdict[0][left].append(right)
+                reactdict[1][right].append(left)
+                if before_conflict[atom]:
+                    reactdict[0][left].append(self.CONFLICT)
+                if after_conflict[atom]:
+                    reactdict[1][right].append(self.CONFLICT)
         networks = dps_reaction(reactdict)
         # remove empty AND conflict
         new_networks = []

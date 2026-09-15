@@ -12,6 +12,14 @@ from typing import Literal
 import numpy as np
 
 _PACKED_BOOL_SPARSE_SELECTION_DIVISOR = 8
+_STEP3_SCAN_ROWS = 65536
+
+
+def _close_mapping(values) -> None:
+    """Release a mapping without removing the file owned by the parent."""
+    mmap = getattr(values, "_mmap", None)
+    if mmap is not None:
+        mmap.close()
 
 
 def _unsigned_dtype_for_maximum(maximum_value: int) -> np.dtype:
@@ -173,6 +181,7 @@ class _PackedBoolMatrix:
         if mode.startswith("w"):
             self.data.fill(0)
         self._closed = False
+        self._owns_file = mode.startswith("w")
 
     @property
     def T(self) -> _PackedBoolFrameView:
@@ -276,7 +285,7 @@ class _PackedBoolMatrix:
             self.data.flush()
 
     def close(self) -> None:
-        """Close the mapping and remove its temporary file."""
+        """Close the mapping; only its creating instance removes the file."""
         if self._closed:
             return
         self._closed = True
@@ -288,8 +297,28 @@ class _PackedBoolMatrix:
                 if mmap is not None:
                     mmap.close()
         finally:
-            with suppress(FileNotFoundError):
-                os.unlink(self.path)
+            if self._owns_file:
+                with suppress(FileNotFoundError):
+                    os.unlink(self.path)
+
+
+class _AtomFrameReader:
+    """Attach a worker to the parent's matrices without acquiring file ownership."""
+
+    def __init__(self, atomeach_path, conflict_path, shape, dtype) -> None:
+        self.atomeach = np.memmap(atomeach_path, mode="r", shape=shape, dtype=dtype)
+        try:
+            self.conflict = _PackedBoolMatrix(conflict_path, shape, mode="r")
+        except BaseException:
+            _close_mapping(self.atomeach)
+            raise
+
+    def close(self) -> None:
+        """Detach both read-only mappings, leaving the parent's files intact."""
+        try:
+            _close_mapping(self.atomeach)
+        finally:
+            self.conflict.close()
 
 
 class _AtomFrameStore:
@@ -300,6 +329,8 @@ class _AtomFrameStore:
         if len(self.shape) != 2 or min(self.shape) <= 0:
             raise ValueError("Atom-frame matrix shape must be two positive values")
         self.molecule_dtype = _unsigned_dtype_for_maximum(maximum_molecule_id)
+        self.active_transition_path = None
+        self.active_transitions = None
         self._closed = True
         atom_handle = None
         conflict_handle = None
@@ -353,12 +384,83 @@ class _AtomFrameStore:
     @property
     def nbytes(self) -> int:
         """Return the total disk-backed payload size in bytes."""
-        return int(self.atomeach.nbytes) + self.conflict.nbytes
+        active_bytes = (
+            0 if self.active_transitions is None else self.active_transitions.nbytes
+        )
+        return int(self.atomeach.nbytes) + self.conflict.nbytes + active_bytes
+
+    @property
+    def reader_args(self) -> tuple:
+        """Describe the matrices using paths and metadata, never array payloads."""
+        return (
+            self.atomeach_path,
+            self.conflict.path,
+            self.shape,
+            self.molecule_dtype.str,
+        )
+
+    def prepare_active_transitions(self) -> None:
+        """Allocate one byte per adjacent frame pair for route workers to mark.
+
+        Workers only store 1 into individual bytes. Packed bits would require
+        concurrent read/modify/write operations and could lose another atom's
+        changes. The parent resets flags before starting the full-route pool.
+        """
+        if self.active_transitions is None:
+            count = self.shape[1] - 1
+            if count == 0:
+                self.active_transitions = np.zeros(0, dtype=np.uint8)
+                return
+            handle, path = tempfile.mkstemp(
+                prefix="reacnetgenerator-active-",
+                suffix=".mmap",
+                dir=os.path.dirname(self.atomeach_path),
+            )
+            os.close(handle)
+            try:
+                self.active_transitions = np.memmap(
+                    path, mode="w+", dtype=np.uint8, shape=(count,)
+                )
+            except BaseException:
+                os.unlink(path)
+                raise
+            self.active_transition_path = path
+        self.active_transitions.fill(0)
+        self.flush()
+
+    def iter_active_transitions(self, block_rows=_STEP3_SCAN_ROWS):
+        """Yield sorted indices without materializing all active transitions."""
+        if block_rows <= 0:
+            raise ValueError("Scan block size must be positive")
+        if self.active_transitions is None:
+            yield from range(self.shape[1] - 1)
+            return
+        for start in range(0, len(self.active_transitions), block_rows):
+            for offset in np.flatnonzero(
+                self.active_transitions[start : start + block_rows]
+            ):
+                yield start + int(offset)
+
+    @property
+    def active_transition_count(self) -> int:
+        """Count work without constructing a trajectory-sized index array."""
+        if self.active_transitions is None:
+            return self.shape[1] - 1
+        return sum(
+            int(
+                np.count_nonzero(
+                    self.active_transitions[start : start + _STEP3_SCAN_ROWS]
+                )
+            )
+            for start in range(0, len(self.active_transitions), _STEP3_SCAN_ROWS)
+        )
 
     def flush(self) -> None:
         """Flush both mappings before they are consumed."""
         self.atomeach.flush()
         self.conflict.flush()
+        if isinstance(self.active_transitions, np.memmap):
+            self.active_transitions.flush()
 
     def close(self) -> None:
         """Close both mappings and remove their temporary files."""
@@ -377,7 +479,13 @@ class _AtomFrameStore:
                 with suppress(FileNotFoundError):
                     os.unlink(self.atomeach_path)
             finally:
-                self.conflict.close()
+                try:
+                    self.conflict.close()
+                finally:
+                    if self.active_transition_path is not None:
+                        _close_mapping(self.active_transitions)
+                        with suppress(FileNotFoundError):
+                            os.unlink(self.active_transition_path)
 
     def __enter__(self):
         return self
