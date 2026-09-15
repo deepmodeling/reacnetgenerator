@@ -22,6 +22,7 @@ def test_benchmark_atom_route(benchmark):
 
     @benchmark
     def bench():
+        """Time route compression without including deterministic input setup."""
         collector._getatomroute(item)
 
 
@@ -40,4 +41,5 @@ def test_benchmark_transition_graph(benchmark):
 
     @benchmark
     def bench():
+        """Time reaction graph construction with the prepared serialized input."""
         finder._getstepreaction(payload)

@@ -174,6 +174,7 @@ class ReactionsFinder(SharedRNGData):
                     f.append(f"{number} {reaction}")
 
     def _getstepreaction(self, item):
+        """Decode a legacy transition task and scan it in bounded atom blocks."""
         # atomeachj, atomeachjp1, conflictj, conflictjp1
         # or stepidx, atomeachj, atomeachjp1, conflictj, conflictjp1
         item = bytestolist(item)

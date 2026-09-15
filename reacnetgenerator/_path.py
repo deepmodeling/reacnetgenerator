@@ -387,6 +387,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             raise
 
     def _getatomroute(self, item):
+        """Adapt a legacy one-based atom task to the shared route formatter."""
         i, (atomeachi, atomtypei) = item
         name = self.atomname[atomtypei]
         return _atom_route_result(

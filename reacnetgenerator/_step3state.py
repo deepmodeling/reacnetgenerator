@@ -166,6 +166,7 @@ class _PackedBoolMatrix:
         *,
         mode: Literal["r", "r+", "w+", "c"] = "w+",
     ) -> None:
+        """Open packed flags, owning the file only when creating its contents."""
         self.path = path
         self.shape = tuple(int(value) for value in shape)
         if len(self.shape) != 2 or min(self.shape) <= 0:
@@ -306,6 +307,7 @@ class _AtomFrameReader:
     """Attach a worker to the parent's matrices without acquiring file ownership."""
 
     def __init__(self, atomeach_path, conflict_path, shape, dtype) -> None:
+        """Attach read-only views and unwind the first if the second fails."""
         self.atomeach = np.memmap(atomeach_path, mode="r", shape=shape, dtype=dtype)
         try:
             self.conflict = _PackedBoolMatrix(conflict_path, shape, mode="r")
@@ -325,6 +327,7 @@ class _AtomFrameStore:
     """Own compact disk-backed atom-by-frame matrices for Step 3."""
 
     def __init__(self, shape, maximum_molecule_id: int, *, directory=None) -> None:
+        """Allocate parent-owned matrices and clean up partially created files."""
         self.shape = tuple(int(value) for value in shape)
         if len(self.shape) != 2 or min(self.shape) <= 0:
             raise ValueError("Atom-frame matrix shape must be two positive values")

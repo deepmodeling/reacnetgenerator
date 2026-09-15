@@ -26,13 +26,16 @@ class _BoundedTimeline:
     """Reject any attempt to copy a full timeline instead of a small slice."""
 
     def __init__(self, values, block_rows):
+        """Retain the values and the largest permitted read size."""
         self.values = values
         self.block_rows = block_rows
 
     def __len__(self):
+        """Expose the timeline length without materializing its values."""
         return len(self.values)
 
     def __getitem__(self, index):
+        """Permit only contiguous reads within the configured block size."""
         assert isinstance(index, slice)
         start, stop, step = index.indices(len(self))
         assert step == 1
@@ -72,12 +75,14 @@ def test_route_scan_handles_decreasing_wide_unsigned_ids():
 
 
 def _use_context(monkeypatch, method):
+    """Use one start method consistently for the pool and its IPC objects."""
     context = multiprocessing.get_context(method)
     for name in ("Pool", "Event", "Semaphore", "SimpleQueue"):
         monkeypatch.setattr(utils, name, getattr(context, name))
 
 
 def _collector(tmp_path, names, nproc, shape):
+    """Build a minimal collector with H routes selected and isolated outputs."""
     collector = object.__new__(_CollectSMILESPaths)
     collector.N, collector.step = shape
     collector.nproc = nproc
@@ -112,10 +117,14 @@ def test_indexed_workers_preserve_routes_events_and_shared_file_ownership(
     original_run_mp = utils.run_mp
 
     def observe(kind):
+        """Record route or reaction inputs while retaining the real worker pool."""
+
         def run(nproc, **kwargs):
+            """Wrap only the task iterable so scheduling and cleanup stay real."""
             inputs = kwargs.pop("l")
 
             def indices():
+                """Reject array payloads and record each dispatched integer index."""
                 for value in inputs:
                     assert type(value) is int
                     seen_tasks[kind].append(value)
@@ -233,7 +242,8 @@ def test_inactive_trajectory_and_single_frame_have_no_reaction_tasks(tmp_path, f
     assert not list(tmp_path.glob("*.mmap"))
 
 
-def test_atom_blocks_join_one_reaction_and_preserve_conflict_suppression():
+@pytest.mark.parametrize("conflict_side", [0, 1])
+def test_atom_blocks_join_one_reaction_and_preserve_conflict_suppression(conflict_side):
     """A connected reaction spanning blocks must not become multiple events."""
     finder = object.__new__(ReactionsFinder)
     finder.mname = np.array(["A", "B", "C"])
@@ -243,7 +253,7 @@ def test_atom_blocks_join_one_reaction_and_preserve_conflict_suppression():
         (np.array([2, 2]), np.array([3, 3]), np.array([0, 0]), np.array([0, 0])),
     ]
     assert finder._reactions_from_blocks(blocks, None) == ["A+B->C"]
-    blocks[1][2][0] = 1
+    blocks[1][2 + conflict_side][0] = 1
     assert finder._reactions_from_blocks(blocks, None) == []
 
 
@@ -254,6 +264,7 @@ def test_route_write_failure_stops_workers_before_store_cleanup(tmp_path, monkey
     children_before = {child.pid for child in multiprocessing.active_children()}
 
     def fail_write(self, value):
+        """Fail while the parent consumes a result from the route workers."""
         raise OSError("simulated route write failure")
 
     with pytest.raises(OSError, match="simulated route write failure"):
@@ -272,6 +283,7 @@ def test_active_allocation_failure_removes_only_partial_file(tmp_path, monkeypat
     with _AtomFrameStore((2, 9), 3, directory=tmp_path) as store:
 
         def fail_active(path, *args, **kwargs):
+            """Fail only the new activity mapping, leaving existing files usable."""
             if "reacnetgenerator-active-" in str(path):
                 raise OSError("simulated active mapping failure")
             return original_memmap(path, *args, **kwargs)
@@ -289,12 +301,14 @@ _INITIALIZATION_COUNT = 0
 
 
 def _initialize_value(value):
+    """Record both the initialized value and the number of worker attachments."""
     global _INITIALIZED_VALUE, _INITIALIZATION_COUNT
     _INITIALIZED_VALUE = value
     _INITIALIZATION_COUNT += 1
 
 
 def _read_initialized_value(value):
+    """Return the worker state alongside its task to verify initialization order."""
     return _INITIALIZED_VALUE, _INITIALIZATION_COUNT, value
 
 
@@ -336,6 +350,7 @@ def test_run_mp_rejects_initializer_without_startup_monitoring():
 
 
 def _missing_mapping_case(queue, directory):
+    """Report an initialization failure from a process with a bounded lifetime."""
     try:
         list(
             utils.run_mp(
@@ -379,3 +394,75 @@ def test_mapping_initializer_failure_does_not_hang(tmp_path):
             process.terminate()
             process.join(timeout=5)
         queue.close()
+
+
+@pytest.mark.parametrize("block_rows", [0, -1])
+def test_scans_reject_nonpositive_blocks(tmp_path, block_rows):
+    """Reject invalid scan sizes before either route or activity iteration."""
+    with pytest.raises(ValueError, match="Scan block size must be positive"):
+        _route_changes(np.array([1, 2]), block_rows=block_rows)
+    with _AtomFrameStore((1, 2), 2, directory=tmp_path) as store:
+        with pytest.raises(ValueError, match="Scan block size must be positive"):
+            list(store.iter_active_transitions(block_rows=block_rows))
+    assert not list(tmp_path.iterdir())
+
+
+def test_reader_conflict_open_failure_closes_only_its_atom_mapping(
+    tmp_path, monkeypatch
+):
+    """A failed second attachment must detach the reader and preserve its owner."""
+    from reacnetgenerator import _step3state
+
+    closed = []
+    original_close = _step3state._close_mapping
+
+    def record_close(values):
+        """Observe the actual reader mapping after the production close helper."""
+        original_close(values)
+        closed.append(values._mmap)
+
+    with _AtomFrameStore((2, 9), 3, directory=tmp_path) as store:
+        store.atomeach[:] = 3
+        store.flush()
+        paths_before = set(tmp_path.iterdir())
+        atom_path, _, shape, dtype = store.reader_args
+        monkeypatch.setattr(_step3state, "_close_mapping", record_close)
+        with pytest.raises(FileNotFoundError):
+            _AtomFrameReader(
+                atom_path, str(tmp_path / "missing-conflict"), shape, dtype
+            )
+        assert len(closed) == 1
+        assert closed[0].closed
+        assert not store.atomeach._mmap.closed
+        np.testing.assert_array_equal(store.atomeach, np.full((2, 9), 3))
+        assert set(tmp_path.iterdir()) == paths_before
+    assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("frames", [1, 4])
+def test_unprepared_activity_index_analyzes_every_transition(tmp_path, frames):
+    """Direct shared-state callers retain reactions without a preceding route scan."""
+    with _AtomFrameStore((1, frames), 2, directory=tmp_path) as store:
+        store.atomeach[:] = np.array([1, 1, 2, 2])[:frames]
+        store.flush()
+        assert store.active_transitions is None
+        assert list(store.iter_active_transitions()) == list(range(frames - 1))
+        assert store.active_transition_count == frames - 1
+        finder = ReactionsFinder(
+            SimpleNamespace(
+                step=frames,
+                mname=np.array(["A", "B"]),
+                nproc=1,
+                printreactionevent=True,
+                reactionabcdfilename=str(tmp_path / "counts"),
+                reactioneventfilename=str(tmp_path / "events"),
+            )
+        )
+        finder.findreactions(store.atomeach.T, store.conflict.T, matrix_store=store)
+        assert Path(finder.reactionabcdfilename).read_text() == (
+            "1 A->B\n" if frames > 1 else ""
+        )
+        assert Path(finder.reactioneventfilename).read_text() == (
+            "Timestep_Index,Reactant,Product\n" + ("1,A,B\n" if frames > 1 else "")
+        )
+    assert not list(tmp_path.glob("*.mmap"))
