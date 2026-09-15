@@ -156,8 +156,10 @@ def test_run_returns_serializable_normalized_parameter_provenance(
         "reacnetgenerator.reacnetgen.ReacNetGenerator.runanddraw", fake_runanddraw
     )
     species_path = tmp_path / "custom.species"
+    output_dir = tmp_path / "artifacts"
     result = run(
         input_path=tmp_path / "trajectory.dump",
+        output_dir=output_dir,
         input_type="dump",
         atomname=["H"],
         items=("species",),
@@ -171,11 +173,11 @@ def test_run_returns_serializable_normalized_parameter_provenance(
     assert parameters["max_component_fraction"] == 0.1
     assert parameters["max_component_atoms"] == 512
     assert parameters["runHMM"] is False
-    assert parameters["output_dir"] is None
+    assert parameters["output_dir"] == str(output_dir)
     assert parameters["speciesfilename"] == str(species_path)
     assert parameters["inputfilename"] == [str(tmp_path / "trajectory.dump")]
     assert result["artifacts"]["species"] == str(species_path)
-    assert "output_dir" not in result["provenance"]["explicit_parameters"]
+    assert "output_dir" in result["provenance"]["explicit_parameters"]
     assert "speciesfilename" in result["provenance"]["explicit_parameters"]
     assert result["provenance"]["items"] == ["species"]
     json.dumps(result)
