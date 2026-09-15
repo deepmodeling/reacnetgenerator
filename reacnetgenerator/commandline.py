@@ -170,6 +170,11 @@ def main_parser() -> argparse.ArgumentParser:
         default=1,
     )
     parser.add_argument(
+        "--timed-output",
+        metavar="FILE",
+        help="Write an opt-in HDF5 schema 1.0 timeline (effective molecule ranges and aggregate events).",
+    )
+    parser.add_argument(
         "--show-molecule-time",
         help=(
             "Write a molecule timeline CSV file with original timestep values, "
@@ -261,6 +266,7 @@ def _commandline():
         inputfilename=args.inputfilename,
         atomname=args.atomname,
         output_dir=args.output_dir,
+        timed_output=args.timed_output,
         miso=args.miso,
         runHMM=not args.nohmm,
         inputfiletype=("lammpsdumpfile" if args.dump else args.type),
@@ -307,6 +313,8 @@ def parm2cmd(pp: dict) -> list[str]:
         Command line arguments
     """
     commands = ["reacnetgenerator", "-i", pp["inputfilename"], "-a", *pp["atomname"]]
+    if pp.get("timed_output"):
+        commands.extend(("--timed-output", str(pp["timed_output"])))
     if pp.get("output_dir"):
         commands.extend(("--output-dir", str(pp["output_dir"])))
     if not pp.get("runHMM", True):

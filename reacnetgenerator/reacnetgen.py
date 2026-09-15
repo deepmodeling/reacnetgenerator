@@ -129,6 +129,9 @@ class ReacNetGenerator:
     split: int, optional, default: None
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
+    timed_output: str or pathlib.Path, optional
+        Opt in to a schema 1.0 HDF5 timeline at this explicit path.
+        Includes effective molecule ranges and aggregated reaction events.
     printmoleculetime: bool, optional, default: False
         Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs.
     moleculeframes: list of int, optional, default: None
@@ -171,6 +174,8 @@ class ReacNetGenerator:
     reactionabcdfilename: str
     reactioneventfilename: str
     parameters: dict[str, Any]
+    timed_output: str | None
+    source_frame_counts: list[int] | None
     explicit_parameters: list[str]
 
     def __init__(self, **kwargs: Any) -> None:
@@ -224,6 +229,7 @@ class ReacNetGenerator:
             "max_component_atoms": 256,
             "max_component_fraction": 0.1,
             "output_dir": None,
+            "timed_output": None,
         }
         none_key = [
             "selectatoms",
@@ -236,6 +242,7 @@ class ReacNetGenerator:
             "moleculetimesteps",
         ]
         accept_keys = [
+            "source_frame_counts",
             "atomtype",
             "step",
             "hmmit",
@@ -316,6 +323,22 @@ class ReacNetGenerator:
         if not 0 <= max_component_fraction <= 1:
             raise ValueError("max_component_fraction must be between 0 and 1")
         kwargs["max_component_fraction"] = float(max_component_fraction)
+        if kwargs["timed_output"] is not None:
+            target = Path(kwargs["timed_output"]).expanduser()
+            reserved = [*kwargs["inputfilename"], *(kwargs[key] for key in file_key)]
+            if any(
+                target.resolve() == Path(path).expanduser().resolve()
+                or (
+                    target.exists()
+                    and Path(path).exists()
+                    and os.path.samefile(target, path)
+                )
+                for path in reserved
+            ):
+                raise ValueError(
+                    "timed_output must not alias an input or another output"
+                )
+            kwargs["timed_output"] = str(target)
         for kk in ("moleculeframes", "moleculetimesteps"):
             kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
         if (
@@ -375,7 +398,7 @@ class ReacNetGenerator:
 
     def _build_artifact_map(self) -> dict[str, str]:
         """Return the semantic artifact paths for this analysis."""
-        return {
+        artifacts = {
             "moname": str(self.moleculefilename),
             "molecules": str(self.moleculetimelinefilename),
             "route": str(self.atomroutefilename),
@@ -388,6 +411,9 @@ class ReacNetGenerator:
             "reactionabcd": str(self.reactionabcdfilename),
             "reactionevent": str(self.reactioneventfilename),
         }
+        if self.timed_output is not None:
+            artifacts["timeline"] = str(self.timed_output)
+        return artifacts
 
     @staticmethod
     def _normalize_optional_int_filter(value):
@@ -449,6 +475,9 @@ class ReacNetGenerator:
         needed: set[str] = set()
         for item in items:
             needed.update(self.ITEM_REQUIRED_STEPS[item])
+
+        if self.timed_output is not None and "PATH" not in needed:
+            raise ValueError("timed_output requires an item that executes PATH")
 
         # Canonical execution order
         step_order = (
