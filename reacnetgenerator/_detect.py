@@ -788,6 +788,7 @@ class _DetectLAMMPSdump(_DetectCrd):
         N = None
         linecontent = None
         atomtype = None
+        seen_atom_ids = None
         index = -1
         stepaindex = None
         for index, line in enumerate(f):
@@ -811,21 +812,47 @@ class _DetectLAMMPSdump(_DetectCrd):
                         iscompleted = True
                         stepaindex = index
                     N = int(line.split()[0])
-                    atomtype = np.zeros(N, dtype=int)
+                    atomtype = np.empty(N, dtype=int)
+                    seen_atom_ids = np.zeros(N, dtype=bool)
                 elif linecontent == self.LineType.ATOMS:
                     s = line.split()
-                    assert atomtype is not None
-                    atomtype[int(s[self.id_idx]) - 1] = int(s[self.tidx]) - 1
+                    assert atomtype is not None and seen_atom_ids is not None
+                    atom_index, atom_type = self._atom_indices(s, seen_atom_ids)
+                    atomtype[atom_index] = atom_type
         else:
             steplinenum = index + 1
         assert N is not None and atomtype is not None
+        assert seen_atom_ids is not None
+        if not np.all(seen_atom_ids):
+            raise ValueError("LAMMPS dump frame is missing one or more atom IDs")
         self.N = N
         self.atomtype = atomtype
         return steplinenum
 
+    def _atom_indices(self, fields, seen_atom_ids):
+        """Validate the existing contiguous, one-based dump ID/type contract.
+
+        Mark each ID once so direct array placement cannot silently overwrite an
+        atom or leave uninitialized positions, including during first-frame setup.
+        """
+        atom_index = int(fields[self.id_idx]) - 1
+        atom_type = int(fields[self.tidx]) - 1
+        if not 0 <= atom_index < len(seen_atom_ids):
+            raise ValueError("LAMMPS dump atom ID is out of range")
+        if seen_atom_ids[atom_index]:
+            raise ValueError("LAMMPS dump contains a duplicate atom ID")
+        if not 0 <= atom_type < len(self.atomname):
+            raise ValueError("LAMMPS dump atom type is out of range")
+        seen_atom_ids[atom_index] = True
+        return atom_index, atom_type
+
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
-        step_atoms = []
+        # Place rows in canonical atom order without per-atom ASE objects or sorting.
+        numbers_by_type = Atoms(symbols=list(self.atomname)).numbers
+        step_numbers = np.empty(self.N, dtype=numbers_by_type.dtype)
+        step_positions = np.empty((self.N, 3), dtype=float)
+        seen_atom_ids = np.zeros(self.N, dtype=bool)
         ss = []
         linecontent = None
         timestep = None
@@ -838,18 +865,12 @@ class _DetectLAMMPSdump(_DetectCrd):
                         raise ValueError("LAMMPS dump file format error")
                     elif linecontent == self.LineType.ATOMS:
                         s = line.split()
-                        step_atoms.append(
-                            (
-                                int(s[self.id_idx]),
-                                Atom(
-                                    self.atomname[int(s[self.tidx]) - 1],
-                                    (
-                                        float(s[self.xidx]),
-                                        float(s[self.yidx]),
-                                        float(s[self.zidx]),
-                                    ),
-                                ),
-                            )
+                        atom_index, atom_type = self._atom_indices(s, seen_atom_ids)
+                        step_numbers[atom_index] = numbers_by_type[atom_type]
+                        step_positions[atom_index] = (
+                            float(s[self.xidx]),
+                            float(s[self.yidx]),
+                            float(s[self.zidx]),
                         )
                     elif linecontent == self.LineType.TIMESTEP:
                         timestep = step, int(line.split()[0])
@@ -877,8 +898,9 @@ class _DetectLAMMPSdump(_DetectCrd):
                 [xz, yz, zhi - zlo],
             ]
         )
-        _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
-        step_atoms = Atoms(step_atoms)
+        if not np.all(seen_atom_ids):
+            raise ValueError("LAMMPS dump frame is missing one or more atom IDs")
+        step_atoms = Atoms(numbers=step_numbers, positions=step_positions)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(
             bond, level, frame=timestep[0], timestep=timestep[1]
