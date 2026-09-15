@@ -164,7 +164,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             results = run_mp(
                 self.nproc,
                 func=self._readstepfunc,
-                l=f,
+                l=self._source_lines(f, _steplinenum) if self.rng.timed_output else f,
                 max_inflight=max(1, self.nproc * 2),
                 nlines=_steplinenum,
                 return_num=True,
@@ -191,6 +191,32 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self._writemoleculetempfile((d.keys(), values_c))
         self.timestep = timestep
         self.step = len(timestep)
+
+    def _source_lines(self, source, lines_per_frame):
+        """Record per-source frame counts during the existing streaming read.
+
+        Counts are indexed by input occurrence, so repeating the same filename
+        remains distinguishable. Reject partial frames at file boundaries rather
+        than silently inventing a source mapping for a cross-file frame.
+        """
+        counts = []
+        lines = 0
+        for line in source:
+            if source.isfirstline():
+                if lines:
+                    if lines % lines_per_frame:
+                        raise ValueError("Incomplete source frame at file boundary")
+                    counts.append(lines // lines_per_frame)
+                lines = 0
+            lines += 1
+            yield line
+        if lines % lines_per_frame:
+            raise ValueError("Incomplete final source frame")
+        if lines:
+            counts.append(lines // lines_per_frame)
+        if len(counts) != len(self.inputfilename):
+            raise ValueError("Empty input sources cannot be mapped to frames")
+        self.rng.source_frame_counts = counts
 
     def _compressvalue(self, x):
         return listtobytes(np.array(x))

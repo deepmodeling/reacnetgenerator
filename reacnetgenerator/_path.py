@@ -27,7 +27,7 @@ import shutil
 import tempfile
 from abc import ABCMeta, abstractmethod
 from collections import Counter, defaultdict
-from contextlib import ExitStack, closing
+from contextlib import ExitStack, closing, nullcontext
 from multiprocessing.util import Finalize
 
 import networkx as nx
@@ -45,6 +45,7 @@ from ._step3state import (
     _MoleculeNameBuilder,
     _MoleculeNameTable,
 )
+from ._timedoutput import _TimedOutputWriter
 from .utils import (
     SharedRNGData,
     WriteBuffer,
@@ -304,8 +305,18 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
 
     def collect(self):
         """Collect paths."""
+        context = (
+            _TimedOutputWriter(self.rng) if self.rng.timed_output else nullcontext()
+        )
+        with context as writer:
+            self._collect(writer)
+
+    def _collect(self, writer):
+        """Keep the optional writer alive until all reaction results are consumed."""
         self.atomnames = self.atomname[self.atomtype]
         self._printmoleculename()
+        if writer is not None:
+            writer.write_molecules(self.mname)
         with self._getatomeach() as matrix_store:
             atomeach = matrix_store.atomeach
             matrix_store.prepare_active_transitions()
@@ -330,6 +341,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 atomeach.T,
                 matrix_store.conflict.T,
                 matrix_store=matrix_store,
+                timed_writer=writer,
             )
 
     @abstractmethod
