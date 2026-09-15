@@ -394,11 +394,17 @@ def _init_bounded_pool_worker(task_events: Any) -> None:
 
 
 def _bounded_pool_initializer(
-    task_events: Any, start_gate: Any, startup_events: Any
+    task_events: Any,
+    start_gate: Any,
+    startup_events: Any,
+    initializer: Callable | None = None,
+    initargs: tuple = (),
 ) -> None:
     """Hold workers until the parent records their initial process objects."""
     start_gate.wait()
     _init_bounded_pool_worker(task_events)
+    if initializer is not None:
+        initializer(*initargs)
     startup_events.put(os.getpid())
 
 
@@ -1041,8 +1047,10 @@ def run_mp(
     max_inflight: int | None = None,
     disk_ordered: bool = False,
     ordered_spool_dir: str | None = None,
+    initializer: Callable | None = None,
+    initargs: tuple = (),
     **kwargs: Any,
-) -> Iterable[Any]:
+) -> Generator[Any, None, None]:
     """Process a file with multiple processors.
 
     Parameters
@@ -1058,6 +1066,13 @@ def run_mp(
         ``total``.
     ordered_spool_dir : str, optional
         Parent directory for temporary ordered-result files.
+    initializer : callable, optional
+        Called once in each worker before it receives tasks. Use this to attach
+        shared data so individual tasks need only carry indices. Requires bounded
+        execution (``max_inflight`` or ``disk_ordered``), whose worker-exit
+        detection prevents failed initializers from hanging the consumer.
+    initargs : tuple, optional
+        Arguments passed to ``initializer``.
     **kwargs : dict, optional
         Other parameters can be found in the `multiopen` method.
 
@@ -1077,6 +1092,9 @@ def run_mp(
     elif disk_ordered:
         max_inflight = nproc * 150
 
+    if initializer is not None and max_inflight is None:
+        raise ValueError("initializer requires max_inflight or disk_ordered")
+
     task_events = SimpleQueue() if max_inflight is not None else None
     start_gate = Event() if task_events is not None else None
     startup_events = SimpleQueue() if task_events is not None else None
@@ -1090,7 +1108,7 @@ def run_mp(
         pool = Pool(
             nproc,
             initializer=_bounded_pool_initializer,
-            initargs=(task_events, start_gate, startup_events),
+            initargs=(task_events, start_gate, startup_events, initializer, initargs),
         )
     known_workers = (
         {id(worker): worker for worker in getattr(pool, "_pool", ())}
