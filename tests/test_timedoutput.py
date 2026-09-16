@@ -150,6 +150,31 @@ def test_source_occurrences_and_stride(tmp_path):
     assert [x.timestep for x in iter_frames(path)] == [0, 3, 6, 1, 4, 7]
 
 
+def test_empty_source_occurrences(tmp_path):
+    """Preserve empty occurrences before, between, and after repeated inputs."""
+    path = tmp_path / "timeline.h5"
+    empty = tmp_path / "empty.bond"
+    empty.write_text("")
+    rng = generator(
+        tmp_path,
+        inputfilename=[str(empty), str(INPUT), str(empty), str(INPUT), str(empty)],
+        timed_output=path,
+        stepinterval=3,
+    )
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+
+    assert rng.source_frame_counts == [0, 8, 0, 8, 0]
+    assert [(x.source_id, x.source_frame) for x in iter_frames(path)] == [
+        (1, 0),
+        (1, 3),
+        (1, 6),
+        (3, 1),
+        (3, 4),
+        (3, 7),
+    ]
+
+
 def test_atomic_failure(tmp_path, monkeypatch):
     """A PATH failure never replaces the previous artifact and closes handles."""
     path = tmp_path / "timeline.h5"
@@ -295,23 +320,19 @@ def test_coordinate_sources(tmp_path, filetype):
 
 def test_source_boundary_errors(tmp_path):
     """Do not silently assign a frame assembled from two partial files."""
-    import fileinput
-
     first = tmp_path / "first"
     second = tmp_path / "second"
     first.write_text("a\nb\nc\n")
     second.write_text("d\n")
     rng = generator(tmp_path, inputfilename=[str(first), str(second)])
     detector = _Detect.gettype(rng)
-    with fileinput.input(files=rng.inputfilename) as lines:
-        with pytest.raises(ValueError, match="boundary"):
-            list(detector._source_lines(lines, 2))
+    with pytest.raises(ValueError, match="boundary"):
+        list(detector._source_lines(2))
     first.write_text("a\n")
     rng.inputfilename = [str(first)]
     detector = _Detect.gettype(rng)
-    with fileinput.input(files=rng.inputfilename) as lines:
-        with pytest.raises(ValueError, match="final"):
-            list(detector._source_lines(lines, 2))
+    with pytest.raises(ValueError, match="final"):
+        list(detector._source_lines(2))
 
 
 def test_reader_headers_alignment_and_close(tmp_path):
@@ -336,6 +357,81 @@ def test_reader_headers_alignment_and_close(tmp_path):
         file["frames/source_id"].resize((1,))
     with pytest.raises(ValueError, match="Misaligned"):
         next(iter_frames(path))
+
+
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        "molecules/atom_offsets",
+        "molecules/bond_offsets",
+        "molecules/atom_index",
+        "molecules/bond_atom_index_1",
+        "molecules/bond_atom_index_2",
+        "molecules/bond_order",
+    ],
+)
+def test_molecule_reader_rejects_non_integer_columns(tmp_path, dataset):
+    """Reject malformed direct numeric columns before converting their values."""
+    path = tmp_path / "timeline.h5"
+    rng = generator(tmp_path, timed_output=path)
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+    with h5py.File(path, "r+") as file:
+        values = file[dataset][:].astype(float)
+        del file[dataset]
+        file.create_dataset(dataset, data=values)
+
+    with pytest.raises(ValueError, match="Invalid numeric column"):
+        next(iter_molecules(path))
+
+
+@pytest.mark.parametrize(
+    "dataset", ["molecules/atom_offsets", "molecules/bond_offsets"]
+)
+def test_molecule_reader_rejects_offset_length(tmp_path, dataset):
+    """Require one more atom and bond offset than molecule definitions."""
+    path = tmp_path / "timeline.h5"
+    rng = generator(tmp_path, timed_output=path)
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+    with h5py.File(path, "r+") as file:
+        values = file[dataset][:-1]
+        del file[dataset]
+        file.create_dataset(dataset, data=values)
+
+    with pytest.raises(ValueError, match="offset length"):
+        next(iter_molecules(path))
+
+
+def test_molecule_reader_rejects_global_bond_misalignment(tmp_path):
+    """Reject an unused tail that per-molecule bond slices would not observe."""
+    path = tmp_path / "timeline.h5"
+    rng = generator(tmp_path, timed_output=path)
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+    with h5py.File(path, "r+") as file:
+        dataset = file["molecules/bond_order"]
+        dataset.resize((len(dataset) + 1,))
+        dataset[-1] = 1
+
+    with pytest.raises(ValueError, match="bond columns"):
+        next(iter_molecules(path))
+
+
+def test_reaction_type_reader_rejects_non_integer_total(tmp_path):
+    """Do not truncate malformed floating-point reaction totals."""
+    path = tmp_path / "timeline.h5"
+    rng = generator(tmp_path, timed_output=path)
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+    with h5py.File(path, "r+") as file:
+        dataset = "reaction_types/total_count"
+        values = file[dataset][:].astype(float) + 0.5
+        del file[dataset]
+        file.create_dataset(dataset, data=values)
+
+    with pytest.raises(ValueError, match="Invalid numeric column"):
+        next(iter_reaction_types(path))
 
 
 def test_replace_failure(tmp_path, monkeypatch):

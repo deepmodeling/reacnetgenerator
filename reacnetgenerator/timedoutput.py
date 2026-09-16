@@ -79,16 +79,30 @@ def read_metadata(filename):
         return result
 
 
+def _dataset(container, name):
+    """Return one one-dimensional dataset or reject a malformed table header."""
+    try:
+        dataset = container[name]
+    except KeyError as exc:
+        raise ValueError(f"Missing column {name}") from exc
+    if not isinstance(dataset, h5py.Dataset) or dataset.ndim != 1:
+        raise ValueError(f"Invalid column shape for {name}")
+    return dataset
+
+
+def _numeric_dataset(container, name):
+    """Return a schema 1.0 signed 64-bit integer dataset."""
+    dataset = _dataset(container, name)
+    if dataset.dtype.kind != "i" or dataset.dtype.itemsize != 8:
+        raise ValueError(f"Invalid numeric column {name}")
+    return dataset
+
+
 def _rows(file, group, fields, block_rows):
     size = index(block_rows)
     if size <= 0:
         raise ValueError("block_rows must be a positive integer")
-    datasets = [file[f"{group}/{field}"] for field in fields]
-    if any(
-        ds.ndim != 1 or ds.dtype.kind != "i" or ds.dtype.itemsize != 8
-        for ds in datasets
-    ):
-        raise ValueError(f"Invalid column type in {group}")
+    datasets = [_numeric_dataset(file, f"{group}/{field}") for field in fields]
     length = len(datasets[0])
     if any(len(ds) != length for ds in datasets):
         raise ValueError(f"Misaligned columns in {group}")
@@ -139,25 +153,39 @@ def iter_molecules(filename, *, block_rows=8192):
     """
     with _open(filename) as file:
         molecules = file["molecules"]
+        if not isinstance(molecules, h5py.Group):
+            raise ValueError("Invalid molecules group")
+        species_ids = _numeric_dataset(molecules, "species_id")
+        atom_offsets = _numeric_dataset(molecules, "atom_offsets")
+        atom_indices = _numeric_dataset(molecules, "atom_index")
+        bond_offsets = _numeric_dataset(molecules, "bond_offsets")
+        bond_columns = tuple(
+            _numeric_dataset(molecules, name)
+            for name in ("bond_atom_index_1", "bond_atom_index_2", "bond_order")
+        )
+        expected_offsets = len(species_ids) + 1
+        if (
+            len(atom_offsets) != expected_offsets
+            or len(bond_offsets) != expected_offsets
+        ):
+            raise ValueError("Invalid molecule offset length")
+        if len({len(dataset) for dataset in bond_columns}) != 1:
+            raise ValueError("Misaligned molecule bond columns")
         for molecule_id, (species_id,) in enumerate(
             _rows(file, "molecules", ("species_id",), block_rows), 1
         ):
-            atom_start, atom_stop = molecules["atom_offsets"][
-                molecule_id - 1 : molecule_id + 1
-            ]
-            bond_start, bond_stop = molecules["bond_offsets"][
-                molecule_id - 1 : molecule_id + 1
-            ]
-            atoms = tuple(int(x) for x in molecules["atom_index"][atom_start:atom_stop])
+            atom_start, atom_stop = (
+                int(x) for x in atom_offsets[molecule_id - 1 : molecule_id + 1]
+            )
+            bond_start, bond_stop = (
+                int(x) for x in bond_offsets[molecule_id - 1 : molecule_id + 1]
+            )
+            atoms = tuple(int(x) for x in atom_indices[atom_start:atom_stop])
             bonds = tuple(
                 zip(
                     *(
-                        tuple(int(x) for x in molecules[name][bond_start:bond_stop])
-                        for name in (
-                            "bond_atom_index_1",
-                            "bond_atom_index_2",
-                            "bond_order",
-                        )
+                        tuple(int(x) for x in dataset[bond_start:bond_stop])
+                        for dataset in bond_columns
                     ),
                     strict=True,
                 )
@@ -177,10 +205,19 @@ def iter_reaction_types(filename):
     """Yield ``(type_id, reactant, product, total_count)`` dictionary entries."""
     with _open(filename) as file:
         types = file["reaction_types"]
-        for type_id in range(len(types["total_count"])):
+        if not isinstance(types, h5py.Group):
+            raise ValueError("Invalid reaction_types group")
+        reactants = _dataset(types, "reactant")
+        products = _dataset(types, "product")
+        totals = _numeric_dataset(types, "total_count")
+        if len(reactants) != len(totals) or len(products) != len(totals):
+            raise ValueError("Misaligned columns in reaction_types")
+        reactant_text = reactants.asstr()
+        product_text = products.asstr()
+        for type_id in range(len(totals)):
             yield (
                 type_id,
-                types["reactant"].asstr()[type_id],
-                types["product"].asstr()[type_id],
-                int(types["total_count"][type_id]),
+                reactant_text[type_id],
+                product_text[type_id],
+                int(totals[type_id]),
             )

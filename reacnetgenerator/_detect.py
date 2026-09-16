@@ -160,11 +160,16 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         timestep = {}
         with fileinput.input(files=self.inputfilename) as f:
             _steplinenum = self._readNfunc(f)
-        with fileinput.input(files=self.inputfilename) as f:
+        lines = (
+            self._source_lines(_steplinenum)
+            if self.rng.timed_output
+            else fileinput.FileInput(files=self.inputfilename)
+        )
+        try:
             results = run_mp(
                 self.nproc,
                 func=self._readstepfunc,
-                l=self._source_lines(f, _steplinenum) if self.rng.timed_output else f,
+                l=lines,
                 max_inflight=max(1, self.nproc * 2),
                 nlines=_steplinenum,
                 return_num=True,
@@ -176,6 +181,8 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 for molecule in molecules:
                     d[molecule].append(step)
                 timestep[step] = thetimestep
+        finally:
+            lines.close()
         self.temp1it = len(d)
         values_c = list(
             run_mp(
@@ -192,7 +199,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self.timestep = timestep
         self.step = len(timestep)
 
-    def _source_lines(self, source, lines_per_frame):
+    def _source_lines(self, lines_per_frame):
         """Record per-source frame counts during the existing streaming read.
 
         Counts are indexed by input occurrence, so repeating the same filename
@@ -200,19 +207,16 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         than silently inventing a source mapping for a cross-file frame.
         """
         counts = []
-        lines = 0
-        for line in source:
-            if source.isfirstline():
-                if lines:
-                    if lines % lines_per_frame:
-                        raise ValueError("Incomplete source frame at file boundary")
-                    counts.append(lines // lines_per_frame)
-                lines = 0
-            lines += 1
-            yield line
-        if lines % lines_per_frame:
-            raise ValueError("Incomplete final source frame")
-        if lines:
+        for source_index, filename in enumerate(self.inputfilename):
+            lines = 0
+            with fileinput.FileInput(files=(filename,)) as source:
+                for line in source:
+                    lines += 1
+                    yield line
+            if lines % lines_per_frame:
+                if source_index + 1 == len(self.inputfilename):
+                    raise ValueError("Incomplete final source frame")
+                raise ValueError("Incomplete source frame at file boundary")
             counts.append(lines // lines_per_frame)
         if len(counts) != len(self.inputfilename):
             raise ValueError("Empty input sources cannot be mapped to frames")
