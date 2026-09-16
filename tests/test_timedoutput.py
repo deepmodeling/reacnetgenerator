@@ -418,6 +418,22 @@ def test_molecule_reader_rejects_global_bond_misalignment(tmp_path):
         next(iter_molecules(path))
 
 
+def test_species_reader_rejects_multidimensional_names(tmp_path):
+    """Keep the public species name field scalar by rejecting array rows."""
+    path = tmp_path / "timeline.h5"
+    rng = generator(tmp_path, timed_output=path)
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+    with h5py.File(path, "r+") as file:
+        dataset = "species/name"
+        values = file[dataset].asstr()[:].reshape(-1, 1)
+        del file[dataset]
+        file.create_dataset(dataset, data=values, dtype=h5py.string_dtype("utf-8"))
+
+    with pytest.raises(ValueError, match="Invalid column shape"):
+        next(iter_species(path))
+
+
 def test_reaction_type_reader_rejects_non_integer_total(tmp_path):
     """Do not truncate malformed floating-point reaction totals."""
     path = tmp_path / "timeline.h5"

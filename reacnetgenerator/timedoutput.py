@@ -196,7 +196,7 @@ def iter_molecules(filename, *, block_rows=8192):
 def iter_species(filename):
     """Yield ``(species_id, name)`` pairs, reading one UTF-8 name at a time."""
     with _open(filename) as file:
-        names = file["species/name"].asstr()
+        names = _dataset(file, "species/name").asstr()
         for species_id in range(len(names)):
             yield species_id, names[species_id]
 
