@@ -35,6 +35,8 @@ classifiers = [
 ]
 dependencies = [
     'numpy',
+    # h5py 3.15+ dropped manylinux2014 wheels, which this project still targets.
+    'h5py>=3.8,<3.15',
     'networkx',
     'matplotlib',
     'hmmlearn>=0.2.1',
