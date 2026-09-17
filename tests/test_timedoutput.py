@@ -25,6 +25,7 @@ from reacnetgenerator.timedoutput import (
     iter_reaction_types,
     iter_species,
     read_metadata,
+    validate_timed_output,
 )
 from reacnetgenerator.utils import bytestolist, read_compressed_block
 
@@ -99,6 +100,7 @@ def test_pipeline(tmp_path, run_hmm, nproc):
     metadata = read_metadata(path)
     assert metadata["schema_version"] == "1.0"
     assert metadata["configuration"]["parameters"]["runHMM"] is run_hmm
+    assert validate_timed_output(path, block_rows=2).frames == rng.step
     assert not list(tmp_path.glob("*.incomplete"))
 
 
@@ -148,6 +150,7 @@ def test_source_occurrences_and_stride(tmp_path):
         (1, 7),
     ]
     assert [x.timestep for x in iter_frames(path)] == [0, 3, 6, 1, 4, 7]
+    assert validate_timed_output(path, block_rows=2).frames == rng.step
 
 
 def test_empty_source_occurrences(tmp_path):
@@ -173,6 +176,7 @@ def test_empty_source_occurrences(tmp_path):
         (3, 4),
         (3, 7),
     ]
+    assert validate_timed_output(path, block_rows=2).frames == rng.step
 
 
 def test_atomic_failure(tmp_path, monkeypatch):

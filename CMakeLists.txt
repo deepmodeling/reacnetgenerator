@@ -39,6 +39,11 @@ add_custom_target(run ALL DEPENDS bundle.html)
 install(
   FILES ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/static/webpack/bundle.html
   DESTINATION reacnetgenerator/static/webpack/)
+install(
+  FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/schemas/__init__.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/reacnetgenerator/schemas/timed-output-schema.json
+  DESTINATION reacnetgenerator/schemas/)
 
 # dps
 add_custom_command(

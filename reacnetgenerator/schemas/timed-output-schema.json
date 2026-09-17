@@ -1,0 +1,179 @@
+{
+  "descriptor_format": "reacnetgenerator-timeline-schema",
+  "descriptor_version": "1.0",
+  "timeline_format": "reacnetgenerator-timeline",
+  "schema_version": "1.0",
+  "capabilities": [
+    "molecule_ranges",
+    "reaction_events"
+  ],
+  "root_attributes": {
+    "format": {
+      "type": "string",
+      "const": "reacnetgenerator-timeline"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "const": "complete"
+    },
+    "capabilities": {
+      "type": "json-array"
+    },
+    "rng_version": {
+      "type": "string"
+    },
+    "created_utc": {
+      "type": "utc-datetime"
+    },
+    "configuration": {
+      "type": "json-object"
+    },
+    "atom_index_convention": {
+      "type": "string",
+      "const": "zero-based RNG canonical atom order"
+    },
+    "molecule_range_basis": {
+      "type": "string",
+      "enum": [
+        "HMM signal",
+        "observed signal"
+      ]
+    }
+  },
+  "datasets": {
+    "sources/path": {
+      "dtype": "utf8-vlen",
+      "table": "sources"
+    },
+    "sources/size_bytes": {
+      "dtype": "int64-le",
+      "table": "sources"
+    },
+    "sources/mtime_ns": {
+      "dtype": "int64-le",
+      "table": "sources"
+    },
+    "frames/source_id": {
+      "dtype": "int64-le",
+      "table": "frames"
+    },
+    "frames/source_frame": {
+      "dtype": "int64-le",
+      "table": "frames"
+    },
+    "frames/timestep": {
+      "dtype": "int64-le",
+      "table": "frames"
+    },
+    "atoms/type": {
+      "dtype": "int64-le",
+      "table": "atoms"
+    },
+    "atoms/type_name": {
+      "dtype": "utf8-vlen",
+      "table": "atom_types"
+    },
+    "species/name": {
+      "dtype": "utf8-vlen",
+      "table": "species"
+    },
+    "molecules/species_id": {
+      "dtype": "int64-le",
+      "table": "molecules"
+    },
+    "molecules/atom_offsets": {
+      "dtype": "int64-le",
+      "table": "molecule_atom_offsets"
+    },
+    "molecules/atom_index": {
+      "dtype": "int64-le",
+      "table": "molecule_atoms"
+    },
+    "molecules/bond_offsets": {
+      "dtype": "int64-le",
+      "table": "molecule_bond_offsets"
+    },
+    "molecules/bond_atom_index_1": {
+      "dtype": "int64-le",
+      "table": "molecule_bonds"
+    },
+    "molecules/bond_atom_index_2": {
+      "dtype": "int64-le",
+      "table": "molecule_bonds"
+    },
+    "molecules/bond_order": {
+      "dtype": "int64-le",
+      "table": "molecule_bonds"
+    },
+    "molecule_ranges/molecule_id": {
+      "dtype": "int64-le",
+      "table": "molecule_ranges"
+    },
+    "molecule_ranges/start_frame": {
+      "dtype": "int64-le",
+      "table": "molecule_ranges"
+    },
+    "molecule_ranges/end_frame": {
+      "dtype": "int64-le",
+      "table": "molecule_ranges"
+    },
+    "reaction_types/reactant": {
+      "dtype": "utf8-vlen",
+      "table": "reaction_types"
+    },
+    "reaction_types/product": {
+      "dtype": "utf8-vlen",
+      "table": "reaction_types"
+    },
+    "reaction_types/total_count": {
+      "dtype": "int64-le",
+      "table": "reaction_types"
+    },
+    "reaction_events/transition": {
+      "dtype": "int64-le",
+      "table": "reaction_events"
+    },
+    "reaction_events/reaction_type_id": {
+      "dtype": "int64-le",
+      "table": "reaction_events"
+    },
+    "reaction_events/count": {
+      "dtype": "int64-le",
+      "table": "reaction_events"
+    }
+  },
+  "constraints": [
+    {
+      "id": "one-dimensional-columns",
+      "description": "Every dataset is one-dimensional and ordinary table columns have equal lengths."
+    },
+    {
+      "id": "offset-endpoints",
+      "description": "Atom and bond offsets start at zero, are nondecreasing, and end at their payload length."
+    },
+    {
+      "id": "frame-stride-consistency",
+      "description": "Frame-to-source mappings follow the positive global stepinterval recorded in configuration."
+    },
+    {
+      "id": "reference-integrity",
+      "description": "All source, atom-type, species, molecule, reaction-type, frame, and bond references resolve."
+    },
+    {
+      "id": "signal-basis-consistency",
+      "description": "configuration.parameters.runHMM is boolean and agrees with molecule_range_basis."
+    },
+    {
+      "id": "maximal-ranges",
+      "description": "Molecule ranges are ordered, in frame bounds, disjoint, and maximal for each molecule."
+    },
+    {
+      "id": "reaction-totals",
+      "description": "Reaction counts are positive and each reaction-type total equals its event-count sum."
+    }
+  ]
+}
