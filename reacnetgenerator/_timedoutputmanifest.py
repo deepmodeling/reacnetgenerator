@@ -186,6 +186,10 @@ def compare_semantic_manifests(left, right):
         content = dict(manifest)
         content.pop("semantic_sha256", None)
         expected = _canonical_hash(content)
-        if not isinstance(checksum, str) or not hmac.compare_digest(checksum, expected):
+        if (
+            not isinstance(checksum, str)
+            or not checksum.isascii()
+            or not hmac.compare_digest(checksum, expected)
+        ):
             raise ValueError(f"The {name} manifest checksum is invalid")
     return tuple(_differences(left, right, ""))

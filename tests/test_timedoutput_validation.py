@@ -331,6 +331,18 @@ def test_compare_rejects_a_manifest_with_a_stale_checksum(valid_timeline):
         compare_semantic_manifests(manifest, stale)
 
 
+def test_compare_rejects_a_non_ascii_checksum():
+    """Treat malformed external checksum text as an invalid manifest."""
+    malformed = {
+        "manifest_format": "reacnetgenerator-timeline-semantic-manifest",
+        "manifest_version": "1.0",
+        "semantic_sha256": "é",
+    }
+
+    with pytest.raises(ValueError, match="The left manifest checksum is invalid"):
+        compare_semantic_manifests(malformed, malformed)
+
+
 def test_schema_descriptor_lists_the_public_contract(valid_timeline):
     """Expose the installed schema to consumers without requiring source docs."""
     descriptor = read_schema_descriptor()
