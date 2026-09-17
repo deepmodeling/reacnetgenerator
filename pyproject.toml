@@ -63,6 +63,7 @@ repository = "https://github.com/deepmodeling/reacnetgenerator"
 
 [project.scripts]
 reacnetgenerator = "reacnetgenerator.commandline:_commandline"
+reacnetgenerator-check-timed-output = "reacnetgenerator.timedoutputcheck:main"
 
 [project.gui-scripts]
 reacnetgeneratorgui = "reacnetgenerator.gui:gui"
@@ -109,6 +110,7 @@ fallback_version = "0.0.0"
 test-command = [
   "reacnetgenerator -h",
   "reacnetgenerator --version",
+  "reacnetgenerator-check-timed-output -h",
 ]
 build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux*"]

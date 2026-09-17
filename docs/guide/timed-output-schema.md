@@ -19,6 +19,29 @@ contain coordinates or instance-level reaction participants/bond-change evidence
 It does not change the existing text outputs or enable the legacy CSV switches.
 Those switches can still be selected separately.
 
+## Why validation is part of the format
+
+A saved analysis result is useful beyond the process that wrote it only when a
+user or another program can establish what it contains and whether its tables
+still agree. Opening an HDF5 file proves neither. The schema 1.0 validator makes
+the timeline a verifiable software boundary:
+
+- CI and scientific regression tests can reject a result with broken offsets,
+  dangling IDs, nonmaximal ranges, or inconsistent reaction totals even when the
+  file remains readable.
+- Collaborators and archives can record a compact semantic manifest and compare
+  results without depending on HDF5 compression, chunking, or local file paths.
+- Downstream consumers, including visualization and analysis applications, can
+  validate producer output before interpreting it and discover the contract from
+  an installed JSON descriptor.
+- Future schema migrations have a concrete 1.0 baseline against which changed
+  structure and meaning can be reviewed.
+
+This is an artifact-integrity and reproducibility check. It does not establish
+chemical truth, transition states, barriers, kinetics, or agreement with the raw
+trajectory. Source paths, sizes, and modification times are provenance hints;
+they are not content hashes.
+
 ## Meaning of time and identity
 
 - A frame is a zero-based **analyzed** frame. `frames/source_id` and
@@ -122,12 +145,72 @@ Definitions include `atom_index` and `(atom1, atom2, order)` bond tuples.
 Source paths and atom-type tables can be accessed directly with h5py under the
 public contract above.
 
+## Validation and semantic comparison
+
+Validate the complete structural and cross-table contract before consuming an
+artifact:
+
+```python
+from reacnetgenerator.timedoutput import validate_timed_output
+
+summary = validate_timed_output("timeline.h5")
+print(summary.frames, summary.reaction_events)
+```
+
+The validator checks required attributes and datasets, strict JSON configuration,
+agreement between `runHMM` and the declared range basis, one-dimensional column
+types and alignment, frame mappings against the configured global sampling
+stride, offset bounds, dictionary and frame references, molecule bond membership,
+range ordering/maximality, event ordering and uniqueness, and reaction-type
+totals. Numeric scans use `block_rows`; one molecule definition or dictionary can
+still exceed that working-memory budget.
+
+Create and compare deterministic manifests in Python:
+
+```python
+from reacnetgenerator.timedoutput import (
+    compare_semantic_manifests,
+    semantic_manifest,
+)
+
+reference = semantic_manifest("reference.h5")
+candidate = semantic_manifest("candidate.h5")
+differences = compare_semantic_manifests(reference, candidate)
+```
+
+The default manifest hashes canonical dataset values, non-location configuration,
+and interpretation metadata. HDF5 compression and chunk layout do not affect it.
+It omits source paths/sizes/timestamps, creation time, RNG build version, and
+path-valued configuration so that relocating an otherwise identical analysis does
+not create a difference. Set `include_provenance=True` when those fields must also
+match.
+The manifest SHA-256 is a deterministic comparison key, not a signature or a
+raw-input integrity guarantee.
+
+The same operations are available to shell scripts and CI:
+
+```sh
+reacnetgenerator-check-timed-output timeline.h5
+reacnetgenerator-check-timed-output timeline.h5 \
+    --write-manifest timeline.manifest.json
+reacnetgenerator-check-timed-output candidate.h5 \
+    --compare-manifest timeline.manifest.json
+```
+
+Successful commands print a compact JSON summary and return 0. Invalid artifacts
+or manifest differences are written to standard error and return 1; command-line
+usage errors return 2. Manifest writes use an atomic sibling replacement.
+
+`read_schema_descriptor()` returns the installed
+`schemas/timed-output-schema.json` contract for tools that need to inspect the
+schema without scraping this guide.
+
 Numeric rows are read in blocks, ranges are not expanded into frame rows, and
 counts are not expanded into individual events. Dictionary strings are read one
 at a time. One molecule definition or one string can exceed the block budget.
 Call `.close()` on an iterator when stopping early, or use `contextlib.closing`.
-Header/type/alignment checks are not a full structural or semantic validator;
-a dedicated validator and semantic manifest are a later batch.
+The compact readers perform local checks needed to read their requested table;
+call `validate_timed_output()` when the complete artifact contract matters.
 
 ## Publication and resource behavior
 

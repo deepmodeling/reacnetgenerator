@@ -54,6 +54,26 @@ class Molecule:
     bonds: tuple[tuple[int, int, int], ...]
 
 
+@dataclass(frozen=True)
+class ValidationSummary:
+    """Row counts established by a successful schema 1.0 validation."""
+
+    schema_version: str
+    sources: int
+    frames: int
+    atoms: int
+    atom_types: int
+    species: int
+    molecules: int
+    molecule_ranges: int
+    reaction_types: int
+    reaction_events: int
+
+
+class TimedOutputValidationError(ValueError):
+    """A timeline violates the declared structural or semantic contract."""
+
+
 @contextmanager
 def _open(filename):
     with h5py.File(filename, "r") as file:
@@ -77,6 +97,38 @@ def read_metadata(filename):
         for key in ("configuration", "capabilities"):
             result[key] = json.loads(result[key])
         return result
+
+
+def validate_timed_output(filename, *, block_rows=8192):
+    """Validate one complete timeline and return its verified table sizes."""
+    from ._timedoutputvalidate import validate_timed_output as _validate
+
+    return _validate(filename, block_rows=block_rows)
+
+
+def semantic_manifest(filename, *, include_provenance=False, block_rows=8192):
+    """Return a deterministic manifest for a validated timeline's meaning."""
+    from ._timedoutputmanifest import semantic_manifest as _manifest
+
+    return _manifest(
+        filename,
+        include_provenance=include_provenance,
+        block_rows=block_rows,
+    )
+
+
+def compare_semantic_manifests(left, right):
+    """Return JSON-pointer paths whose values differ between two manifests."""
+    from ._timedoutputmanifest import compare_semantic_manifests as _compare
+
+    return _compare(left, right)
+
+
+def read_schema_descriptor():
+    """Read the installed machine-readable descriptor for schema 1.0."""
+    from ._timedoutputschema import read_schema_descriptor as _read
+
+    return _read()
 
 
 def _dataset(container, name):
