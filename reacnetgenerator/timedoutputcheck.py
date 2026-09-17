@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import tempfile
+from contextlib import suppress
 from dataclasses import asdict
 from pathlib import Path
 
@@ -61,14 +62,10 @@ def _write_json_atomic(path, value):
             os.fsync(file.fileno())
         os.replace(temporary, destination)
     except BaseException:
-        try:
+        with suppress(OSError):
             os.close(handle)
-        except OSError:
-            pass
-        try:
+        with suppress(FileNotFoundError):
             os.unlink(temporary)
-        except FileNotFoundError:
-            pass
         raise
 
 

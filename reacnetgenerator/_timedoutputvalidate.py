@@ -9,7 +9,7 @@ from operator import index
 
 import h5py
 
-from .timedoutput import (
+from ._timedoutputcontract import (
     SCHEMA_VERSION,
     TimedOutputValidationError,
     ValidationSummary,

@@ -13,7 +13,11 @@ from operator import index
 
 import h5py
 
-SCHEMA_VERSION = "1.0"
+from . import _timedoutputcontract as _contract
+
+SCHEMA_VERSION = _contract.SCHEMA_VERSION
+TimedOutputValidationError = _contract.TimedOutputValidationError
+ValidationSummary = _contract.ValidationSummary
 
 
 @dataclass(frozen=True)
@@ -52,26 +56,6 @@ class Molecule:
     species_id: int
     atom_index: tuple[int, ...]
     bonds: tuple[tuple[int, int, int], ...]
-
-
-@dataclass(frozen=True)
-class ValidationSummary:
-    """Row counts established by a successful schema 1.0 validation."""
-
-    schema_version: str
-    sources: int
-    frames: int
-    atoms: int
-    atom_types: int
-    species: int
-    molecules: int
-    molecule_ranges: int
-    reaction_types: int
-    reaction_events: int
-
-
-class TimedOutputValidationError(ValueError):
-    """A timeline violates the declared structural or semantic contract."""
 
 
 @contextmanager

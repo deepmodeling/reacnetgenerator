@@ -418,6 +418,34 @@ def test_cli_writes_and_compares_manifests(valid_timeline, tmp_path, capsys):
     assert "/datasets/frames~1timestep/sha256" in captured.err
 
 
+def test_cli_removes_an_incomplete_manifest_after_publish_failure(
+    valid_timeline, tmp_path, monkeypatch, capsys
+):
+    """Clean the atomic sibling even after fdopen has closed its descriptor."""
+    reference = tmp_path / "reference.json"
+
+    def fail_replace(*args):
+        raise OSError("publish failed")
+
+    monkeypatch.setattr("reacnetgenerator.timedoutputcheck.os.replace", fail_replace)
+
+    assert (
+        check_timed_output(
+            [
+                str(valid_timeline),
+                "--write-manifest",
+                str(reference),
+                "--block-rows",
+                "2",
+            ]
+        )
+        == 1
+    )
+    assert "publish failed" in capsys.readouterr().err
+    assert not reference.exists()
+    assert not list(tmp_path.glob("*.incomplete"))
+
+
 def test_cli_never_replaces_an_input_artifact(valid_timeline, tmp_path, capsys):
     """Reject an output alias before an atomic JSON publish can destroy HDF5."""
     artifact = _copy_timeline(valid_timeline, tmp_path)

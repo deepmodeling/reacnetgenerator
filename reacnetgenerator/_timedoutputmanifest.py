@@ -11,8 +11,7 @@ from dataclasses import asdict
 import h5py
 import numpy as np
 
-from ._timedoutputvalidate import _root_metadata
-from .timedoutput import validate_timed_output
+from ._timedoutputvalidate import _root_metadata, validate_timed_output
 
 _MANIFEST_FORMAT = "reacnetgenerator-timeline-semantic-manifest"
 _MANIFEST_VERSION = "1.0"
