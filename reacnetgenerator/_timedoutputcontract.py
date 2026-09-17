@@ -3,12 +3,13 @@
 
 from dataclasses import dataclass
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
+SUPPORTED_SCHEMA_VERSIONS = ("1.0", SCHEMA_VERSION)
 
 
 @dataclass(frozen=True)
 class ValidationSummary:
-    """Row counts established by a successful schema 1.0 validation."""
+    """Row counts established by successful timeline validation."""
 
     schema_version: str
     sources: int

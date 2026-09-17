@@ -25,7 +25,9 @@ from .utils import (
 _REACTION_WORKER_STATE = None
 
 
-def _initialize_reaction_worker(reader_args, names, printreactionevent):
+def _initialize_reaction_worker(
+    reader_args, names, printreactionevent, include_transition_evidence
+):
     """Attach shared matrices and compact metadata once per worker."""
     global _REACTION_WORKER_STATE
     reader = _AtomFrameReader(*reader_args)
@@ -35,6 +37,7 @@ def _initialize_reaction_worker(reader_args, names, printreactionevent):
     finder = object.__new__(ReactionsFinder)
     finder.mname = names
     finder.printreactionevent = printreactionevent
+    finder._include_transition_evidence = include_transition_evidence
     _REACTION_WORKER_STATE = reader, finder
 
 
@@ -95,6 +98,7 @@ class ReactionsFinder(SharedRNGData):
             ],
             [],
         )
+        self._include_transition_evidence = False
 
     def findreactions(
         self, atomeach, conflict, *, matrix_store=None, timed_writer=None
@@ -102,6 +106,7 @@ class ReactionsFinder(SharedRNGData):
         """Analyze indexed shared state, or accept the legacy array inputs."""
         self._timed_writer = timed_writer
         self._csv_events = self.printreactionevent
+        self._include_transition_evidence = timed_writer is not None
         # Request indexed events from workers, but retain the user's independent
         # CSV choice. Only the parent owns the HDF5 writer.
         if timed_writer is not None:
@@ -110,6 +115,7 @@ class ReactionsFinder(SharedRNGData):
             self._findreactions(atomeach, conflict, matrix_store=matrix_store)
         finally:
             self.printreactionevent = self._csv_events
+            self._include_transition_evidence = False
             self._timed_writer = None
 
     def _findreactions(self, atomeach, conflict, *, matrix_store):
@@ -136,6 +142,7 @@ class ReactionsFinder(SharedRNGData):
                     matrix_store.reader_args,
                     self.mname,
                     self.printreactionevent,
+                    self._include_transition_evidence,
                 ),
                 # Preserve the legacy reduction policy: event rows are ordered;
                 # count-only output consumes completed workers without ordering.
@@ -178,6 +185,7 @@ class ReactionsFinder(SharedRNGData):
         worker = object.__new__(ReactionsFinder)
         worker.mname = self.mname
         worker.printreactionevent = self.printreactionevent
+        worker._include_transition_evidence = self._include_transition_evidence
         results = run_mp(
             self.nproc,
             func=worker._getstepreaction,
@@ -293,13 +301,24 @@ class ReactionsFinder(SharedRNGData):
             if reactionpair is None:
                 continue
             reactant, product = reactionpair
-            events.append(
-                {
-                    "Timestep_Index": int(stepidx),
-                    "Reactant": reactant,
-                    "Product": product,
-                }
-            )
+            event: dict[str, Any] = {
+                "Timestep_Index": int(stepidx),
+                "Reactant": reactant,
+                "Product": product,
+            }
+            if self._include_transition_evidence:
+                # Preserve connected-component instances before name cancellation.
+                # The timeline writer resolves their molecule graphs into bond
+                # changes; CSV-only event output retains its historical payload.
+                event.update(
+                    ReactantMoleculeIDs=tuple(
+                        sorted(int(value) for value in reaction[0])
+                    ),
+                    ProductMoleculeIDs=tuple(
+                        sorted(int(value) for value in reaction[1])
+                    ),
+                )
+            events.append(event)
         return events
 
     def _filterreactionpair(self, reaction):

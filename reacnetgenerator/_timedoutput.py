@@ -12,10 +12,11 @@ from pathlib import Path
 import h5py
 import numpy as np
 
+from ._timedoutputrange import molecule_present
 from ._version import __version__
 from .utils import bytestolist, get_timestep_value, read_compressed_block
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 _BLOCK_ROWS = 8192
 _BLOCK_BYTES = 1024 * 1024
 
@@ -95,6 +96,9 @@ class _TimedOutputWriter:
         self.reactions = {}
         self.totals = Counter()
         self.atom_offset = self.bond_offset = 0
+        self.participant_offset = self.bond_change_offset = 0
+        self.evidence_count = 0
+        self._molecule_columns_flushed = False
         self.file = None
         self.partial = None
 
@@ -112,7 +116,13 @@ class _TimedOutputWriter:
                 format="reacnetgenerator-timeline",
                 schema_version=SCHEMA_VERSION,
                 status="incomplete",
-                capabilities=json.dumps(["molecule_ranges", "reaction_events"]),
+                capabilities=json.dumps(
+                    [
+                        "molecule_ranges",
+                        "reaction_events",
+                        "transition_evidence",
+                    ]
+                ),
                 rng_version=__version__,
                 created_utc=datetime.now(timezone.utc).isoformat(),
                 configuration=json.dumps(
@@ -137,6 +147,18 @@ class _TimedOutputWriter:
                 ),
                 "molecule_ranges": ("molecule_id", "start_frame", "end_frame"),
                 "reaction_events": ("transition", "reaction_type_id", "count"),
+                "transition_evidence": (
+                    "transition",
+                    "reaction_type_id",
+                    "participant_offsets",
+                    "participant_molecule_id",
+                    "participant_side",
+                    "bond_change_offsets",
+                    "bond_atom_index_1",
+                    "bond_atom_index_2",
+                    "before_order",
+                    "after_order",
+                ),
                 "reaction_types": ("total_count",),
                 "sources": ("size_bytes", "mtime_ns"),
             }.items():
@@ -152,6 +174,11 @@ class _TimedOutputWriter:
             ):
                 self.columns[key] = _Column(self.file, key, h5py.string_dtype("utf-8"))
             self._append("molecules", atom_offsets=0, bond_offsets=0)
+            self._append(
+                "transition_evidence",
+                participant_offsets=0,
+                bond_change_offsets=0,
+            )
             self._write_frames()
             return self
         except BaseException:
@@ -256,7 +283,8 @@ class _TimedOutputWriter:
             raise ValueError("Molecule count differs from declared count")
 
     def write_events(self, events):
-        """Store aggregate counts for one transition, never repeated file rows."""
+        """Store aggregate counts and one auditable row per inferred instance."""
+        events = tuple(events)
         counts = Counter(
             (e["Timestep_Index"], e["Reactant"], e["Product"]) for e in events
         )
@@ -273,12 +301,175 @@ class _TimedOutputWriter:
                 count=count,
             )
             self.totals[reaction_id] += count
+        for event in events:
+            pair = (event["Reactant"], event["Product"])
+            self._write_transition_evidence(event, self.reactions[pair])
+
+    def _flush_molecule_tables(self):
+        """Make molecule definitions and ranges readable before event checks."""
+        if self._molecule_columns_flushed:
+            return
+        for name, column in self.columns.items():
+            if name.startswith(("molecules/", "molecule_ranges/")):
+                column.flush()
+        self._molecule_columns_flushed = True
+
+    def _participant_atoms(self, molecule_ids):
+        """Return the disjoint atom union for one reaction side."""
+        self._flush_molecule_tables()
+        species_ids = self.columns["molecules/species_id"].dataset
+        offsets = self.columns["molecules/atom_offsets"].dataset
+        atom_index = self.columns["molecules/atom_index"].dataset
+        atoms = set()
+        for molecule_id in molecule_ids:
+            row = int(molecule_id) - 1
+            if row < 0 or row >= len(species_ids):
+                raise ValueError(
+                    "Transition evidence references an invalid molecule_id"
+                )
+            start, stop = (int(value) for value in offsets[row : row + 2])
+            current = {int(value) for value in atom_index[start:stop]}
+            if atoms & current:
+                raise ValueError(
+                    "Transition evidence participants overlap in atom_index"
+                )
+            atoms.update(current)
+        return atoms
+
+    def _participant_bonds(self, molecule_ids):
+        """Return the union of stored participant bonds for one reaction side."""
+        self._flush_molecule_tables()
+        offsets = self.columns["molecules/bond_offsets"].dataset
+        atom1 = self.columns["molecules/bond_atom_index_1"].dataset
+        atom2 = self.columns["molecules/bond_atom_index_2"].dataset
+        order = self.columns["molecules/bond_order"].dataset
+        bonds = {}
+        for molecule_id in molecule_ids:
+            row = int(molecule_id) - 1
+            start, stop = (int(value) for value in offsets[row : row + 2])
+            for left, right, level in zip(
+                atom1[start:stop], atom2[start:stop], order[start:stop], strict=True
+            ):
+                pair = tuple(sorted((int(left), int(right))))
+                level = int(level)
+                if pair in bonds and bonds[pair] != level:
+                    raise ValueError(
+                        "Transition evidence participants contain conflicting bonds"
+                    )
+                bonds[pair] = level
+        return bonds
+
+    def _participant_species(self, molecule_ids):
+        """Count stored species names for one reaction side."""
+        self._flush_molecule_tables()
+        species_ids = self.columns["molecules/species_id"].dataset
+        names = {species_id: name for name, species_id in self.species.items()}
+        counts = Counter()
+        for molecule_id in molecule_ids:
+            species_id = int(species_ids[molecule_id - 1])
+            try:
+                counts[names[species_id]] += 1
+            except KeyError as exc:
+                raise ValueError(
+                    "Transition evidence references an invalid species_id"
+                ) from exc
+        return counts
+
+    def _write_transition_evidence(self, event, reaction_type_id):
+        """Append one reaction instance with participants and inferred bond changes."""
+        reactants = tuple(int(value) for value in event["ReactantMoleculeIDs"])
+        products = tuple(int(value) for value in event["ProductMoleculeIDs"])
+        if (
+            not reactants
+            or not products
+            or tuple(sorted(set(reactants))) != reactants
+            or tuple(sorted(set(products))) != products
+        ):
+            raise ValueError(
+                "Transition evidence participants must be nonempty, unique, and ordered"
+            )
+
+        self._flush_molecule_tables()
+        range_ids = self.columns["molecule_ranges/molecule_id"].dataset
+        range_starts = self.columns["molecule_ranges/start_frame"].dataset
+        range_ends = self.columns["molecule_ranges/end_frame"].dataset
+        transition = int(event["Timestep_Index"])
+        for side, molecule_ids in enumerate((reactants, products)):
+            frame = transition + side
+            if any(
+                not molecule_present(
+                    molecule_id,
+                    frame,
+                    range_ids,
+                    range_starts,
+                    range_ends,
+                )
+                for molecule_id in molecule_ids
+            ):
+                raise ValueError(
+                    "Transition evidence participant is absent from its reaction frame"
+                )
+
+        reactant_atoms = self._participant_atoms(reactants)
+        product_atoms = self._participant_atoms(products)
+        if reactant_atoms != product_atoms:
+            raise ValueError("Transition evidence participants do not conserve atoms")
+        reactant_species = self._participant_species(reactants)
+        product_species = self._participant_species(products)
+        pair = tuple(
+            "+".join(sorted(side.elements()))
+            for side in (
+                reactant_species - product_species,
+                product_species - reactant_species,
+            )
+        )
+        if not all(pair) or pair != (event["Reactant"], event["Product"]):
+            raise ValueError(
+                "Transition evidence participant species disagree with reaction type"
+            )
+
+        self._append(
+            "transition_evidence",
+            transition=transition,
+            reaction_type_id=int(reaction_type_id),
+        )
+        for side, molecule_ids in enumerate((reactants, products)):
+            for molecule_id in molecule_ids:
+                self._append(
+                    "transition_evidence",
+                    participant_molecule_id=molecule_id,
+                    participant_side=side,
+                )
+                self.participant_offset += 1
+        self._append("transition_evidence", participant_offsets=self.participant_offset)
+
+        before = self._participant_bonds(reactants)
+        after = self._participant_bonds(products)
+        for atom_pair in sorted(before.keys() | after.keys()):
+            before_order = before.get(atom_pair, 0)
+            after_order = after.get(atom_pair, 0)
+            if before_order == after_order:
+                continue
+            self._append(
+                "transition_evidence",
+                bond_atom_index_1=atom_pair[0],
+                bond_atom_index_2=atom_pair[1],
+                before_order=before_order,
+                after_order=after_order,
+            )
+            self.bond_change_offset += 1
+        self._append("transition_evidence", bond_change_offsets=self.bond_change_offset)
+        self.evidence_count += 1
 
     def __exit__(self, exc_type, exc, traceback):
         """Close before atomic replacement; errors preserve the old destination."""
         assert self.file is not None and self.partial is not None
         try:
             if exc_type is None:
+                if self.evidence_count != sum(self.totals.values()):
+                    raise ValueError(
+                        "Transition evidence count does not match reaction events"
+                    )
                 for reaction_id in range(len(self.reactions)):
                     self._append("reaction_types", total_count=self.totals[reaction_id])
                 for column in self.columns.values():

@@ -17,6 +17,7 @@ from reacnetgenerator.timedoutput import (
     TimedOutputValidationError,
     ValidationSummary,
     compare_semantic_manifests,
+    iter_transition_evidence,
     read_schema_descriptor,
     semantic_manifest,
     validate_timed_output,
@@ -55,7 +56,7 @@ def test_validate_real_artifact_and_reject_broken_offsets(valid_timeline, tmp_pa
     summary = validate_timed_output(valid_timeline, block_rows=2)
 
     assert isinstance(summary, ValidationSummary)
-    assert summary.schema_version == "1.0"
+    assert summary.schema_version == "1.1"
     assert summary.sources == 1
     assert summary.frames == 8
     assert summary.atoms == 3
@@ -83,6 +84,21 @@ def test_validate_accepts_declared_empty_tables(valid_timeline):
     assert summary.molecule_ranges == 0
     assert summary.reaction_types == 0
     assert summary.reaction_events == 0
+
+
+def test_schema_1_0_remains_readable_without_transition_evidence(
+    valid_timeline, tmp_path
+):
+    """Keep accepted aggregate-only artifacts readable after the 1.1 extension."""
+    legacy = _copy_timeline(valid_timeline, tmp_path)
+    with h5py.File(legacy, "r+") as file:
+        file.attrs["schema_version"] = "1.0"
+        file.attrs["capabilities"] = json.dumps(["molecule_ranges", "reaction_events"])
+        del file["transition_evidence"]
+
+    assert validate_timed_output(legacy, block_rows=2).schema_version == "1.0"
+    with pytest.raises(ValueError, match="does not contain transition evidence"):
+        list(iter_transition_evidence(legacy, block_rows=2))
 
 
 @pytest.mark.parametrize(
@@ -183,6 +199,8 @@ def test_validate_requires_declared_column_types_and_alignment(
         ("molecules/species_id", 3),
         ("molecule_ranges/molecule_id", 0),
         ("reaction_events/reaction_type_id", 1),
+        ("transition_evidence/reaction_type_id", 1),
+        ("transition_evidence/participant_molecule_id", 0),
     ],
 )
 def test_validate_rejects_dangling_references(valid_timeline, tmp_path, dataset, value):
@@ -219,6 +237,77 @@ def test_validate_rejects_nonmaximal_ranges_and_wrong_event_totals(
     with pytest.raises(
         TimedOutputValidationError,
         match=r"reaction_types/total_count.*reaction_events",
+    ):
+        validate_timed_output(malformed, block_rows=2)
+
+
+def test_validate_requires_one_evidence_row_per_reaction_instance(
+    valid_timeline, tmp_path
+):
+    """Reject a structurally valid evidence table that omits its final instance."""
+    malformed = _copy_timeline(valid_timeline, tmp_path)
+    with h5py.File(malformed, "r+") as file:
+        evidence = file["transition_evidence"]
+        rows = len(evidence["transition"])
+        participant_stop = int(evidence["participant_offsets"][-2])
+        change_stop = int(evidence["bond_change_offsets"][-2])
+        for name in ("transition", "reaction_type_id"):
+            evidence[name].resize((rows - 1,))
+        for name in ("participant_offsets", "bond_change_offsets"):
+            evidence[name].resize((rows,))
+        for name in ("participant_molecule_id", "participant_side"):
+            evidence[name].resize((participant_stop,))
+        for name in (
+            "bond_atom_index_1",
+            "bond_atom_index_2",
+            "before_order",
+            "after_order",
+        ):
+            evidence[name].resize((change_stop,))
+
+    with pytest.raises(
+        TimedOutputValidationError,
+        match=r"transition evidence.*(missing|counts disagree)",
+    ):
+        validate_timed_output(malformed, block_rows=2)
+
+
+def test_validate_recomputes_evidence_bond_changes(valid_timeline, tmp_path):
+    """Reject bond differences that disagree with referenced molecule graphs."""
+    malformed = _copy_timeline(valid_timeline, tmp_path)
+    with h5py.File(malformed, "r+") as file:
+        before = file["transition_evidence/before_order"]
+        assert len(before) > 0
+        before[0] = int(before[0]) + 1
+
+    with pytest.raises(
+        TimedOutputValidationError,
+        match=r"transition evidence bond changes disagree",
+    ):
+        validate_timed_output(malformed, block_rows=2)
+
+
+def test_validate_requires_participants_at_their_reaction_frames(
+    valid_timeline, tmp_path
+):
+    """Reject a participant whose definition exists outside its claimed frame."""
+    malformed = _copy_timeline(valid_timeline, tmp_path)
+    with h5py.File(malformed, "r+") as file:
+        evidence = file["transition_evidence"]
+        molecule_id = int(
+            evidence["participant_molecule_id"][int(evidence["participant_offsets"][0])]
+        )
+        ranges = file["molecule_ranges"]
+        keep = ranges["molecule_id"][:] != molecule_id
+        for name in ("molecule_id", "start_frame", "end_frame"):
+            column = ranges[name]
+            values = column[:][keep]
+            column.resize((len(values),))
+            column[:] = values
+
+    with pytest.raises(
+        TimedOutputValidationError,
+        match=r"transition evidence participant is absent",
     ):
         validate_timed_output(malformed, block_rows=2)
 
@@ -350,7 +439,7 @@ def test_schema_descriptor_lists_the_public_contract(valid_timeline):
     assert descriptor["descriptor_format"] == "reacnetgenerator-timeline-schema"
     assert descriptor["descriptor_version"] == "1.0"
     assert descriptor["timeline_format"] == "reacnetgenerator-timeline"
-    assert descriptor["schema_version"] == "1.0"
+    assert descriptor["schema_version"] == "1.1"
     assert descriptor["datasets"]["molecules/atom_offsets"]["dtype"] == "int64-le"
     assert descriptor["datasets"]["species/name"]["dtype"] == "utf8-vlen"
     assert {item["id"] for item in descriptor["constraints"]} >= {
@@ -358,6 +447,7 @@ def test_schema_descriptor_lists_the_public_contract(valid_timeline):
         "frame-stride-consistency",
         "reference-integrity",
         "reaction-totals",
+        "transition-evidence-totals",
         "signal-basis-consistency",
     }
     manifest = semantic_manifest(valid_timeline, include_provenance=True)
@@ -368,10 +458,16 @@ def test_validation_and_manifest_scan_numeric_columns_in_blocks(
     valid_timeline, monkeypatch
 ):
     """Keep ordinary numeric scans within the caller's row budget."""
-    unbounded_per_molecule = {
+    unbounded_per_record = {
         "/molecules/atom_index",
         "/molecules/bond_atom_index_1",
         "/molecules/bond_atom_index_2",
+        "/transition_evidence/participant_molecule_id",
+        "/transition_evidence/participant_side",
+        "/transition_evidence/bond_atom_index_1",
+        "/transition_evidence/bond_atom_index_2",
+        "/transition_evidence/before_order",
+        "/transition_evidence/after_order",
     }
     checked = set()
     getitem = h5py.Dataset.__getitem__
@@ -379,7 +475,7 @@ def test_validation_and_manifest_scan_numeric_columns_in_blocks(
     def bounded(dataset, key, *args, **kwargs):
         if (
             dataset.dtype.kind == "i"
-            and dataset.name not in unbounded_per_molecule
+            and dataset.name not in unbounded_per_record
             and isinstance(key, slice)
         ):
             assert key.start is not None and key.stop is not None

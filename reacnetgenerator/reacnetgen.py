@@ -130,8 +130,9 @@ class ReacNetGenerator:
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
     timed_output: str or pathlib.Path, optional
-        Opt in to a schema 1.0 HDF5 timeline at this explicit path.
-        Includes effective molecule ranges and aggregated reaction events.
+        Opt in to a schema 1.1 HDF5 timeline at this explicit path.
+        Includes effective molecule ranges, aggregated reaction events, and
+        instance-level participants and inferred bond changes.
     printmoleculetime: bool, optional, default: False
         Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs.
     moleculeframes: list of int, optional, default: None

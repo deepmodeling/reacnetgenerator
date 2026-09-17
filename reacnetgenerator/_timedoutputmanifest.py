@@ -31,7 +31,7 @@ _PATH_PARAMETERS = {
     "tablefilename",
     "timed_output",
 }
-_DATASETS = (
+_BASE_DATASETS = (
     "sources/path",
     "sources/size_bytes",
     "sources/mtime_ns",
@@ -57,6 +57,18 @@ _DATASETS = (
     "reaction_events/transition",
     "reaction_events/reaction_type_id",
     "reaction_events/count",
+)
+_EVIDENCE_DATASETS = (
+    "transition_evidence/transition",
+    "transition_evidence/reaction_type_id",
+    "transition_evidence/participant_offsets",
+    "transition_evidence/participant_molecule_id",
+    "transition_evidence/participant_side",
+    "transition_evidence/bond_change_offsets",
+    "transition_evidence/bond_atom_index_1",
+    "transition_evidence/bond_atom_index_2",
+    "transition_evidence/before_order",
+    "transition_evidence/after_order",
 )
 _PROVENANCE_DATASETS = {
     "sources/path",
@@ -126,7 +138,10 @@ def semantic_manifest(filename, *, include_provenance=False, block_rows=8192):
                 rng_version=file.attrs["rng_version"],
             )
         datasets = {}
-        for path in _DATASETS:
+        paths = _BASE_DATASETS + (
+            _EVIDENCE_DATASETS if summary.schema_version == "1.1" else ()
+        )
+        for path in paths:
             if not include_provenance and path in _PROVENANCE_DATASETS:
                 continue
             dataset = file[path]
