@@ -442,6 +442,12 @@ def test_schema_descriptor_lists_the_public_contract(valid_timeline):
     assert descriptor["schema_version"] == "1.1"
     assert descriptor["datasets"]["molecules/atom_offsets"]["dtype"] == "int64-le"
     assert descriptor["datasets"]["species/name"]["dtype"] == "utf8-vlen"
+    participant_side = descriptor["datasets"]["transition_evidence/participant_side"]
+    assert participant_side["enum"] == [0, 1]
+    assert participant_side["value_meanings"] == {
+        "0": "reactant",
+        "1": "product",
+    }
     assert {item["id"] for item in descriptor["constraints"]} >= {
         "offset-endpoints",
         "frame-stride-consistency",

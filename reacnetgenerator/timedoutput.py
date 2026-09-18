@@ -224,24 +224,24 @@ def iter_reaction_events(filename, *, block_rows=8192):
             yield ReactionEvent(*row)
 
 
-def _transition_participant(file, molecule_id, side):
+def _transition_participant(
+    molecule_id,
+    side,
+    *,
+    species_ids,
+    atom_offsets,
+    atom_index,
+    bond_offsets,
+    bond_columns,
+    names,
+):
     """Read one referenced molecule definition for transition evidence."""
-    molecules = file["molecules"]
-    species_ids = _numeric_dataset(molecules, "species_id")
     row = molecule_id - 1
     if row < 0 or row >= len(species_ids):
         raise ValueError("Transition evidence references an invalid molecule_id")
-    atom_offsets = _numeric_dataset(molecules, "atom_offsets")
-    atom_index = _numeric_dataset(molecules, "atom_index")
-    bond_offsets = _numeric_dataset(molecules, "bond_offsets")
-    bond_columns = tuple(
-        _numeric_dataset(molecules, name)
-        for name in ("bond_atom_index_1", "bond_atom_index_2", "bond_order")
-    )
     atom_start, atom_stop = (int(value) for value in atom_offsets[row : row + 2])
     bond_start, bond_stop = (int(value) for value in bond_offsets[row : row + 2])
     species_id = int(species_ids[row])
-    names = _dataset(file, "species/name").asstr()
     if species_id < 0 or species_id >= len(names):
         raise ValueError("Transition evidence references an invalid species_id")
     return TransitionParticipant(
@@ -296,6 +296,18 @@ def iter_transition_evidence(filename, *, block_rows=8192):
         reaction_types = file["reaction_types"]
         reactants = _dataset(reaction_types, "reactant").asstr()
         products = _dataset(reaction_types, "product").asstr()
+        molecules = file["molecules"]
+        if not isinstance(molecules, h5py.Group):
+            raise ValueError("Invalid molecules group")
+        species_ids = _numeric_dataset(molecules, "species_id")
+        atom_offsets = _numeric_dataset(molecules, "atom_offsets")
+        atom_index = _numeric_dataset(molecules, "atom_index")
+        bond_offsets = _numeric_dataset(molecules, "bond_offsets")
+        bond_columns = tuple(
+            _numeric_dataset(molecules, name)
+            for name in ("bond_atom_index_1", "bond_atom_index_2", "bond_order")
+        )
+        names = _dataset(file, "species/name").asstr()
         for row, (transition, reaction_type_id) in enumerate(
             _rows(
                 file,
@@ -329,9 +341,14 @@ def iter_transition_evidence(filename, *, block_rows=8192):
                     raise ValueError("Invalid transition evidence participant side")
                 participants.append(
                     _transition_participant(
-                        file,
                         int(molecule_id),
                         "reactant" if side == 0 else "product",
+                        species_ids=species_ids,
+                        atom_offsets=atom_offsets,
+                        atom_index=atom_index,
+                        bond_offsets=bond_offsets,
+                        bond_columns=bond_columns,
+                        names=names,
                     )
                 )
             bond_changes = tuple(

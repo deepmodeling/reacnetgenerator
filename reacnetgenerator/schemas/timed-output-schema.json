@@ -164,7 +164,15 @@
     },
     "transition_evidence/participant_side": {
       "dtype": "int64-le",
-      "table": "transition_evidence_participants"
+      "table": "transition_evidence_participants",
+      "enum": [
+        0,
+        1
+      ],
+      "value_meanings": {
+        "0": "reactant",
+        "1": "product"
+      }
     },
     "transition_evidence/bond_change_offsets": {
       "dtype": "int64-le",
