@@ -710,10 +710,11 @@ class _CollectMolPaths(_CollectPaths):
 
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
+        if self.miso > 0:
+            self._printmergedmoleculename()
+            return
         mname = _MoleculeNameBuilder(self.hmmit)
         d = defaultdict(list)
-        name_mapping = {}
-        name_mapping_graph = defaultdict(dict)
         em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         self.n_unknown = 0
         timeline = (
@@ -724,53 +725,9 @@ class _CollectSMILESPaths(_CollectPaths):
                 WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
                 open(self.moleculetemp2filename, "rb") as ft,
             ):
-                results = run_mp(
-                    self.nproc,
-                    func=self._calmoleculeSMILESname,
-                    l=read_compressed_block(ft),
-                    unordered=False,
-                    nlines=4,
-                    chunksize=1,
-                    max_inflight=max(2, 2 * self.nproc),
-                    disk_ordered=True,
-                    total=self.hmmit,
-                    desc="Indentify isomers",
-                    unit="molecule",
-                )
+                results = self._getSMILESresults(ft, self._calmoleculeSMILESname)
                 for name, atoms, bonds, frames in results:
-                    if name is None:
-                        # SMILES failed, fallback to VF2 identify isomers
-                        molecule = Molecule(self, atoms, bonds)
-
-                        # directly raise ValueError to save time
-                        def _raise_anyway(*args, **kwargs):
-                            raise ValueError("Maximum BFS search size exceeded.")
-
-                        molecule._convertSMILES = _raise_anyway
-                        for isomer in d[str(molecule)]:
-                            if isomer.isomorphic(molecule, em):
-                                molecule.smiles = isomer.smiles
-                                break
-                        else:
-                            d[str(molecule)].append(molecule)
-                        name = molecule.smiles
-                    if self.miso > 0:
-                        if name in name_mapping:
-                            name = name_mapping[name]
-                        else:
-                            # check if the name is isomorphic to the previous molecules
-                            molecule = Molecule(self, atoms, bonds)
-                            # the formula should be the same
-                            mng = name_mapping_graph[molecule.name]
-                            for isomer, mol in mng.items():
-                                if mol.isomorphic(molecule, em):
-                                    # use the previous SMILES
-                                    name_mapping[name] = isomer
-                                    name = isomer
-                                    break
-                            else:
-                                mng[name] = molecule
-                                name_mapping[name] = name
+                    name = self._resolveSMILESname(name, atoms, bonds, d, em)
                     mname.append(name)
                     fm.append(self._formatmoleculename(name, atoms, bonds))
                     if timeline is not None:
@@ -786,6 +743,114 @@ class _CollectSMILESPaths(_CollectPaths):
                 timeline.close()
         self.mname = mname.finish()
 
+    def _printmergedmoleculename(self):
+        """Select representatives before writing any merged-name output.
+
+        Frequency is the number of detected molecule-frame occurrences stored
+        before HMM filtering. Keep only compact name IDs and one graph per
+        candidate in memory, then stream the original records a second time so
+        every output uses the final representative.
+        """
+        source_names = _MoleculeNameBuilder(self.hmmit)
+        name_frequency = Counter()
+        name_group = {}
+        name_mapping_graph = defaultdict(dict)
+        d = defaultdict(list)
+        em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
+        self.n_unknown = 0
+        with open(self.moleculetemp2filename, "rb") as ft:
+            results = self._getSMILESresults(ft, self._calmoleculeSMILESfrequency)
+            for name, atoms, bonds, frequency in results:
+                name = str(self._resolveSMILESname(name, atoms, bonds, d, em))
+                source_names.append(name)
+                name_frequency[name] += frequency
+                if name in name_group:
+                    continue
+                molecule = Molecule(self, atoms, bonds)
+                groups = name_mapping_graph[molecule.name]
+                for group_name, group_molecule in groups.items():
+                    if group_molecule.isomorphic(molecule, em):
+                        name_group[name] = group_name
+                        break
+                else:
+                    groups[name] = molecule
+                    name_group[name] = name
+        source_names = source_names.finish()
+
+        group_members = defaultdict(list)
+        for name, group_name in name_group.items():
+            group_members[group_name].append(name)
+        representative = {}
+        for members in group_members.values():
+            selected = min(members, key=lambda name: (-name_frequency[name], name))
+            representative.update(dict.fromkeys(members, selected))
+
+        mname = _MoleculeNameBuilder(self.hmmit)
+        timeline = (
+            self._openmoleculetimelinespool() if self._needmoleculetimeline() else None
+        )
+        try:
+            with (
+                WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
+                open(self.moleculetemp2filename, "rb") as ft,
+            ):
+                records = itertools.zip_longest(*[read_compressed_block(ft)] * 4)
+                for source_name, line in zip(source_names, records, strict=True):
+                    name = representative[str(source_name)]
+                    atoms, bonds = self._getatomsandbonds(line)
+                    frames, _ = self._getmoleculeframesandtimesteps(
+                        line, need_timesteps=False
+                    )
+                    mname.append(name)
+                    fm.append(self._formatmoleculename(name, atoms, bonds))
+                    if timeline is not None:
+                        timeline.extend(
+                            self._getmoleculetimelinerows(
+                                name, atoms, bonds, frames, None
+                            )
+                        )
+            if timeline is not None:
+                timeline.write()
+        finally:
+            if timeline is not None:
+                timeline.close()
+        self.mname = mname.finish()
+
+    def _getSMILESresults(self, molecule_file, func):
+        """Run ordered SMILES workers over four-block molecule records."""
+        return run_mp(
+            self.nproc,
+            func=func,
+            l=read_compressed_block(molecule_file),
+            unordered=False,
+            nlines=4,
+            chunksize=1,
+            max_inflight=max(2, 2 * self.nproc),
+            disk_ordered=True,
+            total=self.hmmit,
+            desc="Indentify isomers",
+            unit="molecule",
+        )
+
+    def _resolveSMILESname(self, name, atoms, bonds, molecules, edge_match):
+        """Return a canonical name, using VF2 after a SMILES conversion error."""
+        if name is not None:
+            return name
+        molecule = Molecule(self, atoms, bonds)
+
+        # Avoid repeating the failed and potentially expensive RDKit call.
+        def _raise_anyway(*args, **kwargs):
+            raise ValueError("Maximum BFS search size exceeded.")
+
+        molecule._convertSMILES = _raise_anyway
+        for isomer in molecules[str(molecule)]:
+            if isomer.isomorphic(molecule, edge_match):
+                molecule.smiles = isomer.smiles
+                break
+        else:
+            molecules[str(molecule)].append(molecule)
+        return molecule.smiles
+
     def _calmoleculeSMILESname(self, item):
         line = item
         atoms, bonds = self._getatomsandbonds(line)
@@ -796,6 +861,17 @@ class _CollectSMILESPaths(_CollectPaths):
             # fallback to VF2
             name = None
         return name, atoms, bonds, frames
+
+    def _calmoleculeSMILESfrequency(self, item):
+        """Return a candidate name and its pre-HMM occurrence count."""
+        line = item
+        atoms, bonds = self._getatomsandbonds(line)
+        frequency = len(bytestolist(line[-1]))
+        try:
+            name = self.convertSMILES(atoms, bonds)
+        except ValueError:
+            name = None
+        return name, atoms, bonds, frequency
 
 
 class Molecule:

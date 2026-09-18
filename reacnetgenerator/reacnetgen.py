@@ -104,8 +104,9 @@ class ReacNetGenerator:
         Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
         are filtered, they can turn off this option.
     miso: int, optional, default: 0
-        Merge the isomers and the highest frequency is used as the representative. 0, off
-        two available levels:
+        Merge isomers using the canonical SMILES with the most detected molecule-frame
+        occurrences before HMM filtering as the representative. Ties use the
+        lexicographically smallest generated species name. 0, off; two available levels:
         1, merge the isomers with same atoms and same bond-network but different bond levels;
         2, merge the isomers with same atoms with different bond-network.
     pbc: bool, optional, default: True
