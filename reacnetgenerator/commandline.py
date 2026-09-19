@@ -174,7 +174,10 @@ def main_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--timed-output",
         metavar="FILE",
-        help="Write an opt-in HDF5 schema 1.0 timeline (effective molecule ranges and aggregate events).",
+        help=(
+            "Write an opt-in HDF5 schema 1.1 timeline with effective molecule "
+            "ranges, aggregate events, and instance evidence."
+        ),
     )
     parser.add_argument(
         "--show-molecule-time",

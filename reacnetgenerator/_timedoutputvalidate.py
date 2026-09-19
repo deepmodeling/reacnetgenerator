@@ -1,21 +1,27 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-"""Bounded structural and cross-table validation for timeline schema 1.0."""
+"""Bounded structural and cross-table validation for timeline schemas 1.0/1.1."""
 
 import json
 import sys
 from collections import Counter
 from datetime import datetime, timezone
+from itertools import pairwise
 from operator import index
 
 import h5py
 
 from ._timedoutputcontract import (
     SCHEMA_VERSION,
+    SUPPORTED_SCHEMA_VERSIONS,
     TimedOutputValidationError,
     ValidationSummary,
 )
+from ._timedoutputrange import molecule_present
 
-_CAPABILITIES = ["molecule_ranges", "reaction_events"]
+_CAPABILITIES = {
+    "1.0": ["molecule_ranges", "reaction_events"],
+    "1.1": ["molecule_ranges", "reaction_events", "transition_evidence"],
+}
 _ATOM_CONVENTION = "zero-based RNG canonical atom order"
 _RANGE_BASES = {"HMM signal", "observed signal"}
 
@@ -117,7 +123,6 @@ def _offsets(dataset, *, payload, table, block_rows):
 def _root_metadata(file):
     required = {
         "format": "reacnetgenerator-timeline",
-        "schema_version": SCHEMA_VERSION,
         "status": "complete",
         "atom_index_convention": _ATOM_CONVENTION,
     }
@@ -126,6 +131,9 @@ def _root_metadata(file):
             _error(f"Missing root attribute {name}")
         if file.attrs[name] != expected:
             _error(f"Invalid root attribute {name}: expected {expected!r}")
+    schema_version = file.attrs.get("schema_version")
+    if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+        _error(f"Unsupported timeline schema version: {schema_version}")
     range_basis = file.attrs.get("molecule_range_basis")
     if range_basis not in _RANGE_BASES:
         _error("Invalid root attribute molecule_range_basis")
@@ -144,8 +152,12 @@ def _root_metadata(file):
         )
     except (TypeError, ValueError):
         _error("Root attribute capabilities must be valid JSON")
-    if capabilities != _CAPABILITIES:
-        _error(f"Root attribute capabilities must equal {_CAPABILITIES!r}")
+    expected_capabilities = _CAPABILITIES[schema_version]
+    if capabilities != expected_capabilities:
+        _error(
+            "Root attribute capabilities must equal "
+            f"{expected_capabilities!r} for schema {schema_version}"
+        )
     try:
         configuration = json.loads(
             file.attrs["configuration"], parse_constant=_reject_json_constant
@@ -379,6 +391,254 @@ def _validate_reactions(file, *, frame_count, block_rows):
     return transition, total_count
 
 
+def _participant_atoms(molecule_ids, atom_offsets, atom_index):
+    """Return one side's atom union and reject overlapping molecule instances."""
+    atoms = set()
+    for molecule_id in molecule_ids:
+        row = molecule_id - 1
+        start, stop = (int(value) for value in atom_offsets[row : row + 2])
+        current = {int(value) for value in atom_index[start:stop]}
+        if atoms & current:
+            _error("transition evidence participants contain overlapping atoms")
+        atoms.update(current)
+    return atoms
+
+
+def _participant_bonds(
+    molecule_ids, bond_offsets, bond_atom_1, bond_atom_2, bond_order
+):
+    """Return one side's canonical bond map from referenced molecule graphs."""
+    bonds = {}
+    for molecule_id in molecule_ids:
+        row = molecule_id - 1
+        start, stop = (int(value) for value in bond_offsets[row : row + 2])
+        for left, right, order in zip(
+            bond_atom_1[start:stop],
+            bond_atom_2[start:stop],
+            bond_order[start:stop],
+            strict=True,
+        ):
+            pair = tuple(sorted((int(left), int(right))))
+            order = int(order)
+            if pair in bonds and bonds[pair] != order:
+                _error("transition evidence participants contain conflicting bonds")
+            bonds[pair] = order
+    return bonds
+
+
+def _validate_transition_evidence(file, *, frame_count, block_rows):
+    """Validate instance evidence and its exact aggregate-event relationship."""
+    transition = _numeric(file, "transition_evidence/transition")
+    reaction_type_id = _numeric(file, "transition_evidence/reaction_type_id")
+    _aligned("transition_evidence", (transition, reaction_type_id))
+    participant_offsets = _numeric(file, "transition_evidence/participant_offsets")
+    participant_molecule_id = _numeric(
+        file, "transition_evidence/participant_molecule_id"
+    )
+    participant_side = _numeric(file, "transition_evidence/participant_side")
+    bond_change_offsets = _numeric(file, "transition_evidence/bond_change_offsets")
+    change_atom_1 = _numeric(file, "transition_evidence/bond_atom_index_1")
+    change_atom_2 = _numeric(file, "transition_evidence/bond_atom_index_2")
+    before_order = _numeric(file, "transition_evidence/before_order")
+    after_order = _numeric(file, "transition_evidence/after_order")
+    _aligned(
+        "transition_evidence participants",
+        (participant_molecule_id, participant_side),
+    )
+    _aligned(
+        "transition_evidence bond changes",
+        (change_atom_1, change_atom_2, before_order, after_order),
+    )
+    if len(participant_offsets) != len(transition) + 1:
+        _error(
+            "transition_evidence/participant_offsets must have one more row than "
+            "transition_evidence/transition"
+        )
+    if len(bond_change_offsets) != len(transition) + 1:
+        _error(
+            "transition_evidence/bond_change_offsets must have one more row than "
+            "transition_evidence/transition"
+        )
+    _offsets(
+        participant_offsets,
+        payload=participant_molecule_id,
+        table="transition_evidence/participant_offsets",
+        block_rows=block_rows,
+    )
+    _offsets(
+        bond_change_offsets,
+        payload=change_atom_1,
+        table="transition_evidence/bond_change_offsets",
+        block_rows=block_rows,
+    )
+
+    molecule_species_id = _numeric(file, "molecules/species_id")
+    molecule_atom_offsets = _numeric(file, "molecules/atom_offsets")
+    molecule_atom_index = _numeric(file, "molecules/atom_index")
+    molecule_bond_offsets = _numeric(file, "molecules/bond_offsets")
+    molecule_bond_atom_1 = _numeric(file, "molecules/bond_atom_index_1")
+    molecule_bond_atom_2 = _numeric(file, "molecules/bond_atom_index_2")
+    molecule_bond_order = _numeric(file, "molecules/bond_order")
+    species_names = _text(file, "species/name").asstr()
+    reaction_reactant = _text(file, "reaction_types/reactant").asstr()
+    reaction_product = _text(file, "reaction_types/product").asstr()
+    range_molecule_id = _numeric(file, "molecule_ranges/molecule_id")
+    range_start = _numeric(file, "molecule_ranges/start_frame")
+    range_end = _numeric(file, "molecule_ranges/end_frame")
+    _bounded(
+        reaction_type_id,
+        lower=0,
+        upper=len(reaction_reactant),
+        block_rows=block_rows,
+    )
+    _bounded(
+        participant_molecule_id,
+        lower=1,
+        upper=len(molecule_species_id) + 1,
+        block_rows=block_rows,
+    )
+
+    expected_rows = iter(
+        zip(
+            _integer_blocks(file["reaction_events/transition"], block_rows),
+            _integer_blocks(file["reaction_events/reaction_type_id"], block_rows),
+            _integer_blocks(file["reaction_events/count"], block_rows),
+            strict=True,
+        )
+    )
+    expected_row = next(expected_rows, None)
+
+    def compare_transition(frame, actual):
+        nonlocal expected_row
+        if expected_row is not None and expected_row[0] < frame:
+            _error("transition evidence is missing reaction event instances")
+        expected = Counter()
+        while expected_row is not None and expected_row[0] == frame:
+            expected[expected_row[1]] = expected_row[2]
+            expected_row = next(expected_rows, None)
+        if actual != expected:
+            _error("transition evidence counts disagree with reaction_events/count")
+
+    previous_transition = None
+    counts = Counter()
+    for row, (frame, type_id) in enumerate(
+        zip(
+            _integer_blocks(transition, block_rows),
+            _integer_blocks(reaction_type_id, block_rows),
+            strict=True,
+        )
+    ):
+        if frame < 0 or frame >= frame_count - 1:
+            _error(
+                f"transition_evidence/transition[{row}]={frame} is outside the timeline"
+            )
+        if previous_transition is not None and frame < previous_transition:
+            _error(f"transition_evidence/transition[{row}] breaks declared ordering")
+        if previous_transition is not None and frame != previous_transition:
+            compare_transition(previous_transition, counts)
+            counts = Counter()
+        counts[type_id] += 1
+
+        participant_start, participant_stop = (
+            int(value) for value in participant_offsets[row : row + 2]
+        )
+        ids = [
+            int(value)
+            for value in participant_molecule_id[participant_start:participant_stop]
+        ]
+        sides = [
+            int(value) for value in participant_side[participant_start:participant_stop]
+        ]
+        keys = list(zip(sides, ids, strict=True))
+        if not keys or any(side not in (0, 1) for side in sides):
+            _error("transition evidence must contain valid participants")
+        if any(left >= right for left, right in pairwise(keys)):
+            _error("transition evidence participants must be unique and ordered")
+        reactants = [molecule_id for side, molecule_id in keys if side == 0]
+        products = [molecule_id for side, molecule_id in keys if side == 1]
+        if not reactants or not products:
+            _error("transition evidence must contain both reaction sides")
+        for side, molecule_id in keys:
+            if not molecule_present(
+                molecule_id,
+                frame + side,
+                range_molecule_id,
+                range_start,
+                range_end,
+            ):
+                _error(
+                    "transition evidence participant is absent from its reaction frame"
+                )
+
+        names = [Counter(), Counter()]
+        for side, molecule_id in keys:
+            species_id = int(molecule_species_id[molecule_id - 1])
+            names[side][species_names[species_id]] += 1
+        net_reactants = names[0] - names[1]
+        net_products = names[1] - names[0]
+        pair = (
+            "+".join(sorted(net_reactants.elements())),
+            "+".join(sorted(net_products.elements())),
+        )
+        if not all(pair) or pair != (
+            reaction_reactant[type_id],
+            reaction_product[type_id],
+        ):
+            _error(
+                "transition evidence participant species disagree with reaction type"
+            )
+
+        reactant_atoms = _participant_atoms(
+            reactants, molecule_atom_offsets, molecule_atom_index
+        )
+        product_atoms = _participant_atoms(
+            products, molecule_atom_offsets, molecule_atom_index
+        )
+        if reactant_atoms != product_atoms:
+            _error("transition evidence participants do not conserve atoms")
+        before = _participant_bonds(
+            reactants,
+            molecule_bond_offsets,
+            molecule_bond_atom_1,
+            molecule_bond_atom_2,
+            molecule_bond_order,
+        )
+        after = _participant_bonds(
+            products,
+            molecule_bond_offsets,
+            molecule_bond_atom_1,
+            molecule_bond_atom_2,
+            molecule_bond_order,
+        )
+        expected_changes = tuple(
+            (atom1, atom2, before.get((atom1, atom2), 0), after.get((atom1, atom2), 0))
+            for atom1, atom2 in sorted(before.keys() | after.keys())
+            if before.get((atom1, atom2), 0) != after.get((atom1, atom2), 0)
+        )
+        change_start, change_stop = (
+            int(value) for value in bond_change_offsets[row : row + 2]
+        )
+        actual_changes = tuple(
+            (int(atom1), int(atom2), int(old), int(new))
+            for atom1, atom2, old, new in zip(
+                change_atom_1[change_start:change_stop],
+                change_atom_2[change_start:change_stop],
+                before_order[change_start:change_stop],
+                after_order[change_start:change_stop],
+                strict=True,
+            )
+        )
+        if actual_changes != expected_changes:
+            _error("transition evidence bond changes disagree with molecule graphs")
+        previous_transition = frame
+
+    if previous_transition is not None:
+        compare_transition(previous_transition, counts)
+    if expected_row is not None:
+        _error("transition evidence is missing reaction event instances")
+    return transition
+
+
 def validate_timed_output(filename, *, block_rows=8192):
     """Implement the public validator while keeping HDF5 details private."""
     try:
@@ -393,6 +653,7 @@ def validate_timed_output(filename, *, block_rows=8192):
     try:
         with h5py.File(filename, "r") as file:
             configuration = _root_metadata(file)
+            schema_version = file.attrs["schema_version"]
             source_path = _text(file, "sources/path")
             source_size = _numeric(file, "sources/size_bytes")
             source_mtime = _numeric(file, "sources/mtime_ns")
@@ -423,9 +684,15 @@ def validate_timed_output(filename, *, block_rows=8192):
             events, reaction_types = _validate_reactions(
                 file, frame_count=len(frames), block_rows=size
             )
+            if schema_version == SCHEMA_VERSION:
+                _validate_transition_evidence(
+                    file,
+                    frame_count=len(frames),
+                    block_rows=size,
+                )
 
             return ValidationSummary(
-                schema_version=SCHEMA_VERSION,
+                schema_version=schema_version,
                 sources=len(source_path),
                 frames=len(frames),
                 atoms=len(atoms),

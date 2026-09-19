@@ -2,10 +2,11 @@
   "descriptor_format": "reacnetgenerator-timeline-schema",
   "descriptor_version": "1.0",
   "timeline_format": "reacnetgenerator-timeline",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "capabilities": [
     "molecule_ranges",
-    "reaction_events"
+    "reaction_events",
+    "transition_evidence"
   ],
   "root_attributes": {
     "format": {
@@ -14,7 +15,7 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "1.0"
+      "const": "1.1"
     },
     "status": {
       "type": "string",
@@ -144,6 +145,54 @@
     "reaction_events/count": {
       "dtype": "int64-le",
       "table": "reaction_events"
+    },
+    "transition_evidence/transition": {
+      "dtype": "int64-le",
+      "table": "transition_evidence"
+    },
+    "transition_evidence/reaction_type_id": {
+      "dtype": "int64-le",
+      "table": "transition_evidence"
+    },
+    "transition_evidence/participant_offsets": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_participant_offsets"
+    },
+    "transition_evidence/participant_molecule_id": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_participants"
+    },
+    "transition_evidence/participant_side": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_participants",
+      "enum": [
+        0,
+        1
+      ],
+      "value_meanings": {
+        "0": "reactant",
+        "1": "product"
+      }
+    },
+    "transition_evidence/bond_change_offsets": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_bond_change_offsets"
+    },
+    "transition_evidence/bond_atom_index_1": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_bond_changes"
+    },
+    "transition_evidence/bond_atom_index_2": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_bond_changes"
+    },
+    "transition_evidence/before_order": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_bond_changes"
+    },
+    "transition_evidence/after_order": {
+      "dtype": "int64-le",
+      "table": "transition_evidence_bond_changes"
     }
   },
   "constraints": [
@@ -174,6 +223,18 @@
     {
       "id": "reaction-totals",
       "description": "Reaction counts are positive and each reaction-type total equals its event-count sum."
+    },
+    {
+      "id": "transition-evidence-participants",
+      "description": "Every evidence row references ordered molecule instances: reactants are present at transition frame t, products at t+1, and their atom sets are disjoint within each side and conserved across the transition."
+    },
+    {
+      "id": "transition-evidence-bond-changes",
+      "description": "Every evidence row stores exactly the canonical bond differences between its referenced reactant and product molecule graphs."
+    },
+    {
+      "id": "transition-evidence-totals",
+      "description": "Grouping evidence rows by transition and reaction type exactly reproduces reaction_events/count."
     }
   ]
 }
