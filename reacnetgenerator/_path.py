@@ -715,7 +715,6 @@ class _CollectSMILESPaths(_CollectPaths):
             return
         mname = _MoleculeNameBuilder(self.hmmit)
         d = defaultdict(list)
-        em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         self.n_unknown = 0
         timeline = (
             self._openmoleculetimelinespool() if self._needmoleculetimeline() else None
@@ -727,7 +726,7 @@ class _CollectSMILESPaths(_CollectPaths):
             ):
                 results = self._getSMILESresults(ft, self._calmoleculeSMILESname)
                 for name, atoms, bonds, frames in results:
-                    name = self._resolveSMILESname(name, atoms, bonds, d, em)
+                    name = self._resolveSMILESname(name, atoms, bonds, d)
                     mname.append(name)
                     fm.append(self._formatmoleculename(name, atoms, bonds))
                     if timeline is not None:
@@ -761,7 +760,7 @@ class _CollectSMILESPaths(_CollectPaths):
         with open(self.moleculetemp2filename, "rb") as ft:
             results = self._getSMILESresults(ft, self._calmoleculeSMILESfrequency)
             for name, atoms, bonds, frequency in results:
-                name = str(self._resolveSMILESname(name, atoms, bonds, d, em))
+                name = str(self._resolveSMILESname(name, atoms, bonds, d))
                 source_names.append(name)
                 name_frequency[name] += frequency
                 if name in name_group:
@@ -832,19 +831,29 @@ class _CollectSMILESPaths(_CollectPaths):
             unit="molecule",
         )
 
-    def _resolveSMILESname(self, name, atoms, bonds, molecules, edge_match):
-        """Return a canonical name, using VF2 after a SMILES conversion error."""
+    def _resolveSMILESname(self, name, atoms, bonds, molecules):
+        """Return a full-structure name, using VF2 when SMILES conversion fails."""
         if name is not None:
             return name
-        molecule = Molecule(self, atoms, bonds)
+        # A canonical SMILES identifies the structure before ``miso`` grouping.
+        # Preserve the same boundary in the fallback so distinct candidates do
+        # not pool their frequencies before a representative is selected.
+        molecule = Molecule(self, atoms, bonds, miso=0)
 
         # Avoid repeating the failed and potentially expensive RDKit call.
         def _raise_anyway(*args, **kwargs):
             raise ValueError("Maximum BFS search size exceeded.")
 
         molecule._convertSMILES = _raise_anyway
+        atom_match = iso.categorical_node_match("atom", None)
+        bond_match = iso.categorical_edge_match("level", None)
         for isomer in molecules[str(molecule)]:
-            if isomer.isomorphic(molecule, edge_match):
+            if nx.is_isomorphic(
+                isomer.graph,
+                molecule.graph,
+                node_match=atom_match,
+                edge_match=bond_match,
+            ):
                 molecule.smiles = isomer.smiles
                 break
         else:
@@ -875,15 +884,15 @@ class _CollectSMILESPaths(_CollectPaths):
 
 
 class Molecule:
-    """A molecule class for isomer identification."""
+    """A molecule graph represented at a selected isomer-identity level."""
 
-    def __init__(self, cmp, atoms, bonds):
+    def __init__(self, cmp, atoms, bonds, *, miso=None):
         self.cmp = cmp
         self.atoms = atoms
         self.bonds = bonds
         self._atomtypes = cmp.atomtype[atoms]
         self._atomnames = cmp.atomnames[atoms]
-        self._miso = cmp.miso
+        self._miso = cmp.miso if miso is None else miso
         self.graph = self._makemoleculegraph()
         counter = Counter(self._atomnames)
         self.name = "".join(

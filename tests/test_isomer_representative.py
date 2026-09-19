@@ -175,6 +175,95 @@ def test_smiles_failure_reuses_vf2_fallback_name(tmp_path, monkeypatch, miso):
     assert list(collector.mname) == ["C2_unknownSMILES_0", "C2_unknownSMILES_0"]
 
 
+@pytest.mark.parametrize(
+    ("miso", "failed_bonds", "winner_bonds", "atoms"),
+    [
+        (
+            1,
+            ([[0, 1, 1]], [[0, 1, 2]]),
+            [[0, 1, 3]],
+            [0, 1],
+        ),
+        (
+            2,
+            (
+                [[0, 1, 1], [1, 2, 1]],
+                [[0, 1, 1], [1, 2, 1], [0, 2, 1]],
+            ),
+            [[0, 1, 2], [1, 2, 1]],
+            [0, 1, 2],
+        ),
+    ],
+)
+@pytest.mark.parametrize("reverse", [False, True])
+def test_failed_smiles_candidates_keep_individual_frequencies(
+    tmp_path,
+    monkeypatch,
+    miso,
+    failed_bonds,
+    winner_bonds,
+    atoms,
+    reverse,
+):
+    """Distinct failed candidates must not pool counts before merging."""
+    records = [
+        ("unused-a", atoms, failed_bonds[0], range(0, 4)),
+        ("unused-b", atoms, failed_bonds[1], range(4, 8)),
+        ("winner", atoms, winner_bonds, range(8, 15)),
+    ]
+    if reverse:
+        records.reverse()
+    failed_keys = {_bond_key(bonds) for bonds in failed_bonds}
+
+    def convert_smiles(atoms, bonds):
+        if _bond_key(bonds) in failed_keys:
+            raise ValueError("forced SMILES failure")
+        return "winner"
+
+    collector = _collect(
+        tmp_path,
+        monkeypatch,
+        records,
+        miso=miso,
+        print_timeline=True,
+        convert_smiles=convert_smiles,
+    )
+
+    assert list(collector.mname) == ["winner"] * 3
+    assert [
+        line.split(maxsplit=1)[0]
+        for line in (tmp_path / "molecule-names.txt").read_text().splitlines()
+    ] == ["winner"] * 3
+    with (tmp_path / "timeline.csv").open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 15
+    assert {row["Species"] for row in rows} == {"winner"}
+
+
+def test_failed_smiles_reuses_full_structure_across_atom_ids(tmp_path, monkeypatch):
+    """Repeated full structures should still aggregate after fallback."""
+    records = [
+        ("unused", [0, 1], [[0, 1, 1]], range(0, 3)),
+        ("unused", [2, 3], [[2, 3, 1]], range(3, 6)),
+        ("winner", [0, 1], [[0, 1, 2]], range(6, 11)),
+    ]
+
+    def convert_smiles(atoms, bonds):
+        if bonds[0][2] == 1:
+            raise ValueError("forced SMILES failure")
+        return "winner"
+
+    collector = _collect(
+        tmp_path,
+        monkeypatch,
+        records,
+        miso=1,
+        convert_smiles=convert_smiles,
+    )
+
+    assert list(collector.mname) == ["C2_unknownSMILES_0"] * 3
+
+
 def test_selected_representative_is_used_in_all_name_outputs(tmp_path, monkeypatch):
     """The name table, legacy file, and timeline should use one representative."""
     records = [
