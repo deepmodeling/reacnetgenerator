@@ -291,6 +291,14 @@ class ReacNetGenerator:
             kwargs.setdefault(kk, default_value[kk])
             if kwargs[kk] is None:
                 kwargs[kk] = default_value[kk]
+        miso = kwargs["miso"]
+        if (
+            isinstance(miso, (bool, np.bool_))
+            or not isinstance(miso, (int, np.integer))
+            or miso not in (0, 1, 2)
+        ):
+            raise ValueError("miso must be one of 0, 1, or 2")
+        kwargs["miso"] = int(miso)
         for kk in itertools.chain(none_key, accept_keys):
             kwargs.setdefault(kk, None)
         output_dir = kwargs.get("output_dir")

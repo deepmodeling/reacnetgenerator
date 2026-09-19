@@ -60,6 +60,8 @@ _ROUTE_WORKER_STATE = None
 # Starting workers and attaching three mappings costs more than scanning a
 # single block in the parent. Larger workloads retain the indexed worker path.
 _STEP3_SERIAL_ATOM_FRAMES = _STEP3_SCAN_ROWS
+_ATOM_MATCH = iso.categorical_node_match("atom", None)
+_BOND_MATCH = iso.categorical_edge_match("level", None)
 
 
 def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS):
@@ -659,7 +661,6 @@ class _CollectMolPaths(_CollectPaths):
     def _printmoleculename(self):
         mname = _MoleculeNameBuilder(self.hmmit)
         d = defaultdict(list)
-        em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         # idx for unknown SMILES
         self.n_unknown = 0
         timeline = (
@@ -683,7 +684,7 @@ class _CollectMolPaths(_CollectPaths):
                     )
                     molecule = Molecule(self, atoms, bonds)
                     for isomer in d[str(molecule)]:
-                        if isomer.isomorphic(molecule, em):
+                        if isomer.isomorphic(molecule):
                             molecule.smiles = isomer.smiles
                             break
                     else:
@@ -755,7 +756,6 @@ class _CollectSMILESPaths(_CollectPaths):
         name_group = {}
         name_mapping_graph = defaultdict(dict)
         d = defaultdict(list)
-        em = iso.numerical_edge_match(["atom", "level"], ["None", 1])
         self.n_unknown = 0
         with open(self.moleculetemp2filename, "rb") as ft:
             results = self._getSMILESresults(ft, self._calmoleculeSMILESfrequency)
@@ -768,7 +768,7 @@ class _CollectSMILESPaths(_CollectPaths):
                 molecule = Molecule(self, atoms, bonds)
                 groups = name_mapping_graph[molecule.name]
                 for group_name, group_molecule in groups.items():
-                    if group_molecule.isomorphic(molecule, em):
+                    if group_molecule.isomorphic(molecule):
                         name_group[name] = group_name
                         break
                 else:
@@ -923,6 +923,8 @@ class Molecule:
         self._smiles = value
 
     def _makemoleculegraph(self):
+        if self._miso not in (0, 1, 2):
+            raise ValueError(f"Unknown isomer identification method: {self._miso}.")
         graph = nx.Graph()
         for line in self.bonds:
             if self._miso == 0:
@@ -934,12 +936,15 @@ class Molecule:
             elif self._miso == 2:
                 # merge the isomers with same atoms with different bond-network
                 pass
-            else:
-                raise ValueError(f"Unknown isomer identification method: {self._miso}.")
         for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
             graph.add_node(atomnumber, atom=atomtype)
         return graph
 
-    def isomorphic(self, mol, em):
+    def isomorphic(self, mol):
         """Return whether two molecules are isomorphic."""
-        return nx.is_isomorphic(self.graph, mol.graph, em)
+        return nx.is_isomorphic(
+            self.graph,
+            mol.graph,
+            node_match=_ATOM_MATCH,
+            edge_match=_BOND_MATCH,
+        )

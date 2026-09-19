@@ -90,6 +90,7 @@ def main_parser() -> argparse.ArgumentParser:
             "2, merge the isomers with the same atoms with different bond networks."
         ),
         type=int,
+        choices=(0, 1, 2),
         default=0,
     )
     parser_type = parser.add_mutually_exclusive_group()
