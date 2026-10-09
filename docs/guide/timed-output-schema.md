@@ -1,4 +1,4 @@
-# Optional HDF5 timeline (schema 1.0)
+# Optional HDF5 timeline (schema 1.1)
 
 Use `--timed-output FILE` to write one compact timeline when the PATH stage runs:
 
@@ -14,21 +14,22 @@ A species-only `run_items` request cannot produce a timeline and raises an error
 if combined with `timed_output`.
 
 The timeline contains molecule definitions and effective presence intervals,
-aggregate reaction events, and frame/source/configuration metadata. It does not
-contain coordinates or instance-level reaction participants/bond-change evidence.
-It does not change the existing text outputs or enable the legacy CSV switches.
-Those switches can still be selected separately.
+aggregate reaction events, instance-level participants and inferred bond changes,
+and frame/source/configuration metadata. It does not contain coordinates. It does
+not change the existing text outputs or enable the legacy CSV switches. Those
+switches can still be selected separately.
 
 ## Why validation is part of the format
 
 A saved analysis result is useful beyond the process that wrote it only when a
 user or another program can establish what it contains and whether its tables
-still agree. Opening an HDF5 file proves neither. The schema 1.0 validator makes
-the timeline a verifiable software boundary:
+still agree. Opening an HDF5 file proves neither. The timeline validator makes
+schemas 1.0 and 1.1 a verifiable software boundary:
 
 - CI and scientific regression tests can reject a result with broken offsets,
-  dangling IDs, nonmaximal ranges, or inconsistent reaction totals even when the
-  file remains readable.
+  dangling IDs, nonmaximal ranges, inconsistent reaction totals, or instance
+  evidence that disagrees with the aggregate counts even when the file remains
+  readable.
 - Collaborators and archives can record a compact semantic manifest and compare
   results without depending on HDF5 compression, chunking, or local file paths.
 - Downstream consumers, including visualization and analysis applications, can
@@ -75,9 +76,9 @@ Root attributes:
 | Attribute               | Value/meaning                                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------------------------- |
 | `format`                | `reacnetgenerator-timeline`                                                                        |
-| `schema_version`        | UTF-8 string `1.0`                                                                                 |
+| `schema_version`        | UTF-8 string `1.1`                                                                                 |
 | `status`                | `incomplete` during construction, `complete` on successful close                                   |
-| `capabilities`          | JSON array `["molecule_ranges", "reaction_events"]`                                                |
+| `capabilities`          | JSON array `["molecule_ranges", "reaction_events", "transition_evidence"]`                         |
 | `rng_version`           | Installed RNG version                                                                              |
 | `created_utc`           | ISO 8601 UTC timestamp                                                                             |
 | `configuration`         | JSON from `parameter_provenance()`: normalized constructor parameters and explicit parameter names |
@@ -94,29 +95,40 @@ All datasets are one-dimensional. Numeric columns are little-endian signed 64-bi
 integers; text columns are variable-length UTF-8 strings. Columns in each ordinary
 table have equal lengths. Dataset layout/chunking is not part of semantic identity.
 
-| Group             | Columns                                                                | Row meaning                                                                     |
-| ----------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `sources`         | `path` (text), `size_bytes`, `mtime_ns`                                | One input occurrence, in supplied order                                         |
-| `frames`          | `source_id`, `source_frame`, `timestep`                                | One analyzed frame, in order                                                    |
-| `atoms`           | `type`; `type_name` (text)                                             | `type` has one entry per atom; `type_name` is the separate atom-type dictionary |
-| `species`         | `name` (text)                                                          | Unique species name                                                             |
-| `molecules`       | `species_id`                                                           | One molecule definition, row `molecule_id - 1`                                  |
-| `molecules`       | `atom_offsets`, `atom_index`                                           | Offset-delimited atom lists                                                     |
-| `molecules`       | `bond_offsets`, `bond_atom_index_1`, `bond_atom_index_2`, `bond_order` | Offset-delimited bonds with global canonical atom endpoints                     |
-| `molecule_ranges` | `molecule_id`, `start_frame`, `end_frame`                              | One maximal effective interval, ordered by molecule then start frame            |
-| `reaction_types`  | `reactant` (text), `product` (text), `total_count`                     | One unique pair of existing formatted reaction sides                            |
-| `reaction_events` | `transition`, `reaction_type_id`, `count`                              | One positive aggregate count, ordered by transition                             |
+| Group                 | Columns                                                                                        | Row meaning                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `sources`             | `path` (text), `size_bytes`, `mtime_ns`                                                        | One input occurrence, in supplied order                                         |
+| `frames`              | `source_id`, `source_frame`, `timestep`                                                        | One analyzed frame, in order                                                    |
+| `atoms`               | `type`; `type_name` (text)                                                                     | `type` has one entry per atom; `type_name` is the separate atom-type dictionary |
+| `species`             | `name` (text)                                                                                  | Unique species name                                                             |
+| `molecules`           | `species_id`                                                                                   | One molecule definition, row `molecule_id - 1`                                  |
+| `molecules`           | `atom_offsets`, `atom_index`                                                                   | Offset-delimited atom lists                                                     |
+| `molecules`           | `bond_offsets`, `bond_atom_index_1`, `bond_atom_index_2`, `bond_order`                         | Offset-delimited bonds with global canonical atom endpoints                     |
+| `molecule_ranges`     | `molecule_id`, `start_frame`, `end_frame`                                                      | One maximal effective interval, ordered by molecule then start frame            |
+| `reaction_types`      | `reactant` (text), `product` (text), `total_count`                                             | One unique pair of existing formatted reaction sides                            |
+| `reaction_events`     | `transition`, `reaction_type_id`, `count`                                                      | One positive aggregate count, ordered by transition                             |
+| `transition_evidence` | `transition`, `reaction_type_id`                                                               | One inferred connected reaction instance, ordered by transition                 |
+| `transition_evidence` | `participant_offsets`, `participant_molecule_id`, `participant_side`                           | Offset-delimited molecule instances; side `0` is reactant and `1` is product    |
+| `transition_evidence` | `bond_change_offsets`, `bond_atom_index_1`, `bond_atom_index_2`, `before_order`, `after_order` | Offset-delimited canonical bond differences for each instance                   |
 
 Both offset columns start at zero and have `number_of_molecules + 1` entries.
 For molecule ID `m`, its payload is `[offset[m-1]:offset[m]]`. The final offset
 is the payload length. Bond endpoint/order columns have identical lengths. Empty
 payloads and empty tables are valid. Reaction-type totals equal the sum of stored
 event counts for that type. Reaction-side strings retain the existing output
-notation; consumers should not assume splitting on `+` parses every possible SMILES.
+notation; consumers should not assume splitting on `+` parses every possible
+SMILES. Evidence participant and bond-change offsets also start at zero and end
+at their payload lengths. Participants reference the existing molecule
+definitions; their atom sets are disjoint within each side and conserved across
+the transition. Each reactant is present at transition frame `t`, and each
+product is present at `t + 1`, according to `molecule_ranges`. Regrouping
+evidence rows by transition and reaction type exactly reproduces
+`reaction_events/count`.
 
-A compatible future evidence extension will use a minor version and explicit
-capability. Breaking changes require a new major version. The present reader
-accepts exactly `1.0`; it fails on an unknown version rather than guessing.
+Schema 1.1 is a compatible extension of schema 1.0 and advertises the
+`transition_evidence` capability. Readers and the validator continue to accept
+aggregate-only 1.0 files. Breaking changes require a new major version; unknown
+versions fail rather than being guessed.
 
 ## Compact Python reading
 
@@ -129,6 +141,7 @@ from reacnetgenerator.timedoutput import (
     iter_molecule_ranges,
     iter_reaction_types,
     iter_reaction_events,
+    iter_transition_evidence,
 )
 
 metadata = read_metadata("timeline.h5")
@@ -136,12 +149,16 @@ for interval in iter_molecule_ranges("timeline.h5", block_rows=4096):
     print(interval.molecule_id, interval.start_frame, interval.end_frame)
 for event in iter_reaction_events("timeline.h5", block_rows=4096):
     print(event.transition, event.reaction_type_id, event.count)
+for evidence in iter_transition_evidence("timeline.h5", block_rows=4096):
+    print(evidence.transition, evidence.participants, evidence.bond_changes)
 ```
 
-`iter_frames`, `iter_molecules`, `iter_molecule_ranges` and `iter_reaction_events`
-return frozen dataclass records. `iter_species` yields `(species_id, name)`;
-`iter_reaction_types` yields `(type_id, reactant, product, total_count)`.
-Definitions include `atom_index` and `(atom1, atom2, order)` bond tuples.
+`iter_frames`, `iter_molecules`, `iter_molecule_ranges`, `iter_reaction_events`
+and `iter_transition_evidence` return frozen dataclass records. `iter_species`
+yields `(species_id, name)`; `iter_reaction_types` yields
+`(type_id, reactant, product, total_count)`. Definitions include `atom_index` and
+`(atom1, atom2, order)` bond tuples. A `BondChange.kind` is `formed`, `broken` or
+`order_changed`; the before/after orders remain available.
 Source paths and atom-type tables can be accessed directly with h5py under the
 public contract above.
 
@@ -161,9 +178,12 @@ The validator checks required attributes and datasets, strict JSON configuration
 agreement between `runHMM` and the declared range basis, one-dimensional column
 types and alignment, frame mappings against the configured global sampling
 stride, offset bounds, dictionary and frame references, molecule bond membership,
-range ordering/maximality, event ordering and uniqueness, and reaction-type
-totals. Numeric scans use `block_rows`; one molecule definition or dictionary can
-still exceed that working-memory budget.
+range ordering/maximality, event ordering and uniqueness, reaction-type totals,
+evidence participant identity and atom conservation, exact bond differences, and
+participant presence on the appropriate side of the transition, and
+evidence-to-aggregate counts. Numeric scans use `block_rows`; one molecule
+definition, evidence instance or dictionary can still exceed that working-memory
+budget.
 
 Create and compare deterministic manifests in Python:
 
@@ -224,8 +244,11 @@ Atomic replacement is not a guarantee of durability across power loss.
 Each column buffers at most 8192 rows or about 1 MiB of scalar payload, except
 that a single large string may exceed the byte budget. Existing decoded signal
 records, species/reaction dictionaries, graphs and upstream atom-frame state still
-scale with content. This feature does not promise constant total memory. HDF5 is
-written only in the parent process; worker processes never receive a file handle.
+scale with content. Evidence is returned one transition at a time and its columns
+use the same bounded writer buffers; one connected reaction instance can still
+scale with its participating molecules. This feature does not promise constant
+total memory. HDF5 is written only in the parent process; worker processes never
+receive a file handle.
 
 Enabling the timeline selects the existing ordered event-analysis path. Aggregate
 text counts retain their meaning, but equal-count reaction ordering may differ

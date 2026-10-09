@@ -18,12 +18,16 @@ from reacnetgenerator._reaction import ReactionsFinder
 from reacnetgenerator._timedoutput import _Column, _TimedOutputWriter
 from reacnetgenerator.commandline import main_parser, parm2cmd
 from reacnetgenerator.timedoutput import (
+    BondChange,
+    TransitionEvidence,
+    TransitionParticipant,
     iter_frames,
     iter_molecule_ranges,
     iter_molecules,
     iter_reaction_events,
     iter_reaction_types,
     iter_species,
+    iter_transition_evidence,
     read_metadata,
     validate_timed_output,
 )
@@ -97,8 +101,29 @@ def test_pipeline(tmp_path, run_hmm, nproc):
     assert {
         (left, right): count for _, left, right, count in iter_reaction_types(path)
     } == totals
+    evidence = list(iter_transition_evidence(path, block_rows=1))
+    assert (
+        Counter((item.transition, item.reactant, item.product) for item in evidence)
+        == csv_events
+    )
+    assert all(isinstance(item, TransitionEvidence) for item in evidence)
+    assert all(
+        isinstance(participant, TransitionParticipant)
+        for item in evidence
+        for participant in item.participants
+    )
+    assert all(
+        isinstance(change, BondChange)
+        for item in evidence
+        for change in item.bond_changes
+    )
     metadata = read_metadata(path)
-    assert metadata["schema_version"] == "1.0"
+    assert metadata["schema_version"] == "1.1"
+    assert metadata["capabilities"] == [
+        "molecule_ranges",
+        "reaction_events",
+        "transition_evidence",
+    ]
     assert metadata["configuration"]["parameters"]["runHMM"] is run_hmm
     assert validate_timed_output(path, block_rows=2).frames == rng.step
     assert not list(tmp_path.glob("*.incomplete"))
@@ -217,11 +242,28 @@ def test_compact_counts_and_blocks(tmp_path, monkeypatch):
     rng = generator(tmp_path, timed_output=path)
     prepare(rng)
     with _TimedOutputWriter(rng) as writer:
-        writer.write_events(
-            [{"Timestep_Index": 0, "Reactant": "A", "Product": "B"}] * 5
-        )
+        writer._append("species", name="A")
+        writer._append("species", name="B")
+        writer.species.update(A=0, B=1)
+        for species_id in range(2):
+            writer._append(
+                "molecules",
+                species_id=species_id,
+                atom_index=0,
+                atom_offsets=species_id + 1,
+                bond_offsets=0,
+            )
         for i in range(50):
             writer._append("molecule_ranges", molecule_id=1, start_frame=i, end_frame=i)
+        writer._append("molecule_ranges", molecule_id=2, start_frame=1, end_frame=1)
+        event = {
+            "Timestep_Index": 0,
+            "Reactant": "A",
+            "Product": "B",
+            "ReactantMoleculeIDs": (1,),
+            "ProductMoleculeIDs": (2,),
+        }
+        writer.write_events([event] * 5)
     calls = []
     getitem = h5py.Dataset.__getitem__
 
@@ -298,6 +340,7 @@ def test_empty_tables(tmp_path):
         assert json.loads(file.attrs["capabilities"]) == [
             "molecule_ranges",
             "reaction_events",
+            "transition_evidence",
         ]
 
 
