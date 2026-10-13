@@ -17,7 +17,10 @@ import pytest
 
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._detect import _Detect
-from reacnetgenerator._hmmfilter import _HMMFilter
+from reacnetgenerator._hmmfilter import (
+    _HMMFilter,
+    _hmm_step_description,
+)
 from reacnetgenerator._matrix import _GenerateMatrix
 from reacnetgenerator._path import _CollectSMILESPaths, _MoleculeTimelineSpool
 from reacnetgenerator._reaction import ReactionsFinder
@@ -64,6 +67,40 @@ class TestReacNetGen:
             shutil.copyfile(fixture, local_input)
             param["rngparams"]["inputfilename"] = str(local_input)
         return param
+
+    @pytest.mark.parametrize(
+        ("run_hmm", "expected"),
+        [
+            (True, "HMM filter"),
+            (False, "Pass through original signals (HMM disabled)"),
+        ],
+    )
+    def test_hmm_step_description(self, run_hmm, expected):
+        """The HMM step description reflects whether filtering is enabled."""
+        assert _hmm_step_description(run_hmm) == expected
+
+    def test_nohmm_step_log_uses_passthrough_description(
+        self, monkeypatch, tmp_path
+    ):
+        """The no-HMM step log should describe the signal pass-through."""
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsbondfile",
+            inputfilename=str(tmp_path / "dummy"),
+            atomname=["H"],
+            runHMM=False,
+        )
+        monkeypatch.setattr(_HMMFilter, "filter", lambda self: None)
+        messages = []
+        monkeypatch.setattr(
+            "reacnetgenerator.reacnetgen.logger.info", messages.append
+        )
+
+        rng._process((rng.Status.HMM,))
+
+        assert any(
+            "(Pass through original signals (HMM disabled))" in message
+            for message in messages
+        )
 
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
