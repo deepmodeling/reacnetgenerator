@@ -98,6 +98,46 @@ class TestReacNetGen:
             for message in messages
         )
 
+    @pytest.mark.parametrize(
+        ("run_hmm", "expected"),
+        [
+            (False, "Pass through original signals (HMM disabled)"),
+            (True, "HMM filter"),
+        ],
+    )
+    def test_hmm_progress_description(
+        self, monkeypatch, tmp_path, run_hmm, expected
+    ):
+        """The progress bar uses the description for the configured HMM mode."""
+        descriptions = []
+
+        def fake_run_mp(nproc, **kwargs):
+            descriptions.append(kwargs["desc"])
+            return []
+
+        monkeypatch.setattr("reacnetgenerator._hmmfilter.run_mp", fake_run_mp)
+        molecule_file = tmp_path / "molecules.bin"
+        molecule_file.touch()
+        rng = ReacNetGenerator(
+            inputfiletype="lammpsbondfile",
+            inputfilename=str(tmp_path / "dummy"),
+            atomname=["H"],
+            runHMM=run_hmm,
+        )
+        rng.moleculetempfilename = str(molecule_file)
+        hmm = _HMMFilter(rng)
+        hmm.filter()
+
+        for filename in (
+            hmm.moleculetemp2filename,
+            hmm.originfilename,
+            hmm.hmmfilename,
+        ):
+            if filename is not None:
+                Path(filename).unlink(missing_ok=True)
+
+        assert descriptions == [expected]
+
     @pytest.fixture()
     def reacnetgen(self, reacnetgen_param):
         """Fixture for ReacNetGenerator."""
