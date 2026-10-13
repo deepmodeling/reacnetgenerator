@@ -43,7 +43,6 @@ from .utils import (
     run_mp,
 )
 
-
 HMM_FILTER_DESCRIPTION = "HMM filter"
 NO_HMM_FILTER_DESCRIPTION = "Pass through original signals (HMM disabled)"
 
