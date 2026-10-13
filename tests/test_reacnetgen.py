@@ -105,9 +105,7 @@ class TestReacNetGen:
             (True, "HMM filter"),
         ],
     )
-    def test_hmm_progress_description(
-        self, monkeypatch, tmp_path, run_hmm, expected
-    ):
+    def test_hmm_progress_description(self, monkeypatch, tmp_path, run_hmm, expected):
         """The progress bar uses the description for the configured HMM mode."""
         descriptions = []
 
