@@ -44,6 +44,15 @@ from .utils import (
 )
 
 
+HMM_FILTER_DESCRIPTION = "HMM filter"
+NO_HMM_FILTER_DESCRIPTION = "Pass through original signals (HMM disabled)"
+
+
+def _hmm_step_description(run_hmm: bool) -> str:
+    """Return the user-facing description for the HMM pipeline step."""
+    return HMM_FILTER_DESCRIPTION if run_hmm else NO_HMM_FILTER_DESCRIPTION
+
+
 class _HMMFilter(SharedRNGData):
     runHMM: bool
     getoriginfile: bool
@@ -139,7 +148,7 @@ class _HMMFilter(SharedRNGData):
                 l=read_compressed_block(ft),
                 nlines=4,
                 total=self.temp1it,
-                desc="HMM filter",
+                desc=_hmm_step_description(self.runHMM),
                 unit="molecule",
             )
             hmmit = 0
