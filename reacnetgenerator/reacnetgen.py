@@ -158,6 +158,7 @@ class ReacNetGenerator:
     >>> rng.runanddraw()
     """
 
+    runHMM: bool
     urls: dict
     moleculetempfilename: str
     moleculetemp2filename: str
