@@ -147,6 +147,67 @@ class TestReacNetGen:
         def bench():
             detectclass._readstepfunc((0, lines))
 
+    @pytest.mark.parametrize(
+        ("run_hmm", "expected_description"),
+        [
+            (True, "HMM filter"),
+            (False, "Pass through original signals (HMM disabled)"),
+        ],
+    )
+    def test_hmm_filter_reports_active_mode(
+        self, tmp_path, monkeypatch, run_hmm, expected_description
+    ):
+        """Progress reporting should identify the active signal-processing mode."""
+        molecule_file = tmp_path / "molecules.bin"
+        molecule_file.touch()
+        rng = ReacNetGenerator(
+            inputfilename=str(tmp_path / "input"),
+            inputfiletype="lammpsbondfile",
+            atomname=["H"],
+            runHMM=run_hmm,
+        )
+        rng.moleculetempfilename = str(molecule_file)
+        hmm_filter = _HMMFilter(rng)
+        run_mp_kwargs = {}
+
+        def fake_run_mp(nproc, **kwargs):
+            run_mp_kwargs.update(kwargs)
+            return []
+
+        monkeypatch.setattr("reacnetgenerator._hmmfilter.run_mp", fake_run_mp)
+        hmm_filter._calhmm()
+
+        assert hmm_filter.description == expected_description
+        assert run_mp_kwargs["desc"] == expected_description
+
+        for filename in (
+            hmm_filter.moleculetemp2filename,
+            hmm_filter.originfilename,
+            hmm_filter.hmmfilename,
+        ):
+            if filename is not None:
+                Path(filename).unlink(missing_ok=True)
+
+    def test_nohmm_step_log_uses_pass_through_description(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        """The completed HMM step log should describe pass-through processing."""
+        rng = ReacNetGenerator(
+            inputfilename=str(tmp_path / "input"),
+            inputfiletype="lammpsbondfile",
+            atomname=["H"],
+            runHMM=False,
+        )
+        monkeypatch.setattr(_HMMFilter, "filter", lambda self: None)
+
+        with caplog.at_level("INFO"):
+            rng._process((rng.Status.HMM,))
+
+        assert any(
+            "Pass through original signals (HMM disabled)" in record.message
+            for record in caplog.records
+        )
+
     def test_benchmark_hmm(self, benchmark, reacnetgen_param):
         """Benchmark _getoriginandhmm."""
         reacnetgen = ReacNetGenerator(**reacnetgen_param["rngparams"])

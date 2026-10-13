@@ -45,6 +45,9 @@ from .utils import (
 
 
 class _HMMFilter(SharedRNGData):
+    HMM_DESCRIPTION = "HMM filter"
+    NOHMM_DESCRIPTION = "Pass through original signals (HMM disabled)"
+
     runHMM: bool
     getoriginfile: bool
     printfiltersignal: bool
@@ -74,6 +77,13 @@ class _HMMFilter(SharedRNGData):
             ],
             ["moleculetemp2filename", "originfilename", "hmmfilename", "hmmit"],
         )
+
+    @property
+    def description(self) -> str:
+        """Return the description for the active signal-processing mode."""
+        if self.runHMM:
+            return self.HMM_DESCRIPTION
+        return self.NOHMM_DESCRIPTION
 
     def filter(self):
         """HMM Filters.
@@ -139,7 +149,7 @@ class _HMMFilter(SharedRNGData):
                 l=read_compressed_block(ft),
                 nlines=4,
                 total=self.temp1it,
-                desc="HMM filter",
+                desc=self.description,
                 unit="molecule",
             )
             hmmit = 0
