@@ -57,7 +57,7 @@ from . import __date__, __version__
 from ._detect import _Detect
 from ._download import DownloadData
 from ._draw import _DrawNetwork
-from ._hmmfilter import _HMMFilter
+from ._hmmfilter import _HMMFilter, _hmm_step_description
 from ._logging import logger
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
@@ -644,8 +644,13 @@ class ReacNetGenerator:
             # garbage collect
             gc.collect()
             timearray.append(time.perf_counter())
+            step_description = (
+                _hmm_step_description(self.runHMM)
+                if runstep == self.Status.HMM
+                else str(runstep)
+            )
             logger.info(
-                f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({runstep})"
+                f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({step_description})"
             )
 
         # Species-only shortcut: molecule naming + per-frame counting
