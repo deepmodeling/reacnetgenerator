@@ -131,11 +131,14 @@ class ReacNetGenerator:
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
     timed_output: str or pathlib.Path, optional
-        Opt in to a schema 1.1 HDF5 timeline at this explicit path.
-        Includes effective molecule ranges, aggregated reaction events, and
-        instance-level participants and inferred bond changes.
+        Override the schema 1.1 HDF5 timeline path. A timeline is written at
+        ``<input>.timeline.h5`` by default when ``printmoleculetime`` or
+        ``printreactionevent`` is enabled, or at ``timeline.h5`` below
+        ``output_dir`` when set. Includes effective molecule ranges, aggregated
+        reaction events, and instance-level participants and inferred bond changes.
     printmoleculetime: bool, optional, default: False
-        Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs.
+        Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs,
+        plus the schema 1.1 HDF5 timeline.
     moleculeframes: list of int, optional, default: None
         Only write molecule timeline CSV rows in the given analyzed frame indices.
         This also enables printmoleculetime.
@@ -143,7 +146,8 @@ class ReacNetGenerator:
         Only write molecule timeline CSV rows in the given original timestep values.
         This also enables printmoleculetime.
     printreactionevent: bool, optional, default: False
-        Write time-resolved reaction events to the reaction event CSV file.
+        Write time-resolved reaction events to the reaction event CSV file and the schema 1.1
+        HDF5 timeline.
     a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]
         Transition matrix A of HMM parameters. It is recommended for users to choose their own
         parameters. See the paper for details.
@@ -333,6 +337,22 @@ class ReacNetGenerator:
         if not 0 <= max_component_fraction <= 1:
             raise ValueError("max_component_fraction must be between 0 and 1")
         kwargs["max_component_fraction"] = float(max_component_fraction)
+        # Nonempty filters also request timed molecule output, so resolve them first.
+        for kk in ("moleculeframes", "moleculetimesteps"):
+            kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
+        if (
+            kwargs["moleculeframes"] is not None
+            or kwargs["moleculetimesteps"] is not None
+        ):
+            kwargs["printmoleculetime"] = True
+        if kwargs["timed_output"] is None and (
+            kwargs["printmoleculetime"] or kwargs["printreactionevent"]
+        ):
+            kwargs["timed_output"] = (
+                output_path / "timeline.h5"
+                if output_path is not None
+                else Path(f"{kwargs['inputfilename'][0]}.timeline.h5")
+            )
         if kwargs["timed_output"] is not None:
             target = Path(kwargs["timed_output"]).expanduser()
             reserved = [*kwargs["inputfilename"], *(kwargs[key] for key in file_key)]
@@ -349,13 +369,6 @@ class ReacNetGenerator:
                     "timed_output must not alias an input or another output"
                 )
             kwargs["timed_output"] = str(target)
-        for kk in ("moleculeframes", "moleculetimesteps"):
-            kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
-        if (
-            kwargs["moleculeframes"] is not None
-            or kwargs["moleculetimesteps"] is not None
-        ):
-            kwargs["printmoleculetime"] = True
         if not kwargs["runHMM"]:
             kwargs["getoriginfile"] = True
         if kwargs["selectatoms"] is None:

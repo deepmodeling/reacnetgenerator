@@ -1,6 +1,11 @@
-# Optional HDF5 timeline (schema 1.1)
+# HDF5 timeline (schema 1.1)
 
-Use `--timed-output FILE` to write one compact timeline when the PATH stage runs:
+`--show-molecule-time` and `--reaction-event` also write one compact HDF5
+timeline when the PATH stage runs. Without `--output-dir`, its default path is
+`<input>.timeline.h5`; with `--output-dir DIR`, it is `DIR/timeline.h5`.
+
+Use `--timed-output FILE` to choose another path or to request a timeline
+without enabling either legacy CSV switch:
 
 ```sh
 reacnetgenerator -i trajectory.bond --type bond -a H He --nohmm --timed-output timeline.h5
@@ -9,15 +14,15 @@ reacnetgenerator -i trajectory.bond --type bond -a H He --nohmm --timed-output t
 In Python, pass `timed_output="timeline.h5"` to `ReacNetGenerator`, or through
 `reacnetgenerator.run`. The returned artifact map includes `timeline`. Relative
 paths resolve against the working directory; this explicit path is not relocated
-by `output_dir`. Its parent directory must exist. The default remains disabled.
-A species-only `run_items` request cannot produce a timeline and raises an error
-if combined with `timed_output`.
+by `output_dir`. Its parent directory must exist. A species-only `run_items`
+request cannot produce a timeline and raises an error if combined with a timed
+switch or `timed_output`.
 
 The timeline contains molecule definitions and effective presence intervals,
 aggregate reaction events, instance-level participants and inferred bond changes,
 and frame/source/configuration metadata. It does not contain coordinates. It does
-not change the existing text outputs or enable the legacy CSV switches. Those
-switches can still be selected separately.
+not change the existing text outputs. The legacy CSV switches continue to write
+their CSV files during this compatibility period.
 
 ## Why validation is part of the format
 

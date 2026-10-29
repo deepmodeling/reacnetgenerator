@@ -176,15 +176,15 @@ def main_parser() -> argparse.ArgumentParser:
         "--timed-output",
         metavar="FILE",
         help=(
-            "Write an opt-in HDF5 schema 1.1 timeline with effective molecule "
-            "ranges, aggregate events, and instance evidence."
+            "Write the HDF5 schema 1.1 timeline at FILE. This overrides the "
+            "default path used by --show-molecule-time and --reaction-event."
         ),
     )
     parser.add_argument(
         "--show-molecule-time",
         help=(
             "Write a molecule timeline CSV file with original timestep values, "
-            "atom IDs, and bond IDs."
+            "atom IDs, and bond IDs, plus an HDF5 schema 1.1 timeline."
         ),
         action="store_true",
     )
@@ -210,7 +210,10 @@ def main_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--reaction-event",
-        help="Write time-resolved reaction events to the .reactionevent.csv file.",
+        help=(
+            "Write time-resolved reaction events to the .reactionevent.csv file "
+            "and an HDF5 schema 1.1 timeline."
+        ),
         action="store_true",
     )
     parser.add_argument(

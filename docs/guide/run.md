@@ -26,6 +26,14 @@ reacnetgenerator -h
 
 See [here](cli.md) for the usage of the command line.
 
+## Time-resolved output
+
+`--show-molecule-time` and `--reaction-event` write their existing CSV outputs
+and a schema 1.1 HDF5 timeline. The default HDF5 path is
+`<input>.timeline.h5`, or `timeline.h5` inside `--output-dir`. Use
+`--timed-output FILE` to select another path. See
+[HDF5 timeline](timed-output-schema.md) for its tables and validation API.
+
 ## Oversized connected components
 
 ReacNetGenerator stops before molecule naming when a connected component is

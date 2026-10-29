@@ -130,7 +130,7 @@ def test_pipeline(tmp_path, run_hmm, nproc):
 
 
 def test_optional_and_existing_outputs(tmp_path):
-    """Opt-in preserves text results and does not implicitly create timed CSV."""
+    """An explicit timeline preserves text results and does not enable timed CSV."""
     outputs = []
     for enabled in [False, True]:
         directory = tmp_path / str(enabled)
@@ -152,6 +152,40 @@ def test_optional_and_existing_outputs(tmp_path):
         assert not Path(rng.reactioneventfilename).exists()
         assert not Path(rng.moleculetimelinefilename).exists()
     assert outputs[0] == outputs[1]
+
+
+@pytest.mark.parametrize(
+    ("options", "legacy_output"),
+    [
+        ({"printmoleculetime": True}, "moleculetimelinefilename"),
+        ({"printreactionevent": True}, "reactioneventfilename"),
+        ({"moleculeframes": [0]}, "moleculetimelinefilename"),
+        ({"moleculetimesteps": [0]}, "moleculetimelinefilename"),
+    ],
+)
+@pytest.mark.parametrize("explicit_path", [False, True])
+def test_timed_flags_add_default_hdf5_companion(
+    tmp_path, options, legacy_output, explicit_path
+):
+    """Existing timed switches also publish the normalized HDF5 timeline."""
+    directory = tmp_path / "outputs"
+    path = tmp_path / "custom.h5" if explicit_path else directory / "timeline.h5"
+    rng = generator(directory, timed_output=path if explicit_path else None, **options)
+
+    assert rng.timed_output == str(path)
+    assert rng.artifacts["timeline"] == str(path)
+    prepare(rng)
+    _CollectPaths.getstype(rng).collect()
+
+    assert path.exists()
+    legacy_path = Path(getattr(rng, legacy_output))
+    assert legacy_path.exists()
+    if "moleculeframes" in options or "moleculetimesteps" in options:
+        with legacy_path.open(newline="") as file:
+            assert {row["Timestep"] for row in csv.DictReader(file)} == {"0"}
+    assert validate_timed_output(path, block_rows=2).frames == rng.step
+    if explicit_path:
+        assert not (directory / "timeline.h5").exists()
 
 
 def test_source_occurrences_and_stride(tmp_path):
@@ -310,7 +344,7 @@ def test_column_byte_bound(tmp_path, monkeypatch):
 
 
 def test_cli_and_aliases(tmp_path):
-    """Round-trip the opt-in switch and reject paths that could destroy inputs."""
+    """Round-trip an explicit timeline and reject paths that could destroy inputs."""
     path = tmp_path / "timeline.h5"
     rng = generator(tmp_path, timed_output=path)
     args = main_parser().parse_args(parm2cmd(rng.parameters)[1:])
@@ -323,6 +357,34 @@ def test_cli_and_aliases(tmp_path):
         generator(tmp_path, timed_output=alias)
     with pytest.raises(ValueError, match="executes PATH"):
         rng.run_items(["species"])
+    path.symlink_to(INPUT)
+    with pytest.raises(ValueError, match="alias"):
+        generator(tmp_path, printreactionevent=True)
+
+
+def test_default_timeline_paths(tmp_path):
+    """Timed switches and filters select a predictable default HDF5 path."""
+    directory = tmp_path / "artifacts"
+    assert generator(directory).timed_output is None
+    assert (
+        generator(directory, moleculeframes=[], moleculetimesteps=[]).timed_output
+        is None
+    )
+    filtered = generator(directory, moleculeframes=[0])
+    expected = str(directory / "timeline.h5")
+    assert filtered.timed_output == expected
+    assert filtered.artifacts["timeline"] == expected
+    with pytest.raises(ValueError, match="executes PATH"):
+        filtered.run_items(["species"])
+
+    source = tmp_path / "trajectory.bond"
+    rng = ReacNetGenerator(
+        inputfilename=str(source),
+        inputfiletype="bond",
+        atomname=["H"],
+        printreactionevent=True,
+    )
+    assert rng.timed_output == f"{source}.timeline.h5"
 
 
 def test_empty_tables(tmp_path):
