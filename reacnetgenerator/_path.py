@@ -37,6 +37,7 @@ from rdkit import Chem
 from tqdm.auto import tqdm
 
 from ._reaction import ReactionsFinder
+from ._species import species_molecule
 from ._step3state import (
     _STEP3_SCAN_ROWS,
     _AtomFrameReader,
@@ -545,15 +546,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         ValueError
             (RDKit error) Maximum BFS search size exceeded.
         """
-        m = Chem.RWMol(Chem.MolFromSmiles(""))
-        d = {}
-        for name, number in zip(self.atomnames[atoms], atoms):
-            d[number] = m.AddAtom(Chem.Atom(name))
-        for atom1, atom2, level in bonds:
-            m.AddBond(d[atom1], d[atom2], Chem.BondType(level))
-        # https://github.com/rdkit/rdkit/discussions/6613#discussioncomment-6688021
-        for a in m.GetAtoms():
-            a.SetNoImplicit(True)
+        m = species_molecule(self.atomnames[atoms], atoms, bonds)
         name = Chem.MolToSmiles(m)
         return self._re(name)
 
@@ -938,6 +931,17 @@ class Molecule:
                 pass
         for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
             graph.add_node(atomnumber, atom=atomtype)
+        if self._miso == 0:
+            try:
+                molecule = species_molecule(self._atomnames, self.atoms, self.bonds)
+            except (ValueError, RuntimeError):
+                # VF2 also supports graphs RDKit cannot construct. Keep the
+                # existing raw-graph fallback when even construction fails.
+                return graph
+            for bond in molecule.GetBonds():
+                atom1 = self.atoms[bond.GetBeginAtomIdx()]
+                atom2 = self.atoms[bond.GetEndAtomIdx()]
+                graph[atom1][atom2]["level"] = int(bond.GetBondType())
         return graph
 
     def isomorphic(self, mol):
