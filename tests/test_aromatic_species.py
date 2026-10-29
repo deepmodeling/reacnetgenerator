@@ -26,6 +26,7 @@ from reacnetgenerator.tools import read_species
 
 
 def _collector(symbols, miso=0):
+    """Build only the collector state needed for SMILES and VF2 identity checks."""
     collector = object.__new__(_CollectSMILESPaths)
     collector.atomnames = np.asarray(symbols)
     collector.atomname = np.asarray(list(dict.fromkeys(symbols)))
@@ -52,6 +53,7 @@ def _halobenzene(shift=0, position=1):
 
 
 def _records(molecule):
+    """Export atom symbols and indexed RDKit bond types for identity fixtures."""
     symbols = [atom.GetSymbol() for atom in molecule.GetAtoms()]
     bonds = np.asarray(
         [
@@ -64,6 +66,7 @@ def _records(molecule):
 
 
 def _identity(symbols, bonds):
+    """Return SMILES and VF2 representations built from the same raw records."""
     collector = _collector(symbols)
     atoms = np.arange(len(symbols))
     return collector.convertSMILES(atoms, bonds), Molecule(collector, atoms, bonds)
@@ -86,7 +89,8 @@ def test_kekule_forms_and_permutations_have_one_identity():
             names.add(collector.convertSMILES(atom_order, bond_order))
             assert reference.isomorphic(Molecule(collector, atom_order, bond_order))
     assert len(names) == 1
-    assert "[c]" in names.pop()
+    name = names.pop()
+    assert "[c]" in name
     np.testing.assert_array_equal(first, originals[0])
     np.testing.assert_array_equal(second, originals[1])
 
@@ -186,6 +190,7 @@ def test_smiles_failure_vf2_fallback_recognizes_aromatic_equivalence():
 
 
 def _write_bond_trajectory(path, symbols, variants):
+    """Write two 30-frame bond assignments in the ReaxFF bond-file format."""
     atomnames = list(dict.fromkeys(symbols))
     with path.open("w") as handle:
         for frame in range(60):
@@ -218,6 +223,7 @@ def _write_bond_trajectory(path, symbols, variants):
 
 
 def _bond_set(bonds):
+    """Canonicalize endpoint order when comparing retained raw bond records."""
     return frozenset((min(a, b), max(a, b), order) for a, b, order in bonds)
 
 

@@ -916,6 +916,13 @@ class Molecule:
         self._smiles = value
 
     def _makemoleculegraph(self):
+        """Build a VF2 graph according to the selected isomer equivalence mode.
+
+        Normal mode shares aromatic bond normalization with SMILES conversion
+        and retains raw bond levels if RDKit cannot construct the molecule.
+        The broader modes discard bond orders or connectivity, respectively.
+        Trajectory atom indices and the original bond records are preserved.
+        """
         if self._miso not in (0, 1, 2):
             raise ValueError(f"Unknown isomer identification method: {self._miso}.")
         graph = nx.Graph()
