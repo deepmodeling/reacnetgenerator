@@ -31,7 +31,7 @@ from reacnetgenerator.timedoutput import (
     read_metadata,
     validate_timed_output,
 )
-from reacnetgenerator.utils import bytestolist, read_compressed_block
+from reacnetgenerator.utils import bytestolist, idx_to_signal, read_compressed_block
 
 INPUT = Path(__file__).parent / "inputs" / "reaction.bond"
 
@@ -69,11 +69,18 @@ def test_pipeline(tmp_path, run_hmm, nproc):
     )
     prepare(rng)
     expected = []
-    with open(rng.hmmfilename if run_hmm else rng.originfilename, "rb") as file:
-        for molecule_id, blob in enumerate(read_compressed_block(file), 1):
-            expected.extend(
-                (molecule_id, frame) for frame in np.flatnonzero(bytestolist(blob))
+    with open(rng.hmmfilename if run_hmm else rng.moleculetemp2filename, "rb") as file:
+        blocks = read_compressed_block(file)
+        signals = (
+            (bytestolist(blob) for blob in blocks)
+            if run_hmm
+            else (
+                idx_to_signal(bytestolist(record[-1]), rng.step)
+                for record in zip(*[blocks] * 4, strict=True)
             )
+        )
+        for molecule_id, signal in enumerate(signals, 1):
+            expected.extend((molecule_id, frame) for frame in np.flatnonzero(signal))
     _CollectPaths.getstype(rng).collect()
     actual = [
         (r.molecule_id, frame)

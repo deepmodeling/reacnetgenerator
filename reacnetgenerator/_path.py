@@ -36,6 +36,7 @@ import numpy as np
 from rdkit import Chem
 from tqdm.auto import tqdm
 
+from ._moleculepresence import _iter_molecule_presence
 from ._reaction import ReactionsFinder
 from ._step3state import (
     _STEP3_SCAN_ROWS,
@@ -62,6 +63,37 @@ _ROUTE_WORKER_STATE = None
 _STEP3_SERIAL_ATOM_FRAMES = _STEP3_SCAN_ROWS
 _ATOM_MATCH = iso.categorical_node_match("atom", None)
 _BOND_MATCH = iso.categorical_edge_match("level", None)
+_MATRIX_WRITE_CELLS = 1024 * 1024
+
+
+def _write_molecule_presence(store, atoms, presence, molecule_id):
+    """Bound matrix gathers in both dimensions, preserving overlap conflicts."""
+    atoms = np.asarray(atoms, dtype=np.int64)
+    # Duplicate atom IDs within a record must not create a self-conflict when
+    # they happen to straddle two write batches.
+    if np.any(atoms[1:] <= atoms[:-1]):
+        atoms = np.unique(atoms)
+    for frames in presence.selections():
+        frame_count = (
+            frames.stop - frames.start if isinstance(frames, slice) else len(frames)
+        )
+        atoms_per_batch = max(1, _MATRIX_WRITE_CELLS // frame_count)
+        for start in range(0, len(atoms), atoms_per_batch):
+            batch = atoms[start : start + atoms_per_batch]
+            index = (
+                (batch, frames) if isinstance(frames, slice) else np.ix_(batch, frames)
+            )
+            overlap = np.not_equal(store.atomeach[index], 0)
+            if np.any(overlap):
+                # The packed conflict API takes indices. Materialize them only
+                # for an overlapping bounded span, never for a full trajectory.
+                conflict_frames = (
+                    np.arange(frames.start, frames.stop)
+                    if isinstance(frames, slice)
+                    else frames
+                )
+                store.conflict.mark(batch, conflict_frames, overlap)
+            store.atomeach[index] = molecule_id
 
 
 def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS):
@@ -362,20 +394,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             # Writable outputs such as /dev/null can have unwritable parents.
             store = _AtomFrameStore((self.N, self.step), self.hmmit)
         try:
-            with (
-                open(
-                    self.hmmfilename if self.runHMM else self.originfilename,
-                    "rb",
-                ) as fh,
-                open(self.moleculetemp2filename, "rb") as ft,
-            ):
-                for molecule_id, (linehz, linetz) in enumerate(
+            with closing(_iter_molecule_presence(self)) as records:
+                for molecule_id, (record, presence) in enumerate(
                     tqdm(
-                        zip(
-                            read_compressed_block(fh),
-                            itertools.zip_longest(*[read_compressed_block(ft)] * 4),
-                            strict=True,
-                        ),
+                        records,
                         total=self.hmmit,
                         desc="Analyze atoms",
                         unit="molecule",
@@ -383,20 +405,9 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                     ),
                     start=1,
                 ):
-                    if molecule_id > self.hmmit:
-                        raise RuntimeError(
-                            "More molecule records than the declared count"
-                        )
-                    lineh = bytestolist(linehz)
-                    atoms = np.asarray(bytestolist(linetz[0]), dtype=np.int64)
-                    frames = np.flatnonzero(lineh)
-                    if frames.size:
-                        overlap = np.not_equal(
-                            store.atomeach[atoms[:, None], frames],
-                            0,
-                        )
-                        store.conflict.mark(atoms, frames, overlap)
-                        store.atomeach[atoms[:, None], frames] = molecule_id
+                    _write_molecule_presence(
+                        store, bytestolist(record[0]), presence, molecule_id
+                    )
             store.flush()
             return store
         except BaseException:

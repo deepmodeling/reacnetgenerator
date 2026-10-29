@@ -42,6 +42,9 @@ class TestRunItems:
         """Species-only mode produces .species file without PATH step."""
         rng.run_items(["species"])
         assert os.path.exists(rng.speciesfilename)
+        assert rng.moleculetemp2filename == rng.moleculetempfilename
+        assert not os.path.exists(rng.moleculetempfilename)
+        assert not os.path.exists(rng.originfilename)
         # Reaction file should NOT exist — PATH was skipped
         assert not os.path.exists(rng.reactionfilename)
 
