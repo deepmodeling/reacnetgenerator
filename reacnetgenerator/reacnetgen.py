@@ -640,10 +640,13 @@ class ReacNetGenerator:
         """
         timearray = [time.perf_counter()]
         for i, runstep in enumerate(steps, 1):
+            step_description = str(runstep)
             if runstep == self.Status.DETECT:
                 _Detect.gettype(self).detect()
             elif runstep == self.Status.HMM:
-                _HMMFilter(self).filter()
+                hmm_filter = _HMMFilter(self)
+                hmm_filter.filter()
+                step_description = hmm_filter.description
             elif runstep == self.Status.PATH:
                 _CollectPaths.getstype(self).collect()
             elif runstep == self.Status.MATRIX:
@@ -658,7 +661,7 @@ class ReacNetGenerator:
             gc.collect()
             timearray.append(time.perf_counter())
             logger.info(
-                f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({runstep})"
+                f"Step {i}: Done! Time consumed (s): {timearray[-1] - timearray[-2]:.3f} ({step_description})"
             )
 
         # Species-only shortcut: molecule naming + per-frame counting
