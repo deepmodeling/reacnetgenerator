@@ -58,6 +58,11 @@ from .utils import (
     run_mp,
 )
 
+_ROUTE_COMPACTION_MIN_ROWS = 256
+_ROUTE_COMPACTION_SAMPLE_ROWS = 1024
+_ROUTE_COMPACTION_MAX_PAIRS = 65536
+_ROUTE_WRITE_BUFFER_BYTES = 1024 * 1024
+
 _ROUTE_WORKER_STATE = None
 # Starting workers and attaching three mappings costs more than scanning a
 # single block in the parent. Larger workloads retain the indexed worker path.
@@ -147,6 +152,102 @@ def _atom_route_result(atom_index, timeline, atom_name, selected, names, active=
     return molecule_route, route_string
 
 
+def _count_route_pairs(pairs):
+    """Count a bounded block, packing the common narrow unsigned IDs exactly."""
+    if pairs.dtype.kind == "u" and pairs.dtype.itemsize <= 4:
+        # Shared matrices use unsigned IDs. Packing two uint32 fields makes
+        # repetitive routes one integer sort instead of a two-field row sort.
+        keys = pairs[:, 0].astype(np.uint64)
+        np.left_shift(keys, np.uint64(32), out=keys)
+        np.bitwise_or(keys, pairs[:, 1], out=keys)
+        unique, counts = np.unique(keys, return_counts=True)
+        values = np.column_stack(
+            (unique >> np.uint64(32), unique & np.uint64(2**32 - 1))
+        )
+        return values.astype(pairs.dtype), counts
+    # Wider and signed arrays retain both original fields without truncation.
+    return np.unique(pairs, axis=0, return_counts=True)
+
+
+def _compact_route_pairs(pairs):
+    """Count repetitive pairs with bounded scratch space and a unique-pair cap.
+
+    Short or apparently unique routes keep their original array. The sample
+    only selects an optimization; either representation has identical counts.
+    Stop aggregating if the dictionary would grow beyond one scan block.
+    """
+    if len(pairs) < _ROUTE_COMPACTION_MIN_ROWS:
+        return pairs, None
+    stride = max(1, len(pairs) // _ROUTE_COMPACTION_SAMPLE_ROWS)
+    sample = pairs[::stride][:_ROUTE_COMPACTION_SAMPLE_ROWS]
+    if len(_count_route_pairs(sample)[0]) == len(sample):
+        return pairs, None
+    counts = Counter()
+    for start in range(0, len(pairs), _STEP3_SCAN_ROWS):
+        unique, frequencies = _count_route_pairs(
+            pairs[start : start + _STEP3_SCAN_ROWS]
+        )
+        for pair, frequency in zip(unique, frequencies, strict=True):
+            counts[int(pair[0]), int(pair[1])] += int(frequency)
+            if len(counts) > _ROUTE_COMPACTION_MAX_PAIRS:
+                return pairs, None
+    ordered = sorted(counts)
+    return (
+        np.asarray(ordered, dtype=pairs.dtype).reshape((-1, 2)),
+        np.fromiter((counts[pair] for pair in ordered), dtype=np.int64),
+    )
+
+
+class _SpeciesRouteAccumulator:
+    """Reduce ordered atom results without retaining event-level pair arrays."""
+
+    def __init__(self, names, run_hmm):
+        self.names = names
+        self.run_hmm = run_hmm
+        self.counts = Counter()
+        # Python integer keys avoid fixed-width overflow and tuple/NumPy scalar
+        # overhead. Ownership must survive across blocks and across atoms.
+        self._span = len(names) + 1
+        self._owners = {}
+
+    def add(self, atom_index, pairs, frequencies):
+        """Keep every occurrence on the first atom, or one globally with HMM."""
+        if frequencies is not None and len(frequencies) != len(pairs):
+            raise ValueError("Route pair counts do not match route pairs")
+        for start in range(0, len(pairs), _STEP3_SCAN_ROWS):
+            block = pairs[start : start + _STEP3_SCAN_ROWS]
+            selected = []
+            for index, pair in enumerate(block):
+                key = int(pair[0]) * self._span + int(pair[1])
+                owner = self._owners.get(key)
+                if owner is None:
+                    self._owners[key] = atom_index
+                elif self.run_hmm or owner != atom_index:
+                    continue
+                selected.append(index)
+            if not selected:
+                continue
+            # Resolve names in bounded NumPy batches. Scalar name lookups for
+            # every unique event would penalize routes that cannot be compacted.
+            species = self.names[block[selected] - 1]
+            different = species[:, 0] != species[:, 1]
+            if frequencies is None or self.run_hmm:
+                self.counts.update(map(tuple, species[different]))
+            else:
+                weights = frequencies[start : start + len(block)][selected]
+                for pair, count in zip(
+                    species[different], weights[different], strict=True
+                ):
+                    self.counts[tuple(pair)] += int(count)
+
+
+def _compact_atom_route_result(*args):
+    """Share the same counted representation between local scans and workers."""
+    pairs, text = _atom_route_result(*args)
+    pairs, frequencies = _compact_route_pairs(pairs)
+    return pairs, frequencies, text
+
+
 def _initialize_route_worker(
     reader_args, atomtype, atomname, selectatoms, names, frame_range, active_path
 ):
@@ -182,7 +283,7 @@ def _get_atom_route_by_index(atom_index):
     )
     start, stop = frame_range
     name = atomname[atomtype[atom_index]]
-    return _atom_route_result(
+    return _compact_atom_route_result(
         atom_index,
         reader.atomeach[atom_index, start:stop],
         name,
@@ -429,7 +530,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         active = matrix_store.active_transitions if mark_active else None
         for atom_index in range(self.N):
             name = self.atomname[self.atomtype[atom_index]]
-            yield _atom_route_result(
+            yield _compact_atom_route_result(
                 atom_index,
                 matrix_store.atomeach[atom_index, start:stop],
                 name,
@@ -439,7 +540,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             )
 
     def _printatomroute(self, matrix_store, timeaxis=None, frame_range=None):
-        """For analysis without HMM, we may not need to use np.unique."""
+        """Write atom routes and reduce their pairs to species-level counts."""
         if frame_range is None:
             frame_range = (0, self.step)
         with WriteBuffer(
@@ -452,12 +553,9 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 "w",
             ),
             sep="\n",
+            maxbytes=_ROUTE_WRITE_BUFFER_BYTES,
         ) as f:
-            allmoleculeroute = []
-            if not self.runHMM:
-                have_added = {}
-            else:
-                have_added = None
+            routes = _SpeciesRouteAccumulator(self.mname, self.runHMM)
             scan_size = self.N * (frame_range[1] - frame_range[0])
             if scan_size <= _STEP3_SERIAL_ATOM_FRAMES:
                 results = self._iter_local_atom_routes(
@@ -495,27 +593,10 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
             # Finish or terminate workers before the parent releases mappings,
             # including when writing a route or consuming a result fails.
             with closing(results):
-                for ii, (moleculeroute, routestr) in enumerate(results):
+                for ii, (pairs, frequencies, routestr) in enumerate(results):
                     f.append(routestr)
-                    if moleculeroute.size > 0:
-                        if not self.runHMM:
-                            # Deduplicate atom routes exactly as in the legacy path.
-                            for rr in moleculeroute:
-                                tpr = tuple(rr)
-                                assert have_added is not None
-                                if have_added.get(tpr, self.N) >= ii:
-                                    have_added[tpr] = ii
-                                    allmoleculeroute.append(rr.reshape(1, 2))
-                        else:
-                            allmoleculeroute.append(moleculeroute)
-        allmoleculeroute = (
-            np.concatenate(allmoleculeroute)
-            if allmoleculeroute
-            else np.zeros((0, 2), dtype=int)
-        )
-        if self.runHMM and allmoleculeroute.size:
-            allmoleculeroute = np.unique(allmoleculeroute, axis=0)
-        return allmoleculeroute
+                    routes.add(ii, pairs, frequencies)
+        return routes.counts
 
     def _re(self, smi):
         """If you use RDkit to convert a methyl radical to SMILES, you will get something

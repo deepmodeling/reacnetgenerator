@@ -23,6 +23,48 @@ from .utils import (
 )
 
 _REACTION_WORKER_STATE = None
+_REACTION_PAIR_COMPACTION_MIN_ROWS = 1024
+_REACTION_NEIGHBOR_DICT_THRESHOLD = 8
+
+
+def _add_reaction_neighbor(mapping, molecule, neighbor):
+    """Keep neighbors in insertion order while retaining each edge once.
+
+    Most molecules have few neighbors, so keep a short list. Promote larger
+    neighborhoods to an ordered dictionary to avoid quadratic membership scans.
+    """
+    neighbors = mapping[molecule]
+    if isinstance(neighbors, dict):
+        neighbors.setdefault(neighbor, None)
+    elif neighbor not in neighbors:
+        if len(neighbors) < _REACTION_NEIGHBOR_DICT_THRESHOLD:
+            neighbors.append(neighbor)
+        else:
+            mapping[molecule] = dict.fromkeys((*neighbors, neighbor))
+
+
+def _reaction_pair_first_indices(before, after):
+    """Find distinct pairs in one bounded block without changing their order."""
+    if not len(before):
+        return np.zeros(0, dtype=np.intp)
+    smallest = min(int(before.min(initial=0)), int(after.min(initial=0)))
+    largest = max(int(before.max(initial=0)), int(after.max(initial=0)))
+    if smallest >= 0 and largest <= np.iinfo(np.uint32).max:
+        # One integer sort is much cheaper than sorting two-field rows. Only
+        # pack IDs when both fields fit; wider/signed IDs must remain exact.
+        keys = before.astype(np.uint64, copy=True)
+        np.left_shift(keys, np.uint64(32), out=keys)
+        np.bitwise_or(keys, after.astype(np.uint64, copy=False), out=keys)
+    else:
+        # Separate fields also avoid float coercion for mixed signed/unsigned
+        # arrays supplied through the legacy array entry point.
+        keys = np.empty(
+            len(before), dtype=[("left", before.dtype), ("right", after.dtype)]
+        )
+        keys["left"], keys["right"] = before, after
+    first = np.unique(keys, return_index=True)[1]
+    first.sort()
+    return first
 
 
 def _initialize_reaction_worker(
@@ -264,22 +306,40 @@ class ReactionsFinder(SharedRNGData):
         return self._reactions_from_blocks(blocks, stepidx)
 
     def _reactions_from_blocks(self, blocks, stepidx):
-        """Build the same reaction graph without full-frame temporary arrays.
+        """Build one edge per molecule pair without full-frame temporary arrays.
 
-        Blocks visit atoms in their original order. The graph for one transition
-        can still grow with its participating atoms; only the scan temporaries
-        have a fixed bound.
+        Preserve first-appearance order of molecule-pair edges across atom blocks.
+        Graph storage still grows with distinct participating pairs. Conflict
+        evidence comes from every changed atom, even when its edge is repeated.
         """
         reactdict = [defaultdict(list), defaultdict(list)]
         for before, after, before_conflict, after_conflict in blocks:
-            for atom in np.flatnonzero(before != after):
-                left, right = int(before[atom]), int(after[atom])
-                reactdict[0][left].append(right)
-                reactdict[1][right].append(left)
-                if before_conflict[atom]:
-                    reactdict[0][left].append(self.CONFLICT)
-                if after_conflict[atom]:
-                    reactdict[1][right].append(self.CONFLICT)
+            modified = np.flatnonzero(before != after)
+            if len(modified) < _REACTION_PAIR_COMPACTION_MIN_ROWS:
+                for atom in modified:
+                    left, right = int(before[atom]), int(after[atom])
+                    _add_reaction_neighbor(reactdict[0], left, right)
+                    _add_reaction_neighbor(reactdict[1], right, left)
+                    if before_conflict[atom]:
+                        _add_reaction_neighbor(reactdict[0], left, self.CONFLICT)
+                    if after_conflict[atom]:
+                        _add_reaction_neighbor(reactdict[1], right, self.CONFLICT)
+                continue
+            left, right = before[modified], after[modified]
+            for index in _reaction_pair_first_indices(left, right):
+                lmol, rmol = int(left[index]), int(right[index])
+                _add_reaction_neighbor(reactdict[0], lmol, rmol)
+                _add_reaction_neighbor(reactdict[1], rmol, lmol)
+            # A later atom sharing an already-seen pair can carry the only
+            # conflict flag. Never restrict this scan to the representative rows.
+            for side, values, conflicts in (
+                (0, left, before_conflict),
+                (1, right, after_conflict),
+            ):
+                for molecule in np.unique(values[conflicts[modified] != 0]):
+                    _add_reaction_neighbor(
+                        reactdict[side], int(molecule), self.CONFLICT
+                    )
         networks = dps_reaction(reactdict)
         # remove empty AND conflict
         new_networks = []
