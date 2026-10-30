@@ -68,7 +68,7 @@ def test_detection_streams_compact_records_in_first_seen_order(tmp_path, monkeyp
     monkeypatch.setattr(detector, "_compressvalue", compress)
     monkeypatch.setattr(detection, "WriteBuffer", ObservedBuffer)
     detector.detect()
-    assert len(calls) == 1  # Compression does not start a second process pool.
+    assert len(calls) == 1  # Small inputs retain serial compression.
     assert calls[0][0] == 2 and calls[0][1]["max_inflight"] == 4
     assert frame_arrays == [[2, 0, 1, 1], [2, 0]]
     assert detector.rng.timestep == {2: 20, 0: 0, 1: 10}

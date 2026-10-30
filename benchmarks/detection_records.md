@@ -1,16 +1,16 @@
 # Streaming compact molecule detection records
 
-The PR is based on upstream `8b0d8f40`, including the merged species-population
-aggregation change (#2515). The performance tables and 154 raw samples below
-retain their original fixed baseline, `b2d30fb4` (molecule-presence reuse and
-route/reaction aggregation), and the pre-rebase detection implementation. The
-rebase leaves that implementation unchanged; the upstream addition changes
-species-population aggregation without changing detection or its writer utilities.
-Latest-baseline correctness validation is recorded separately below.
+The PR is based on upstream `8b0d8f40`, including species-population aggregation
+(#2515). Detection stores compact frame indices and streams compressed records
+through a bounded writer. Large collections of short records under fork use
+bounded parallel compression; small, dense and spawn workloads retain the serial
+path. Input parsing, bond perception, detection workers and frame dispatch are
+unchanged.
 
-The change is confined to detection-result accumulation and saving;
-the input parsers, bond perception, connected-component guards, detection worker
-count and bounded frame dispatch are unchanged.
+The original 154 performance samples against `b2d30fb4` are preserved below.
+The review follow-up separately compares that fixed baseline, the published
+serial PR `20aa950d`, and the repaired implementation. It retains slower
+exploratory results and separates them from final-revision evidence.
 
 ## Storage and ordering
 
@@ -21,14 +21,19 @@ unrepresentable values instead of wrapping. It preserves duplicates and worker
 arrival order. It does not sort detections or replace the timestep dictionary or
 per-source frame-count mapping.
 
-After collection, compression consumes a NumPy view of one frame buffer in the
-parent and immediately passes its bytes to the writer. There is no second
-compression process pool, no array/result round-trip IPC for that phase, and no
-list containing every compressed result. Detection itself continues to use the
-requested workers. The writer pairs definitions and frame payloads strictly in
-first-seen molecule order, with a 1 MiB byte budget. A single indivisible payload
-may exceed that budget. Failed compression, misalignment or writing closes and
-removes the incomplete owned temporary file before exposing a filename.
+After collection, the default path compresses one NumPy view in the parent and
+immediately passes its bytes to the writer. Under fork with at least two requested
+workers, at least 24,576 records, and every frame buffer at most 1 KiB, the save
+stage uses at most four compression workers and four submitted-but-unconsumed
+batches. Batch size derives from a 64 KiB raw-data budget and a 2,048-record cap;
+serialized input/result envelopes are checked against 256 KiB/1 MiB limits before
+entering their queues. The exact bounds and ordering protocol are detailed in the
+review follow-up below.
+
+The writer pairs definitions and frame payloads strictly in first-seen molecule
+order with a 1 MiB byte budget. A single indivisible serial-path payload may exceed
+that budget. Failed compression, misalignment or writing closes and removes the
+incomplete owned temporary file before exposing a filename.
 
 This is not a constant-memory detector. All unique molecule definitions, compact
 occurrence buffers and timestep metadata remain resident until saving finishes.
@@ -86,7 +91,7 @@ to match; downstream text and HDF5 equivalence are validated separately.
 | detect-dense-1/2/4 |     512 |               128 |   1/2/4 | Real bond parsing, isolated atoms                                     |
 | detect-changing-2  |     512 |               256 |       2 | Seeded changing perfect matchings; 28,237 distinct H-pair definitions |
 
-## Measured results
+## Original serial PR measurements (`20aa950d`)
 
 Measurements used an Apple M4 with 24 GiB RAM, macOS 15.6.1 arm64, Python
 3.12.7, NumPy 2.5.3 and LZ4 4.4.5, with matched pinned runtime dependencies.
@@ -174,7 +179,7 @@ configured production-source ty check also passed.
 
 ## Validation after the upstream refresh
 
-The PR was rebased onto official `master` at
+Initial PR revision `20aa950d` was rebased onto official `master` at
 `8b0d8f402d3ff5a41f8421a1e48cd470220fd653` (#2515). The detection implementation,
 regression tests, benchmark runner and 154 historical CSV samples are unchanged
 from the pre-rebase commit `022c0f5e`.
@@ -187,11 +192,11 @@ six identical HDF5 semantic manifests, covering the configurations listed above.
 The baseline now includes the merged species-population implementation, so this
 comparison checks the actual upstream integration.
 
-The refreshed macOS fork regression run passed **255 tests**, including detection,
+At that initial PR revision, the macOS fork regression run passed **255 tests**, including detection,
 record streaming, utility/worker initialization, indexed Step 3, species populations,
 timed output and aromatic species.
 
-The refreshed full non-GUI suite passed **519 tests**, with **8 skipped,
+At that initial PR revision, the full non-GUI suite passed **519 tests**, with **8 skipped,
 6 deselected, 6 xfailed and 3 xpassed** (22 warnings). The eight fork-only skips
 were exercised by the separate fork run; the six deselections exclude GUI tests.
 The expected-failure fixture accounts for the XFAIL/XPASS results. All applicable
@@ -199,3 +204,133 @@ pre-commit hooks, the configured `ty==0.0.15` production-source check and
 `git diff --check` passed. Validation ran locally on macOS; native Linux,
 Windows and GUI testing were not performed locally. The historical performance
 measurements above were retained without rerunning or relabeling them.
+
+## Review follow-up: bounded batch compression
+
+The reviewed serial revision removed parallel saving unconditionally. The repair
+amortizes scheduling/IPC across short records while retaining a serial fallback
+where process startup is unlikely to pay for itself. A plain bounded parallel
+prototype helped the targeted cases but added CPU versus the serial PR. Profiling
+then found exact duplicate frame histories inside individual batches: 75% of
+records in `replay-unique` and about 30% in one `detect-changing-2` run.
+Distinct molecule definitions may share a frame history; they remain distinct
+records. The worker reuses immutable compressed bytes only for the exact
+`(array typecode, raw frame bytes)` key. Order, duplicate visits and dtype are part
+of that key. Each input still produces one output, and the cache dies with its
+batch. This removes repeated serialization and lets the result envelope reuse
+identical byte objects without changing the file's independent record format.
+
+### Explicit memory and ordering limits
+
+| Component                      | Limit                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| Raw frame data per task        | 64 KiB, calculated from the largest record                                                    |
+| Records per task               | 2,048, also bounding metadata and empty records                                               |
+| Serialized input per task      | 256 KiB, checked before submission                                                            |
+| Serialized result per task     | 1 MiB, checked before returning to the result queue                                           |
+| Submitted but unconsumed tasks | 4, independent of total trajectory length                                                     |
+| Early ordered results on disk  | At most 3 batches; each contains at most a 1 MiB result envelope plus fixed protocol metadata |
+| Batch-local history cache      | At most 2,048 keys, 64 KiB raw key data and 1 MiB unique compressed values                    |
+| Output write buffer            | 1 MiB; the existing indivisible-record exception remains on the serial path                   |
+
+The pool uses `run_mp(max_inflight=4, disk_ordered=True, unordered=False)` with
+an exact batch count. Its submission window advances only after the oldest batch
+has been consumed. A delayed first batch therefore cannot accumulate an unbounded
+reorder cache or silently admit more work. Early files are removed on consumption
+or failure. Explicitly closing the compression iterator cancels worker results
+before leaving a failed write. No list of all compressed trajectory results is
+restored.
+
+These are payload limits, not a process-RSS ceiling. `run_mp` adds fixed envelope
+metadata and transient serialization copies. Each decoded batch has at most 2,048
+objects; dictionary/list/array metadata is additionally bounded by that count.
+Workers can hold their current batch/cache while results wait for consumption.
+All unique definitions, compact occurrence buffers and timestep metadata remain
+input-dependent resident state, and fork processes inherit the parent image.
+A collection containing any frame buffer above 1 KiB uses the lazy serial path.
+
+### Focused three-way comparison
+
+Use three separate installations with identical dependencies:
+
+```sh
+python benchmarks/detection_records.py \
+    --baseline-python /path/to/b2d30fb4/.venv/bin/python \
+    --previous-python /path/to/20aa950d/.venv/bin/python \
+    --candidate-python /path/to/fix/.venv/bin/python \
+    --repeats 6 --start-method fork \
+    --cases replay-unique detect-changing-2 \
+    --output /tmp/detection-review.json
+```
+
+All six revision-order permutations are used once per six-round block, balancing
+each revision in each execution position. Every sample starts a fresh process
+with single-threaded BLAS. Python 3.12.7, NumPy 2.5.3, LZ4 4.4.5 and all 75 installed
+dependency versions match. The baseline and previous source hashes were checked
+against Git revisions `b2d30fb4` and `20aa950d`; the final source SHA-256 is
+`f61cf806bbc34c31a75e437ee993751ea4d919e69ecd586a3d1e11ee67fd28ae`.
+
+The high-churn timing was noisy, so a second complete six-round block was added
+for that case. Both blocks are retained; no samples were discarded. The table
+uses six samples per revision for replay and all twelve for high churn. Columns
+show **fixed baseline → serial PR → repair**:
+
+| Case              | Samples/revision |                   Wall s |                    CPU s |       Parent peak MiB |        Child peak MiB |
+| ----------------- | ---------------: | -----------------------: | -----------------------: | --------------------: | --------------------: |
+| replay-unique     |                6 | 0.1668 → 0.1934 → 0.1263 | 0.2822 → 0.1761 → 0.1426 | 275.7 → 265.0 → 267.7 |     24.3 → 1.0 → 21.1 |
+| detect-changing-2 |               12 | 0.4046 → 0.4115 → 0.3931 | 0.7991 → 0.7199 → 0.7747 | 272.0 → 264.2 → 267.2 | 153.2 → 152.9 → 153.1 |
+
+Replay median wall time is 24.2% below the fixed baseline and 34.7% below the
+serial PR. Every repaired replay sample (0.1181–0.1314 s) is faster than the
+fastest fixed-baseline sample (0.1490 s). High-churn medians are 2.8% below the
+fixed baseline and 4.5% below the serial PR; each six-round block also has a
+lower repaired median than its matched baseline. Its distributions overlap
+substantially (baseline 0.3568–0.7902 s; repair 0.3379–0.5129 s), so this is an
+observed removal of the median regression, not evidence of a uniform or
+statistically established high-churn speedup. Non-task desktop services were
+active during these measurements; no other validation workload from this task
+ran concurrently.
+
+Tradeoffs remain visible: parent peak RSS is about 2.7/3.0 MiB above the serial PR
+for replay/high churn, but below the fixed baseline. High-churn CPU is 7.6% above
+the serial PR and 3.1% below the fixed baseline. Parent and child high-water marks
+must not be summed into concurrent process-tree memory. These macOS fork results
+do not establish Linux, full-analysis or production-trajectory speedups.
+
+The final 24,576-record threshold control uses three alternating serial-PR/repair
+pairs, with matching results and medians 0.2322 → 0.1075 s. Earlier non-memoizing
+16,384- and 24,576-record probes did not show a useful wall-time gain and increased
+CPU; these unsuccessful trials are retained. The threshold is conservative and
+is not presented as an optimum for every frame-history distribution.
+
+[detection_records_review.csv](detection_records_review.csv) contains all **60
+final-revision samples** (54 targeted samples and six threshold-control samples),
+plus **12 serial-path controls** from the preceding batch-only checkpoint. Those
+controls cover fork dense replay and spawn unique replay/dense detection. Their
+executed serial path is unchanged by the final batch-local cache refinement;
+all output digests matched. They are correctness controls with only two samples
+per revision, not new speedup claims. Their checkpoint source hashes and labels
+remain distinct. The original dense/spawn evidence above is also retained.
+[detection_records_exploration.csv](detection_records_exploration.csv) preserves
+all **96 exploratory samples**, including rejected raw-packing and threshold
+probes and the non-memoizing batch implementation. Prototype rows are design
+experiments, not measurements of the final revision; empty source-hash fields
+come from the original runner before hash recording was added.
+
+### Repair validation
+
+The focused fork suite passes 130 tests covering detection records, bounded batch
+compression, worker utilities and timed output. New tests cover byte budgets for
+large/empty records, exact-history reuse without dropping records, serial fallback,
+64-bit widening through the actual collection loop, delayed first-batch delivery,
+bounded submission and disk spooling, progressive writing, preserved prior files,
+and cleanup on compression/write failure. Before implementation, 13 new behavior
+tests failed; the cache test separately failed on the non-memoizing implementation.
+The earlier 35-test spawn run passed with its fork-only scheduling case skipped.
+Applicable pre-commit hooks, the configured `ty==0.0.15` check and `git diff --check`
+pass. The earlier full-suite and eight-pipeline checks are historical evidence
+for the initial PR revision, not a newly repeated full campaign for this repair.
+
+The unrelated CodSpeed cross-runner report is not used to establish or negate
+these same-machine measurements. Re-review must assess this repair and its
+retained evidence before merge.

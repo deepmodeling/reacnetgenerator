@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import importlib.metadata
+import itertools
 import json
 import multiprocessing
 import os
@@ -27,6 +28,7 @@ CASES = {
     "replay-wide": ("replay", "dense", 131072, 64, 2),
     "replay-sparse": ("replay", "sparse", 32768, 256, 2),
     "replay-unique": ("replay", "unique", 8192, 32768, 2),
+    "replay-unique-threshold": ("replay", "unique", 6144, 24576, 2),
     "detect-small-1": ("detect", "dense", 8, 3, 1),
     "detect-small-2": ("detect", "dense", 8, 3, 2),
     "detect-dense-1": ("detect", "dense", 512, 128, 1),
@@ -52,6 +54,7 @@ def _usage():
 
 
 def _sample(case):
+    """Time detection or replay, then validate complete records and provenance."""
     import numpy as np
 
     from reacnetgenerator import ReacNetGenerator
@@ -97,6 +100,7 @@ def _sample(case):
             ]
 
             def producer():
+                """Replay fixed occurrences without timing frame detection."""
                 for frame in range(frames):
                     if pattern == "dense":
                         molecules = definitions
@@ -110,6 +114,7 @@ def _sample(case):
                     yield molecules, (frame, frame * 10)
 
             def replay(nproc, **kwargs):
+                """Replace detection while preserving the real save-stage scheduler."""
                 if kwargs["desc"] == "Save molecules":
                     return original(nproc, **kwargs)
                 return producer()
@@ -176,6 +181,10 @@ def _sample(case):
                     "python": sys.version.split()[0],
                     "platform": platform.platform(),
                     "numpy": importlib.metadata.version("numpy"),
+                    "lz4": importlib.metadata.version("lz4"),
+                    "source_sha256": hashlib.sha256(
+                        Path(detection.__file__).read_bytes()
+                    ).hexdigest(),
                     "start_method": multiprocessing.get_start_method(),
                     "source": detection.__file__,
                 },
@@ -189,6 +198,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--baseline-python", type=Path)
     parser.add_argument("--candidate-python", type=Path, default=Path(sys.executable))
+    parser.add_argument(
+        "--previous-python",
+        type=Path,
+        help="Optional fixed pre-fix PR installation for a three-way comparison",
+    )
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument(
         "--start-method",
@@ -211,17 +225,21 @@ def main():
         os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1"
     )
     environment.pop("PYTHONPATH", None)
+    revisions = (
+        ("baseline", "previous", "candidate")
+        if args.previous_python
+        else ("baseline", "candidate")
+    )
+    orders = list(itertools.permutations(revisions))
     rows = []
     with tempfile.TemporaryDirectory(prefix="rng-detection-comparison-") as folder:
         for case in args.cases:
-            samples = {"baseline": [], "candidate": []}
+            samples = {revision: [] for revision in revisions}
             expected = None
             for repeat in range(args.repeats):
-                order = (
-                    ("baseline", "candidate")
-                    if repeat % 2 == 0
-                    else ("candidate", "baseline")
-                )
+                # Six permutations balance each three-way revision in every
+                # execution position; two-way runs retain alternating order.
+                order = orders[repeat % len(orders)]
                 for revision in order:
                     output = Path(folder) / "sample.json"
                     result = subprocess.run(
@@ -256,9 +274,10 @@ def main():
                         raise RuntimeError(f"Output mismatch: {case}, {revision}")
                     samples[revision].append(sample)
             envs = [values[0]["environment"] for values in samples.values()]
-            if envs[0]["source"] == envs[1]["source"] or any(
-                envs[0][key] != envs[1][key]
-                for key in ("python", "platform", "numpy", "start_method")
+            if len({env["source"] for env in envs}) != len(envs) or any(
+                envs[0][key] != env[key]
+                for env in envs[1:]
+                for key in ("python", "platform", "numpy", "lz4", "start_method")
             ):
                 raise RuntimeError(
                     "Comparison requires separate sources and matched environments"
@@ -279,6 +298,9 @@ def main():
                 {
                     "case": case,
                     "configuration": CASES[case],
+                    "execution_orders": [
+                        orders[i % len(orders)] for i in range(args.repeats)
+                    ],
                     "medians": medians,
                     "samples": samples,
                 }
