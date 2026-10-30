@@ -177,3 +177,30 @@ compatibility check, not a fresh wheel build. Ruff 0.17.2, Velin 0.0.12,
 ty 0.0.15, Markdown formatting, and whitespace checks passed on the updated
 branch. Validation remains local to macOS; Linux, Windows, and GUI validation
 were not performed locally.
+
+## Sparse-refinement review fix
+
+When a partition held only slightly more events than its sorting budget,
+proportional refinement could reduce its frame span by just one. A crowded frame
+could therefore require nearly a linear number of full observation or source
+passes before the code selected dense storage.
+
+Each refinement now at least halves the partition's frame span, retaining the
+proportional reduction when it is more aggressive. For an initial span of `B`
+frames, at most `ceil(log2(B))` refinement passes are needed. Sorting budgets,
+count multiplicity, first-appearance order, and the dense fallback are unchanged.
+
+Four near-limit regression cases cover complete versus unavailable observation
+spools and sparse separation versus a single overflowing frame. All four failed
+the pass-count bound before the fix and pass afterward, including byte equality
+against the original Counter implementation and scratch cleanup.
+
+After this fix, all **29 species-population tests** and **175 targeted tests**
+with the `fork` start method passed. All six complete species-writing fixtures
+again matched `b2d30fb4` byte for byte. Ruff, formatting, Velin, ty, and whitespace
+checks passed. A local AST check found docstrings on all 55 functions added or
+modified by the PR, including test and benchmark helpers.
+
+The full non-GUI suite and eight end-to-end comparisons above were run before
+this refinement fix. The new six-fixture run was a correctness check alongside
+other tests; the original performance samples remain historical measurements.

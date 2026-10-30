@@ -151,6 +151,7 @@ class _GenerateMatrix(SharedRNGData):
         return searchedspecies
 
     def _printspecies(self):
+        """Write observed populations while preserving per-frame species order."""
         return _write_species_populations(
             self.moleculetemp2filename, self.mname, self.timestep, self.speciesfilename
         )

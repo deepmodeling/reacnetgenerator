@@ -222,6 +222,11 @@ class _SpeciesTimelineStore:
     """Bound aggregation buffers and choose compact dense or sparse scratch data."""
 
     def __init__(self, frame_count, species_count, molecule_count):
+        """Initialize dimension-dependent dtypes, partition counts, and a spool.
+
+        The first pass measures counts before choosing the final layout. An
+        unavailable spool disables reuse without preventing source-file rescans.
+        """
         self.frame_count = int(frame_count)
         self.species_count = int(species_count)
         self.molecule_count = int(molecule_count)
@@ -287,20 +292,25 @@ class _SpeciesTimelineStore:
                 self._close_observation_spool(incomplete=True)
 
     def __enter__(self):
+        """Return the store whose scratch files are owned by this context."""
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        """Release owned scratch files on both successful and failed operations."""
         self.close()
 
     def _frame_array(self, frames):
+        """Normalize observed indices against this store's trajectory length."""
         return _frame_array(frames, self.frame_count)
 
     @staticmethod
     def _chunks(values):
+        """Limit vectorized work to the configured number of observation rows."""
         for start in range(0, len(values), _SPECIES_EVENT_CHUNK_ROWS):
             yield values[start : start + _SPECIES_EVENT_CHUNK_ROWS]
 
     def _create_observation_spool(self):
+        """Own a temporary event file and fixed-size buffer for first-pass reuse."""
         handle, self.observation_path = tempfile.mkstemp(
             prefix="reacnetgenerator-species-observed-",
             suffix=".bin",
@@ -316,6 +326,7 @@ class _SpeciesTimelineStore:
         )
 
     def _flush_observation_buffer(self):
+        """Write buffered events before reusing their storage or reading the spool."""
         if self.observation_file is not None and self.observation_buffer_rows:
             assert self.observation_buffer is not None
             self.observation_file.write(
@@ -324,6 +335,10 @@ class _SpeciesTimelineStore:
             self.observation_buffer_rows = 0
 
     def _close_observation_spool(self, *, incomplete=False):
+        """Discard owned spool resources, optionally requiring a source reread.
+
+        The buffer and path are released even when closing the file fails.
+        """
         observation_file = self.observation_file
         self.observation_file = None
         try:
@@ -340,6 +355,11 @@ class _SpeciesTimelineStore:
                 self.observation_complete = False
 
     def _record_observation(self, molecule_index, species_id, frames):
+        """Buffer events in molecule order, abandoning reuse if the spool cap is hit.
+
+        Descending molecule priority preserves first appearance in dense counts.
+        The cap includes events still waiting in the write buffer.
+        """
         if self.observation_file is None:
             return
         projected_rows = self.observation_rows + len(frames)
@@ -381,6 +401,7 @@ class _SpeciesTimelineStore:
         self._update_peak_temporary_bytes()
 
     def _iter_observations(self):
+        """Replay a complete spool in bounded chunks after flushing buffered events."""
         if not self.observation_complete or self.observation_file is None:
             raise RuntimeError("Species observation spool is incomplete")
         self._flush_observation_buffer()
@@ -397,6 +418,7 @@ class _SpeciesTimelineStore:
             yield rows
 
     def _create_temp_path(self):
+        """Reserve an owned path for the final dense or sparse memory mapping."""
         handle, self.path = tempfile.mkstemp(
             prefix="reacnetgenerator-species-",
             suffix=".mmap",
@@ -404,6 +426,7 @@ class _SpeciesTimelineStore:
         os.close(handle)
 
     def _allocate_dense(self):
+        """Map zero-filled count/priority cells and clean up if allocation fails."""
         self.mode = "dense"
         self._create_temp_path()
         assert self.path is not None
@@ -420,6 +443,7 @@ class _SpeciesTimelineStore:
             raise
 
     def _update_peak_temporary_bytes(self):
+        """Account for simultaneous final storage and buffered or spooled events."""
         final_bytes = os.path.getsize(self.path) if self.path is not None else 0
         observation_bytes = (
             self.observation_rows * self.observation_dtype.itemsize
@@ -432,6 +456,7 @@ class _SpeciesTimelineStore:
         )
 
     def _add_dense(self, molecule_index, species_id, frames):
+        """Accumulate duplicate visits and retain the first contributing molecule."""
         assert self.data is not None
         priority = self.molecule_count - molecule_index
         for chunk in self._chunks(frames):
@@ -488,7 +513,12 @@ class _SpeciesTimelineStore:
         self.total_rows += len(frames)
 
     def refine_sparse_blocks(self):
-        """Shrink sparse frame partitions until stable sorting is memory-bounded."""
+        """Bound sparse sorting with logarithmically many refinement passes.
+
+        Return True when the caller must recount source records for the smaller
+        partitions. A complete spool is recounted here instead. Return False
+        once partitions fit or a single crowded frame requires dense counts.
+        """
         self.count_dtype = _unsigned_dtype_for_maximum(self.maximum_count)
         self.cell_dtype = np.dtype(
             [("count", self.count_dtype), ("priority", self.priority_dtype)]
@@ -511,12 +541,16 @@ class _SpeciesTimelineStore:
                 # event sort. Dense reduction scales with species, not events.
                 self.force_dense = True
                 return False
+            # A near-limit crowded frame can keep maximum_rows almost
+            # constant. Halving guarantees logarithmically many full passes,
+            # even when the spool is unavailable and every pass rereads input.
             refined_frame_count = max(
                 1,
-                self.block_frame_count * row_limit // maximum_rows,
+                min(
+                    self.block_frame_count // 2,
+                    self.block_frame_count * row_limit // maximum_rows,
+                ),
             )
-            if refined_frame_count >= self.block_frame_count:
-                refined_frame_count = self.block_frame_count - 1
             self.block_frame_count = refined_frame_count
             self.block_count = (
                 self.frame_count + self.block_frame_count - 1
@@ -578,6 +612,11 @@ class _SpeciesTimelineStore:
             raise
 
     def _populate_from_observations(self):
+        """Populate the selected layout from a complete spool, then release it.
+
+        An incomplete spool leaves the second source pass to the caller. Reuse
+        is reported only after all spooled events have been added successfully.
+        """
         if (
             not self.observation_complete
             or self.observation_file is None
@@ -669,9 +708,11 @@ class _SpeciesTimelineStore:
 
     @property
     def requires_second_pass(self):
+        """Report whether observed rows still need to be populated from the source."""
         return self.added_rows != self.total_rows
 
     def _check_complete(self):
+        """Reject missing rows or incomplete sparse partitions before writing output."""
         if self.added_rows != self.total_rows:
             raise RuntimeError("Observed and written species row counts differ")
         if self.mode == "sparse":
@@ -762,12 +803,14 @@ class _SpeciesTimelineStore:
 
     @property
     def temporary_bytes(self):
+        """Return the current final-layout file size, excluding the observation spool."""
         if self.path is None:
             return 0
         return os.path.getsize(self.path)
 
     @property
     def maximum_count_block_bytes(self):
+        """Estimate count or sorting workspace, excluding metadata and mapped pages."""
         if self.mode == "sparse":
             return int(self.block_rows.max(initial=0)) * (
                 self._sparse_working_bytes_per_row

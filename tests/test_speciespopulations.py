@@ -13,6 +13,7 @@ from reacnetgenerator.utils import listtobytes
 
 
 def _source(path, frames):
+    """Encode four-field molecule records with the requested observed frame indices."""
     with path.open("wb") as handle:
         for values in frames:
             for value in ([0], [], [], np.asarray(values, dtype=np.int64)):
@@ -20,6 +21,7 @@ def _source(path, frames):
 
 
 def _legacy(names, records, timesteps):
+    """Build an independent byte-for-byte oracle from the original ordered Counters."""
     rows = [Counter() for _ in timesteps]
     for name, frames in zip(names, records):
         for frame in frames:
@@ -33,6 +35,7 @@ def _legacy(names, records, timesteps):
 
 
 def _run(tmp_path, names, records, timesteps):
+    """Check matrix-entry output against the oracle and verify scratch-file cleanup."""
     source = tmp_path / "records.bin"
     output = tmp_path / "result.species"
     _source(source, records)
@@ -80,6 +83,7 @@ def test_layouts_preserve_exact_counts_and_first_appearance(
     original = populations.tempfile.mkstemp
 
     def create(**kwargs):
+        """Inject selected scratch-creation failures without replacing unrelated files."""
         if layout == "rescan" or (
             layout == "spool-failure" and "observed" in kwargs["prefix"]
         ):
@@ -91,12 +95,15 @@ def test_layouts_preserve_exact_counts_and_first_appearance(
 
         class FailedWriter:
             def __init__(self, wrapped):
+                """Retain the real file so only observation writes are replaced."""
                 self.wrapped = wrapped
 
             def write(self, data):
+                """Simulate a storage error while buffered observations are being flushed."""
                 raise OSError("observation scratch write failed")
 
             def __getattr__(self, name):
+                """Delegate closing and other file operations to the owned real handle."""
                 return getattr(self.wrapped, name)
 
         fdopen = populations.os.fdopen
@@ -118,6 +125,7 @@ def test_empty_timelines_need_no_scratch(tmp_path, monkeypatch, frame_count, rec
     """Empty output and empty frames must not allocate temporary layouts."""
 
     def fail(**kwargs):
+        """Reject any scratch allocation on the small or empty input path."""
         raise AssertionError("Small/empty input created scratch storage")
 
     monkeypatch.setattr(populations.tempfile, "mkstemp", fail)
@@ -186,3 +194,55 @@ def test_truncated_observation_record_is_rejected(tmp_path):
         populations._write_species_populations(
             source, ["A"], range(4), tmp_path / "out"
         )
+
+
+@pytest.mark.parametrize("spool_limit", [0, 2**20])
+@pytest.mark.parametrize("overflow", [False, True])
+def test_sparse_refinement_uses_logarithmic_passes(
+    tmp_path, monkeypatch, spool_limit, overflow
+):
+    """A partition just over budget must not repeatedly reread almost all input."""
+    monkeypatch.setattr(populations, "_SMALL_OBSERVATION_ROWS", 0)
+    monkeypatch.setattr(populations, "_SPECIES_COUNT_BLOCK_BYTES", 1024)
+    monkeypatch.setattr(populations, "_SPECIES_OBSERVATION_SPOOL_BYTES", spool_limit)
+    monkeypatch.setattr(populations.tempfile, "tempdir", str(tmp_path))
+    frame_count = 4096
+    with populations._SpeciesTimelineStore(frame_count, 2, 3) as store:
+        row_limit = (
+            populations._SPECIES_COUNT_BLOCK_BYTES
+            // store._sparse_working_bytes_per_row
+        )
+        refinement_limit = (store.block_frame_count - 1).bit_length()
+
+    reads = {"source": 0, "spool": 0}
+    source_records = populations._frame_records
+    spool_records = populations._SpeciesTimelineStore._iter_observations
+
+    def read_source(*args, **kwargs):
+        """Count full input passes, including small-input probing and population."""
+        reads["source"] += 1
+        assert reads["source"] <= refinement_limit + 3
+        yield from source_records(*args, **kwargs)
+
+    def read_spool(self):
+        """Count spool passes, allowing one final pass to populate the layout."""
+        reads["spool"] += 1
+        assert reads["spool"] <= refinement_limit + 1
+        yield from spool_records(self)
+
+    monkeypatch.setattr(populations, "_frame_records", read_source)
+    monkeypatch.setattr(
+        populations._SpeciesTimelineStore, "_iter_observations", read_spool
+    )
+    crowded_frame = frame_count // 2
+    # Either one frame is just over budget or adjacent frames can be separated
+    # into valid sparse partitions. Both preserve the same near-limit workload.
+    records = [
+        [crowded_frame] * row_limit,
+        [crowded_frame if overflow else crowded_frame + 1],
+        [0, frame_count - 1],
+    ]
+    stats = _run(tmp_path, ["B", "A", "B"], records, range(frame_count))
+    assert stats["layout"] == ("dense" if overflow else "sparse")
+    assert stats["observation_reused"] == bool(spool_limit)
+    assert reads["spool"] > 1 if spool_limit else reads["source"] > 3

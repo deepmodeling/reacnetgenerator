@@ -27,6 +27,7 @@ CASES = {
 
 
 def _sample(case):
+    """Measure one complete write in a fresh process, outside fixture and hash work."""
     import numpy as np
 
     from reacnetgenerator._matrix import _GenerateMatrix
