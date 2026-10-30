@@ -167,6 +167,7 @@ class TestReacNetGen:
             runHMM=run_hmm,
         )
         rng.moleculetempfilename = str(molecule_file)
+        rng.temp1it = 0
         hmm_filter = _HMMFilter(rng)
         run_mp_kwargs = {}
 
@@ -175,10 +176,23 @@ class TestReacNetGen:
             return []
 
         monkeypatch.setattr("reacnetgenerator._hmmfilter.run_mp", fake_run_mp)
+        progress_kwargs = {}
+        if not run_hmm:
+            from tqdm.auto import tqdm
+
+            def mock_progress(**kwargs):
+                progress_kwargs.update(kwargs)
+                return tqdm(**{**kwargs, "disable": True})
+
+            monkeypatch.setattr("reacnetgenerator._hmmfilter.tqdm", mock_progress)
         hmm_filter._calhmm()
 
         assert hmm_filter.description == expected_description
-        assert run_mp_kwargs["desc"] == expected_description
+        if run_hmm:
+            assert run_mp_kwargs["desc"] == expected_description
+        else:
+            assert progress_kwargs["desc"] == expected_description
+            assert not run_mp_kwargs
 
         for filename in (
             hmm_filter.moleculetemp2filename,
@@ -316,7 +330,7 @@ class TestReacNetGen:
         collector.atomroutefilename = str(tmp_path / "out.atomroute")
         collector.hmmit = 2
 
-        with pytest.raises(ValueError, match="zip"):
+        with pytest.raises(ValueError, match="Missing molecule signal"):
             collector._getatomeach()
 
         assert not list(tmp_path.glob("reacnetgenerator-*.mmap"))

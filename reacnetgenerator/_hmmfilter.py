@@ -20,10 +20,14 @@ References
 .. [3] Forney, G. D. The viterbi algorithm. Porc. IEEE 1973, 61(3), 268-278.
 """
 
+import itertools
+import os
 import tempfile
-from contextlib import ExitStack
+from contextlib import ExitStack, closing, suppress
+from functools import partial
 
 import numpy as np
+from tqdm.auto import tqdm
 
 try:
     # hmmlearn v0.2.8 renamed MultinomialHMM to CategoricalHMM
@@ -31,6 +35,7 @@ try:
 except ImportError:
     from hmmlearn.hmm import MultinomialHMM
 
+from ._moleculepresence import _iter_molecule_records, _use_frame_indices
 from .utils import (
     SharedRNGData,
     WriteBuffer,
@@ -42,6 +47,14 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
+
+
+def _expand_nohmm_origin(record, *, frame_count):
+    """Expand a dense record without sending trajectory metadata to a worker."""
+    frames = record[0]
+    if _use_frame_indices(frames, frame_count):
+        return None
+    return listtobytes(idx_to_signal(bytestolist(frames), frame_count))
 
 
 class _HMMFilter(SharedRNGData):
@@ -121,7 +134,73 @@ class _HMMFilter(SharedRNGData):
                 hmmbytes = listtobytes(hmmsignal)
         return originbytes, hmmbytes, line_c
 
+    def _cal_nohmm(self):
+        """Reuse definitions and store only dense fallback signals, in order."""
+        self.moleculetemp2filename = self.moleculetempfilename
+        self.hmmfilename = None
+        self.hmmit = 0
+        with (
+            open(self.moleculetempfilename, "rb") as definitions,
+            WriteBuffer(
+                tempfile.NamedTemporaryFile("wb", delete=False), linenumber=0
+            ) as origin,
+            tqdm(
+                total=self.temp1it,
+                desc=self.description,
+                unit="molecule",
+                disable=None,
+            ) as progress,
+        ):
+            self.originfilename = origin.name
+            records = _iter_molecule_records(definitions, (3,))
+            for record in records:
+                if _use_frame_indices(record[0], self.step):
+                    self.hmmit += 1
+                    progress.update()
+                    continue
+
+                # All-sparse inputs never start workers. Once expansion is
+                # needed, keep the remaining results in original record order:
+                # the shared molecule file cannot be reordered with workers.
+                remaining = itertools.chain((record,), records)
+                expand = partial(_expand_nohmm_origin, frame_count=self.step)
+                if self.nproc == 1:
+                    results = map(expand, remaining)
+                    context = ExitStack()
+                else:
+                    results = run_mp(
+                        self.nproc,
+                        func=expand,
+                        l=remaining,
+                        total=self.temp1it - self.hmmit,
+                        unordered=False,
+                        disk_ordered=True,
+                        max_inflight=2 * self.nproc,
+                        chunksize=1,
+                        bar=False,
+                    )
+                    context = closing(results)
+                with context:
+                    for signal in results:
+                        appendIfNotNone(origin, signal)
+                        self.hmmit += 1
+                        progress.update()
+                break
+        if self.hmmit != self.temp1it:
+            raise ValueError("Molecule count differs from declared count")
+
     def _calhmm(self):
+        if not self.runHMM:
+            try:
+                self._cal_nohmm()
+            except BaseException:
+                # Only the newly created signal stream belongs to this stage;
+                # the reused definitions must survive failure for their owner.
+                if self.originfilename is not None:
+                    with suppress(OSError):
+                        os.remove(self.originfilename)
+                raise
+            return
         with (
             WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False))
             if self.getoriginfile or not self.runHMM

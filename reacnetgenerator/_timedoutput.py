@@ -1,53 +1,25 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Single-owner, bounded-batch writer for the opt-in timeline format."""
 
-import itertools
 import json
 import os
 import tempfile
 from collections import Counter
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
 import h5py
-import numpy as np
 
+from ._moleculepresence import _iter_molecule_presence
+from ._moleculepresence import _signal_ranges as _signal_ranges
 from ._timedoutputrange import molecule_present
 from ._version import __version__
-from .utils import bytestolist, get_timestep_value, read_compressed_block
+from .utils import bytestolist, get_timestep_value
 
 SCHEMA_VERSION = "1.1"
 _BLOCK_ROWS = 8192
 _BLOCK_BYTES = 1024 * 1024
-
-
-def _signal_ranges(values, block_rows=_BLOCK_ROWS):
-    """Find closed presence intervals using bounded scan temporaries."""
-    if block_rows <= 0:
-        raise ValueError("Scan block size must be positive")
-    previous = False
-    begin = None
-    for start in range(0, len(values), block_rows):
-        block = np.asarray(values[start : start + block_rows], dtype=np.bool_)
-        # HMM/origin records use (frames, 1); callers may also supply 1-D
-        # signals. Flatten only a single value per frame, within this block.
-        if block.size != len(block):
-            raise ValueError("Expected one signal value per frame")
-        block = block.reshape(-1)
-        changes = np.empty(len(block), dtype=np.bool_)
-        changes[0] = block[0] != previous
-        changes[1:] = block[1:] != block[:-1]
-        for local in np.flatnonzero(changes):
-            frame = start + int(local)
-            if block[local]:
-                begin = frame
-            else:
-                assert begin is not None
-                yield begin, frame - 1
-                begin = None
-        previous = bool(block[-1])
-    if begin is not None:
-        yield begin, len(values) - 1
 
 
 class _Column:
@@ -230,20 +202,8 @@ class _TimedOutputWriter:
         HMM-created/removed observations. Legacy CSV instead describes observed
         frames, so HMM-on CSV is deliberately not used as a range oracle.
         """
-        count = 0
-        with (
-            open(self.rng.moleculetemp2filename, "rb") as definitions,
-            open(
-                self.rng.hmmfilename if self.rng.runHMM else self.rng.originfilename,
-                "rb",
-            ) as signals,
-        ):
-            records = itertools.zip_longest(*[read_compressed_block(definitions)] * 4)
-            for count, (record, signal) in enumerate(
-                zip(records, read_compressed_block(signals), strict=True), 1
-            ):
-                if count > self.rng.hmmit or any(x is None for x in record):
-                    raise ValueError("Invalid molecule record alignment")
+        with closing(_iter_molecule_presence(self.rng, structures=True)) as records:
+            for count, (record, presence) in enumerate(records, 1):
                 name = str(names[count - 1])
                 if name not in self.species:
                     self.species[name] = len(self.species)
@@ -267,20 +227,13 @@ class _TimedOutputWriter:
                     atom_offsets=self.atom_offset,
                     bond_offsets=self.bond_offset,
                 )
-                values = bytestolist(signal)
-                if len(values) != self.rng.step:
-                    raise ValueError(
-                        "Molecule signal length differs from analyzed frame count"
-                    )
-                for start, stop in _signal_ranges(values):
+                for start, stop in presence.ranges():
                     self._append(
                         "molecule_ranges",
                         molecule_id=count,
                         start_frame=start,
                         end_frame=stop,
                     )
-        if count != self.rng.hmmit:
-            raise ValueError("Molecule count differs from declared count")
 
     def write_events(self, events):
         """Store aggregate counts and one auditable row per inferred instance."""
