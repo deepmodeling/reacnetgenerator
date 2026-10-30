@@ -24,11 +24,17 @@ References
 """
 
 import fileinput
+import itertools
 import operator
+import os
+import pickle
 import tempfile
 from abc import ABCMeta, abstractmethod
+from array import array
 from collections import Counter, defaultdict
+from contextlib import closing, suppress
 from enum import Enum, auto
+from multiprocessing import get_start_method
 from typing import ClassVar
 
 import numpy as np
@@ -42,6 +48,7 @@ from ase import Atom, Atoms
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
 from scipy.spatial import cKDTree  # ty: ignore[unresolved-import]
+from tqdm.auto import tqdm
 
 from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
@@ -56,6 +63,100 @@ _OPENBABEL_COVALENT_RADIUS_TOLERANCE = 0.45
 _OPENBABEL_MIN_BOND_DISTANCE = 0.4
 _OPENBABEL_MIN_BOND_ANGLE = 45.0
 _OPENBABEL_DISTANCE_AMBIGUITY = 1e-7
+_DETECT_WRITE_BYTES = 1024 * 1024
+_DETECT_COMPRESS_MIN_RECORDS = 24576
+_DETECT_COMPRESS_MAX_FRAME_BYTES = 1024
+_DETECT_COMPRESS_RAW_BYTES = 64 * 1024
+_DETECT_COMPRESS_INPUT_BYTES = 256 * 1024
+_DETECT_COMPRESS_RESULT_BYTES = 1024 * 1024
+_DETECT_COMPRESS_MAX_RECORDS = 2048
+_DETECT_COMPRESS_MAX_INFLIGHT = 4
+
+
+def _compression_batch_size(values, nproc):
+    """Select bounded batches only for many short records under fork.
+
+    Spawn startup and small/dense workloads retain the serial path. A single
+    large record also selects that path, so no oversized task enters the pool.
+    The largest raw record determines a conservative byte-bounded batch size;
+    the separate item cap bounds array/pickle metadata even for empty records.
+    """
+    if (
+        nproc < 2
+        or len(values) < _DETECT_COMPRESS_MIN_RECORDS
+        or get_start_method() != "fork"
+    ):
+        return 0
+    largest = max((len(v) * v.itemsize for v in values), default=0)
+    if largest > _DETECT_COMPRESS_MAX_FRAME_BYTES or not values:
+        return 0
+    return min(
+        _DETECT_COMPRESS_MAX_RECORDS,
+        _DETECT_COMPRESS_RAW_BYTES // max(1, largest),
+    )
+
+
+def _frame_batches(values, batch_size):
+    """Serialize one planned batch, checking wire bytes before task submission.
+
+    Inputs contain trusted, local unsigned arrays. Their raw storage and record
+    count are bounded by the plan; this additional check covers pickle metadata
+    rather than treating raw array bytes as the complete IPC payload.
+    """
+    source = iter(values)
+    while batch := list(itertools.islice(source, batch_size)):
+        payload = pickle.dumps(batch, protocol=pickle.HIGHEST_PROTOCOL)
+        if len(payload) > _DETECT_COMPRESS_INPUT_BYTES:
+            raise ValueError("Detection compression input exceeds its byte budget")
+        yield payload
+
+
+def _compress_frame_batch(payload):
+    """Compress a bounded batch and cap serialized results before queueing.
+
+    The internal byte envelope keeps both directions of run_mp IPC measurable.
+    Each contained record retains the existing independent compressed format.
+    """
+    if len(payload) > _DETECT_COMPRESS_INPUT_BYTES:
+        raise ValueError("Detection compression input exceeds its byte budget")
+    # Exact histories often repeat across distinct molecule definitions. Reuse
+    # only their immutable compressed bytes, retaining one output per record.
+    # This cache dies with the batch: <=64 KiB of raw keys, <=2048 entries and
+    # <=1 MiB of unique compressed values, plus bounded container overhead.
+    cache = {}
+    blocks = []
+    stored_bytes = 0
+    for value in pickle.loads(payload):
+        key = (value.typecode, value.tobytes())
+        block = cache.get(key)
+        if block is None:
+            block = listtobytes(np.asarray(value))
+            stored_bytes += len(block)
+            if stored_bytes > _DETECT_COMPRESS_RESULT_BYTES:
+                raise ValueError("Detection compression result exceeds its byte budget")
+            cache[key] = block
+        blocks.append(block)
+    result = pickle.dumps(blocks, protocol=pickle.HIGHEST_PROTOCOL)
+    if len(result) > _DETECT_COMPRESS_RESULT_BYTES:
+        raise ValueError("Detection compression result exceeds its byte budget")
+    return result
+
+
+def _widen_frame_indices(values, frame):
+    """Append an overflowing frame without losing earlier order or duplicates.
+
+    Array widths are platform-dependent. Choose by actual itemsize and skip
+    intermediate widths that cannot hold a sparse jump in the frame index.
+    The original array stays intact if no unsigned representation is available.
+    """
+    frame = operator.index(frame)
+    for typecode in ("H", "I", "Q"):
+        width = array(typecode).itemsize
+        if width > values.itemsize and 0 <= frame < 1 << (8 * width):
+            widened = array(typecode, values)
+            widened.append(frame)
+            return widened
+    raise OverflowError(f"Frame index {frame} exceeds available unsigned storage")
 
 
 class _Detect(SharedRNGData, metaclass=ABCMeta):
@@ -156,7 +257,9 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 
     def _readinputfile(self):
         """Read the input file."""
-        d = defaultdict(list)
+        # Detection results may arrive out of frame order. Keep that order and
+        # duplicate observations while avoiding Python references per visit.
+        d = defaultdict(lambda: array("H"))
         timestep = {}
         with fileinput.input(files=self.inputfilename) as f:
             _steplinenum = self._readNfunc(f)
@@ -177,25 +280,30 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 desc="Read bond information and Detect molecules",
                 unit="timestep",
             )
-            for molecules, (step, thetimestep) in results:
-                for molecule in molecules:
-                    d[molecule].append(step)
-                timestep[step] = thetimestep
+            with closing(results):
+                for molecules, (step, thetimestep) in results:
+                    for molecule in molecules:
+                        frames = d[molecule]
+                        try:
+                            frames.append(step)
+                        except OverflowError:
+                            d[molecule] = _widen_frame_indices(frames, step)
+                    timestep[step] = thetimestep
         finally:
             lines.close()
         self.temp1it = len(d)
-        values_c = list(
-            run_mp(
-                self.nproc,
-                func=self._compressvalue,
-                l=d.values(),
-                unordered=False,
+        # Keep the cheap serial path, but amortize parallel-compression IPC for
+        # many short fork records. Explicit closure also cancels suspended worker
+        # results when compression or the bounded writer fails.
+        with closing(self._compressed_values(d.values())) as compressed:
+            with tqdm(
+                compressed,
                 desc="Save molecules",
                 unit="molecule",
                 total=self.temp1it,
-            )
-        )
-        self._writemoleculetempfile((d.keys(), values_c))
+                disable=None,
+            ) as values_c:
+                self._writemoleculetempfile((d.keys(), values_c))
         self.timestep = timestep
         self.step = len(timestep)
 
@@ -222,8 +330,39 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             raise ValueError("Empty input sources cannot be mapped to frames")
         self.rng.source_frame_counts = counts
 
-    def _compressvalue(self, x):
-        return listtobytes(np.array(x))
+    def _compressed_values(self, values):
+        """Yield frames in input order with a fixed byte-bounded task window.
+
+        At most four submitted-but-unconsumed batches carry 256 KiB input and
+        1 MiB result envelopes each. Ordered run_mp spools early results to disk
+        and does not replenish the window past its oldest unconsumed batch.
+        Only the current decoded batch and the 1 MiB writer buffer are needed
+        for delivery. Resident detection records and process overhead are separate.
+        """
+        batch_size = _compression_batch_size(values, self.nproc)
+        if not batch_size:
+            yield from map(self._compressvalue, values)
+            return
+        with closing(
+            run_mp(
+                min(self.nproc, _DETECT_COMPRESS_MAX_INFLIGHT),
+                func=_compress_frame_batch,
+                l=_frame_batches(values, batch_size),
+                max_inflight=_DETECT_COMPRESS_MAX_INFLIGHT,
+                disk_ordered=True,
+                unordered=False,
+                total=(len(values) + batch_size - 1) // batch_size,
+                bar=False,
+                desc="Save molecules",
+            )
+        ) as results:
+            for payload in results:
+                yield from pickle.loads(payload)
+
+    @staticmethod
+    def _compressvalue(x):
+        """Serialize the compact frame buffer without an intermediate array copy."""
+        return listtobytes(np.asarray(x))
 
     @abstractmethod
     def _readNfunc(self, f) -> int:
@@ -306,10 +445,22 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         ]
 
     def _writemoleculetempfile(self, d):
-        with WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as f:
-            self.moleculetempfilename = f.name
-            for mol in zip(*d):
-                f.extend(mol)
+        """Stream aligned definitions/frames, publishing only a complete file.
+
+        The outer file context also closes the handle if a buffer flush fails.
+        Remove partial output after closing it, including on Windows, while
+        leaving any previously published filename untouched.
+        """
+        handle = tempfile.NamedTemporaryFile("wb", delete=False)
+        try:
+            with handle, WriteBuffer(handle, maxbytes=_DETECT_WRITE_BYTES) as output:
+                for mol in zip(*d, strict=True):
+                    output.extend(mol)
+        except BaseException:
+            with suppress(FileNotFoundError):
+                os.unlink(handle.name)
+            raise
+        self.moleculetempfilename = handle.name
 
 
 @_Detect.register_subclass("bond")
