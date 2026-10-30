@@ -254,7 +254,7 @@ def _audit():
 
 def sample(args, root):
     """Time real entry points, then validate their complete outputs."""
-    from reacnetgenerator import ReacNetGenerator, _path
+    from reacnetgenerator import _path
     from reacnetgenerator.reacnetgen import _json_compatible
     from reacnetgenerator.timedoutput import semantic_manifest, validate_timed_output
 
@@ -262,18 +262,6 @@ def sample(args, root):
     output = root / "output"
     output.mkdir()
     _outputs(rng, output)
-    if args.stage == "full":
-        rng = ReacNetGenerator(
-            inputfilename=source,
-            inputfiletype="dump",
-            atomname=["C", "H", "O"],
-            nproc=args.nproc,
-            miso=args.miso,
-            runHMM=False,
-            output_dir=output,
-            timed_output=output / "timeline.h5",
-        )
-        _outputs(rng, output)
     # Replays change runtime options after restoring DETECT state. Keep the
     # writer's provenance snapshot consistent with the configuration measured.
     rng.parameters = {
@@ -306,7 +294,6 @@ def sample(args, root):
         "names": collector._printmoleculename,
         "results": results,
         "path": collector.collect,
-        "full": rng.run,
     }[args.stage]
     before = _usage()
     started = time.perf_counter()
@@ -321,7 +308,7 @@ def sample(args, root):
         if path.is_file() and path.suffix != ".h5"
     }
     manifest = None
-    if args.stage in ("path", "full"):
+    if args.stage == "path":
         validate_timed_output(rng.timed_output)
         manifest = _hash(semantic_manifest(rng.timed_output))
     package = Path(_path.__file__).parent
@@ -371,7 +358,7 @@ def main():
         default="real",
     )
     parser.add_argument(
-        "--stage", choices=("names", "results", "path", "full"), default="names"
+        "--stage", choices=("names", "results", "path"), default="names"
     )
     parser.add_argument("--records", type=int, default=0)
     parser.add_argument("--nproc", type=int, default=2)
@@ -389,8 +376,6 @@ def main():
             parser.error("--prepare requires --input and --state")
     elif args.case == "real" and not args.state:
         parser.error("real replays require --state")
-    elif args.stage == "full" and (args.case != "real" or args.hmm or args.records):
-        parser.error("full runs require unmodified real input with HMM disabled")
     elif args.case == "large-output" and args.stage != "results":
         parser.error("large-output requires --stage results")
     elif args.stage == "path" and args.case != "real":

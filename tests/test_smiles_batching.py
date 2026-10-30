@@ -109,6 +109,26 @@ def test_real_batched_names_match_local_outputs(
     _assert_closed(tmp_path, children)
 
 
+@pytest.mark.parametrize("filter_kind", ["frames", "timesteps"])
+def test_batched_timeline_filters_stay_in_parent(tmp_path, force_batches, filter_kind):
+    """Minimal workers return frames even when only a parent-side filter needs them."""
+    children = {p.pid for p in multiprocessing.active_children()}
+    local = _collector(tmp_path / "local", _records(), nproc=1)
+    parallel = _collector(tmp_path / "parallel", _records())
+    for collector in (local, parallel):
+        collector.printmoleculetime = False
+        if filter_kind == "frames":
+            collector._moleculeframefilter = {0, 2, 65, 129}
+        else:
+            collector._moleculetimestepfilter = {0, 20, 650, 1290}
+        collector._printmoleculename()
+    assert (
+        Path(parallel.moleculetimelinefilename).read_bytes()
+        == Path(local.moleculetimelinefilename).read_bytes()
+    )
+    _assert_closed(tmp_path, children)
+
+
 def test_small_spawn_retains_original_ordered_runner(tmp_path, monkeypatch):
     """The fallback is exercised at the collector entry, without a batch pre-scan."""
     collector = _collector(tmp_path, _records(4))
@@ -134,11 +154,14 @@ def test_small_spawn_retains_original_ordered_runner(tmp_path, monkeypatch):
 def test_admission_is_bounded_by_decoded_and_wire_sizes(tmp_path, monkeypatch):
     """A tiny compressed frame range must not share a batch with other records."""
     collector = _collector(
-        tmp_path, [*_records(2), ([0], [], np.arange(100000)), *_records(2)]
+        tmp_path, [*_records(2), ([0], [], np.arange(16384)), *_records(2)]
     )
     with open(collector.moleculetemp2filename, "rb") as file:
         batches = list(workers._smiles_batches(file))
     assert list(map(len, batches)) == [2, 1, 2]
+    compressed, decoded = workers._smiles_record_cost(batches[1][0])
+    assert compressed < workers._SMILES_INPUT_BYTES
+    assert decoded > workers._SMILES_DECODED_ESTIMATE_BYTES
     # Force the wire budget to split records that otherwise share a decoded budget.
     monkeypatch.setattr(workers, "_SMILES_INPUT_BYTES", 5500)
     with open(collector.moleculetemp2filename, "rb") as file:
