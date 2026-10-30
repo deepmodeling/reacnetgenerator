@@ -38,6 +38,7 @@ from tqdm.auto import tqdm
 
 from ._moleculepresence import _iter_molecule_presence
 from ._reaction import ReactionsFinder
+from ._smilesworker import _run_smiles_batches, _should_batch_smiles
 from ._species import species_molecule
 from ._step3state import (
     _STEP3_SCAN_ROWS,
@@ -810,17 +811,19 @@ class _CollectSMILESPaths(_CollectPaths):
                 WriteBuffer(open(self.moleculefilename, "w"), sep="\n") as fm,
                 open(self.moleculetemp2filename, "rb") as ft,
             ):
-                results = self._getSMILESresults(ft, self._calmoleculeSMILESname)
-                for name, atoms, bonds, frames in results:
-                    name = self._resolveSMILESname(name, atoms, bonds, d)
-                    mname.append(name)
-                    fm.append(self._formatmoleculename(name, atoms, bonds))
-                    if timeline is not None:
-                        timeline.extend(
-                            self._getmoleculetimelinerows(
-                                name, atoms, bonds, frames, None
+                with closing(
+                    self._getSMILESresults(ft, self._calmoleculeSMILESname)
+                ) as results:
+                    for name, atoms, bonds, frames in results:
+                        name = self._resolveSMILESname(name, atoms, bonds, d)
+                        mname.append(name)
+                        fm.append(self._formatmoleculename(name, atoms, bonds))
+                        if timeline is not None:
+                            timeline.extend(
+                                self._getmoleculetimelinerows(
+                                    name, atoms, bonds, frames, None
+                                )
                             )
-                        )
             if timeline is not None:
                 timeline.write()
         finally:
@@ -842,8 +845,12 @@ class _CollectSMILESPaths(_CollectPaths):
         name_mapping_graph = defaultdict(dict)
         d = defaultdict(list)
         self.n_unknown = 0
-        with open(self.moleculetemp2filename, "rb") as ft:
-            results = self._getSMILESresults(ft, self._calmoleculeSMILESfrequency)
+        with (
+            open(self.moleculetemp2filename, "rb") as ft,
+            closing(
+                self._getSMILESresults(ft, self._calmoleculeSMILESfrequency)
+            ) as results,
+        ):
             for name, atoms, bonds, frequency in results:
                 name = str(self._resolveSMILESname(name, atoms, bonds, d))
                 source_names.append(name)
@@ -911,6 +918,20 @@ class _CollectSMILESPaths(_CollectPaths):
                 desc="Indentify isomers",
                 unit="molecule",
                 disable=None,
+            )
+        if (
+            _should_batch_smiles(self.hmmit, self.nproc)
+            and type(self) is _CollectSMILESPaths
+            and getattr(func, "__func__", None)
+            in (
+                _CollectSMILESPaths._calmoleculeSMILESname,
+                _CollectSMILESPaths._calmoleculeSMILESfrequency,
+            )
+            and not any(callable(value) for value in vars(self).values())
+        ):
+            # Custom collectors/callables keep their bound-method behavior.
+            return _run_smiles_batches(
+                self, molecule_file, func.__name__ == "_calmoleculeSMILESfrequency"
             )
         return run_mp(
             self.nproc,
