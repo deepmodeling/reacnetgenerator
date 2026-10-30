@@ -25,9 +25,12 @@ References
 
 import fileinput
 import operator
+import os
 import tempfile
 from abc import ABCMeta, abstractmethod
+from array import array
 from collections import Counter, defaultdict
+from contextlib import closing, suppress
 from enum import Enum, auto
 from typing import ClassVar
 
@@ -42,6 +45,7 @@ from ase import Atom, Atoms
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
 from scipy.spatial import cKDTree  # ty: ignore[unresolved-import]
+from tqdm.auto import tqdm
 
 from .dps import dps  # type:ignore
 from .utils import SharedRNGData, WriteBuffer, listtobytes, run_mp
@@ -56,6 +60,24 @@ _OPENBABEL_COVALENT_RADIUS_TOLERANCE = 0.45
 _OPENBABEL_MIN_BOND_DISTANCE = 0.4
 _OPENBABEL_MIN_BOND_ANGLE = 45.0
 _OPENBABEL_DISTANCE_AMBIGUITY = 1e-7
+_DETECT_WRITE_BYTES = 1024 * 1024
+
+
+def _widen_frame_indices(values, frame):
+    """Append an overflowing frame without losing earlier order or duplicates.
+
+    Array widths are platform-dependent. Choose by actual itemsize and skip
+    intermediate widths that cannot hold a sparse jump in the frame index.
+    The original array stays intact if no unsigned representation is available.
+    """
+    frame = operator.index(frame)
+    for typecode in ("H", "I", "Q"):
+        width = array(typecode).itemsize
+        if width > values.itemsize and 0 <= frame < 1 << (8 * width):
+            widened = array(typecode, values)
+            widened.append(frame)
+            return widened
+    raise OverflowError(f"Frame index {frame} exceeds available unsigned storage")
 
 
 class _Detect(SharedRNGData, metaclass=ABCMeta):
@@ -156,7 +178,9 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
 
     def _readinputfile(self):
         """Read the input file."""
-        d = defaultdict(list)
+        # Detection results may arrive out of frame order. Keep that order and
+        # duplicate observations while avoiding Python references per visit.
+        d = defaultdict(lambda: array("H"))
         timestep = {}
         with fileinput.input(files=self.inputfilename) as f:
             _steplinenum = self._readNfunc(f)
@@ -177,25 +201,29 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                 desc="Read bond information and Detect molecules",
                 unit="timestep",
             )
-            for molecules, (step, thetimestep) in results:
-                for molecule in molecules:
-                    d[molecule].append(step)
-                timestep[step] = thetimestep
+            with closing(results):
+                for molecules, (step, thetimestep) in results:
+                    for molecule in molecules:
+                        frames = d[molecule]
+                        try:
+                            frames.append(step)
+                        except OverflowError:
+                            d[molecule] = _widen_frame_indices(frames, step)
+                    timestep[step] = thetimestep
         finally:
             lines.close()
         self.temp1it = len(d)
-        values_c = list(
-            run_mp(
-                self.nproc,
-                func=self._compressvalue,
-                l=d.values(),
-                unordered=False,
-                desc="Save molecules",
-                unit="molecule",
-                total=self.temp1it,
-            )
-        )
-        self._writemoleculetempfile((d.keys(), values_c))
+        # Compression consumes an array view in the parent, avoiding another
+        # process pool and round-trip array/result IPC. map stays lazy so the
+        # writer retains only its bounded buffer and the current record.
+        with tqdm(
+            map(self._compressvalue, d.values()),
+            desc="Save molecules",
+            unit="molecule",
+            total=self.temp1it,
+            disable=None,
+        ) as values_c:
+            self._writemoleculetempfile((d.keys(), values_c))
         self.timestep = timestep
         self.step = len(timestep)
 
@@ -222,8 +250,10 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             raise ValueError("Empty input sources cannot be mapped to frames")
         self.rng.source_frame_counts = counts
 
-    def _compressvalue(self, x):
-        return listtobytes(np.array(x))
+    @staticmethod
+    def _compressvalue(x):
+        """Serialize the compact frame buffer without an intermediate array copy."""
+        return listtobytes(np.asarray(x))
 
     @abstractmethod
     def _readNfunc(self, f) -> int:
@@ -306,10 +336,22 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         ]
 
     def _writemoleculetempfile(self, d):
-        with WriteBuffer(tempfile.NamedTemporaryFile("wb", delete=False)) as f:
-            self.moleculetempfilename = f.name
-            for mol in zip(*d):
-                f.extend(mol)
+        """Stream aligned definitions/frames, publishing only a complete file.
+
+        The outer file context also closes the handle if a buffer flush fails.
+        Remove partial output after closing it, including on Windows, while
+        leaving any previously published filename untouched.
+        """
+        handle = tempfile.NamedTemporaryFile("wb", delete=False)
+        try:
+            with handle, WriteBuffer(handle, maxbytes=_DETECT_WRITE_BYTES) as output:
+                for mol in zip(*d, strict=True):
+                    output.extend(mol)
+        except BaseException:
+            with suppress(FileNotFoundError):
+                os.unlink(handle.name)
+            raise
+        self.moleculetempfilename = handle.name
 
 
 @_Detect.register_subclass("bond")
