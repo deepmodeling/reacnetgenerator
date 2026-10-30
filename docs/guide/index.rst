@@ -9,6 +9,7 @@ User Guide
    install
    format
    run
+   species
    report
    timed-output-schema
    gui
