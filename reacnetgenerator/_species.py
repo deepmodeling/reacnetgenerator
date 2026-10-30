@@ -65,7 +65,9 @@ def species_molecule(atomnames, atoms, bonds):
     for bond in candidate.GetBonds():
         if bond.GetIsAromatic():
             original = mol.GetBondWithIdx(bond.GetIdx())
-            original.SetBondType(Chem.BondType.AROMATIC)
+            # RDKit can mark an aryne triple bond aromatic while retaining its
+            # triple bond type. The aromatic flag alone does not imply AROMATIC.
+            original.SetBondType(bond.GetBondType())
             original.SetIsAromatic(True)
             original.GetBeginAtom().SetIsAromatic(True)
             original.GetEndAtom().SetIsAromatic(True)

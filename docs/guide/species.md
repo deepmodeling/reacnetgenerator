@@ -15,8 +15,9 @@ explicit; missing hydrogens or formal charges are not inferred from the input.
 
 Only the resulting aromatic atom flags and aromatic bond orders are used for
 species identification. Other bond orders, atom identities and connectivity are
-preserved. This does not merge tautomers, neutralize charges, repair nitro groups
-or convert metal coordination bonds to dative bonds.
+preserved. A bond can carry an aromatic flag while retaining a triple-bond type;
+that type is preserved too. This does not merge tautomers, neutralize charges,
+repair nitro groups or convert metal coordination bonds to dative bonds.
 
 The supported elements are H, B, C, N, O, F, Si, P, S, Cl, As, Se, Br, Te and I,
 with single, double, triple or aromatic bonds. Acyclic structures, molecules

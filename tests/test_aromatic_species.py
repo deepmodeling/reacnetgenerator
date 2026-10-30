@@ -65,6 +65,17 @@ def _records(molecule):
     return symbols, bonds
 
 
+def _aryne_bond_change():
+    """Return explicit-H C6H4 graphs differing in one triple/double bond order."""
+    symbols = ["C"] * 6 + ["H"] * 4
+    bonds = [(i, (i + 1) % 6, order) for i, order in enumerate((3, 1, 2, 1, 2, 1))]
+    bonds.extend((i, i + 4, 1) for i in range(2, 6))
+    aryne = np.asarray(bonds, dtype=int)
+    diradical = aryne.copy()
+    diradical[0, 2] = 2
+    return symbols, aryne, diradical
+
+
 def _identity(symbols, bonds):
     """Return SMILES and VF2 representations built from the same raw records."""
     collector = _collector(symbols)
@@ -141,6 +152,21 @@ def test_heteroatom_radical_is_not_aromatized():
     symbols, bonds = _records(Chem.AddHs(Chem.MolFromSmiles("C1=C[N]C=C1")))
     molecule = species_molecule(symbols, np.arange(len(symbols)), bonds)
     assert not any(bond.GetIsAromatic() for bond in molecule.GetBonds())
+
+
+def test_aromatic_flagged_triple_bond_is_preserved():
+    """An aromatic flag must not erase RDKit's retained triple bond type."""
+    symbols, aryne, diradical = _aryne_bond_change()
+    original = aryne.copy()
+    molecule = species_molecule(symbols, np.arange(len(symbols)), aryne)
+    bond = molecule.GetBondBetweenAtoms(0, 1)
+    assert bond.GetIsAromatic()
+    assert bond.GetBondType() == Chem.BondType.TRIPLE
+    aryne_name, aryne_graph = _identity(symbols, aryne)
+    diradical_name, diradical_graph = _identity(symbols, diradical)
+    assert aryne_name != diradical_name
+    assert not aryne_graph.isomorphic(diradical_graph)
+    np.testing.assert_array_equal(aryne, original)
 
 
 @pytest.mark.parametrize("case", ["overvalent", "nitro", "metal", "kekulization"])
@@ -287,6 +313,71 @@ def test_kekule_switch_preserves_evidence_without_reaction(
             (row.start_frame, row.end_frame) for row in iter_molecule_ranges(timeline)
         ] == [(0, 29), (30, 59)]
         assert list(iter_reaction_events(timeline)) == []
+    finally:
+        for key in (
+            "moleculetempfilename",
+            "moleculetemp2filename",
+            "originfilename",
+            "hmmfilename",
+        ):
+            filename = getattr(rng, key, None)
+            if filename is not None:
+                Path(filename).unlink(missing_ok=True)
+
+
+@pytest.mark.parametrize("smiles", [True, False])
+@pytest.mark.parametrize("run_hmm", [True, False])
+def test_aromatic_triple_bond_change_retains_reaction(tmp_path, smiles, run_hmm):
+    """Keep the bond-order transition in species IDs and all reaction outputs."""
+    symbols, aryne, diradical = _aryne_bond_change()
+    source = tmp_path / "aryne.bond"
+    atomnames = _write_bond_trajectory(source, symbols, (aryne, diradical))
+    timeline = tmp_path / "timeline.h5"
+    rng = ReacNetGenerator(
+        inputfilename=str(source),
+        inputfiletype="bond",
+        atomname=atomnames,
+        nproc=1,
+        runHMM=run_hmm,
+        SMILES=smiles,
+        miso=0,
+        output_dir=tmp_path,
+        printreactionevent=True,
+        timed_output=timeline,
+    )
+    try:
+        _Detect.gettype(rng).detect()
+        _HMMFilter(rng).filter()
+        _CollectPaths.getstype(rng).collect()
+        _GenerateMatrix(rng).generate()
+        assert rng.hmmit == 2
+        assert len(set(rng.mname)) == 2
+        with open(rng.reactioneventfilename, newline="") as handle:
+            csv_events = list(csv.DictReader(handle))
+        assert len(csv_events) == 1
+        event = csv_events[0]
+        assert int(event["Timestep_Index"]) == 29
+        assert event["Reactant"] != event["Product"]
+        expected_reaction = f"1 {event['Reactant']}->{event['Product']}"
+        for filename in (rng.reactionabcdfilename, rng.reactionfilename):
+            assert Path(filename).read_text().splitlines() == [expected_reaction]
+
+        validate_timed_output(timeline)
+        assert len(list(iter_species(timeline))) == 2
+        molecules = list(iter_molecules(timeline))
+        assert len(molecules) == 2
+        assert len({molecule.species_id for molecule in molecules}) == 2
+        assert {_bond_set(molecule.bonds) for molecule in molecules} == {
+            _bond_set(aryne),
+            _bond_set(diradical),
+        }
+        assert [
+            (row.start_frame, row.end_frame) for row in iter_molecule_ranges(timeline)
+        ] == [(0, 29), (30, 59)]
+        hdf5_events = list(iter_reaction_events(timeline))
+        assert len(hdf5_events) == 1
+        assert hdf5_events[0].transition == 29
+        assert hdf5_events[0].count == 1
     finally:
         for key in (
             "moleculetempfilename",
