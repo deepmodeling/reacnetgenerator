@@ -42,6 +42,7 @@ def test_detection_streams_compact_records_in_first_seen_order(tmp_path, monkeyp
     calls, writes, frame_arrays = [], [], []
 
     def results(nproc, **kwargs):
+        """Replay out-of-order arrivals and duplicate observations from detection."""
         calls.append((nproc, kwargs))
         if kwargs["desc"] == "Save molecules":
             yield from map(kwargs["func"], kwargs["l"])
@@ -52,6 +53,7 @@ def test_detection_streams_compact_records_in_first_seen_order(tmp_path, monkeyp
     original_compress = detector._compressvalue
 
     def compress(values):
+        """Require the prior record to reach the writer before compressing another."""
         if frame_arrays:
             assert writes, "All compression results were accumulated before writing"
         assert isinstance(values, array)
@@ -116,6 +118,7 @@ def test_failed_save_closes_and_removes_partial_output(tmp_path, monkeypatch, fa
         return handle
 
     def values():
+        """Inject a failure or cardinality mismatch after the first valid record."""
         yield b"first"
         if failure == "compression":
             raise RuntimeError("failed compression")
@@ -143,6 +146,7 @@ def test_collection_failure_closes_workers_before_source(tmp_path, monkeypatch):
     closed, retained = [], []
 
     def lines(_):
+        """Record when the input closes relative to the suspended worker stream."""
         try:
             yield "line"
         finally:
@@ -150,6 +154,7 @@ def test_collection_failure_closes_workers_before_source(tmp_path, monkeypatch):
 
     def run(nproc, **kwargs):
         def results():
+            """Keep the source open while a malformed result fails collection."""
             try:
                 next(kwargs["l"])
                 yield [[]], (0, 0)  # Invalid key forces a parent-side failure.

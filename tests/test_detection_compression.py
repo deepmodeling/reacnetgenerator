@@ -186,6 +186,7 @@ def test_real_out_of_order_batches_are_bounded_and_written_progressively(
     submitted, written, maximum_pending = 0, 0, 0
 
     def batches(*args):
+        """Count submissions against fully written batches, not completed workers."""
         nonlocal submitted
         for payload in original_batches(*args):
             submitted += 1
@@ -271,6 +272,7 @@ def test_collection_widens_before_serial_or_parallel_saving(
     frames = [65535, 65536, 0, 2**32, 65535]
 
     def run(nproc, **kwargs):
+        """Inject width-crossing arrivals while executing the selected save path."""
         if kwargs["desc"] == "Save molecules":
             yield from map(kwargs["func"], kwargs["l"])
         else:
