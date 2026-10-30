@@ -287,3 +287,127 @@ def test_index_normalization_matches_original_signal(frames):
     """Duplicates and NumPy negative indices do not create duplicate intervals."""
     actual = list(_MoleculePresence(frames, 4, indexed=True).ranges())
     assert actual == list(_signal_ranges(idx_to_signal(frames, 4)))
+
+
+@pytest.mark.parametrize("nproc", [1, 2])
+@pytest.mark.parametrize("origin", [False, True])
+@pytest.mark.parametrize("filtered", [False, True])
+def test_hmm_entry_point_keeps_complete_record_signal_pairs(
+    tmp_path, monkeypatch, nproc, origin, filtered
+):
+    """Real local and pool filtering retain metadata for every retained signal."""
+    frames = [list(range(24)), [], [0], list(range(12, 24))]
+    rng = _input(tmp_path, frames, step=24, nproc=nproc)
+    rng.runHMM, rng.getoriginfile, rng.printfiltersignal = True, origin, filtered
+    calls = []
+
+    def workers(count, **kwargs):
+        assert count == 2
+        calls.append(count)
+        return run_mp(count, **kwargs)
+
+    monkeypatch.setattr("reacnetgenerator._hmmfilter.run_mp", workers)
+    hmm_filter = _HMMFilter(rng)
+    hmm_filter.filter()
+    try:
+        assert calls == ([2] if nproc == 2 else [])
+        with open(rng.moleculetemp2filename, "rb") as file:
+            records = list(_iter_molecule_records(file))
+        with open(rng.hmmfilename, "rb") as file:
+            signals = list(read_compressed_block(file))
+        origins = None
+        if origin:
+            with open(rng.originfilename, "rb") as file:
+                origins = list(read_compressed_block(file))
+            assert len(origins) == len(records)
+        else:
+            assert rng.originfilename is None
+        expected = {}
+        for atom, indices in enumerate(frames):
+            raw = idx_to_signal(indices, rng.step)
+            predicted = hmm_filter._model.predict(raw).astype(bool)
+            if predicted.any() or origin or filtered:
+                expected[atom] = raw, predicted
+        assert len(records) == len(signals) == rng.hmmit == len(expected)
+        seen = []
+        for index, (record, signal) in enumerate(zip(records, signals, strict=True)):
+            atoms, bonds, levels, observed = map(bytestolist, record)
+            atom = int(atoms[0])
+            seen.append(atom)
+            np.testing.assert_array_equal(observed, frames[atom])
+            assert not len(bonds) and not len(levels)
+            raw, predicted = expected[atom]
+            np.testing.assert_array_equal(bytestolist(signal), predicted)
+            if origins is not None:
+                np.testing.assert_array_equal(bytestolist(origins[index]), raw)
+        assert sorted(seen) == sorted(expected)
+        if nproc == 1:
+            assert seen == sorted(expected)
+    finally:
+        _remove_signals(rng)
+        Path(rng.moleculetemp2filename).unlink()
+
+
+def test_empty_local_hmm_does_not_start_workers(tmp_path, monkeypatch):
+    """An initialized model can process an empty stream without creating a pool."""
+    rng = _input(tmp_path, [])
+    rng.runHMM = True
+
+    def unexpected(*args, **kwargs):
+        raise AssertionError("Empty single-process HMM must not start workers")
+
+    monkeypatch.setattr("reacnetgenerator._hmmfilter.run_mp", unexpected)
+    _HMMFilter(rng).filter()
+    try:
+        assert rng.hmmit == 0
+        assert Path(rng.moleculetemp2filename).read_bytes() == b""
+        assert Path(rng.hmmfilename).read_bytes() == b""
+    finally:
+        _remove_signals(rng)
+        Path(rng.moleculetemp2filename).unlink()
+
+
+@pytest.mark.parametrize("failure", ["predict", "write"])
+def test_local_hmm_failure_closes_streams(tmp_path, monkeypatch, failure):
+    """Model and output failures close all files and preserve source ownership."""
+    from reacnetgenerator import _hmmfilter as module
+
+    rng = _input(tmp_path, [list(range(24))], step=24)
+    rng.runHMM, rng.getoriginfile = True, True
+    original = Path(rng.moleculetempfilename).read_bytes()
+    handles = []
+    original_tempfile = module.tempfile.NamedTemporaryFile
+
+    def tracked_tempfile(*args, **kwargs):
+        handle = original_tempfile(*args, dir=tmp_path, **kwargs)
+        handles.append(handle)
+        return handle
+
+    def tracked_open(*args, **kwargs):
+        handle = open(*args, **kwargs)
+        handles.append(handle)
+        return handle
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("HMM interrupted")
+
+    monkeypatch.setattr(module.tempfile, "NamedTemporaryFile", tracked_tempfile)
+    monkeypatch.setattr(module, "open", tracked_open, raising=False)
+    if failure == "predict":
+        monkeypatch.setattr(module.MultinomialHMM, "predict", fail)
+    else:
+        monkeypatch.setattr(module, "appendIfNotNone", fail)
+    hmm_filter = _HMMFilter(rng)
+    with pytest.raises(RuntimeError, match="HMM interrupted"):
+        hmm_filter.filter()
+    assert handles and all(handle.closed for handle in handles)
+    assert Path(rng.moleculetempfilename).read_bytes() == original
+    # Failed output streams keep the existing ownership contract; their paths
+    # remain on the filter, and no incomplete result is returned to rng.
+    assert rng.moleculetemp2filename is None
+    for name in (
+        hmm_filter.originfilename,
+        hmm_filter.hmmfilename,
+        hmm_filter.moleculetemp2filename,
+    ):
+        Path(name).unlink()

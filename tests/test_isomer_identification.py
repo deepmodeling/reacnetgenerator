@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Tests for VF2 isomer matching and ``miso`` validation."""
 
-import itertools
+import io
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -10,7 +11,7 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._path import Molecule, _CollectMolPaths, _CollectSMILESPaths
 from reacnetgenerator.commandline import main_parser
-from reacnetgenerator.utils import listtobytes
+from reacnetgenerator.utils import listtobytes, run_mp
 
 
 def _molecule_context(miso, atomtypes, atomnames):
@@ -127,11 +128,8 @@ def _collector_context(tmp_path, *, convert_smiles, miso=0):
     )
 
 
-def _run_serial(_nproc, *, func, l, nlines, **kwargs):
-    iterator = iter(l)
-    while group := tuple(itertools.islice(iterator, nlines)):
-        assert len(group) == nlines
-        yield func(group)
+def _unexpected_pool(*args, **kwargs):
+    raise AssertionError("Single-process conversion must not start workers")
 
 
 def test_direct_vf2_collector_keeps_different_bond_orders(tmp_path):
@@ -154,7 +152,7 @@ def test_smiles_failure_fallback_keeps_different_bond_orders(tmp_path, monkeypat
     def fail_smiles(atoms, bonds):
         raise ValueError("forced SMILES failure")
 
-    monkeypatch.setattr("reacnetgenerator._path.run_mp", _run_serial)
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", _unexpected_pool)
     context = _collector_context(tmp_path, convert_smiles=fail_smiles)
     collector = object.__new__(_CollectSMILESPaths)
     collector.__dict__.update(vars(context))
@@ -166,7 +164,7 @@ def test_smiles_failure_fallback_keeps_different_bond_orders(tmp_path, monkeypat
 
 def test_smiles_collector_miso_one_merges_different_bond_orders(tmp_path, monkeypatch):
     """Successful SMILES collection should retain mode 1 merging semantics."""
-    monkeypatch.setattr("reacnetgenerator._path.run_mp", _run_serial)
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", _unexpected_pool)
     context = _collector_context(
         tmp_path,
         convert_smiles=lambda atoms, bonds: f"bond-order-{bonds[0][2]}",
@@ -230,3 +228,72 @@ def test_bondless_molecule_rejects_invalid_miso(miso):
 
     with pytest.raises(ValueError, match="Unknown isomer identification method"):
         _molecule(context, [0], np.empty((0, 3), dtype=int))
+
+
+@pytest.mark.parametrize("nproc", [1, 2])
+@pytest.mark.parametrize("miso", [0, 1, 2])
+def test_smiles_entry_point_preserves_order(tmp_path, monkeypatch, nproc, miso):
+    """Real conversion uses workers only for explicit parallel configurations."""
+    context = _collector_context(tmp_path, convert_smiles=None, miso=miso)
+    collector = object.__new__(_CollectSMILESPaths)
+    collector.__dict__.update(vars(context))
+    del collector.convertSMILES
+    collector.nproc = nproc
+    calls = []
+
+    def workers(count, **kwargs):
+        assert count == 2
+        calls.append(count)
+        return run_mp(count, **kwargs)
+
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", workers)
+    collector._printmoleculename()
+    assert calls == ([2] if nproc == 2 else [])
+    assert list(collector.mname) == (
+        ["[C][C]", "[C]=[C]"] if miso == 0 else ["[C]=[C]", "[C]=[C]"]
+    )
+
+
+def test_single_process_names_are_lazy_and_ordered(tmp_path, monkeypatch):
+    """Requesting one result must not convert or read subsequent records."""
+    context = _collector_context(tmp_path, convert_smiles=None)
+    collector = object.__new__(_CollectSMILESPaths)
+    collector.__dict__.update(vars(context))
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", _unexpected_pool)
+    stream = io.BytesIO(Path(context.moleculetemp2filename).read_bytes())
+    converted = []
+
+    def convert(record):
+        converted.append(record)
+        return len(converted)
+
+    results = collector._getSMILESresults(stream, convert)
+    assert not converted and stream.tell() == 0
+    iterator = iter(results)
+    assert next(iterator) == 1
+    assert len(converted) == 1 and stream.tell() < len(stream.getvalue())
+    assert list(iterator) == [2]
+
+
+@pytest.mark.parametrize("miso", [0, 1, 2])
+def test_local_name_failure_closes_files(tmp_path, monkeypatch, miso):
+    """Non-conversion failures propagate while caller-owned streams close."""
+    handles = []
+
+    def tracked_open(*args, **kwargs):
+        handle = open(*args, **kwargs)
+        handles.append(handle)
+        return handle
+
+    def fail(atoms, bonds):
+        raise RuntimeError("name conversion interrupted")
+
+    context = _collector_context(tmp_path, convert_smiles=fail, miso=miso)
+    collector = object.__new__(_CollectSMILESPaths)
+    collector.__dict__.update(vars(context))
+    monkeypatch.setattr("reacnetgenerator._path.open", tracked_open, raising=False)
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", _unexpected_pool)
+    with pytest.raises(RuntimeError, match="name conversion interrupted"):
+        collector._printmoleculename()
+    assert handles and all(handle.closed for handle in handles)
+    assert Path(context.moleculetemp2filename).is_file()
