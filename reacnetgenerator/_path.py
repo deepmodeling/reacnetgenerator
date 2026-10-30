@@ -901,7 +901,17 @@ class _CollectSMILESPaths(_CollectPaths):
         self.mname = mname.finish()
 
     def _getSMILESresults(self, molecule_file, func):
-        """Run ordered SMILES workers over four-block molecule records."""
+        """Convert four-block records lazily, preserving molecule order."""
+        if self.nproc == 1:
+            # Keep conversion in the caller without accumulating decoded graphs.
+            records = itertools.zip_longest(*[read_compressed_block(molecule_file)] * 4)
+            return tqdm(
+                map(func, records),
+                total=self.hmmit,
+                desc="Indentify isomers",
+                unit="molecule",
+                disable=None,
+            )
         return run_mp(
             self.nproc,
             func=func,

@@ -2,7 +2,6 @@
 """Regression tests for representative selection when merging isomers."""
 
 import csv
-import itertools
 from types import SimpleNamespace
 
 import numpy as np
@@ -25,11 +24,8 @@ def _write_molecule_records(path, records):
             handle.write(listtobytes(frames))
 
 
-def _run_serial(_nproc, *, func, l, nlines, **kwargs):
-    iterator = iter(l)
-    while group := tuple(itertools.islice(iterator, nlines)):
-        assert len(group) == nlines
-        yield func(group)
+def _unexpected_pool(*args, **kwargs):
+    raise AssertionError("Single-process name collection must not start workers")
 
 
 def _name_converter(names):
@@ -48,14 +44,16 @@ def _collect(
     print_timeline=False,
     convert_smiles=None,
 ):
-    monkeypatch.setattr("reacnetgenerator._path.run_mp", _run_serial)
+    monkeypatch.setattr("reacnetgenerator._path.run_mp", _unexpected_pool)
     molecule_records = tmp_path / "molecules.bin"
     _write_molecule_records(molecule_records, records)
     names = {_bond_key(bonds): name for name, _, bonds, _ in records}
     if convert_smiles is None:
         convert_smiles = _name_converter(names)
 
-    atom_count = max(int(atom) for _, atoms, _, _ in records for atom in atoms) + 1
+    atom_count = (
+        max((int(atom) for _, atoms, _, _ in records for atom in atoms), default=0) + 1
+    )
     frames = {int(frame) for _, _, _, values in records for frame in values}
     context = SimpleNamespace(
         hmmit=len(records),
@@ -153,7 +151,7 @@ def test_miso_zero_keeps_each_canonical_smiles(tmp_path, monkeypatch):
         ]
 
 
-@pytest.mark.parametrize("miso", [0, 1])
+@pytest.mark.parametrize("miso", [0, 1, 2])
 def test_smiles_failure_reuses_vf2_fallback_name(tmp_path, monkeypatch, miso):
     """Both merged and unmerged paths should retain the VF2 fallback."""
     records = [
@@ -280,3 +278,11 @@ def test_selected_representative_is_used_in_all_name_outputs(tmp_path, monkeypat
     ] == ["high", "high"]
     with (tmp_path / "timeline.csv").open(newline="") as handle:
         assert {row["Species"] for row in csv.DictReader(handle)} == {"high"}
+
+
+@pytest.mark.parametrize("miso", [0, 1, 2])
+def test_empty_single_process_names(tmp_path, monkeypatch, miso):
+    """Empty local inputs produce valid empty name tables without workers."""
+    collector = _collect(tmp_path, monkeypatch, [], miso=miso)
+    assert len(collector.mname) == 0
+    assert (tmp_path / "molecule-names.txt").read_bytes() == b""

@@ -222,15 +222,27 @@ class _HMMFilter(SharedRNGData):
                 self.hmmfilename = fh.name
             else:
                 self.hmmfilename = None
-            results = run_mp(
-                self.nproc,
-                func=self._getoriginandhmm,
-                l=read_compressed_block(ft),
-                nlines=4,
-                total=self.temp1it,
-                desc=self.description,
-                unit="molecule",
-            )
+            if self.nproc == 1:
+                # Reuse the initialized model and consume each record together
+                # with its origin and filtered signal, without a worker pool.
+                records = itertools.zip_longest(*[read_compressed_block(ft)] * 4)
+                results = tqdm(
+                    map(self._getoriginandhmm, records),
+                    total=self.temp1it,
+                    desc=self.description,
+                    unit="molecule",
+                    disable=None,
+                )
+            else:
+                results = run_mp(
+                    self.nproc,
+                    func=self._getoriginandhmm,
+                    l=read_compressed_block(ft),
+                    nlines=4,
+                    total=self.temp1it,
+                    desc=self.description,
+                    unit="molecule",
+                )
             hmmit = 0
             for originbytes, hmmbytes, line_c in results:
                 if originbytes is not None or hmmbytes is not None:
