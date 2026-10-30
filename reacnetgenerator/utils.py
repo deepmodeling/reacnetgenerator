@@ -58,11 +58,22 @@ class WriteBuffer(Generic[AnyStr]):
         if it exceeds the set number.
     sep: str or bytes, default: None
         The separator for contents. If None (default), there will be no separator.
+    maxbytes: int, optional
+        Flush before buffered payloads exceed this byte budget, counting text as
+        UTF-8 and including separators. One indivisible payload may exceed it.
+        If omitted, only the original item-count limit is applied.
     """
 
     def __init__(
-        self, f: IO[AnyStr], linenumber: int = 1200, sep: AnyStr | None = None
+        self,
+        f: IO[AnyStr],
+        linenumber: int = 1200,
+        sep: AnyStr | None = None,
+        *,
+        maxbytes: int | None = None,
     ) -> None:
+        if maxbytes is not None and maxbytes <= 0:
+            raise ValueError("Buffer byte limit must be positive")
         self.f = f
         if sep is not None:
             self.sep = sep
@@ -73,6 +84,11 @@ class WriteBuffer(Generic[AnyStr]):
         else:
             raise RuntimeError("File mode should be w or wb!")
         self.linenumber = linenumber
+        self.maxbytes = maxbytes
+        self._buffer_bytes = 0
+        self._separator_bytes = len(
+            self.sep.encode("utf-8") if isinstance(self.sep, str) else self.sep
+        )
         self.buff: list[AnyStr] = []
         self.name = self.f.name
 
@@ -84,6 +100,12 @@ class WriteBuffer(Generic[AnyStr]):
         text : str or bytes
             The text to be appended.
         """
+        if self.maxbytes is not None:
+            size = len(text.encode("utf-8") if isinstance(text, str) else text)
+            size += self._separator_bytes
+            if self.buff and self._buffer_bytes + size > self.maxbytes:
+                self.flush()
+            self._buffer_bytes += size
         self.buff.append(text)
         self.check()
 
@@ -95,15 +117,18 @@ class WriteBuffer(Generic[AnyStr]):
         text : list of strs or bytes
             Texts to be extended.
         """
-        self.buff.extend(text)
-        self.check()
+        if self.maxbytes is None:
+            self.buff.extend(text)
+            self.check()
+        else:
+            for item in text:
+                self.append(item)
 
     def check(self) -> None:
-        """Check if the number of stored contents exceeds.
-
-        If so, the buffer will be flushed.
-        """
-        if len(self.buff) > self.linenumber:
+        """Flush if there are too many items or the byte budget is exhausted."""
+        if len(self.buff) > self.linenumber or (
+            self.maxbytes is not None and self._buffer_bytes >= self.maxbytes
+        ):
             self.flush()
 
     def flush(self) -> None:
@@ -111,6 +136,7 @@ class WriteBuffer(Generic[AnyStr]):
         if self.buff:
             self.f.writelines([cast(Any, self.sep).join(self.buff), self.sep])
             self.buff[:] = []
+            self._buffer_bytes = 0
 
     def __enter__(self) -> "WriteBuffer[AnyStr]":
         """Enter the context."""

@@ -25,12 +25,12 @@ class _GenerateMatrix(SharedRNGData):
     moleculetemp2filename: str
     n_searchspecies: int
     needprintspecies: bool
-    allmoleculeroute: np.ndarray
+    allmoleculeroute: np.ndarray | Counter[tuple[str, str]]
     speciescenter: str
     matrix_size: int
     mname: np.ndarray
     timestep: np.ndarray
-    splitmoleculeroute: list[np.ndarray]
+    splitmoleculeroute: list[np.ndarray | Counter[tuple[str, str]]]
 
     def __init__(self, rng):
         SharedRNGData.__init__(
@@ -68,6 +68,10 @@ class _GenerateMatrix(SharedRNGData):
             self._printspecies()
 
     def _getallroute(self, allmoleculeroute):
+        # PATH now provides species counts directly. Keep the array entry point
+        # for callers that still supply legacy molecule-ID event rows.
+        if isinstance(allmoleculeroute, Counter):
+            return allmoleculeroute.items()
         names = self.mname[allmoleculeroute - 1]
         names = names[names[:, 0] != names[:, 1]]
         if names.size > 0:
