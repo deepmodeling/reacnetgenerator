@@ -8,14 +8,14 @@ species which have the most reactions are taken. A reaction matrix can be
 generated.
 """
 
-import itertools
 import operator
 from collections import Counter
 
 import numpy as np
 import pandas as pd
 
-from .utils import SharedRNGData, WriteBuffer, bytestolist, read_compressed_block
+from ._speciespopulations import _write_species_populations
+from .utils import SharedRNGData
 
 
 class _GenerateMatrix(SharedRNGData):
@@ -151,17 +151,7 @@ class _GenerateMatrix(SharedRNGData):
         return searchedspecies
 
     def _printspecies(self):
-        with (
-            open(self.moleculetemp2filename, "rb") as ft,
-            WriteBuffer(open(self.speciesfilename, "w")) as fw,
-        ):
-            d = [Counter() for i in range(len(self.timestep))]
-            for name, line in zip(
-                self.mname, itertools.zip_longest(*[read_compressed_block(ft)] * 4)
-            ):
-                for t in bytestolist(line[-1]).tolist():
-                    d[t][name] += 1
-            for t in range(len(self.timestep)):
-                fw.append(f"Timestep {self.timestep[t]}:")
-                fw.extend(f" {item[0]} {item[1]}" for item in d[t].items())
-                fw.append("\n")
+        """Write observed populations while preserving per-frame species order."""
+        return _write_species_populations(
+            self.moleculetemp2filename, self.mname, self.timestep, self.speciesfilename
+        )
