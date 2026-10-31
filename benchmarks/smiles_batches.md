@@ -93,6 +93,74 @@ high-water marks including imports/preparation, sampled before validation.
 Child RSS is the largest child high-water mark, not a simultaneous sum of
 worker RSS; neither RSS column measures total process-tree physical memory.
 
+### Generate the timing CSV
+
+The original campaign used temporary helpers `rng-pr2-campaign.py` to capture
+each sample and `rng-pr2-report.py` to assemble `smiles_batches.csv`.
+The portable [CSV exporter](smiles_batches_export.py) preserves that report's
+field mapping and row order. It uses only the Python standard library and
+converts saved samples without rerunning measurements.
+
+Each input file contains the JSON object printed by `smiles_batches.py`, plus
+the wrapper's `label`, `variant` (`base` or `head`), zero-based `round` and
+`load_average` fields. The wrapper captured `os.getloadavg()` after each
+benchmark subprocess exited. For example, capture one original-stream sample
+from the repository root as follows; use a dedicated directory for timing JSON:
+
+```sh
+python - "$RNG_BASE_PYTHON" /path/to/fixed-records /path/to/macos-json/real-0-base.json <<'PY'
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+interpreter, state, destination = sys.argv[1:]
+command = [
+    interpreter, "benchmarks/smiles_batches.py", "--state", state,
+    "--method", "spawn", "--stage", "names", "--records", "0",
+]
+run = subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE)
+sample = json.loads(run.stdout.strip().splitlines()[-1])
+sample.update(
+    label="real", variant="base", round=0, record_limit=0,
+    load_average=os.getloadavg(),
+)
+target = Path(destination)
+target.parent.mkdir(parents=True, exist_ok=True)
+target.write_text(json.dumps(sample, sort_keys=True) + "\n")
+PY
+```
+
+Capture the other configurations and alternating base/head rounds in the same
+way, keeping the wrapper metadata consistent with the command. Then export:
+
+```sh
+python benchmarks/smiles_batches_export.py \
+    --samples macos=/path/to/macos-json \
+    --samples linux=/path/to/linux-json \
+    --output /path/to/smiles_batches.csv
+```
+
+`record_limit` is the requested `--records` argument, while `records` is the
+actual `rng.hmmit` reported by the benchmark. In the original real-stream
+samples these are 0 and 5,615, respectively. The original JSON did not retain
+the argument, so the exporter includes the campaign's label-to-argument mapping;
+new captures should supply `record_limit` explicitly. Unknown labels require it.
+
+`host` comes from `--samples`; `label`, `variant` and `round` come from the
+wrapper. `total_cpu` sums the parent and child CPU deltas, and `load_1m`,
+`load_5m` and `load_15m` unpack `load_average`. Source hashes, Python and
+dependency versions come from `environment`; output hashes come from
+`semantic`. Despite its name, `text_sha256` stores the JSON mapping of output
+filenames to hashes. Missing worker-module hashes and inapplicable manifest or
+result hashes become empty cells. Other columns retain their sample values.
+
+The exporter handles the main timing CSV only and rejects audit samples.
+Keep IPC audits and follow-up controls in their separate datasets. Re-exporting
+the original captured JSON reproduces the published timing CSV byte for byte;
+new measurements will have different timings, resource use and host load.
+
 ## Measurements (2026-10-31)
 
 Baseline: `6e35522f136de132c9513cd382539b3e4dfa875e`. Production implementation:
