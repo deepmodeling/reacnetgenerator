@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Bounded HDF5 presence lookups preserve the scalar search contract."""
 
+from operator import getitem
+from unittest.mock import patch
+
 import h5py
 import numpy as np
 import pytest
@@ -98,23 +101,19 @@ def test_cache_uses_lru_and_is_scoped_to_one_table(monkeypatch):
     other = ranges._MoleculeRangeLookup(np.ones(8, dtype=np.int64), data, data)
     assert other.columns[0][0] == 1
     with pytest.raises(IndexError):
-        column[-1]
+        getitem(column, -1)
     with pytest.raises(IndexError):
-        column[8]
+        getitem(column, 8)
 
 
 def test_read_failure_does_not_poison_cache():
     """A failed bounded read propagates and the same block can be retried."""
-
-    class FailingColumn(_CountedColumn):
-        def __getitem__(self, key):
-            if not self.reads:
-                self.reads += 1
-                raise OSError("read failed")
-            return super().__getitem__(key)
-
-    data = FailingColumn(np.asarray([1], dtype=np.int64))
+    data = _CountedColumn(np.asarray([1], dtype=np.int64))
     lookup = ranges._MoleculeRangeLookup(data, data, data)
-    with pytest.raises(OSError, match="read failed"):
-        lookup.contains(1, 1)
+    # Inject an I/O failure without changing the column's indexing contract.
+    with patch.object(
+        _CountedColumn, "__getitem__", side_effect=OSError("read failed")
+    ):
+        with pytest.raises(OSError, match="read failed"):
+            lookup.contains(1, 1)
     assert lookup.contains(1, 1)

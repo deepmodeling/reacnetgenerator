@@ -92,28 +92,33 @@ Use installed base/head environments with identical dependencies, or isolated
 source snapshots with a common native extension. Run the same scripts in fresh
 processes; alternate the order and repeat three times. Avoid concurrent builds
 or tests on the measured CPUs.
+The commands below reproduce the Linux host's CPU affinity. Use an available,
+fixed CPU set on another Linux host, and record it with the measurements.
 
 ```sh
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
+RNG_INPUT=/path/to/window.lammpstrj
 
-# Complete pipeline; run once for each environment and real window.
-"$RNG_BASE_PYTHON" benchmarks/equal_z_candidates.py --mode pipeline \
-    --input /path/to/window.lammpstrj --atom-types C Cl H O \
+# Warm the input before every measured run, including every repeat.
+cat "$RNG_INPUT" > /dev/null
+taskset -c 0-31 "$RNG_BASE_PYTHON" benchmarks/equal_z_candidates.py --mode pipeline \
+    --input "$RNG_INPUT" --atom-types C Cl H O \
     --nproc 32 --miso 1 --output base-output --json base.json
-"$RNG_HEAD_PYTHON" benchmarks/equal_z_candidates.py --mode pipeline \
-    --input /path/to/window.lammpstrj --atom-types C Cl H O \
+cat "$RNG_INPUT" > /dev/null
+taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/equal_z_candidates.py --mode pipeline \
+    --input "$RNG_INPUT" --atom-types C Cl H O \
     --nproc 32 --miso 1 --output head-output --json head.json
 "$RNG_HEAD_PYTHON" benchmarks/equal_z_compare.py base-output head-output
 
 # Reuse one immutable timeline for isolated presence-query measurements.
-"$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py \
+taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py \
     --input base-output/timeline.h5 --json scalar.json
-"$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py --cached \
+taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py --cached \
     --input base-output/timeline.h5 --json cached.json
 
 # Synthetic controls need no external data. Repeat with --cached.
-"$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py \
+taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py \
     --case random --json random-scalar.json
 ```
 

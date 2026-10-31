@@ -11,6 +11,7 @@ import hashlib
 import importlib.metadata
 import json
 import resource
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -111,6 +112,10 @@ def main():
             ]
             if result != expected:
                 raise AssertionError("Cached presence differs from scalar reference")
+            peak_rss_kib = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            if sys.platform == "darwin":
+                # Darwin reports bytes; Linux already reports KiB.
+                peak_rss_kib /= 1024
             output = {
                 "case": args.case if args.input is None else args.input.name,
                 "cached": args.cached,
@@ -119,7 +124,7 @@ def main():
                 "seconds": elapsed,
                 "audit": read_counts if args.audit else None,
                 "results_sha256": hashlib.sha256(bytes(result)).hexdigest(),
-                "peak_rss_KiB": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+                "peak_rss_KiB": peak_rss_kib,
                 "cached_array_bytes": sum(
                     block.nbytes for block in lookup.columns[0].cache.values()
                 )
