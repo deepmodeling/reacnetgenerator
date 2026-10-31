@@ -94,10 +94,14 @@ processes; alternate the order and repeat three times. Avoid concurrent builds
 or tests on the measured CPUs.
 The commands below reproduce the Linux host's CPU affinity. Use an available,
 fixed CPU set on another Linux host, and record it with the measurements.
+Replace the three placeholder paths with the installed baseline and candidate
+Python executables and the trajectory window to measure.
 
 ```sh
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
+RNG_BASE_PYTHON=/path/to/base/bin/python
+RNG_HEAD_PYTHON=/path/to/head/bin/python
 RNG_INPUT=/path/to/window.lammpstrj
 
 # Warm the input before every measured run, including every repeat.
