@@ -45,6 +45,13 @@ The pilot measures 4.306 / 4.282 s and is not a speed claim.
 
 Isolated presence-query medians, including lookup construction:
 
+The recorded real-file query samples were not explicitly rewarmed before each
+process, so their filesystem cache state was not controlled per measurement.
+The reproduction commands below add a pre-read for future warm-cache query
+comparisons; the existing CSV samples have not been remeasured. Synthetic
+inputs are generated before timing. The pipeline measurements above did warm
+the trajectory before every run.
+
 | Case     | Range rows | Queries | Scalar seconds | Cached seconds |
 | -------- | ---------: | ------: | -------------: | -------------: |
 | small    |          7 |       7 |       0.000390 |       0.000256 |
@@ -116,8 +123,10 @@ taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/equal_z_candidates.py --mode pipel
 "$RNG_HEAD_PYTHON" benchmarks/equal_z_compare.py base-output head-output
 
 # Reuse one immutable timeline for isolated presence-query measurements.
+cat base-output/timeline.h5 > /dev/null
 taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py \
     --input base-output/timeline.h5 --json scalar.json
+cat base-output/timeline.h5 > /dev/null
 taskset -c 0-31 "$RNG_HEAD_PYTHON" benchmarks/timeline_range_cache.py --cached \
     --input base-output/timeline.h5 --json cached.json
 
