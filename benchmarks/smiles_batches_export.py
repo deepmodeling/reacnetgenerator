@@ -92,6 +92,8 @@ def timing_row(sample, host):
     """Flatten one captured timing sample without deriving missing measurements."""
     if sample["audit"] is not None:
         raise ValueError("Audit samples must remain separate from timing samples")
+    if sample["variant"] not in ("base", "head"):
+        raise ValueError("variant must be 'base' or 'head'")
     if "record_limit" in sample:
         requested = sample["record_limit"]
     elif sample["label"] in RECORD_LIMITS:
@@ -154,7 +156,7 @@ def main():
             parser.error(f"No JSON samples in {folder}")
         for path in files:
             try:
-                row = timing_row(json.loads(path.read_text()), host)
+                row = timing_row(json.loads(path.read_text(encoding="utf-8")), host)
                 key = (host, row["label"], row["round"], row["variant"])
                 if key in seen:
                     raise ValueError(f"Duplicate timing sample: {key}")

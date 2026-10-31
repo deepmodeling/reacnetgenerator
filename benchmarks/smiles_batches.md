@@ -128,7 +128,7 @@ sample.update(
 )
 target = Path(destination)
 target.parent.mkdir(parents=True, exist_ok=True)
-target.write_text(json.dumps(sample, sort_keys=True) + "\n")
+target.write_text(json.dumps(sample, sort_keys=True) + "\n", encoding="utf-8")
 PY
 ```
 
@@ -158,7 +158,7 @@ result hashes become empty cells. Other columns retain their sample values.
 
 The exporter handles the main timing CSV only and rejects audit samples.
 Keep IPC audits and follow-up controls in their separate datasets. Re-exporting
-the original captured JSON reproduces the published timing CSV byte for byte;
+the original captured JSON produces a CSV identical to the published file;
 new measurements will have different timings, resource use and host load.
 
 ## Measurements (2026-10-31)
