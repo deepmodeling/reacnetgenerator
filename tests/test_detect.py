@@ -234,6 +234,151 @@ class TestPeriodicOpenBabelCandidates:
 
         assert detect_instance._getbondfromperiodicneighborlist(atoms, cell) is None
 
+    @pytest.mark.parametrize("permutation", [[0, 1, 2, 3], [0, 2, 1, 3], [3, 2, 1, 0]])
+    def test_equal_z_in_separate_components_matches_reference(
+        self, detect_instance, permutation
+    ):
+        """Allow z ties between independent molecules without changing bonds."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "HHOO",
+            positions=[[2, 2, 2], [2, 2, 2.74], [8, 8, 2], [8, 8, 3.21]],
+            cell=cell,
+            pbc=True,
+        )[permutation]
+
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
+    def test_equal_z_isolated_atoms_match_reference(self, detect_instance):
+        """An empty candidate graph does not make isolated z ties ambiguous."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "HHH",
+            positions=[[1, 1, 2], [5, 5, 2], [9, 9, 2]],
+            cell=cell,
+            pbc=True,
+        )
+
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
+    def test_indirect_component_z_tie_still_falls_back(self, detect_instance):
+        """Keep ties connected through another atom, including interleaved labels."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "CHCC",
+            positions=[[2, 2, 2], [9, 9, 2], [4.8, 2, 2], [3.4, 2, 2.3]],
+            cell=cell,
+            pbc=True,
+        )
+
+        assert detect_instance._getperiodicbondcandidates(atoms, cell) is None
+
+    def test_periodically_connected_z_tie_still_falls_back(self, detect_instance):
+        """Candidate connectivity includes bonds crossing the periodic boundary."""
+        cell = np.eye(3) * 12.0
+        atoms = Atoms(
+            "CCC",
+            positions=[[0.1, 2, 2], [11, 2, 2.2], [10, 2, 2]],
+            cell=cell,
+            pbc=True,
+        )
+
+        assert detect_instance._getperiodicbondcandidates(atoms, cell) is None
+
+    @pytest.mark.parametrize("seed", [0, 1, 2])
+    def test_equal_z_between_aromatic_components_preserves_bond_orders(
+        self, detect_instance, seed
+    ):
+        """Retain exact Kekule orders for disjoint rings with matching z levels."""
+        from scipy.spatial.transform import Rotation
+
+        angles = np.arange(6) * np.pi / 3
+        plane = np.column_stack((np.cos(angles), np.sin(angles), np.zeros(6)))
+        ring = np.vstack((1.4 * plane, 2.49 * plane))
+        ring = Rotation.from_euler("xyz", [23, 37, 19], degrees=True).apply(ring)
+        positions = np.vstack((ring + np.array([8, 8, 8]), ring + np.array([18, 8, 8])))
+        cell = np.eye(3) * 30.0
+        atoms = Atoms("C6H6C6H6", positions=positions, cell=cell, pbc=True)
+        atoms = atoms[np.random.default_rng(seed).permutation(len(atoms))]
+
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
+    def test_large_disconnected_z_ties_use_accelerated_dispatch(
+        self, detect_instance, monkeypatch
+    ):
+        """Exercise the real dispatch threshold without falling back to all pairs."""
+        cell = np.eye(3) * 200.0
+        atoms = self._pad_to_acceleration_threshold(
+            Atoms(
+                "HHOO",
+                positions=[
+                    [20, 20, 20],
+                    [20, 20, 20.74],
+                    [30, 30, 20],
+                    [30, 30, 21.21],
+                ],
+            ),
+            cell,
+        )
+        reference = detect_instance._getbondfromopenbabel(atoms, cell)
+
+        def unexpected_fallback(*args, **kwargs):
+            raise AssertionError(
+                "Independent candidate components must stay accelerated"
+            )
+
+        monkeypatch.setattr(
+            detect_instance, "_getbondfromopenbabel", unexpected_fallback
+        )
+        result = detect_instance._getbondfromcrd(atoms, cell)
+        assert self._molecule_records(
+            detect_instance, result
+        ) == self._molecule_records(detect_instance, reference)
+
+    @pytest.mark.parametrize("case", ["overvalent", "zero_valence", "phosphorus"])
+    def test_cross_component_ties_preserve_connectivity_cleanup(
+        self, detect_instance, case
+    ):
+        """Keep element-specific cleanup for components sharing z levels."""
+        if case == "overvalent":
+            symbols = "CHHHHH"
+            positions = np.array(
+                [
+                    [6, 6, 6],
+                    [6.9, 6, 6.001],
+                    [5.05, 6, 6.002],
+                    [6, 7, 6.003],
+                    [6, 4.95, 6.004],
+                    [6, 6, 7.08],
+                ]
+            )
+        elif case == "zero_valence":
+            symbols = "HHAr"
+            positions = np.array([[6, 6, 6], [6, 6, 6.74], [6, 6, 4.3]])
+        else:
+            symbols = "PFFFFFH"
+            angles = np.arange(6) * np.pi / 3
+            positions = np.vstack(
+                (
+                    [6, 6, 6],
+                    np.column_stack(
+                        (
+                            6 + 1.6 * np.cos(angles),
+                            6 + 1.6 * np.sin(angles),
+                            6.01 + np.arange(6) * 0.01,
+                        )
+                    ),
+                )
+            )
+        cell = np.eye(3) * 40
+        atoms = Atoms(
+            symbols + symbols,
+            positions=np.vstack((positions, positions + np.array([20, 0, 0]))),
+            cell=cell,
+            pbc=True,
+        )
+        self._assert_matches_reference(detect_instance, atoms, cell)
+
     def test_large_equal_z_frame_matches_reference_through_fallback(
         self,
         detect_instance,
