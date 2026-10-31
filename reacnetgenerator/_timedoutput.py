@@ -15,7 +15,7 @@ import numpy as np
 
 from ._moleculepresence import _iter_molecule_presence
 from ._moleculepresence import _signal_ranges as _signal_ranges
-from ._timedoutputrange import molecule_present
+from ._timedoutputrange import _MoleculeRangeLookup
 from ._version import __version__
 from .utils import bytestolist, get_timestep_value
 
@@ -106,6 +106,7 @@ class _TimedOutputWriter:
         self.participant_offset = self.bond_change_offset = 0
         self.evidence_count = 0
         self._molecule_columns_flushed = False
+        self._range_lookup = None
         self.file = None
         self.partial = None
 
@@ -430,17 +431,15 @@ class _TimedOutputWriter:
         range_ids = self.columns["molecule_ranges/molecule_id"].dataset
         range_starts = self.columns["molecule_ranges/start_frame"].dataset
         range_ends = self.columns["molecule_ranges/end_frame"].dataset
+        if self._range_lookup is None:
+            self._range_lookup = _MoleculeRangeLookup(
+                range_ids, range_starts, range_ends
+            )
         transition = int(event["Timestep_Index"])
         for side, molecule_ids in enumerate((reactants, products)):
             frame = transition + side
             if any(
-                not molecule_present(
-                    molecule_id,
-                    frame,
-                    range_ids,
-                    range_starts,
-                    range_ends,
-                )
+                not self._range_lookup.contains(molecule_id, frame)
                 for molecule_id in molecule_ids
             ):
                 raise ValueError(
@@ -515,6 +514,7 @@ class _TimedOutputWriter:
                 self.file.attrs["status"] = "complete"
                 self.file.flush()
         finally:
+            self._range_lookup = None
             self.file.close()
         if exc_type is None:
             os.replace(self.partial, self.filename)

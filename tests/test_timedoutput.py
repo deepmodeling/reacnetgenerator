@@ -277,6 +277,47 @@ def test_missing_frame_mapping(tmp_path):
     assert not (tmp_path / "timeline.h5").exists()
 
 
+def test_cached_writer_still_rejects_absent_participant(tmp_path):
+    """A warmed cache must reject a gap and preserve the previous complete file."""
+    path = tmp_path / "timeline.h5"
+    rng = generator(tmp_path, timed_output=path)
+    prepare(rng)
+    path.write_bytes(b"previous complete result")
+    with pytest.raises(ValueError, match="participant is absent"):
+        with _TimedOutputWriter(rng) as writer:
+            for sid, name in enumerate(("A", "B")):
+                writer._append("species", name=name)
+                writer.species[name] = sid
+                writer._append(
+                    "molecules",
+                    species_id=sid,
+                    atom_index=0,
+                    atom_offsets=sid + 1,
+                    bond_offsets=0,
+                )
+                writer._append(
+                    "molecule_ranges",
+                    molecule_id=sid + 1,
+                    start_frame=sid,
+                    end_frame=sid,
+                )
+            event = {
+                "Timestep_Index": 0,
+                "Reactant": "A",
+                "Product": "B",
+                "ReactantMoleculeIDs": (1,),
+                "ProductMoleculeIDs": (2,),
+            }
+            writer.write_events([event])
+            assert writer._range_lookup is not None
+            writer.write_events([dict(event, Timestep_Index=1)])
+    assert writer._range_lookup is None
+    assert path.read_bytes() == b"previous complete result"
+    (partial,) = tmp_path.glob("*.incomplete")
+    with h5py.File(partial, "r+") as file:
+        assert file.attrs["status"] == "incomplete"
+
+
 def test_compact_counts_and_blocks(tmp_path, monkeypatch):
     """Read the first block without loading the full table or expanding counts."""
     path = tmp_path / "timeline.h5"
