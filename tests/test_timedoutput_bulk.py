@@ -251,3 +251,29 @@ def test_ranges_consume_only_one_bounded_chunk(tmp_path):
         np.testing.assert_array_equal(file["start_frame"][:], np.arange(65539) * 2)
         np.testing.assert_array_equal(file["end_frame"][:], file["start_frame"][:])
         assert np.all(file["molecule_id"][:] == 7)
+
+
+def test_large_structure_arrays_released_before_ranges(tmp_path, monkeypatch):
+    """Finished atom/bond arrays must not coexist with the interval scratch block."""
+    import weakref
+
+    rng = _fixture(tmp_path / "arrays")
+    references = []
+    decode = timed.bytestolist
+    write_ranges = timed._TimedOutputWriter._write_ranges
+
+    def tracked(block):
+        values = decode(block)
+        if len(values) >= 32:
+            references.append(weakref.ref(values))
+        return values
+
+    def checked(writer, molecule_id, ranges):
+        assert all(reference() is None for reference in references)
+        return write_ranges(writer, molecule_id, ranges)
+
+    monkeypatch.setattr(timed, "bytestolist", tracked)
+    monkeypatch.setattr(timed._TimedOutputWriter, "_write_ranges", checked)
+    with timed._TimedOutputWriter(rng) as writer:
+        writer.write_molecules(["[C][C]", "C-chain"])
+    assert len(references) == 3

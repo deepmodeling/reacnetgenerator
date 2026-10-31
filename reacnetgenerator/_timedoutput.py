@@ -284,6 +284,7 @@ class _TimedOutputWriter:
                 atoms = bytestolist(record[0])
                 self._extend_numeric("molecules", "atom_index", atoms)
                 self.atom_offset += len(atoms)
+                del atoms
                 pairs, levels = bytestolist(record[1]), bytestolist(record[2])
                 if len(pairs) != len(levels):
                     raise ValueError("Mismatched bond definitions")
@@ -306,8 +307,11 @@ class _TimedOutputWriter:
                         self._extend_numeric(
                             "molecules", "bond_atom_index_2", block[:, 1]
                         )
+                    del block
                     self._extend_numeric("molecules", "bond_order", levels)
                 self.bond_offset += len(levels)
+                # Do not retain large decoded structures during range writing.
+                del pairs, levels
                 self._append(
                     "molecules",
                     atom_offsets=self.atom_offset,
