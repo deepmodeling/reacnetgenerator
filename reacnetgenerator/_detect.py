@@ -47,6 +47,8 @@ except ImportError:  # pragma: no cover
 from ase import Atom, Atoms
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree  # ty: ignore[unresolved-import]
 from tqdm.auto import tqdm
 
@@ -774,11 +776,8 @@ class _DetectCrd(_Detect):
             return None
 
         z_order = np.argsort(positions[:, 2], kind="stable")
-        # Open Babel leaves equal-z ordering to the C++ standard library, and
-        # bond insertion order can affect its later connectivity cleanup.
         sorted_z = positions[z_order, 2]
-        if np.any(sorted_z[1:] == sorted_z[:-1]):
-            return None
+        has_z_ties = np.any(sorted_z[1:] == sorted_z[:-1])
 
         wrapped_positions = np.mod(positions, cell_lengths)
         # Floating-point modulo can round a tiny negative coordinate to the
@@ -819,6 +818,29 @@ class _DetectCrd(_Detect):
         )
         atom_indices = atom_indices[accepted]
         neighbor_indices = neighbor_indices[accepted]
+
+        if has_z_ties:
+            # Open Babel leaves equal-z ordering to the C++ standard library.
+            # Ties in different candidate components cannot change the relative
+            # insertion order inside either component. Connectivity cleanup
+            # only removes candidate edges, so those components cannot join.
+            # Keep the reference fallback for ties connected even indirectly.
+            graph = csr_matrix(
+                (
+                    np.ones(len(atom_indices), dtype=np.bool_),
+                    (atom_indices, neighbor_indices),
+                ),
+                shape=(atomnumber, atomnumber),
+            )
+            _, labels = connected_components(graph, directed=False)
+            component_order = np.lexsort((positions[:, 2], labels))
+            component_labels = labels[component_order]
+            component_z = positions[component_order, 2]
+            if np.any(
+                (component_labels[1:] == component_labels[:-1])
+                & (component_z[1:] == component_z[:-1])
+            ):
+                return None
 
         z_rank = np.empty(atomnumber, dtype=np.intp)
         z_rank[z_order] = np.arange(atomnumber, dtype=np.intp)
