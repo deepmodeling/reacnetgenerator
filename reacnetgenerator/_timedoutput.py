@@ -7,9 +7,11 @@ import tempfile
 from collections import Counter
 from contextlib import closing
 from datetime import datetime, timezone
+from itertools import islice
 from pathlib import Path
 
 import h5py
+import numpy as np
 
 from ._moleculepresence import _iter_molecule_presence
 from ._moleculepresence import _signal_ranges as _signal_ranges
@@ -20,6 +22,7 @@ from .utils import bytestolist, get_timestep_value
 SCHEMA_VERSION = "1.1"
 _BLOCK_ROWS = 8192
 _BLOCK_BYTES = 1024 * 1024
+_NUMERIC_MIN_ROWS = 32
 
 
 class _Column:
@@ -50,6 +53,38 @@ class _Column:
             self.dataset[start:] = self.rows
             self.rows.clear()
             self.bytes = 0
+
+    def extend_numeric(self, values):
+        """Append a one-dimensional integer array within the scalar buffer limits.
+
+        Validate before narrowing to the schema's signed int64 representation.
+        Only one buffer-sized slice becomes Python scalars at a time, including
+        for noncontiguous or non-native-endian input. A later invalid block may
+        leave a written prefix; the writer's atomic publication owns rollback.
+        """
+        if self.dataset.dtype != np.dtype("<i8"):
+            raise TypeError("Numeric batches require a signed int64 column")
+        if not isinstance(values, np.ndarray) or values.dtype.kind not in "iu":
+            raise TypeError("Numeric batches require an integer array")
+        if values.ndim != 1:
+            raise ValueError("Numeric batches require a one-dimensional array")
+        offset = 0
+        while offset < len(values):
+            free = min(_BLOCK_ROWS - len(self.rows), (_BLOCK_BYTES - self.bytes) // 8)
+            if free <= 0:
+                if self.rows:
+                    self.flush()
+                    continue
+                # Match append() when a single scalar exceeds a tiny budget.
+                free = 1
+            block = values[offset : offset + free]
+            if block.dtype.kind == "u" and int(block.max()) > np.iinfo(np.int64).max:
+                raise OverflowError("Numeric batch value exceeds signed int64")
+            self.rows.extend(block.tolist())
+            self.bytes += len(block) * 8
+            offset += len(block)
+            if len(self.rows) >= _BLOCK_ROWS or self.bytes >= _BLOCK_BYTES:
+                self.flush()
 
 
 class _TimedOutputWriter:
@@ -162,6 +197,44 @@ class _TimedOutputWriter:
         for name, value in values.items():
             self.columns[f"{group}/{name}"].append(value)
 
+    def _extend_numeric(self, group, name, values):
+        """Keep short records cheap and convert longer sequences in bounded slices."""
+        column = self.columns[f"{group}/{name}"]
+        if len(values) < _NUMERIC_MIN_ROWS:
+            for value in values:
+                column.append(int(value))
+        else:
+            for start in range(0, len(values), _BLOCK_ROWS):
+                column.extend_numeric(np.asarray(values[start : start + _BLOCK_ROWS]))
+
+    def _write_ranges(self, molecule_id, ranges):
+        """Batch aligned interval columns without collecting a molecule's history."""
+        ranges = iter(ranges)
+        # Leave room within one byte budget for tuple/int objects, the numeric
+        # view and ID array. Column buffers retain their existing independent
+        # limits; this bounded scratch space does not grow with range count.
+        chunk_rows = min(_BLOCK_ROWS, max(1, _BLOCK_BYTES // 256))
+        while block := list(islice(ranges, chunk_rows)):
+            if len(block) < _NUMERIC_MIN_ROWS:
+                for start, stop in block:
+                    self._append(
+                        "molecule_ranges",
+                        molecule_id=molecule_id,
+                        start_frame=start,
+                        end_frame=stop,
+                    )
+                del block
+                continue
+            values = np.asarray(block)
+            for name, column in (
+                ("molecule_id", np.full(len(block), molecule_id, dtype="<i8")),
+                ("start_frame", values[:, 0]),
+                ("end_frame", values[:, 1]),
+            ):
+                self.columns[f"molecule_ranges/{name}"].extend_numeric(column)
+            # Release scratch storage before constructing the next range block.
+            del block, values, column
+
     def _write_frames(self):
         counts = self.rng.source_frame_counts
         if counts is None or len(counts) != len(self.rng.inputfilename):
@@ -176,8 +249,7 @@ class _TimedOutputWriter:
             )
         for name in self.rng.atomname:
             self._append("atoms", type_name=str(name))
-        for atomtype in self.rng.atomtype:
-            self._append("atoms", type=int(atomtype))
+        self._extend_numeric("atoms", "type", self.rng.atomtype)
         source = offset = 0
         for frame in range(self.rng.step):
             original = frame * self.rng.stepinterval
@@ -209,31 +281,39 @@ class _TimedOutputWriter:
                     self.species[name] = len(self.species)
                     self._append("species", name=name)
                 self._append("molecules", species_id=self.species[name])
-                for atom in bytestolist(record[0]):
-                    self._append("molecules", atom_index=int(atom))
-                    self.atom_offset += 1
-                for pair, level in zip(
-                    bytestolist(record[1]), bytestolist(record[2]), strict=True
-                ):
-                    self._append(
-                        "molecules",
-                        bond_atom_index_1=int(pair[0]),
-                        bond_atom_index_2=int(pair[1]),
-                        bond_order=int(level),
-                    )
-                    self.bond_offset += 1
+                atoms = bytestolist(record[0])
+                self._extend_numeric("molecules", "atom_index", atoms)
+                self.atom_offset += len(atoms)
+                pairs, levels = bytestolist(record[1]), bytestolist(record[2])
+                if len(pairs) != len(levels):
+                    raise ValueError("Mismatched bond definitions")
+                if len(pairs) < _NUMERIC_MIN_ROWS:
+                    for pair, level in zip(pairs, levels, strict=True):
+                        self._append(
+                            "molecules",
+                            bond_atom_index_1=int(pair[0]),
+                            bond_atom_index_2=int(pair[1]),
+                            bond_order=int(level),
+                        )
+                else:
+                    for start in range(0, len(pairs), _BLOCK_ROWS):
+                        block = np.asarray(pairs[start : start + _BLOCK_ROWS])
+                        if block.ndim != 2 or block.shape[1] != 2:
+                            raise ValueError("Expected two atom indices per bond")
+                        self._extend_numeric(
+                            "molecules", "bond_atom_index_1", block[:, 0]
+                        )
+                        self._extend_numeric(
+                            "molecules", "bond_atom_index_2", block[:, 1]
+                        )
+                    self._extend_numeric("molecules", "bond_order", levels)
+                self.bond_offset += len(levels)
                 self._append(
                     "molecules",
                     atom_offsets=self.atom_offset,
                     bond_offsets=self.bond_offset,
                 )
-                for start, stop in presence.ranges():
-                    self._append(
-                        "molecule_ranges",
-                        molecule_id=count,
-                        start_frame=start,
-                        end_frame=stop,
-                    )
+                self._write_ranges(count, presence.ranges())
 
     def write_events(self, events):
         """Store aggregate counts and one auditable row per inferred instance."""
