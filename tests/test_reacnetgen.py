@@ -173,7 +173,7 @@ class TestReacNetGen:
 
         def fake_run_mp(nproc, **kwargs):
             run_mp_kwargs.update(kwargs)
-            return []
+            return (item for item in ())
 
         monkeypatch.setattr("reacnetgenerator._hmmfilter.run_mp", fake_run_mp)
         progress_kwargs = {}

@@ -25,6 +25,8 @@ import os
 import tempfile
 from contextlib import ExitStack, closing, suppress
 from functools import partial
+from multiprocessing import get_start_method
+from typing import Any
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -47,6 +49,42 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
+
+_HMM_BOUNDED_SIGNAL_FRAMES = 100_000
+_HMM_LEGACY_CHUNK_RECORDS = 100
+_HMM_WORKER_FUNCTION = None
+
+
+def _initialize_hmm_worker(step, model, getoriginfile, printfiltersignal):
+    """Retain prediction state without serializing the parent RNG context."""
+    global _HMM_WORKER_FUNCTION
+    _HMM_WORKER_FUNCTION = partial(
+        _convert_hmm_record,
+        step=step,
+        model=model,
+        getoriginfile=getoriginfile,
+        printfiltersignal=printfiltersignal,
+    )
+
+
+def _convert_hmm_record(item, *, step, model, getoriginfile, printfiltersignal):
+    """Expand and filter one record using only prediction state."""
+    value = bytestolist(item[-1])
+    origin = idx_to_signal(value, step)
+    originbytes = listtobytes(origin) if getoriginfile else None
+    hmmbytes = None
+    if model is not None:
+        hmmsignal = model.predict(origin).astype(bool)
+        # Origin output retains metadata even for filtered-out molecules.
+        if check_zero_signal(hmmsignal) or printfiltersignal or getoriginfile:
+            hmmbytes = listtobytes(hmmsignal)
+    return originbytes, hmmbytes, item
+
+
+def _filter_hmm_record(record):
+    """Filter one record without resending the RNG context with every task."""
+    assert _HMM_WORKER_FUNCTION is not None
+    return _HMM_WORKER_FUNCTION(record)
 
 
 def _expand_nohmm_origin(record, *, frame_count):
@@ -118,21 +156,13 @@ class _HMMFilter(SharedRNGData):
         self._model.emissionprob_ = self.b
 
     def _getoriginandhmm(self, item):
-        line_c = item
-        value = bytestolist(line_c[-1])
-        origin = idx_to_signal(value, self.step)
-        originbytes = listtobytes(origin) if self.getoriginfile else None
-        hmmbytes = None
-        if self.runHMM:
-            hmmsignal = self._model.predict(origin).astype(bool)
-            # Origin output retains metadata even for filtered-out molecules.
-            if (
-                check_zero_signal(hmmsignal)
-                or self.printfiltersignal
-                or self.getoriginfile
-            ):
-                hmmbytes = listtobytes(hmmsignal)
-        return originbytes, hmmbytes, line_c
+        return _convert_hmm_record(
+            item,
+            step=self.step,
+            model=self._model if self.runHMM else None,
+            getoriginfile=self.getoriginfile,
+            printfiltersignal=self.printfiltersignal,
+        )
 
     def _cal_nohmm(self):
         """Reuse definitions and store only dense fallback signals, in order."""
@@ -190,6 +220,7 @@ class _HMMFilter(SharedRNGData):
             raise ValueError("Molecule count differs from declared count")
 
     def _calhmm(self):
+        """Filter aligned streams with bounded long-signal task admission."""
         if not self.runHMM:
             try:
                 self._cal_nohmm()
@@ -222,7 +253,19 @@ class _HMMFilter(SharedRNGData):
                 self.hmmfilename = fh.name
             else:
                 self.hmmfilename = None
-            if self.nproc == 1:
+            workers = self.nproc
+            bounded = self.temp1it and self.step >= _HMM_BOUNDED_SIGNAL_FRAMES
+            if bounded:
+                # The legacy runner executes 100 records per pool task. Avoid
+                # increasing simultaneous Viterbi working arrays when replacing
+                # those chunks with individual tasks; small inputs run locally.
+                workers = min(
+                    workers,
+                    (self.temp1it + _HMM_LEGACY_CHUNK_RECORDS - 1)
+                    // _HMM_LEGACY_CHUNK_RECORDS,
+                )
+            limits: dict[str, Any] = {}
+            if workers == 1:
                 # Reuse the initialized model and consume each record together
                 # with its origin and filtered signal, without a worker pool.
                 records = itertools.zip_longest(*[read_compressed_block(ft)] * 4)
@@ -234,20 +277,58 @@ class _HMMFilter(SharedRNGData):
                     disable=None,
                 )
             else:
+                # A default 100-record pool chunk retains many signal results.
+                # Long signals amortize per-record scheduling; bound submitted
+                # but unconsumed records. One decoded signal still scales with
+                # the number of frames; this is not a total memory bound.
+                # Forkserver per-record transport has higher observed overhead.
+                # Retain legacy chunks there, but exclude the RNG context from
+                # the callable serialized with each chunk as well.
+                chunked_forkserver = bounded and get_start_method() == "forkserver"
+                function = (
+                    partial(
+                        _convert_hmm_record,
+                        step=self.step,
+                        model=self._model,
+                        getoriginfile=self.getoriginfile,
+                        printfiltersignal=self.printfiltersignal,
+                    )
+                    if chunked_forkserver
+                    else _filter_hmm_record
+                    if bounded
+                    else self._getoriginandhmm
+                )
+                limits = (
+                    {
+                        "chunksize": 1,
+                        "max_inflight": 2 * workers,
+                        "initializer": _initialize_hmm_worker,
+                        "initargs": (
+                            self.step,
+                            self._model,
+                            self.getoriginfile,
+                            self.printfiltersignal,
+                        ),
+                    }
+                    if bounded and not chunked_forkserver
+                    else {}
+                )
                 results = run_mp(
-                    self.nproc,
-                    func=self._getoriginandhmm,
+                    workers,
+                    func=function,
                     l=read_compressed_block(ft),
                     nlines=4,
                     total=self.temp1it,
                     desc=self.description,
                     unit="molecule",
+                    **limits,
                 )
             hmmit = 0
-            for originbytes, hmmbytes, line_c in results:
-                if originbytes is not None or hmmbytes is not None:
-                    appendIfNotNone(fo, originbytes)
-                    appendIfNotNone(fh, hmmbytes)
-                    hmmit += 1
-                    ft2.extend(line_c)
+            with closing(results):
+                for originbytes, hmmbytes, line_c in results:
+                    if originbytes is not None or hmmbytes is not None:
+                        appendIfNotNone(fo, originbytes)
+                        appendIfNotNone(fh, hmmbytes)
+                        hmmit += 1
+                        ft2.extend(line_c)
         self.hmmit = hmmit
