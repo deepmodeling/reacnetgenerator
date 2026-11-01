@@ -7,11 +7,14 @@ are unchanged.
 
 ## Scheduling and resource limits
 
-Fork batches start at 256 records per requested worker. Spawn and forkserver
-retain the existing ordered per-record path below 8,192 records per worker.
-These conservative admission thresholds were checked at several workload
-sizes, with two workers and additional four-worker controls. They are not a
-universal optimal crossover or a new default worker count.
+Fork batches start at `256 * min(nproc, 4)` records for `nproc > 1`.
+The [fork admission update](fork_smiles_admission.md) caps the threshold at
+1,024 records so requesting more workers does not restore per-record transport
+for medium inputs. Spawn and forkserver retain the ordered per-record path
+below 8,192 records per worker. These thresholds are not a universal optimal
+crossover or a new default worker count. The historical measurements below used
+the original fork threshold of 256 records per requested worker, with two-worker
+and additional four-worker controls; those configurations are unchanged.
 
 Normal batches contain at most 64 records, 256 KiB of serialized record input,
 and a 4 MiB decoded-size estimate. The estimate uses LZ4 content lengths with

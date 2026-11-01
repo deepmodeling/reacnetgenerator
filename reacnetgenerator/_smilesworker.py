@@ -25,12 +25,14 @@ _SMILES_WORKER_STATE = None
 
 def _should_batch_smiles(molecule_count, nproc):
     """Retain ordered per-record scheduling for small startup-sensitive inputs."""
-    threshold = (
-        _SMILES_FORK_RECORDS_PER_WORKER
-        if get_start_method() == "fork"
-        else _SMILES_SPAWN_RECORDS_PER_WORKER
-    )
-    return nproc > 1 and molecule_count >= threshold * nproc
+    if get_start_method() == "fork":
+        # More requested workers should not push medium inputs back to
+        # per-record transport. Keep the measured two/four-worker crossover;
+        # cap admission at 1024 records without changing the pool size.
+        threshold = _SMILES_FORK_RECORDS_PER_WORKER * min(nproc, 4)
+    else:
+        threshold = _SMILES_SPAWN_RECORDS_PER_WORKER * nproc
+    return nproc > 1 and molecule_count >= threshold
 
 
 def _smiles_record_cost(record):
