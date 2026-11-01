@@ -18,6 +18,7 @@ import platform
 import resource
 import tempfile
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -78,22 +79,26 @@ def prepare(root, args):
     return filter, source
 
 
+@contextmanager
+def signal_blocks(filename):
+    """Keep one optional signal file open only while its blocks are consumed."""
+    if filename:
+        with open(filename, "rb") as stream:
+            yield utils.read_compressed_block(stream)
+    else:
+        yield None
+
+
 def fingerprint(filter):
     """Verify aligned definition/origin/HMM streams independent of worker order."""
-    from contextlib import ExitStack
-
     signatures = []
-    with ExitStack() as stack:
-        definitions = _iter_molecule_records(
-            stack.enter_context(open(filter.moleculetemp2filename, "rb"))
-        )
-        streams = []
-        for name in (filter.originfilename, filter.hmmfilename):
-            streams.append(
-                utils.read_compressed_block(stack.enter_context(open(name, "rb")))
-                if name
-                else None
-            )
+    with (
+        open(filter.moleculetemp2filename, "rb") as definitions_file,
+        signal_blocks(filter.originfilename) as origin,
+        signal_blocks(filter.hmmfilename) as filtered,
+    ):
+        definitions = _iter_molecule_records(definitions_file)
+        streams = (origin, filtered)
         for record in definitions:
             key = int(utils.bytestolist(record[0])[0])
             row = [key, hashlib.sha256(b"".join(record)).hexdigest()]

@@ -151,3 +151,47 @@ performance has not been measured. For 100k-frame integration use 80 pairs and
 output paths specified as in the [fixed-window protocol](isomer_candidates.md).
 Pre-read the trajectory before each invocation; omit `--hmm` for the pilot
 no-HMM control.
+
+## Same-host diagnostic for the automated benchmark warning
+
+The initial CodSpeed report for this PR reported a 28.19% aggregate degradation,
+while flagging all 12 significantly changed benchmarks as using different
+hardware and warning about Walltime outside Macro Runners. This does not identify
+which changes are caused by code. The functions timed by those tests do not call
+the new HMM scheduler; detection, route/reaction kernels and CLI/import paths are
+unchanged, as is `_getoriginandhmm` itself.
+
+We replayed those 12 checked-in test bodies on CPU 0 with the same dependency
+and source environments, in five alternating fresh-process pairs. The local
+harness warms each callable, selects iterations targeting 80 ms, and records
+seven timing blocks per process; CLI/import tests use one subprocess per block.
+Preparation is outside numerical timers. This is a local wall-clock diagnostic,
+not a CodSpeed score or a recreation of its runner.
+
+| Test body            | Median elapsed-time change |
+| -------------------- | -------------------------: |
+| detect_param0        |                    -0.636% |
+| detect_param1        |                    +0.747% |
+| detect_param2        |                    +0.477% |
+| hmm_param0           |                    -0.048% |
+| hmm_param2           |                    +0.009% |
+| hmm_param3           |                    +0.133% |
+| atom_route           |                    -0.507% |
+| large_periodic_frame |                    -0.502% |
+| lammps_parser        |                    +0.494% |
+| transition_graph     |                    +0.450% |
+| cli_help             |                    +0.024% |
+| module_import        |                    -0.005% |
+
+Changes range from −0.64% to +0.75%; the reported aggregate slowdown was not
+reproduced on this host. This does not prove identical performance on every
+runner. [All 120 test-body samples](hmm_kernel_audit.csv) retain the five pairs.
+Run the portable harness with both installations and the same CPU affinity,
+using the environment settings above, and alternate their order:
+
+```sh
+taskset -c 0 "$RNG_BASE_PYTHON" benchmarks/hmm_kernel_audit.py \
+    --variant base --json base-kernels.json
+taskset -c 0 "$RNG_HEAD_PYTHON" benchmarks/hmm_kernel_audit.py \
+    --variant candidate --json head-kernels.json
+```

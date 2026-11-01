@@ -33,6 +33,7 @@ def tree_memory(pid):
                 try:
                     pending.extend(map(int, path.read_text().split()))
                 except (OSError, ValueError):
+                    # A worker can exit between listing and reading its threads.
                     pass
             fields = {
                 line.split(":", 1)[0]: int(line.split()[1]) * 1024
@@ -43,6 +44,7 @@ def tree_memory(pid):
             uss += sum(fields.get(key, 0) for key in keys if key != "Pss")
             count += 1
         except (OSError, ValueError):
+            # Exit races can remove mappings; sample the remaining live tree.
             pass
     return pss, uss, count
 
