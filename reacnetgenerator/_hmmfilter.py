@@ -324,7 +324,7 @@ class _HMMFilter(SharedRNGData):
                     **limits,
                 )
             hmmit = 0
-            with closing(results) if limits else ExitStack():
+            with closing(results):
                 for originbytes, hmmbytes, line_c in results:
                     if originbytes is not None or hmmbytes is not None:
                         appendIfNotNone(fo, originbytes)

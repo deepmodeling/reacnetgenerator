@@ -119,7 +119,7 @@ def test_long_hmm_dispatch_boundary(tmp_path, monkeypatch, frames, bounded, meth
     def capture(nproc, **kwargs):
         """Inspect dispatch parameters without running long boundary signals."""
         calls.append((nproc, kwargs))
-        return iter(()) if not bounded else (item for item in ())
+        return (item for item in ())
 
     monkeypatch.setattr(_hmmfilter, "run_mp", capture)
     monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
@@ -288,3 +288,49 @@ def test_hmm_worker_preserves_model_without_parent_context(
     parallel._calhmm()
     assert _read(default) != _read(serial)
     assert _read(serial) == _read(parallel)
+
+
+@pytest.mark.parametrize("method", ["spawn", "forkserver"])
+@pytest.mark.parametrize("long_signal", [False, True])
+def test_consumer_failure_closes_hmm_pool_with_retained_traceback(
+    tmp_path, monkeypatch, method, long_signal
+):
+    """Keeping a write-error traceback alive must not keep pool workers alive."""
+    if method not in multiprocessing.get_all_start_methods():
+        pytest.skip(f"{method} unavailable")
+    _use_hmm_context(monkeypatch, method)
+    monkeypatch.setattr(
+        _hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 64 if long_signal else 256
+    )
+    monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
+    monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
+    filter = _filter(tmp_path / "input", 2)
+
+    def failed_write(*args, **kwargs):
+        """Fail definition output after the pool has delivered a result."""
+        raise OSError("intentional HMM output failure")
+
+    monkeypatch.setattr(utils.WriteBuffer, "extend", failed_write)
+    before = {child.pid for child in multiprocessing.active_children()}
+    iterators = []
+
+    def track_results(*args, **kwargs):
+        """Keep failed-test cleanup under the iterator's own pool lifecycle."""
+        results = utils.run_mp(*args, **kwargs)
+        iterators.append(results)
+        return results
+
+    monkeypatch.setattr(_hmmfilter, "run_mp", track_results)
+    try:
+        with pytest.raises(OSError, match="intentional HMM output failure") as error:
+            filter._calhmm()
+        # Retain the exception and its _calhmm frame through the worker check.
+        # Otherwise garbage collection can hide missing iterator cleanup.
+        assert error.value.__traceback__ is not None
+        assert {child.pid for child in multiprocessing.active_children()} == before
+        assert Path(filter.moleculetempfilename).exists()
+    finally:
+        # Clean up after a red regression test without terminating individual
+        # workers that a still-running Pool would otherwise replace.
+        for results in iterators:
+            results.close()

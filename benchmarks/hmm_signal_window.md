@@ -22,9 +22,9 @@ The admission bound applies to fork/spawn pools, not forkserver chunks or total
 RSS. A prediction's working arrays still scale with frame count. The worker cap
 avoids activating more simultaneous prediction arrays than the old chunks.
 
-## Final measurements
+## Performance measurements at f840e83
 
-Baseline: official `f213256926e113b8500befcea1ea6c76d784cadb`. Final candidate
+Baseline: official `f213256926e113b8500befcea1ea6c76d784cadb`. Measured candidate `f840e83`
 `_hmmfilter.py` SHA-256: `b5f9a61ac28747f9fd95010e304fca337bf8bcfa59b829dce4c61c447ccec6be`.
 Both use frozen source overlays in one Python 3.12.12 environment, NumPy 2.5.4,
 hmmlearn 0.3.3 and LZ4 4.4.5, with the same native extension. Git/file hashes
@@ -56,6 +56,9 @@ single-process, low-record-count, filtered-only and 1M-frame forkserver controls
 use one pair each; they check correctness and do not establish speed claims.
 [All 42 final timing samples](hmm_signal_window_timings.csv) retain controls and
 source hashes. Windows/macOS performance has not been measured.
+Forkserver total times vary across independent reviews; these fixture samples
+do not establish a stable speedup for that start method. The subsequent iterator
+cleanup below was not used to regenerate these timing or memory samples.
 
 ## Review-driven correction
 
@@ -109,8 +112,8 @@ The standalone [memory sampler](hmm_signal_memory.py) can repeat these audits.
 
 ## Correctness and scope
 
-700 non-GUI tests pass: 6 GUI deselections, 6 xfailed and 3 non-strict XPASS.
-The 25 scheduling cases cover boundaries, the forkserver chunk fallback, actual
+704 non-GUI tests pass: 6 GUI deselections, 6 xfailed and 3 non-strict XPASS.
+The 29 scheduling cases cover boundaries, the forkserver chunk fallback, actual
 fork/spawn/forkserver output alignment, output flags, forced reordering, worker
 errors/exits, failed consumption, and payload sizes. Model-state tests preserve
 modified probabilities and algorithm selection while the parent RNG contains
@@ -121,7 +124,7 @@ All 42 final timing samples and four audits have identical aligned definition
 and signal fingerprints within each configuration. Streams are joined before
 normalization by atom ID, so separate sorting cannot hide misalignment.
 
-All 14 fresh integration outputs pass native validation; seven base/candidate
+At `f840e83`, all 14 integration outputs pass native validation; seven base/candidate
 pairs preserve exact labels, graphs, ranges, populations, counts and transition
 evidence after internal ID/table-order normalization. Long prepared HMM→MATRIX
 cases at 100k/1M frames cover `miso=0/1/2` with 240/102/240 records; an additional
@@ -131,6 +134,27 @@ through MATRIX with HMM, plus a 101-frame no-HMM control. The real windows are
 below the threshold and do not establish a production long-trajectory speedup.
 [Integration samples](hmm_signal_window_integration.csv) are correctness timings,
 not repeated speed measurements.
+
+## Iterator cleanup and run metadata
+
+All HMM result iterators are closed explicitly, including the forkserver chunk
+fallback, short-signal pools and the local progress iterator. If writing a
+result fails, closing `run_mp` terminates and joins its pool before the error
+escapes. Cleanup does not depend on releasing an exception traceback or garbage
+collecting the generator.
+
+Four regression cases retain the write-error traceback while checking that no
+new workers remain: short/long signals with spawn/forkserver. Before the fix,
+both short-signal cases and the long forkserver case leaked workers. The existing
+bounded long-signal spawn path already closed its iterator. All four now pass.
+Two additional 100k-frame / 240-record HMM→MATRIX comparisons against `f840e83`
+cover spawn with `miso=2` and forkserver with `miso=1`; all four outputs pass
+native validation and the two pairs preserve exact semantic evidence.
+
+The pipeline benchmark now records `method` and `miso` alongside `nproc`, so
+its JSON result identifies the actual scheduling and MISO configuration. This
+follow-up changes cleanup and metadata only; the performance tables above retain
+their measured source revision.
 
 ## Reproduce
 

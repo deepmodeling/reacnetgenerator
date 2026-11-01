@@ -82,6 +82,8 @@ def main():
         "records": rng.temp1it,
         "retained": rng.hmmit,
         "nproc": args.nproc,
+        "method": args.method,
+        "miso": args.miso,
         "native_frames": summary.frames,
         "native_events": summary.reaction_events,
     }
