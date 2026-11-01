@@ -38,7 +38,11 @@ from tqdm.auto import tqdm
 
 from ._moleculepresence import _iter_molecule_presence
 from ._reaction import ReactionsFinder
-from ._smilesworker import _run_smiles_batches, _should_batch_smiles
+from ._smilesworker import (
+    _run_smiles_batches,
+    _run_smiles_records,
+    _should_batch_smiles,
+)
 from ._species import species_molecule
 from ._step3state import (
     _STEP3_SCAN_ROWS,
@@ -970,8 +974,7 @@ class _CollectSMILESPaths(_CollectPaths):
                 disable=None,
             )
         if (
-            _should_batch_smiles(self.hmmit, self.nproc)
-            and type(self) is _CollectSMILESPaths
+            type(self) is _CollectSMILESPaths
             and getattr(func, "__func__", None)
             in (
                 _CollectSMILESPaths._calmoleculeSMILESname,
@@ -980,7 +983,12 @@ class _CollectSMILESPaths(_CollectPaths):
             and not any(callable(value) for value in vars(self).values())
         ):
             # Custom collectors/callables keep their bound-method behavior.
-            return _run_smiles_batches(
+            runner = (
+                _run_smiles_batches
+                if _should_batch_smiles(self.hmmit, self.nproc)
+                else _run_smiles_records
+            )
+            return runner(
                 self, molecule_file, func.__name__ == "_calmoleculeSMILESfrequency"
             )
         return run_mp(
