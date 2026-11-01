@@ -151,6 +151,55 @@ def test_small_spawn_retains_original_ordered_runner(tmp_path, monkeypatch):
     assert calls == [2]
 
 
+@pytest.mark.parametrize(
+    "nproc, boundary", [(2, 512), (4, 1024), (8, 1024), (32, 1024)]
+)
+def test_fork_admission_keeps_medium_inputs_batched(monkeypatch, nproc, boundary):
+    """Requesting more workers must not restore per-record transport above 1024."""
+    monkeypatch.setattr(workers, "get_start_method", lambda: "fork")
+    assert not workers._should_batch_smiles(boundary - 1, nproc)
+    assert workers._should_batch_smiles(boundary, nproc)
+    assert not workers._should_batch_smiles(boundary, 1)
+
+
+@pytest.mark.parametrize("method", ["spawn", "forkserver"])
+@pytest.mark.parametrize("nproc", [2, 4, 8, 32])
+def test_nonfork_admission_retains_startup_guard(monkeypatch, method, nproc):
+    """The fork cap must not lower the import-sensitive spawn/forkserver threshold."""
+    monkeypatch.setattr(workers, "get_start_method", lambda: method)
+    assert not workers._should_batch_smiles(8192 * nproc - 1, nproc)
+    assert workers._should_batch_smiles(8192 * nproc, nproc)
+
+
+@pytest.mark.parametrize("miso", [0, 1, 2])
+def test_newly_admitted_fork_input_preserves_outputs(tmp_path, monkeypatch, miso):
+    """The new boundary uses the requested pool size and exact ordered outputs."""
+    monkeypatch.setattr(workers, "get_start_method", lambda: "fork")
+    records = _records(1024)
+    local = _collector(tmp_path / "local", records, miso, 1)
+    parallel = _collector(tmp_path / "parallel", records, miso, 8)
+    local._printmoleculename()
+    calls = []
+
+    def checked(nproc, **kwargs):
+        assert nproc == 8
+        assert kwargs["max_inflight"] == 16
+        calls.append(kwargs["total"])
+        return run_mp(nproc, **kwargs)
+
+    monkeypatch.setattr(workers, "run_mp", checked)
+    children = {p.pid for p in multiprocessing.active_children()}
+    parallel._printmoleculename()
+    assert calls and 1 < calls[0] < len(records)
+    assert list(parallel.mname) == list(local.mname)
+    for attribute in ("moleculefilename", "moleculetimelinefilename"):
+        assert (
+            Path(getattr(parallel, attribute)).read_bytes()
+            == Path(getattr(local, attribute)).read_bytes()
+        )
+    assert {p.pid for p in multiprocessing.active_children()} == children
+
+
 def test_admission_is_bounded_by_decoded_and_wire_sizes(tmp_path, monkeypatch):
     """A tiny compressed frame range must not share a batch with other records."""
     collector = _collector(
