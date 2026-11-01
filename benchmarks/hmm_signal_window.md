@@ -1,109 +1,136 @@
-# Bounded HMM scheduling for long signals
+# HMM scheduling for long signals
 
-The legacy runner groups 100 HMM records into each pool task. A chunk retains
-many compressed definitions/results, and small inputs still create the full
-requested pool. For at least 100,000 analyzed frames this change uses at most
-`min(nproc, ceil(record_count / 100))` effective workers: the maximum number of
-concurrent predictions the legacy chunks could have supplied. One effective
-worker runs in the parent. Larger pools submit individual records with at most
-`2 * effective_workers` submitted-but-unconsumed records.
+The legacy runner groups 100 HMM records into each pool task, retaining large
+input/result batches. For at least 100,000 analyzed frames this change uses at
+most `min(nproc, ceil(record_count / 100))` effective workers: the maximum number
+of concurrent predictions the legacy chunks could have supplied. One effective
+worker runs in the parent; the requested `nproc` remains available to later stages.
 
-The original initialized converter is installed once per worker. Its RNG
-context, including frame metadata, is not serialized again with every record.
-This preserves the model and filter flags while amortizing context transfer.
-The requested `nproc` remains unchanged for later stages. Short signals and
-no-HMM processing retain their scheduling. Completed results remain unordered;
-each molecule definition stays together with its origin and filtered signal.
+For larger fork/spawn pools, submit individual records with at most
+`2 * effective_workers` submitted-but-unconsumed records. Initialize each worker
+with only the actual model, frame count and two output flags. Forkserver retains
+100-record chunks because measured per-record transport overhead outweighs the
+benefit on the 100k-frame fixture; its chunk callable also carries only prediction
+state. The full RNG context is excluded from both transport paths.
 
-This bounds record admission, not total RSS. One prediction's working arrays
-and the initialized converter still scale with trajectory size. The worker cap
-is necessary: merely reducing chunk size can activate many more HMM working
-arrays simultaneously when there are few records.
+Serial and worker paths share one conversion function. Passing the actual model
+preserves changed prediction parameters and algorithm selection. Short signals
+and no-HMM processing retain their scheduling. Results remain unordered; each
+molecule definition stays together with its origin and filtered signal.
 
-## Method and measurements
+The admission bound applies to fork/spawn pools, not forkserver chunks or total
+RSS. A prediction's working arrays still scale with frame count. The worker cap
+avoids activating more simultaneous prediction arrays than the old chunks.
 
-Baseline: official `f213256926e113b8500befcea1ea6c76d784cadb`. Measured candidate
-`_hmmfilter.py` SHA-256: `69b3ffe9198aa0bbcfde4a3c9a70c5f841ded0bd4e6678d2b74d2c985fdaead5`.
+## Final measurements
+
+Baseline: official `f213256926e113b8500befcea1ea6c76d784cadb`. Final candidate
+`_hmmfilter.py` SHA-256: `b5f9a61ac28747f9fd95010e304fca337bf8bcfa59b829dce4c61c447ccec6be`.
 Both use frozen source overlays in one Python 3.12.12 environment, NumPy 2.5.4,
 hmmlearn 0.3.3 and LZ4 4.4.5, with the same native extension. Git/file hashes
-identify the implementation rather than the environment's installed version label.
-Runs are sequential on one Linux AMD EPYC 7K62 host, CPUs 0–31, native math
-threads limited to one, with no concurrent tests or builds.
+identify code rather than the environment's installed version label. All final
+runs are sequential on one Linux AMD EPYC 7K62 host, CPUs 0–31, native math
+threads limited to one; tests and checks finish before timing begins.
 
-The fixture constructs real `ReacNetGenerator` / `_HMMFilter` instances, including
-a frame-sized timestep dictionary. Synthetic observations mix dense intervals
-and periodic sparse indices. They exercise transport and HMM filtering, not
-additional chemical trajectories. Model preparation, compressed input creation,
-explicit pre-reading and output fingerprints are outside the timer; `_calhmm`
-includes pool startup, decoding, prediction, compression, writing and cleanup.
-Speed samples use fresh processes and three alternating AB/BA/AB pairs.
+The fixture constructs real `ReacNetGenerator` / `_HMMFilter` objects with a
+frame-sized timestep dictionary. Synthetic signals mix dense intervals and
+periodic sparse indices; they are transport/filtering tests, not additional
+chemical trajectories. Preparation, explicit input pre-reading and fingerprints
+are outside the timer. `_calhmm` includes pool startup, prediction, decoding,
+compression, writing and cleanup. Model probabilities match across variants.
 
-Medians in seconds:
+Each row below uses three alternating fresh-process AB/BA/AB pairs. Medians in
+seconds:
 
 | Workload                                          |  Base | Candidate | Change |
 | ------------------------------------------------- | ----: | --------: | -----: |
-| 100k frames, 40 records, 4 requested              | 0.291 |     0.228 | -21.6% |
-| 1M frames, 40 records, 4 requested                | 2.726 |     2.110 | -22.6% |
-| 1M frames, 400 records, 4 requested               | 8.424 |     6.854 | -18.6% |
-| 1M frames, 40 records, 32 requested               | 2.936 |     2.080 | -29.2% |
-| 1M frames, 400 records, 32 requested              | 8.564 |     6.944 | -18.9% |
-| 1M frames, 40 records, 4 requested, filtered-only | 2.700 |     2.039 | -24.5% |
-| 10k frames, 40 records, 4 requested               | 0.075 |     0.084 | +12.4% |
+| fork, 100k frames, 400 records, 4 requested       | 0.963 |     0.859 | -10.7% |
+| spawn, 100k frames, 400 records, 4 requested      | 2.799 |     2.168 | -22.5% |
+| forkserver, 100k frames, 400 records, 4 requested | 2.817 |     2.235 | -20.7% |
+| fork, 1M frames, 400 records, 32 requested        | 9.508 |     7.250 | -23.7% |
+| fork, 10k frames, 40 records, 4 requested         | 0.074 |     0.082 | +10.6% |
 
-The short control adds about 9 ms in these samples despite retaining the legacy
-scheduling path. This change does not claim a universal speedup.
+The short control changes by +7.8 ms (+10.6%) despite retaining
+legacy scheduling. No universal speedup is claimed. Below-threshold, boundary,
+single-process, low-record-count, filtered-only and 1M-frame forkserver controls
+use one pair each; they check correctness and do not establish speed claims.
+[All 42 final timing samples](hmm_signal_window_timings.csv) retain controls and
+source hashes. Windows/macOS performance has not been measured.
 
-The below-threshold, explicit single-process, spawn and forkserver controls use
-one pair each and are compatibility checks, not speed claims. Spawn/forkserver
-include both 40-record local cases and 400-record actual-pool cases at 100k
-frames. [All 54 speed samples](hmm_signal_window_timings.csv) retain negative
-controls and source hashes. The two-state model's probabilities are fixed and
-identical across variants; no parameter fitting is timed.
+## Review-driven correction
+
+Previous PR head `6a5e61e` passed a bound converter to each worker initializer.
+`SharedRNGData.rng` made that converter carry the full RNG context, including
+frame metadata. Earlier single-pair actual-pool samples already slowed down;
+classifying them only as compatibility checks missed a regression that required
+investigation. This issue is separate from the old CodSpeed hardware warning.
+
+We repeated the 100k-frame / 400-record / four-worker fixture in three cyclic
+orders: base/previous/trial, trial/base/previous, previous/trial/base. The initial
+trial transferred only prediction state but still used per-record forkserver
+transport. Medians in seconds:
+
+| Method     |  Base | Previous PR | Initial prediction-only trial |
+| ---------- | ----: | ----------: | ----------------------------: |
+| fork       | 0.962 |       0.842 |                         0.819 |
+| spawn      | 2.767 |       7.599 |                         2.115 |
+| forkserver | 2.866 |       9.289 |                         4.049 |
+
+This trial fixed spawn startup but left forkserver slower than the baseline.
+Separate phase diagnostics put its remaining overhead primarily in task
+consumption, so the final implementation keeps forkserver chunking. No global
+multiprocessing defaults or shared runner internals are changed.
+[All 27 review-stage samples](hmm_worker_state_review.csv) retain this rejected
+intermediate design (`candidate` in that file) separately from final samples.
+
+Using the real RNG constructor, the actual fork/spawn initializer envelope
+shrinks from 744,447 to 809 bytes at 100k frames and from
+9,747,480 to 809 bytes at 1M frames. This measures only
+serialized initialization state, not total memory or record payloads.
+
+## Memory and queue audits
 
 Separate Linux audits sample summed process-tree PSS and USS during filtering,
-with a 20 ms polling delay plus procfs read time. They also count pool admissions.
-Each configuration has one base/candidate pair; sampled peaks can miss brief
-allocations and do not establish a universal memory reduction. These timings
-are excluded from the speed table. PSS avoids summing shared pages as full RSS
-in every child. Ordinary per-process RSS columns include preparation and are
-not process-tree totals.
+with a 20 ms polling delay plus procfs read time. They also count admissions.
+Each configuration has one pair; sampled peaks can miss brief allocations and
+are not hard memory bounds. Audit timings are excluded from speed tables. PSS
+avoids counting shared pages in full in every child. Ordinary per-process RSS
+columns include preparation and are not process-tree totals.
 
-| Workload                             | Base tree PSS MiB | Candidate tree PSS MiB | Outstanding pool records, base / candidate |
-| ------------------------------------ | ----------------: | ---------------------: | -----------------------------------------: |
-| 1M frames, 40 records, 4 requested   |             872.3 |                  535.8 |                                     40 / 0 |
-| 1M frames, 400 records, 4 requested  |            2698.5 |                 1787.0 |                                    400 / 8 |
-| 1M frames, 40 records, 32 requested  |             924.3 |                  535.7 |                                     40 / 0 |
-| 1M frames, 400 records, 32 requested |            2913.5 |                 1792.7 |                                    400 / 8 |
+| Records (1M frames, fork, 32 requested) | Base tree PSS MiB | Candidate tree PSS MiB | Outstanding records, base / candidate |
+| --------------------------------------- | ----------------: | ---------------------: | ------------------------------------: |
+| 40                                      |             869.9 |                  535.7 |                                40 / 0 |
+| 400                                     |            2768.7 |                 1800.4 |                               400 / 8 |
 
 Zero queued records means local execution, not skipped analysis. The 400-record
-candidate cases use four workers and at most eight outstanding records.
-[Audit data](hmm_signal_window_memory.csv) include USS, process counts and sample
-counts. The portable [memory sampler](hmm_signal_memory.py) can repeat PSS/USS
-sampling independently of the optional queue instrumentation.
+fork candidate uses four workers and at most eight outstanding records.
+[Audit data](hmm_signal_window_memory.csv) include USS, process and sample counts.
+The standalone [memory sampler](hmm_signal_memory.py) can repeat these audits.
 
 ## Correctness and scope
 
-692 non-GUI tests pass, with 6 GUI deselections, 6 xfailed and 3 non-strict XPASS.
-Seventeen added cases cover pool/local boundaries, real fork/spawn output
-alignment, all origin/filter-output combinations, forced out-of-order completion,
-worker errors/exits, failed consumption, and exclusion of a large RNG context
-from individual task payloads. HMM parameters and prediction code are unchanged.
+700 non-GUI tests pass: 6 GUI deselections, 6 xfailed and 3 non-strict XPASS.
+The 25 scheduling cases cover boundaries, the forkserver chunk fallback, actual
+fork/spawn/forkserver output alignment, output flags, forced reordering, worker
+errors/exits, failed consumption, and payload sizes. Model-state tests preserve
+modified probabilities and algorithm selection while the parent RNG contains
+an unrelated unpicklable callback. Filtering calculations and retention rules
+are preserved.
 
-All 54 speed samples and eight audits retain identical normalized definition
-and signal fingerprints within each configuration. Definitions, origins and HMM
-signals are read together before normalization by atom ID, so misaligned streams
-cannot be hidden by independent sorting.
+All 42 final timing samples and four audits have identical aligned definition
+and signal fingerprints within each configuration. Streams are joined before
+normalization by atom ID, so separate sorting cannot hide misalignment.
 
-Twelve integration outputs pass native validation, and all six base/candidate
+All 14 fresh integration outputs pass native validation; seven base/candidate
 pairs preserve exact labels, graphs, ranges, populations, counts and transition
-evidence after internal ID/table-order normalization. Three prepared long-signal
-fixtures run HMM through MATRIX at 100k/1M frames with `miso=0/1/2`; they contain
-240/102/240 records and exercise the actual bounded pool with full RNG metadata.
-These are synthetic plumbing checks. Two real 5,001-frame, 2,600-atom windows
-run DETECT through MATRIX with HMM on, plus a 101-frame no-HMM control. Their
-signals are below the new threshold and do not establish a long-trajectory
-production speedup. [Integration samples](hmm_signal_window_integration.csv)
-contain single-pair correctness timings, not benchmark claims.
+evidence after internal ID/table-order normalization. Long prepared HMM→MATRIX
+cases at 100k/1M frames cover `miso=0/1/2` with 240/102/240 records; an additional
+100k-frame / 240-record case runs the full pipeline with forkserver. These are
+synthetic plumbing checks. Two real 5,001-frame, 2,600-atom windows run DETECT
+through MATRIX with HMM, plus a 101-frame no-HMM control. The real windows are
+below the threshold and do not establish a production long-trajectory speedup.
+[Integration samples](hmm_signal_window_integration.csv) are correctness timings,
+not repeated speed measurements.
 
 ## Reproduce
 
@@ -145,8 +172,9 @@ taskset -c 0-31 "$RNG_BASE_PYTHON" benchmarks/hmm_signal_pipeline.py \
 Use 10,000 / 99,999 / 100,000 frames for the short and boundary controls, 40
 records for low-task cases, and `--signals filtered` to suppress origin and
 zero-filter outputs. Requested worker counts are 1, 4 or 32. Start-method
-controls use `--method spawn` or `--method forkserver` on Linux; Windows/macOS
-performance has not been measured. For 100k-frame integration use 80 pairs and
+measurements use `--method spawn` or `--method forkserver` on Linux; Windows/macOS
+performance has not been measured. Use `hmm_signal_pipeline.py --method forkserver` to check that transport through
+MATRIX too. For 100k-frame integration use 80 pairs and
 `--miso 1` or `--miso 2`. Real-pipeline controls use `equal_z_candidates.py --mode pipeline --hmm --nproc 32 --miso 1 --atom-types C Cl H O`, with the input and fresh
 output paths specified as in the [fixed-window protocol](isomer_candidates.md).
 Pre-read the trajectory before each invocation; omit `--hmm` for the pilot
@@ -154,12 +182,16 @@ no-HMM control.
 
 ## Same-host diagnostic for the automated benchmark warning
 
+This section records a historical diagnostic at PR head `6a5e61e`. These
+kernel-only samples do not exercise pool initialization and cannot rule out
+the spawn/forkserver regression described above.
+
 The initial CodSpeed report for this PR reported a 28.19% aggregate degradation,
 while flagging all 12 significantly changed benchmarks as using different
 hardware and warning about Walltime outside Macro Runners. This does not identify
 which changes are caused by code. The functions timed by those tests do not call
 the new HMM scheduler; detection, route/reaction kernels and CLI/import paths are
-unchanged, as is `_getoriginandhmm` itself.
+unchanged at that head, as was `_getoriginandhmm` itself.
 
 We replayed those 12 checked-in test bodies on CPU 0 with the same dependency
 and source environments, in five alternating fresh-process pairs. The local

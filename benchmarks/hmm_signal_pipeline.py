@@ -8,6 +8,7 @@ DETECT performance. Preparation and native output validation are outside timing.
 
 import argparse
 import json
+import multiprocessing
 import time
 from pathlib import Path
 
@@ -24,12 +25,18 @@ def main():
     parser.add_argument("--frames", type=int, default=100000)
     parser.add_argument("--pairs", type=int, default=20)
     parser.add_argument("--nproc", type=int, default=4)
+    parser.add_argument(
+        "--method",
+        choices=multiprocessing.get_all_start_methods(),
+        default=multiprocessing.get_start_method(),
+    )
     parser.add_argument("--miso", type=int, choices=[0, 1, 2], default=1)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--json", type=Path, required=True)
     args = parser.parse_args()
     if args.frames < 16 or min(args.pairs, args.nproc) < 1:
         parser.error("Use at least 16 frames, one pair and one worker")
+    multiprocessing.set_start_method(args.method, force=True)
     args.output.mkdir(parents=True, exist_ok=False)
     source = args.output / "synthetic.bond"
     source.touch()

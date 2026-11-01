@@ -25,6 +25,7 @@ import os
 import tempfile
 from contextlib import ExitStack, closing, suppress
 from functools import partial
+from multiprocessing import get_start_method
 from typing import Any
 
 import numpy as np
@@ -54,10 +55,30 @@ _HMM_LEGACY_CHUNK_RECORDS = 100
 _HMM_WORKER_FUNCTION = None
 
 
-def _initialize_hmm_worker(function):
-    """Retain the initialized converter once, including its original model."""
+def _initialize_hmm_worker(step, model, getoriginfile, printfiltersignal):
+    """Retain prediction state without serializing the parent RNG context."""
     global _HMM_WORKER_FUNCTION
-    _HMM_WORKER_FUNCTION = function
+    _HMM_WORKER_FUNCTION = partial(
+        _convert_hmm_record,
+        step=step,
+        model=model,
+        getoriginfile=getoriginfile,
+        printfiltersignal=printfiltersignal,
+    )
+
+
+def _convert_hmm_record(item, *, step, model, getoriginfile, printfiltersignal):
+    """Expand and filter one record using only prediction state."""
+    value = bytestolist(item[-1])
+    origin = idx_to_signal(value, step)
+    originbytes = listtobytes(origin) if getoriginfile else None
+    hmmbytes = None
+    if model is not None:
+        hmmsignal = model.predict(origin).astype(bool)
+        # Origin output retains metadata even for filtered-out molecules.
+        if check_zero_signal(hmmsignal) or printfiltersignal or getoriginfile:
+            hmmbytes = listtobytes(hmmsignal)
+    return originbytes, hmmbytes, item
 
 
 def _filter_hmm_record(record):
@@ -135,21 +156,13 @@ class _HMMFilter(SharedRNGData):
         self._model.emissionprob_ = self.b
 
     def _getoriginandhmm(self, item):
-        line_c = item
-        value = bytestolist(line_c[-1])
-        origin = idx_to_signal(value, self.step)
-        originbytes = listtobytes(origin) if self.getoriginfile else None
-        hmmbytes = None
-        if self.runHMM:
-            hmmsignal = self._model.predict(origin).astype(bool)
-            # Origin output retains metadata even for filtered-out molecules.
-            if (
-                check_zero_signal(hmmsignal)
-                or self.printfiltersignal
-                or self.getoriginfile
-            ):
-                hmmbytes = listtobytes(hmmsignal)
-        return originbytes, hmmbytes, line_c
+        return _convert_hmm_record(
+            item,
+            step=self.step,
+            model=self._model if self.runHMM else None,
+            getoriginfile=self.getoriginfile,
+            printfiltersignal=self.printfiltersignal,
+        )
 
     def _cal_nohmm(self):
         """Reuse definitions and store only dense fallback signals, in order."""
@@ -268,19 +281,41 @@ class _HMMFilter(SharedRNGData):
                 # Long signals amortize per-record scheduling; bound submitted
                 # but unconsumed records. One decoded signal still scales with
                 # the number of frames; this is not a total memory bound.
+                # Forkserver per-record transport has higher observed overhead.
+                # Retain legacy chunks there, but exclude the RNG context from
+                # the callable serialized with each chunk as well.
+                chunked_forkserver = bounded and get_start_method() == "forkserver"
+                function = (
+                    partial(
+                        _convert_hmm_record,
+                        step=self.step,
+                        model=self._model,
+                        getoriginfile=self.getoriginfile,
+                        printfiltersignal=self.printfiltersignal,
+                    )
+                    if chunked_forkserver
+                    else _filter_hmm_record
+                    if bounded
+                    else self._getoriginandhmm
+                )
                 limits = (
                     {
                         "chunksize": 1,
                         "max_inflight": 2 * workers,
                         "initializer": _initialize_hmm_worker,
-                        "initargs": (self._getoriginandhmm,),
+                        "initargs": (
+                            self.step,
+                            self._model,
+                            self.getoriginfile,
+                            self.printfiltersignal,
+                        ),
                     }
-                    if bounded
+                    if bounded and not chunked_forkserver
                     else {}
                 )
                 results = run_mp(
                     workers,
-                    func=_filter_hmm_record if bounded else self._getoriginandhmm,
+                    func=function,
                     l=read_compressed_block(ft),
                     nlines=4,
                     total=self.temp1it,

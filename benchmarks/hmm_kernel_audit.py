@@ -108,7 +108,9 @@ def main():
         "variant": args.variant,
         "results": results,
         "python": sys.version,
-        "affinity": sorted(os.sched_getaffinity(0)),
+        "affinity": sorted(os.sched_getaffinity(0))
+        if hasattr(os, "sched_getaffinity")
+        else None,
         "source": _detect.__file__,
         "hmm_source_sha256": hashlib.sha256(
             Path(_hmmfilter.__file__).read_bytes()

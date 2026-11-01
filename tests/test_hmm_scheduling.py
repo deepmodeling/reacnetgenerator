@@ -17,6 +17,12 @@ from reacnetgenerator._moleculepresence import _iter_molecule_records
 from tests.test_indexed_step3 import _use_context
 
 
+def _use_hmm_context(monkeypatch, method):
+    """Select both the actual pool and the HMM transport policy explicitly."""
+    _use_context(monkeypatch, method)
+    monkeypatch.setattr(_hmmfilter, "get_start_method", lambda: method)
+
+
 def _filter(folder, nproc, origin=True, filtered=True, frame_count=128, count=12):
     """Build sparse, empty and dense signals with distinguishable definitions."""
     folder.mkdir()
@@ -77,7 +83,7 @@ def _read(filter):
     return result
 
 
-@pytest.mark.parametrize("method", ["fork", "spawn"])
+@pytest.mark.parametrize("method", ["fork", "spawn", "forkserver"])
 @pytest.mark.parametrize(
     "origin,filtered", [(False, False), (True, False), (False, True), (True, True)]
 )
@@ -87,7 +93,7 @@ def test_long_hmm_keeps_aligned_outputs(
     """Actual pools retain zero-signal filtering and both optional signal outputs."""
     if method not in multiprocessing.get_all_start_methods():
         pytest.skip(f"{method} unavailable")
-    _use_context(monkeypatch, method)
+    _use_hmm_context(monkeypatch, method)
     monkeypatch.setattr(_hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 64)
     monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
     monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
@@ -101,9 +107,11 @@ def test_long_hmm_keeps_aligned_outputs(
     assert {p.pid for p in multiprocessing.active_children()} == before
 
 
+@pytest.mark.parametrize("method", ["spawn", "forkserver"])
 @pytest.mark.parametrize("frames,bounded", [(99999, False), (100000, True)])
-def test_long_hmm_dispatch_boundary(tmp_path, monkeypatch, frames, bounded):
-    """Short signals keep chunked scheduling; long signals limit outstanding work."""
+def test_long_hmm_dispatch_boundary(tmp_path, monkeypatch, frames, bounded, method):
+    """Select bounded long-signal tasks while retaining forkserver chunks."""
+    monkeypatch.setattr(_hmmfilter, "get_start_method", lambda: method)
     filter = _filter(tmp_path / "input", 4, frame_count=frames, count=1)
     filter.temp1it = 201
     calls = []
@@ -118,14 +126,24 @@ def test_long_hmm_dispatch_boundary(tmp_path, monkeypatch, frames, bounded):
     filter._calhmm()
     assert calls[0][0] == (3 if bounded else 4)
     options = calls[0][1]
-    assert options.get("max_inflight") == (6 if bounded else None)
-    assert options.get("chunksize") == (1 if bounded else None)
-    if bounded:
+    per_record = bounded and method != "forkserver"
+    assert options.get("max_inflight") == (6 if per_record else None)
+    assert options.get("chunksize") == (1 if per_record else None)
+    if per_record:
         assert options["func"] is _hmmfilter._filter_hmm_record
         assert options["initializer"] is _hmmfilter._initialize_hmm_worker
-        assert options["initargs"][0].__self__ is filter
+        assert options["initargs"] == (
+            filter.step,
+            filter._model,
+            filter.getoriginfile,
+            filter.printfiltersignal,
+        )
     else:
         assert "initializer" not in options
+        if bounded:
+            assert options["func"].func is _hmmfilter._convert_hmm_record
+            assert options["func"].keywords["model"] is filter._model
+            assert len(ForkingPickler.dumps(options["func"])) < 8192
 
 
 def _delayed_record(record, *, function):
@@ -137,6 +155,7 @@ def _delayed_record(record, *, function):
 
 def test_out_of_order_long_hmm_keeps_streams_together(tmp_path, monkeypatch):
     """Reordering complete result tuples must not misalign origins and definitions."""
+    _use_hmm_context(monkeypatch, "spawn")
     monkeypatch.setattr(_hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 1)
     monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
     monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
@@ -166,6 +185,7 @@ def _exited_record(record):
 @pytest.mark.parametrize("failure", ["worker", "exit", "consumer"])
 def test_long_hmm_failure_stops_workers(tmp_path, monkeypatch, failure):
     """Worker failure and failed result writing must release the bounded pool."""
+    _use_hmm_context(monkeypatch, "spawn")
     monkeypatch.setattr(_hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 1)
     monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
     monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
@@ -211,7 +231,8 @@ def test_one_legacy_chunk_of_long_signals_runs_locally(tmp_path, monkeypatch, wo
 
 
 def test_long_hmm_tasks_do_not_resend_parent_metadata(tmp_path, monkeypatch):
-    """A large RNG context may initialize workers but must not enter each task."""
+    """Neither worker initialization nor individual tasks carry the RNG context."""
+    _use_hmm_context(monkeypatch, "spawn")
     monkeypatch.setattr(_hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 64)
     monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
     monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
@@ -219,6 +240,16 @@ def test_long_hmm_tasks_do_not_resend_parent_metadata(tmp_path, monkeypatch):
     filter.rng = SimpleNamespace(metadata=b"x" * (1024 * 1024))
     original = utils._submit_pool_item
     sizes = []
+    initialization_sizes = []
+
+    def capture(nproc, **kwargs):
+        """Measure the actual initializer envelope, including its model."""
+        initialization_sizes.append(
+            len(ForkingPickler.dumps((kwargs["initializer"], kwargs["initargs"])))
+        )
+        return utils.run_mp(nproc, **kwargs)
+
+    monkeypatch.setattr(_hmmfilter, "run_mp", capture)
 
     def submit(pool, completed, pending, function, index, item):
         """Measure the actual worker call envelope before its submission."""
@@ -229,3 +260,31 @@ def test_long_hmm_tasks_do_not_resend_parent_metadata(tmp_path, monkeypatch):
     filter._calhmm()
     assert filter.hmmit == len(sizes) == 12
     assert max(sizes) < 32768
+    assert len(initialization_sizes) == 1
+    assert initialization_sizes[0] < 8192
+
+
+@pytest.mark.parametrize("method", ["spawn", "forkserver"])
+def test_hmm_worker_preserves_model_without_parent_context(
+    tmp_path, monkeypatch, method
+):
+    """Keep changed prediction parameters, while excluding unpicklable RNG data."""
+    if method not in multiprocessing.get_all_start_methods():
+        pytest.skip(f"{method} unavailable")
+    _use_hmm_context(monkeypatch, method)
+    monkeypatch.setattr(_hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 64)
+    monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
+    monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
+    default = _filter(tmp_path / "default", 1)
+    serial = _filter(tmp_path / "serial", 1)
+    parallel = _filter(tmp_path / "parallel", 2)
+    for filter in (serial, parallel):
+        # These values deliberately differ from the original p/a/b settings.
+        filter._model.algorithm = "map"
+        filter._model.emissionprob_ = filter._model.emissionprob_[::-1].copy()
+        filter.rng = SimpleNamespace(unrelated_callback=lambda: None)
+    default._calhmm()
+    serial._calhmm()
+    parallel._calhmm()
+    assert _read(default) != _read(serial)
+    assert _read(serial) == _read(parallel)
