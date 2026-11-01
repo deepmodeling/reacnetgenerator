@@ -795,6 +795,53 @@ class _CollectMolPaths(_CollectPaths):
         self.mname = mname.finish()
 
 
+def _isomer_candidate_key(graph):
+    """Bucket candidates by a necessary invariant of the policy-adjusted graph.
+
+    Isomorphisms preserve node labels and multisets of labelled neighbors.
+    Equal keys are only candidates: regular graphs and hash collisions still
+    require the unchanged VF2 comparison. The process-local key is never a
+    species identity. Retain one integer per bucket instead of graph-sized
+    signature objects; temporary storage is proportional to one molecule.
+    """
+    neighborhoods = Counter(
+        (
+            data.get("atom"),
+            frozenset(
+                Counter(
+                    (graph.nodes[neighbor].get("atom"), edge.get("level"))
+                    for neighbor, edge in graph[node].items()
+                ).items()
+            ),
+        )
+        for node, data in graph.nodes(data=True)
+    )
+    return hash(frozenset(neighborhoods.items()))
+
+
+class _IsomerCandidateBuckets:
+    """Index formulas with multiple structural groups, keeping cheap cases local."""
+
+    def __init__(self):
+        """Keep initial representatives without computing graph keys."""
+        self.first = {}
+        self.indexed = None
+
+    def candidates(self, molecule):
+        """Return possible matches in their original insertion order."""
+        if self.indexed is None:
+            # Composition-only graphs cannot be separated by neighborhoods.
+            # Repeated variants of one topology still need its VF2 comparison;
+            # indexing them cannot reduce the number of candidate groups.
+            if molecule._miso == 2 or len(self.first) < 2:
+                return self.first
+            self.indexed = defaultdict(dict)
+            for name, first in self.first.items():
+                self.indexed[_isomer_candidate_key(first.graph)][name] = first
+            self.first.clear()
+        return self.indexed[_isomer_candidate_key(molecule.graph)]
+
+
 class _CollectSMILESPaths(_CollectPaths):
     def _printmoleculename(self):
         if self.miso > 0:
@@ -842,7 +889,7 @@ class _CollectSMILESPaths(_CollectPaths):
         source_names = _MoleculeNameBuilder(self.hmmit)
         name_frequency = Counter()
         name_group = {}
-        name_mapping_graph = defaultdict(dict)
+        name_mapping_graph = defaultdict(_IsomerCandidateBuckets)
         d = defaultdict(list)
         self.n_unknown = 0
         with (
@@ -858,7 +905,10 @@ class _CollectSMILESPaths(_CollectPaths):
                 if name in name_group:
                     continue
                 molecule = Molecule(self, atoms, bonds)
-                groups = name_mapping_graph[molecule.name]
+                # The graph already applies miso's bond/connectivity policy.
+                # A bucket only excludes impossible matches; VF2 decides all
+                # remaining candidates in their original insertion order.
+                groups = name_mapping_graph[molecule.name].candidates(molecule)
                 for group_name, group_molecule in groups.items():
                     if group_molecule.isomorphic(molecule):
                         name_group[name] = group_name
