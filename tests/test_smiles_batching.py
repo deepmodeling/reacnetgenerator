@@ -129,23 +129,24 @@ def test_batched_timeline_filters_stay_in_parent(tmp_path, force_batches, filter
     _assert_closed(tmp_path, children)
 
 
-def test_small_spawn_retains_original_ordered_runner(tmp_path, monkeypatch):
-    """The fallback is exercised at the collector entry, without a batch pre-scan."""
+def test_small_spawn_retains_per_record_scheduling(tmp_path, monkeypatch):
+    """Small inputs initialize conversion metadata without planning batches."""
     collector = _collector(tmp_path, _records(4))
     monkeypatch.setattr(workers, "get_start_method", lambda: "spawn")
     calls = []
 
     def original(nproc, **kwargs):
-        assert kwargs["func"].__self__ is collector
+        assert kwargs["func"] is workers._convert_smiles_record
         assert kwargs["nlines"] == 4 and kwargs["total"] == 4
-        assert "initializer" not in kwargs
+        assert kwargs["initializer"] is workers._initialize_smiles_worker
+        assert len(kwargs["initargs"]) == 4
         calls.append(nproc)
         return run_mp(nproc, **kwargs)
 
     def unexpected(*args, **kwargs):
         raise AssertionError("Small spawn inputs must not plan batches")
 
-    monkeypatch.setattr(_path, "run_mp", original)
+    monkeypatch.setattr(workers, "run_mp", original)
     monkeypatch.setattr(workers, "_smiles_batches", unexpected)
     collector._printmoleculename()
     assert calls == [2]

@@ -246,7 +246,7 @@ def test_smiles_entry_point_preserves_order(tmp_path, monkeypatch, nproc, miso):
         calls.append(count)
         return run_mp(count, **kwargs)
 
-    monkeypatch.setattr("reacnetgenerator._path.run_mp", workers)
+    monkeypatch.setattr("reacnetgenerator._smilesworker.run_mp", workers)
     collector._printmoleculename()
     assert calls == ([2] if nproc == 2 else [])
     assert list(collector.mname) == (

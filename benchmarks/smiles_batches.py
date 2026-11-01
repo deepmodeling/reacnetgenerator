@@ -236,6 +236,10 @@ def _audit():
     original_run = _smilesworker.run_mp
 
     def run(nproc, **kwargs):
+        if kwargs["func"] is not _smilesworker._convert_smiles_batch:
+            # Per-record workers reuse the converter without batch spill files.
+            yield from original_run(nproc, **kwargs)
+            return
         folder = Path(kwargs["initargs"][-2])
         with closing(original_run(nproc, **kwargs)) as batches:
             for item in batches:

@@ -12,7 +12,7 @@ import lz4.frame
 from tqdm.auto import tqdm
 
 from ._moleculepresence import _iter_molecule_records
-from .utils import run_mp
+from .utils import read_compressed_block, run_mp
 
 _SMILES_BATCH_RECORDS = 64
 _SMILES_INPUT_BYTES = 256 * 1024
@@ -88,7 +88,7 @@ def _encoded_smiles_batches(molecule_file):
 
 
 def _initialize_smiles_worker(
-    atomname, atomnames, need_frames, frequency, folder, result_bytes
+    atomname, atomnames, need_frames, frequency, folder=None, result_bytes=None
 ):
     """Install only conversion metadata; no RNG object travels with each task."""
     from ._path import _CollectSMILESPaths
@@ -106,6 +106,37 @@ def _initialize_smiles_worker(
         else converter._calmoleculeSMILESname
     )
     _SMILES_WORKER_STATE = function, folder, result_bytes
+
+
+def _convert_smiles_record(record):
+    """Use worker-local conversion metadata for one ordered molecule record."""
+    assert _SMILES_WORKER_STATE is not None
+    function, _, _ = _SMILES_WORKER_STATE
+    return function(record)
+
+
+def _run_smiles_records(collector, molecule_file, frequency):
+    """Keep per-record scheduling without serializing the collector per task."""
+    return run_mp(
+        collector.nproc,
+        func=_convert_smiles_record,
+        l=read_compressed_block(molecule_file),
+        initializer=_initialize_smiles_worker,
+        initargs=(
+            collector.atomname,
+            collector.atomnames,
+            collector._needmoleculetimeline(),
+            frequency,
+        ),
+        unordered=False,
+        nlines=4,
+        chunksize=1,
+        max_inflight=max(2, 2 * collector.nproc),
+        disk_ordered=True,
+        total=collector.hmmit,
+        desc="Indentify isomers",
+        unit="molecule",
+    )
 
 
 class _SMILESResultWriter:
