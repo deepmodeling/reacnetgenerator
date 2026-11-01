@@ -25,6 +25,7 @@ import os
 import tempfile
 from contextlib import ExitStack, closing, suppress
 from functools import partial
+from typing import Any
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -47,6 +48,22 @@ from .utils import (
     read_compressed_block,
     run_mp,
 )
+
+_HMM_BOUNDED_SIGNAL_FRAMES = 100_000
+_HMM_LEGACY_CHUNK_RECORDS = 100
+_HMM_WORKER_FUNCTION = None
+
+
+def _initialize_hmm_worker(function):
+    """Retain the initialized converter once, including its original model."""
+    global _HMM_WORKER_FUNCTION
+    _HMM_WORKER_FUNCTION = function
+
+
+def _filter_hmm_record(record):
+    """Filter one record without resending the RNG context with every task."""
+    assert _HMM_WORKER_FUNCTION is not None
+    return _HMM_WORKER_FUNCTION(record)
 
 
 def _expand_nohmm_origin(record, *, frame_count):
@@ -190,6 +207,7 @@ class _HMMFilter(SharedRNGData):
             raise ValueError("Molecule count differs from declared count")
 
     def _calhmm(self):
+        """Filter aligned streams with bounded long-signal task admission."""
         if not self.runHMM:
             try:
                 self._cal_nohmm()
@@ -222,7 +240,19 @@ class _HMMFilter(SharedRNGData):
                 self.hmmfilename = fh.name
             else:
                 self.hmmfilename = None
-            if self.nproc == 1:
+            workers = self.nproc
+            bounded = self.temp1it and self.step >= _HMM_BOUNDED_SIGNAL_FRAMES
+            if bounded:
+                # The legacy runner executes 100 records per pool task. Avoid
+                # increasing simultaneous Viterbi working arrays when replacing
+                # those chunks with individual tasks; small inputs run locally.
+                workers = min(
+                    workers,
+                    (self.temp1it + _HMM_LEGACY_CHUNK_RECORDS - 1)
+                    // _HMM_LEGACY_CHUNK_RECORDS,
+                )
+            limits: dict[str, Any] = {}
+            if workers == 1:
                 # Reuse the initialized model and consume each record together
                 # with its origin and filtered signal, without a worker pool.
                 records = itertools.zip_longest(*[read_compressed_block(ft)] * 4)
@@ -234,20 +264,36 @@ class _HMMFilter(SharedRNGData):
                     disable=None,
                 )
             else:
+                # A default 100-record pool chunk retains many signal results.
+                # Long signals amortize per-record scheduling; bound submitted
+                # but unconsumed records. One decoded signal still scales with
+                # the number of frames; this is not a total memory bound.
+                limits = (
+                    {
+                        "chunksize": 1,
+                        "max_inflight": 2 * workers,
+                        "initializer": _initialize_hmm_worker,
+                        "initargs": (self._getoriginandhmm,),
+                    }
+                    if bounded
+                    else {}
+                )
                 results = run_mp(
-                    self.nproc,
-                    func=self._getoriginandhmm,
+                    workers,
+                    func=_filter_hmm_record if bounded else self._getoriginandhmm,
                     l=read_compressed_block(ft),
                     nlines=4,
                     total=self.temp1it,
                     desc=self.description,
                     unit="molecule",
+                    **limits,
                 )
             hmmit = 0
-            for originbytes, hmmbytes, line_c in results:
-                if originbytes is not None or hmmbytes is not None:
-                    appendIfNotNone(fo, originbytes)
-                    appendIfNotNone(fh, hmmbytes)
-                    hmmit += 1
-                    ft2.extend(line_c)
+            with closing(results) if limits else ExitStack():
+                for originbytes, hmmbytes, line_c in results:
+                    if originbytes is not None or hmmbytes is not None:
+                        appendIfNotNone(fo, originbytes)
+                        appendIfNotNone(fh, hmmbytes)
+                        hmmit += 1
+                        ft2.extend(line_c)
         self.hmmit = hmmit
