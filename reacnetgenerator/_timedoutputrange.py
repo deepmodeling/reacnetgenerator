@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Random-access presence checks for molecule range tables."""
 
+from bisect import bisect_right
 from collections import OrderedDict
 
 _RANGE_BLOCK_ROWS = 8192
 _RANGE_CACHE_BLOCKS = 16
 _MOLECULE_BOUND_CACHE_ENTRIES = 4096
+_RANGE_WINDOW_ROWS = 64
 
 
 class _RangeColumn:
@@ -39,10 +41,11 @@ class _RangeColumn:
 
 
 class _MoleculeRangeLookup:
-    """Check an immutable range table with at most 1 MiB of cached int64 data.
+    """Check immutable, sorted ranges with at most 5 MiB of cached int64 data.
 
     All three columns share 16 blocks of at most 8192 rows. At most 4096
-    molecule-ID bounds are also retained; Python objects and dictionary headers
+    molecule-ID bounds and 64-row windows are also retained. Window arrays add
+    at most 4 MiB; Python objects and dictionary headers
     are additional, so this is not a total process RSS bound.
     Create the lookup only after all ranges are flushed, and discard it before
     the backing file closes. The original scalar search remains the oracle.
@@ -62,9 +65,31 @@ class _MoleculeRangeLookup:
             for column, dataset in enumerate((molecule_ids, starts, ends))
         )
         self._bounds = OrderedDict()
+        self._windows = OrderedDict()
+        self._window_rows = min(rows, _RANGE_WINDOW_ROWS)
 
     def contains(self, molecule_id, frame):
         """Retain exact inclusive endpoints, gaps and missing-ID behavior."""
+        if molecule_id in self._windows:
+            first, stop, begin, end, local_starts, local_ends = self._windows[
+                molecule_id
+            ]
+            self._windows.move_to_end(molecule_id)
+            if molecule_id not in self._bounds:
+                if len(self._bounds) >= _MOLECULE_BOUND_CACHE_ENTRIES:
+                    self._bounds.popitem(last=False)
+                self._bounds[molecule_id] = first, stop
+            self._bounds.move_to_end(molecule_id)
+            candidate = bisect_right(local_starts, frame) - 1
+            if candidate < 0:
+                if begin == first:
+                    return False
+            elif (
+                candidate < len(local_starts) - 1
+                or end == stop
+                or frame <= int(local_ends[-1])
+            ):
+                return int(local_ends[candidate]) >= frame
         molecule_ids, starts, ends = self.columns
         if molecule_id not in self._bounds:
             first = _lower_bound(molecule_ids, molecule_id)
@@ -74,8 +99,24 @@ class _MoleculeRangeLookup:
             self._bounds[molecule_id] = first, stop
         self._bounds.move_to_end(molecule_id)
         first, stop = self._bounds[molecule_id]
+        if first == stop:
+            return False
         candidate = _lower_bound(starts, frame + 1, first, stop) - 1
-        return candidate >= first and int(ends[candidate]) >= frame
+        begin = (
+            first
+            + (max(candidate, first) - first) // self._window_rows * self._window_rows
+        )
+        end = min(begin + self._window_rows, stop)
+        local_starts = starts.dataset[begin:end]
+        local_ends = ends.dataset[begin:end]
+        if (
+            molecule_id not in self._windows
+            and len(self._windows) >= _MOLECULE_BOUND_CACHE_ENTRIES
+        ):
+            self._windows.popitem(last=False)
+        self._windows[molecule_id] = first, stop, begin, end, local_starts, local_ends
+        self._windows.move_to_end(molecule_id)
+        return candidate >= first and int(local_ends[candidate - begin]) >= frame
 
 
 def _lower_bound(dataset, value, start=0, stop=None):

@@ -195,7 +195,10 @@ the writer flushes them. The writer retains at most 8 MiB of atom/bond array
 payload across 8192 cached entries; an oversized molecule bypasses that cache.
 Python object headers and a newly read molecule are additional. Species names
 are indexed once by species ID. Range lookups retain at most 1 MiB of numeric
-blocks and 4096 molecule-ID bounds, with additional Python metadata. All caches
+blocks, 4096 molecule-ID bounds and 4096 windows of at most 64 intervals each.
+Window arrays add at most 4 MiB; Python metadata is additional. A query outside
+a cached window searches the stored ranges again, including gaps at its edges.
+All caches
 belong to one open file and are discarded when it closes; presence is still
 checked for each event frame, including gaps between a molecule's ranges.
 
