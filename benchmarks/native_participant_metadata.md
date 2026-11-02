@@ -26,8 +26,11 @@ native extension SHA-256 is
 
 The real LAMMPS dump contains 2600 atoms. The initial 201-frame window hash is
 `0e3ce09a53bd0e489b4dbc4df8116a2c03371890527d72c35af0e3197ec1e537`; raw production inputs are not published here.
-The two 5001-frame controls use initial and middle trajectory windows. They are
-windows of one simulation, not independent scientific replicates.
+The two 5001-frame controls use initial and middle trajectory windows. The
+middle window starts at zero-based frame 125002 of the original dump (timesteps
+12500200 through 13000200), with SHA-256
+`5c05790d57c2b0af234d942cb857a257e342cf688cca49b4ad903a1cbcc95fed`.
+They are windows of one simulation, not independent scientific replicates.
 
 Each timing is a fresh process, with 32 requested workers, fork, CPUs 0–31 and
 one native math thread. Three-way dense-window order is official/candidate/fork,
@@ -64,8 +67,12 @@ a speedup on a complete production trajectory.
 
 ## Correctness
 
-The full local suite reports 769 passed, 5 skipped, 6 xfailed and 3 non-strict
-XPASS. All nine matched official/candidate timing pairs pass native validation
+The full local suite at `db2719f` reports 769 passed, 5 skipped, 6 xfailed and 3
+non-strict XPASS, running `python -m pytest -q` from the repository root with the
+candidate package on `PYTHONPATH` and the pinned environment on `PATH`. This
+includes the six interval-window tests added after the earlier 763-passed run;
+the reported benchmark timings refer to the final interval-window candidate.
+All nine matched official/candidate timing pairs pass native validation
 and agree on 12 normalized fingerprints covering frame mappings, exact raw
 atom/bond definitions, names, ranges, populations, reaction counts and instance
 evidence. Each dense result has 82,001 events. Memory-audit outputs are separate
@@ -90,11 +97,33 @@ PYTHONPATH=/path/to/source taskset -c 0-31 /path/to/python \
     --frames 201 --nproc 32 --miso 0 --output-dir /path/to/fresh-result
 ```
 
-[The script](native_participant_metadata.py) streams only the requested initial
-window, refuses an existing output directory, records source/input hashes and
-dependencies, and validates the output separately using a semantic manifest.
-Use `--frames 5001`, and `--miso 1 --hmm` for the HMM control. This script does
-not collect concurrent process-tree PSS; that requires a separate monitor.
+[The script](native_participant_metadata.py) streams the requested window,
+skipping earlier frames without retaining them. `--start-frame` is a zero-based
+frame offset, not a timestep, and defaults to 0. It refuses an existing output
+directory, records source/input hashes and dependencies, and publishes the
+measurement only after semantic-manifest validation succeeds. `parameters`
+contains the normalized effective configuration; `requested_parameters`
+preserves the constructor arguments (for example, HMM off forces effective
+`getoriginfile=True`).
+
+For the initial control use `--frames 5001 --miso 1`. To reproduce the middle HMM
+control from the original complete dump, use the same start offset in both
+source trees:
+
+```sh
+PYTHONPATH=/path/to/source taskset -c 0-31 /path/to/python \
+    benchmarks/native_participant_metadata.py \
+    --trajectory /path/to/complete.dump --atom-names C Cl H O \
+    --start-frame 125002 --frames 5001 --nproc 32 --miso 1 --hmm \
+    --output-dir /path/to/fresh-middle-result
+```
+
+If using the already extracted middle dump instead, use `--start-frame 0` and
+verify its input-window hash against the value above. Extraction and prefix
+scanning are outside timing. The start method defaults to `fork` when supported,
+otherwise the platform's first supported method; `--start-method` can select an
+explicit supported method. Linux measurements above used `fork`. This script
+does not collect concurrent process-tree PSS; that requires a separate monitor.
 Linux timings above do not establish cross-platform performance.
 
 ## Final interval windows and large-window acceptance

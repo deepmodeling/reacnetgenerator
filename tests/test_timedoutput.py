@@ -345,6 +345,21 @@ def test_species_id_lookup_does_not_rescan_the_dictionary(tmp_path):
     assert writer._species_names is None
 
 
+@pytest.mark.parametrize("species", [{"A": -1}, {"A": 1}, {"A": 0, "B": 0}])
+def test_species_index_rejects_invalid_dictionary_without_caching_it(tmp_path, species):
+    """Reject out-of-range or duplicate IDs before publishing a name index."""
+    rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
+    prepare(rng)
+    with _TimedOutputWriter(rng) as writer:
+        writer.species = species
+        writer._append("molecules", species_id=0)
+        with pytest.raises(ValueError, match="invalid species_id"):
+            writer._participant_species([1])
+        assert writer._species_names is None
+        writer.species = {"A": 0}
+        assert writer._participant_species([1]) == {"A": 1}
+
+
 @pytest.mark.parametrize("invalid_id", [-1, 2])
 def test_warm_species_index_rejects_invalid_ids(tmp_path, invalid_id):
     """A warm name index must still reject invalid stored species IDs."""
@@ -402,10 +417,8 @@ def test_metadata_cache_is_bounded_and_oversized_values_bypass_it(
     tmp_path, monkeypatch, empty
 ):
     """Bound bytes and empty entries without retaining an oversized molecule."""
-    import reacnetgenerator._timedoutput as timedoutput
-
-    monkeypatch.setattr(timedoutput, "_MOLECULE_CACHE_BYTES", 16)
-    monkeypatch.setattr(timedoutput, "_MOLECULE_CACHE_ENTRIES", 2)
+    monkeypatch.setattr("reacnetgenerator._timedoutput._MOLECULE_CACHE_BYTES", 16)
+    monkeypatch.setattr("reacnetgenerator._timedoutput._MOLECULE_CACHE_ENTRIES", 2)
     rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
     prepare(rng)
     with _TimedOutputWriter(rng) as writer:

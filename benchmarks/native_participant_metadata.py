@@ -12,45 +12,61 @@ import time
 from pathlib import Path
 
 
-def extract_window(source, target, frames):
-    """Stream an initial frame window without reading the rest of a trajectory."""
+def extract_window(source, target, frames, start_frame=0):
+    """Stream a frame window, skipping its prefix without retaining it."""
     count = 0
     digest = hashlib.sha256()
     with source.open("rb") as reader, target.open("xb") as writer:
         for line in reader:
             if line.startswith(b"ITEM: TIMESTEP"):
-                count += 1
-                if count > frames:
+                if count == start_frame + frames:
                     break
-            writer.write(line)
-            digest.update(line)
-    if count < frames:
-        raise ValueError(f"Requested {frames} frames, found only {count}")
+                count += 1
+            if count > start_frame:
+                writer.write(line)
+                digest.update(line)
+    if count < start_frame + frames:
+        raise ValueError(
+            f"Requested {frames} frames starting at frame {start_frame}, "
+            f"found only {max(0, count - start_frame)}"
+        )
     return digest.hexdigest()
 
 
-def main():
-    """Write fresh outputs, timing and a validated semantic manifest."""
+def parse_args(argv=None):
+    """Parse window and pipeline controls using a supported start method."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trajectory", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--atom-names", nargs="+", required=True)
     parser.add_argument("--frames", type=int, default=201)
+    parser.add_argument("--start-frame", type=int, default=0)
     parser.add_argument("--nproc", type=int, default=32)
     parser.add_argument("--miso", type=int, choices=(0, 1, 2), default=0)
     parser.add_argument("--hmm", action="store_true")
+    start_methods = multiprocessing.get_all_start_methods()
     parser.add_argument(
         "--start-method",
-        choices=multiprocessing.get_all_start_methods(),
-        default="fork",
+        choices=start_methods,
+        default="fork" if "fork" in start_methods else start_methods[0],
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.frames < 1 or args.nproc < 1:
         parser.error("--frames and --nproc must be positive")
+    if args.start_frame < 0:
+        parser.error("--start-frame must be nonnegative")
+    return args
+
+
+def main():
+    """Write fresh outputs, timing and a validated semantic manifest."""
+    args = parse_args()
     source = args.trajectory.resolve(strict=True)
     folder = args.output_dir.absolute()
     folder.mkdir(parents=True, exist_ok=False)
-    window_sha256 = extract_window(source, folder / "trajectory.lammpstrj", args.frames)
+    window_sha256 = extract_window(
+        source, folder / "trajectory.lammpstrj", args.frames, args.start_frame
+    )
     for name in (
         "OMP_NUM_THREADS",
         "OPENBLAS_NUM_THREADS",
@@ -60,7 +76,6 @@ def main():
         os.environ[name] = "1"
     multiprocessing.set_start_method(args.start_method, force=True)
     import reacnetgenerator
-    from reacnetgenerator import ReacNetGenerator
     from reacnetgenerator.timedoutput import semantic_manifest
 
     os.chdir(folder)
@@ -84,7 +99,7 @@ def main():
         "b": [[0.6, 0.4], [0.4, 0.6]],
         "timed_output": "trajectory.lammpstrj.timeline.h5",
     }
-    rng = ReacNetGenerator(**parameters)
+    rng = reacnetgenerator.ReacNetGenerator(**parameters)
     started = time.perf_counter()
     rng.run()
     elapsed = time.perf_counter() - started
@@ -93,7 +108,10 @@ def main():
         "pipeline_seconds": elapsed,
         "frames": int(rng.step),
         "atoms": int(rng.N),
-        "parameters": parameters,
+        "start_frame": args.start_frame,
+        "requested_frames": args.frames,
+        "requested_parameters": parameters,
+        "parameters": rng.parameters,
         "input_window_sha256": window_sha256,
         "python": platform.python_version(),
         "platform": platform.platform(),
@@ -130,10 +148,10 @@ def main():
             if path.suffix in {".so", ".pyd"}
         },
     }
-    Path("measurement.json").write_text(json.dumps(measurement, indent=2) + "\n")
-    print(json.dumps(measurement), flush=True)
     manifest = semantic_manifest("trajectory.lammpstrj.timeline.h5")
     Path("semantic-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    Path("measurement.json").write_text(json.dumps(measurement, indent=2) + "\n")
+    print(json.dumps(measurement), flush=True)
 
 
 if __name__ == "__main__":
