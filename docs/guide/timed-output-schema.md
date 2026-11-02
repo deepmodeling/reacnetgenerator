@@ -190,6 +190,20 @@ evidence-to-aggregate counts. Numeric scans use `block_rows`; one molecule
 definition, evidence instance or dictionary can still exceed that working-memory
 budget.
 
+Repeated event participants are checked against immutable molecule tables after
+the writer flushes them. The writer retains at most 8 MiB of atom/bond array
+payload across 8192 cached entries; an oversized molecule bypasses that cache.
+Python object headers and a newly read molecule are additional. Species names
+are indexed once by species ID. Range lookups retain at most 1 MiB of numeric
+blocks and 4096 molecule-ID bounds, with additional Python metadata. All caches
+belong to one open file and are discarded when it closes; presence is still
+checked for each event frame, including gaps between a molecule's ranges.
+
+The validator creates a fresh range lookup over stored data and honors smaller
+`block_rows` requests. These caches do not bypass atom conservation, participant
+overlap, species, bond-change or aggregate-count validation, and do not change
+the on-disk schema or event ordering.
+
 Create and compare deterministic manifests in Python:
 
 ```python

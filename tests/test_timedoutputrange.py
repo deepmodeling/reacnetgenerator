@@ -117,3 +117,80 @@ def test_read_failure_does_not_poison_cache():
         with pytest.raises(OSError, match="read failed"):
             lookup.contains(1, 1)
     assert lookup.contains(1, 1)
+
+
+def test_cached_molecule_bounds_do_not_read_id_column_again(monkeypatch):
+    """Changing frames reuses only the immutable ID bounds, never a presence result."""
+    lookup = ranges._MoleculeRangeLookup(
+        np.array([1, 1, 2]), np.array([0, 4, 2]), np.array([2, 8, 5])
+    )
+    assert lookup.contains(1, 1)
+    original = ranges._RangeColumn.__getitem__
+
+    def without_id_reads(column, index):
+        if column.column == 0:
+            raise AssertionError("warm bounds queried molecule IDs again")
+        return original(column, index)
+
+    monkeypatch.setattr(ranges._RangeColumn, "__getitem__", without_id_reads)
+    assert not lookup.contains(1, 3)
+    assert lookup.contains(1, 4)
+    assert lookup.contains(1, 8)
+    assert not lookup.contains(1, 9)
+
+
+def test_molecule_bounds_are_lru_bounded_and_table_local(monkeypatch):
+    """Evict ID bounds by recency without sharing them between range tables."""
+    monkeypatch.setattr(ranges, "_MOLECULE_BOUND_CACHE_ENTRIES", 2)
+    lookup = ranges._MoleculeRangeLookup(
+        np.array([1, 2, 3]), np.array([0, 0, 0]), np.array([0, 0, 0])
+    )
+    for mid in (1, 2, 1, 3, 1):
+        assert lookup.contains(mid, 0)
+        assert len(lookup._bounds) <= 2
+    assert list(lookup._bounds) == [3, 1]
+    other = ranges._MoleculeRangeLookup(np.array([2]), np.array([0]), np.array([0]))
+    assert not other.contains(1, 0)
+    assert lookup.contains(1, 0)
+
+
+def test_failed_presence_read_does_not_cache_a_result(monkeypatch):
+    """Read failures remain retryable and cannot turn into cached presence."""
+    columns = [_CountedColumn(np.array([v])) for v in (1, 2, 4)]
+    lookup = ranges._MoleculeRangeLookup(*columns)
+    assert lookup.contains(1, 2)
+    lookup.columns[0].cache.clear()
+    original = _CountedColumn.__getitem__
+
+    def fail_start(column, index):
+        if column is columns[1]:
+            raise OSError("start read failed")
+        return original(column, index)
+
+    with monkeypatch.context() as context:
+        context.setattr(_CountedColumn, "__getitem__", fail_start)
+        with pytest.raises(OSError, match="start read failed"):
+            lookup.contains(1, 3)
+    assert lookup.contains(1, 3)
+    assert not lookup.contains(1, 5)
+
+
+def test_reader_can_request_smaller_blocks():
+    """Honor a validator's smaller row budget for every cached read."""
+
+    class TinyColumn(_CountedColumn):
+        def __getitem__(self, key):
+            assert key.stop - key.start <= 2
+            return super().__getitem__(key)
+
+    columns = [TinyColumn(np.arange(16) + delta) for delta in (1, 0, 0)]
+    lookup = ranges._MoleculeRangeLookup(*columns, block_rows=2)
+    assert lookup.contains(9, 8)
+    assert not lookup.contains(9, 9)
+
+
+@pytest.mark.parametrize("block_rows", [0, -1])
+def test_invalid_reader_block_size_is_rejected(block_rows):
+    """Reject invalid block sizes before accessing any range column."""
+    with pytest.raises(ValueError, match="positive"):
+        ranges._MoleculeRangeLookup([], [], [], block_rows=block_rows)

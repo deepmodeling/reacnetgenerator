@@ -16,7 +16,7 @@ from ._timedoutputcontract import (
     TimedOutputValidationError,
     ValidationSummary,
 )
-from ._timedoutputrange import molecule_present
+from ._timedoutputrange import _MoleculeRangeLookup
 
 _CAPABILITIES = {
     "1.0": ["molecule_ranges", "reaction_events"],
@@ -485,6 +485,10 @@ def _validate_transition_evidence(file, *, frame_count, block_rows):
     range_molecule_id = _numeric(file, "molecule_ranges/molecule_id")
     range_start = _numeric(file, "molecule_ranges/start_frame")
     range_end = _numeric(file, "molecule_ranges/end_frame")
+    # Fresh reader state validates stored bytes, independently of writer caches.
+    range_lookup = _MoleculeRangeLookup(
+        range_molecule_id, range_start, range_end, block_rows=block_rows
+    )
     _bounded(
         reaction_type_id,
         lower=0,
@@ -559,13 +563,7 @@ def _validate_transition_evidence(file, *, frame_count, block_rows):
         if not reactants or not products:
             _error("transition evidence must contain both reaction sides")
         for side, molecule_id in keys:
-            if not molecule_present(
-                molecule_id,
-                frame + side,
-                range_molecule_id,
-                range_start,
-                range_end,
-            ):
+            if not range_lookup.contains(molecule_id, frame + side):
                 _error(
                     "transition evidence participant is absent from its reaction frame"
                 )

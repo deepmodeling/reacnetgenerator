@@ -312,10 +312,144 @@ def test_cached_writer_still_rejects_absent_participant(tmp_path):
             assert writer._range_lookup is not None
             writer.write_events([dict(event, Timestep_Index=1)])
     assert writer._range_lookup is None
+    assert writer._species_names is None
+    assert not writer._molecule_cache
+    assert writer._molecule_cache_bytes == 0
     assert path.read_bytes() == b"previous complete result"
     (partial,) = tmp_path.glob("*.incomplete")
     with h5py.File(partial, "r+") as file:
         assert file.attrs["status"] == "incomplete"
+
+
+def test_species_id_lookup_does_not_rescan_the_dictionary(tmp_path):
+    """Dictionary order is not ID order, and warm events must not scan names."""
+
+    class Once(dict):
+        scans = 0
+
+        def items(self):
+            self.scans += 1
+            if self.scans > 1:
+                raise AssertionError("species dictionary scanned for every event")
+            return super().items()
+
+    rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
+    prepare(rng)
+    with _TimedOutputWriter(rng) as writer:
+        writer.species = Once({"B": 1, "A": 0})
+        writer._append("molecules", species_id=0)
+        writer._append("molecules", species_id=1)
+        assert writer._participant_species([1, 2, 1]) == {"A": 2, "B": 1}
+        assert writer._participant_species([2]) == {"B": 1}
+        assert writer.species.scans == 1
+    assert writer._species_names is None
+
+
+@pytest.mark.parametrize("invalid_id", [-1, 2])
+def test_warm_species_index_rejects_invalid_ids(tmp_path, invalid_id):
+    """A warm name index must still reject invalid stored species IDs."""
+    rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
+    prepare(rng)
+    with _TimedOutputWriter(rng) as writer:
+        writer.species = {"A": 0}
+        writer._append("molecules", species_id=0)
+        assert writer._participant_species([1]) == {"A": 1}
+        writer.columns["molecules/species_id"].dataset[0] = invalid_id
+        with pytest.raises(ValueError, match="invalid species_id"):
+            writer._participant_species([1])
+
+
+def _append_metadata_molecules(writer, *, atom_start=0, empty=False):
+    for row in range(3):
+        writer._append("molecules", species_id=0, bond_offsets=row + 1)
+        writer._append("molecules", atom_offsets=0 if empty else row + 1)
+        if not empty:
+            writer._append("molecules", atom_index=atom_start + row)
+        writer._append(
+            "molecules", bond_atom_index_1=0, bond_atom_index_2=1, bond_order=row + 1
+        )
+
+
+def test_warm_metadata_avoids_reads_and_rechecks_overlap_and_bonds(
+    tmp_path, monkeypatch
+):
+    """Reuse stored definitions while preserving per-event consistency checks."""
+    rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
+    prepare(rng)
+    with _TimedOutputWriter(rng) as writer:
+        _append_metadata_molecules(writer)
+        assert writer._participant_atoms([1, 2]) == {0, 1}
+        assert writer._participant_bonds([1]) == {(0, 1): 1}
+        assert writer._participant_bonds([2]) == {(0, 1): 2}
+
+        def no_read(*args):
+            raise AssertionError("warm molecule metadata reread HDF5")
+
+        with monkeypatch.context() as context:
+            context.setattr(h5py.Dataset, "__getitem__", no_read)
+            assert writer._participant_atoms([2, 1]) == {0, 1}
+            assert writer._participant_bonds([1]) == {(0, 1): 1}
+            with pytest.raises(ValueError, match="overlap"):
+                writer._participant_atoms([1, 1])
+            with pytest.raises(ValueError, match="conflicting bonds"):
+                writer._participant_bonds([1, 2])
+    assert not writer._molecule_cache
+    assert writer._molecule_cache_bytes == 0
+
+
+@pytest.mark.parametrize("empty", [False, True])
+def test_metadata_cache_is_bounded_and_oversized_values_bypass_it(
+    tmp_path, monkeypatch, empty
+):
+    """Bound bytes and empty entries without retaining an oversized molecule."""
+    import reacnetgenerator._timedoutput as timedoutput
+
+    monkeypatch.setattr(timedoutput, "_MOLECULE_CACHE_BYTES", 16)
+    monkeypatch.setattr(timedoutput, "_MOLECULE_CACHE_ENTRIES", 2)
+    rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
+    prepare(rng)
+    with _TimedOutputWriter(rng) as writer:
+        _append_metadata_molecules(writer, empty=empty)
+        writer._flush_molecule_tables()
+        for mid in (1, 2, 1, 3):
+            values = writer._molecule_values(mid, "atoms")
+            assert not values.flags.writeable
+            assert writer._molecule_cache_bytes <= 16
+            assert len(writer._molecule_cache) <= 2
+        assert list(writer._molecule_cache) == [("atoms", 1), ("atoms", 3)]
+        assert writer._molecule_values(1, "bonds").tolist() == [[0, 1, 1]]
+        assert ("bonds", 1) not in writer._molecule_cache
+        assert writer._molecule_cache_bytes == sum(
+            v.nbytes for v in writer._molecule_cache.values()
+        )
+
+
+def test_metadata_read_error_is_retryable_and_cache_is_file_local(
+    tmp_path, monkeypatch
+):
+    """Failed reads do not poison later requests or leak into another file."""
+    rng = generator(tmp_path, timed_output=tmp_path / "timeline.h5")
+    prepare(rng)
+    with _TimedOutputWriter(rng) as writer:
+        _append_metadata_molecules(writer)
+        assert writer._participant_atoms([1]) == {0}
+        original = h5py.Dataset.__getitem__
+
+        def fail_atoms(dataset, key):
+            if dataset.name.endswith("/atom_index"):
+                raise OSError("atom read failed")
+            return original(dataset, key)
+
+        with monkeypatch.context() as context:
+            context.setattr(h5py.Dataset, "__getitem__", fail_atoms)
+            with pytest.raises(OSError, match="atom read failed"):
+                writer._participant_atoms([2])
+        assert ("atoms", 2) not in writer._molecule_cache
+        assert writer._participant_atoms([2]) == {1}
+    rng.timed_output = str(tmp_path / "other.h5")
+    with _TimedOutputWriter(rng) as writer:
+        _append_metadata_molecules(writer, atom_start=10)
+        assert writer._participant_atoms([1]) == {10}
 
 
 def test_compact_counts_and_blocks(tmp_path, monkeypatch):

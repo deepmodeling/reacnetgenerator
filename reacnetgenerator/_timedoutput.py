@@ -4,7 +4,7 @@
 import json
 import os
 import tempfile
-from collections import Counter
+from collections import Counter, OrderedDict
 from contextlib import closing
 from datetime import datetime, timezone
 from itertools import islice
@@ -23,6 +23,8 @@ SCHEMA_VERSION = "1.1"
 _BLOCK_ROWS = 8192
 _BLOCK_BYTES = 1024 * 1024
 _NUMERIC_MIN_ROWS = 32
+_MOLECULE_CACHE_BYTES = 8 * 1024 * 1024
+_MOLECULE_CACHE_ENTRIES = 8192
 
 
 class _Column:
@@ -107,6 +109,9 @@ class _TimedOutputWriter:
         self.evidence_count = 0
         self._molecule_columns_flushed = False
         self._range_lookup = None
+        self._species_names = None
+        self._molecule_cache = OrderedDict()
+        self._molecule_cache_bytes = 0
         self.file = None
         self.partial = None
 
@@ -352,12 +357,45 @@ class _TimedOutputWriter:
                 column.flush()
         self._molecule_columns_flushed = True
 
+    def _molecule_values(self, molecule_id, kind):
+        """Read immutable atoms/bonds with bounded, file-local array caching.
+
+        Retain at most 8 MiB of array payload and 8192 entries. Python headers
+        and a newly read molecule are additional; oversized molecules bypass
+        the cache. Presence, overlap and conservation checks still run per event.
+        """
+        key = kind, int(molecule_id)
+        if key in self._molecule_cache:
+            self._molecule_cache.move_to_end(key)
+            return self._molecule_cache[key]
+        row = int(molecule_id) - 1
+        offsets = self.columns[f"molecules/{kind[:-1]}_offsets"].dataset
+        start, stop = (int(value) for value in offsets[row : row + 2])
+        if kind == "atoms":
+            values = self.columns["molecules/atom_index"].dataset[start:stop]
+        else:
+            values = np.column_stack(
+                [
+                    self.columns[f"molecules/{name}"].dataset[start:stop]
+                    for name in ("bond_atom_index_1", "bond_atom_index_2", "bond_order")
+                ]
+            )
+        values.setflags(write=False)
+        if values.nbytes <= _MOLECULE_CACHE_BYTES:
+            while self._molecule_cache and (
+                len(self._molecule_cache) >= _MOLECULE_CACHE_ENTRIES
+                or self._molecule_cache_bytes + values.nbytes > _MOLECULE_CACHE_BYTES
+            ):
+                _, previous = self._molecule_cache.popitem(last=False)
+                self._molecule_cache_bytes -= previous.nbytes
+            self._molecule_cache[key] = values
+            self._molecule_cache_bytes += values.nbytes
+        return values
+
     def _participant_atoms(self, molecule_ids):
         """Return the disjoint atom union for one reaction side."""
         self._flush_molecule_tables()
         species_ids = self.columns["molecules/species_id"].dataset
-        offsets = self.columns["molecules/atom_offsets"].dataset
-        atom_index = self.columns["molecules/atom_index"].dataset
         atoms = set()
         for molecule_id in molecule_ids:
             row = int(molecule_id) - 1
@@ -365,8 +403,9 @@ class _TimedOutputWriter:
                 raise ValueError(
                     "Transition evidence references an invalid molecule_id"
                 )
-            start, stop = (int(value) for value in offsets[row : row + 2])
-            current = {int(value) for value in atom_index[start:stop]}
+            current = {
+                int(value) for value in self._molecule_values(molecule_id, "atoms")
+            }
             if atoms & current:
                 raise ValueError(
                     "Transition evidence participants overlap in atom_index"
@@ -377,17 +416,9 @@ class _TimedOutputWriter:
     def _participant_bonds(self, molecule_ids):
         """Return the union of stored participant bonds for one reaction side."""
         self._flush_molecule_tables()
-        offsets = self.columns["molecules/bond_offsets"].dataset
-        atom1 = self.columns["molecules/bond_atom_index_1"].dataset
-        atom2 = self.columns["molecules/bond_atom_index_2"].dataset
-        order = self.columns["molecules/bond_order"].dataset
         bonds = {}
         for molecule_id in molecule_ids:
-            row = int(molecule_id) - 1
-            start, stop = (int(value) for value in offsets[row : row + 2])
-            for left, right, level in zip(
-                atom1[start:stop], atom2[start:stop], order[start:stop], strict=True
-            ):
+            for left, right, level in self._molecule_values(molecule_id, "bonds"):
                 pair = tuple(sorted((int(left), int(right))))
                 level = int(level)
                 if pair in bonds and bonds[pair] != level:
@@ -401,16 +432,24 @@ class _TimedOutputWriter:
         """Count stored species names for one reaction side."""
         self._flush_molecule_tables()
         species_ids = self.columns["molecules/species_id"].dataset
-        names = {species_id: name for name, species_id in self.species.items()}
+        if self._species_names is None:
+            # Species metadata is immutable once molecule tables are flushed.
+            # Share existing name strings; retain only one pointer per ID.
+            names = [None] * len(self.species)
+            for name, species_id in self.species.items():
+                if not 0 <= species_id < len(names) or names[species_id] is not None:
+                    raise ValueError(
+                        "Transition evidence references an invalid species_id"
+                    )
+                names[species_id] = name
+            self._species_names = names
+        names = self._species_names
         counts = Counter()
         for molecule_id in molecule_ids:
             species_id = int(species_ids[molecule_id - 1])
-            try:
-                counts[names[species_id]] += 1
-            except KeyError as exc:
-                raise ValueError(
-                    "Transition evidence references an invalid species_id"
-                ) from exc
+            if not 0 <= species_id < len(names):
+                raise ValueError("Transition evidence references an invalid species_id")
+            counts[names[species_id]] += 1
         return counts
 
     def _write_transition_evidence(self, event, reaction_type_id):
@@ -515,6 +554,9 @@ class _TimedOutputWriter:
                 self.file.flush()
         finally:
             self._range_lookup = None
+            self._species_names = None
+            self._molecule_cache.clear()
+            self._molecule_cache_bytes = 0
             self.file.close()
         if exc_type is None:
             os.replace(self.partial, self.filename)
