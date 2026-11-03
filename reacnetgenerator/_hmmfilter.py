@@ -39,6 +39,7 @@ except ImportError:
 
 from ._moleculeorder import _OrderedMoleculeResults
 from ._moleculepresence import _iter_molecule_records, _use_frame_indices
+from ._step3state import _unsigned_dtype_for_maximum
 from .utils import (
     SharedRNGData,
     WriteBuffer,
@@ -82,6 +83,81 @@ def _convert_hmm_record(item, *, step, model, getoriginfile, printfiltersignal):
     return originbytes, hmmbytes, item
 
 
+def _variant_groups(records, atoms, types, miso):
+    """Group records on the same atoms using the naming stage's VF2 policy."""
+    if miso == 2 or all(record[1] == records[0][1] for record in records):
+        return [range(len(records))]
+
+    from ._species import isomorphic, molecule_graph
+
+    groups = []
+    representatives = []
+    by_endpoints = {}
+    for i, record in enumerate(records):
+        endpoints = record[1]
+        if endpoints not in by_endpoints:
+            graph = molecule_graph(atoms, types, bytestolist(endpoints), miso)
+            for group_id, representative in enumerate(representatives):
+                if isomorphic(graph, representative):
+                    break
+            else:
+                group_id = len(groups)
+                groups.append([])
+                representatives.append(graph)
+            by_endpoints[endpoints] = group_id
+        groups[by_endpoints[endpoints]].append(i)
+    return groups
+
+
+def _filter_atom_set(task, *, miso, step, model, getoriginfile, printfiltersignal):
+    """Filter each union once, retaining aligned raw definitions and observations."""
+    atoms, types, records = task
+    # Slots preserve canonical structure order when VF2 classes interleave.
+    output = [None] * len(records)
+    for indices in _variant_groups(records, atoms, types, miso):
+        group_id = indices[0]
+        if len(indices) == 1:
+            origin, signal, record = _convert_hmm_record(
+                records[group_id],
+                step=step,
+                model=model,
+                getoriginfile=getoriginfile,
+                printfiltersignal=printfiltersignal,
+            )
+            if signal is not None:
+                output[group_id] = (group_id, origin, signal, record)
+            continue
+        # A detected component has exactly one raw structure per observed frame.
+        owner = np.full(step, -1, dtype=np.intp)
+        for i in indices:
+            frames = bytestolist(records[i][-1])
+            owner[frames] = i
+        observed = owner != -1
+        kept = model.predict(observed.astype(np.int8).reshape(-1, 1)).astype(bool)
+        if not (kept.any() or getoriginfile or printfiltersignal):
+            continue
+        # Project the pooled path back to disjoint raw ranges. At an inferred
+        # frame use the preceding observation, or the first for a leading gap.
+        gaps = np.flatnonzero(kept & ~observed)
+        if gaps.size:
+            visits = np.flatnonzero(observed)
+            owner[gaps] = (
+                owner[visits[np.maximum(visits.searchsorted(gaps) - 1, 0)]]
+                if visits.size
+                else group_id
+            )
+        for i in indices:
+            record = records[i]
+            origin = (
+                listtobytes(idx_to_signal(bytestolist(record[-1]), step))
+                if getoriginfile
+                else None
+            )
+            signal = listtobytes(kept & (owner == i))
+            output[i] = (group_id, origin, signal, record)
+    return [result for result in output if result is not None]
+
+
 def _filter_hmm_record(record):
     """Filter one record without resending the RNG context with every task."""
     assert _HMM_WORKER_FUNCTION is not None
@@ -100,6 +176,7 @@ class _HMMFilter(SharedRNGData):
     HMM_DESCRIPTION = "HMM filter"
     NOHMM_DESCRIPTION = "Pass through original signals (HMM disabled)"
 
+    miso: int = 0
     runHMM: bool
     getoriginfile: bool
     printfiltersignal: bool
@@ -117,6 +194,7 @@ class _HMMFilter(SharedRNGData):
             rng,
             [
                 "runHMM",
+                "miso",
                 "getoriginfile",
                 "printfiltersignal",
                 "moleculetempfilename",
@@ -127,7 +205,13 @@ class _HMMFilter(SharedRNGData):
                 "b",
                 "step",
             ],
-            ["moleculetemp2filename", "originfilename", "hmmfilename", "hmmit"],
+            [
+                "moleculetemp2filename",
+                "originfilename",
+                "hmmfilename",
+                "hmmit",
+                "hmm_route_ids",
+            ],
         )
 
     @property
@@ -220,6 +304,62 @@ class _HMMFilter(SharedRNGData):
         if self.hmmit != self.temp1it:
             raise ValueError("Molecule count differs from declared count")
 
+    def _pooled_results(self, definitions, workers):
+        """Order input by physical atom set and dispatch each set as one task."""
+        with _OrderedMoleculeResults() as ordered:
+            for record in _iter_molecule_records(definitions):
+                ordered.add(None, None, record)
+            records = (record for _, _, record in ordered)
+            tasks = (
+                (atoms, self.rng.atomtype[list(atoms)], tuple(group))
+                for atoms, group in itertools.groupby(
+                    records, key=lambda r: tuple(bytestolist(r[0]))
+                )
+            )
+            count = ordered.atom_set_count()
+            filter_set = partial(
+                _filter_atom_set,
+                miso=self.miso,
+                step=self.step,
+                model=self._model,
+                getoriginfile=self.getoriginfile,
+                printfiltersignal=self.printfiltersignal,
+            )
+            workers = min(workers, count)
+            if workers > 1:
+                results = run_mp(
+                    workers,
+                    func=filter_set,
+                    l=tasks,
+                    total=count,
+                    unordered=False,
+                    disk_ordered=True,
+                    max_inflight=2 * workers,
+                    chunksize=1,
+                    desc=self.description,
+                    unit="atom set",
+                )
+            else:
+                results = tqdm(
+                    map(filter_set, tasks),
+                    total=count,
+                    desc=self.description,
+                    unit="atom set",
+                    disable=None,
+                )
+            route_ids = np.zeros(
+                self.temp1it + 1, dtype=_unsigned_dtype_for_maximum(self.temp1it)
+            )
+            n = 0
+            with closing(results):
+                for batch in results:
+                    first = {}
+                    for group_id, origin, signal, record in batch:
+                        n += 1
+                        route_ids[n] = first.setdefault(group_id, n)
+                        yield origin, signal, record
+            self.hmm_route_ids = route_ids[: n + 1]
+
     def _calhmm(self):
         """Filter aligned streams with bounded long-signal task admission."""
         if not self.runHMM:
@@ -265,76 +405,82 @@ class _HMMFilter(SharedRNGData):
                     (self.temp1it + _HMM_LEGACY_CHUNK_RECORDS - 1)
                     // _HMM_LEGACY_CHUNK_RECORDS,
                 )
-            limits: dict[str, Any] = {}
-            if workers == 1:
-                # Reuse the initialized model and consume each record together
-                # with its origin and filtered signal, without a worker pool.
-                records = itertools.zip_longest(*[read_compressed_block(ft)] * 4)
-                results = tqdm(
-                    map(self._getoriginandhmm, records),
-                    total=self.temp1it,
-                    desc=self.description,
-                    unit="molecule",
-                    disable=None,
-                )
-            else:
-                # A default 100-record pool chunk retains many signal results.
-                # Long signals amortize per-record scheduling; bound submitted
-                # but unconsumed records. One decoded signal still scales with
-                # the number of frames; this is not a total memory bound.
-                # Forkserver per-record transport has higher observed overhead.
-                # Retain legacy chunks there, but exclude the RNG context from
-                # the callable serialized with each chunk as well.
-                chunked_forkserver = bounded and get_start_method() == "forkserver"
-                function = (
-                    partial(
-                        _convert_hmm_record,
-                        step=self.step,
-                        model=self._model,
-                        getoriginfile=self.getoriginfile,
-                        printfiltersignal=self.printfiltersignal,
-                    )
-                    if chunked_forkserver
-                    else _filter_hmm_record
-                    if bounded
-                    else self._getoriginandhmm
-                )
-                limits = (
-                    {
-                        "chunksize": 1,
-                        "max_inflight": 2 * workers,
-                        "initializer": _initialize_hmm_worker,
-                        "initargs": (
-                            self.step,
-                            self._model,
-                            self.getoriginfile,
-                            self.printfiltersignal,
-                        ),
-                    }
-                    if bounded and not chunked_forkserver
-                    else {}
-                )
-                results = run_mp(
-                    workers,
-                    func=function,
-                    l=read_compressed_block(ft),
-                    nlines=4,
-                    total=self.temp1it,
-                    desc=self.description,
-                    unit="molecule",
-                    **limits,
-                )
-            hmmit = 0
-            # Both detection and prediction can finish out of order. Assign
-            # downstream molecule IDs by structure, keeping all streams aligned
-            # without retaining all compressed results or sort keys in memory.
-            with closing(results), _OrderedMoleculeResults() as ordered:
+            results = (
+                self._pooled_results(ft, workers)
+                if self.miso
+                else self._independent_results(ft, workers, bounded)
+            )
+            self.hmmit = 0
+            with closing(results):
                 for originbytes, hmmbytes, line_c in results:
-                    if originbytes is not None or hmmbytes is not None:
-                        ordered.add(originbytes, hmmbytes, line_c)
-                for originbytes, hmmbytes, line_c in ordered:
                     appendIfNotNone(fo, originbytes)
                     appendIfNotNone(fh, hmmbytes)
-                    hmmit += 1
+                    self.hmmit += 1
                     ft2.extend(line_c)
-        self.hmmit = hmmit
+
+    def _independent_results(self, ft, workers, bounded):
+        """Filter individual structures and emit results in canonical order."""
+        limits: dict[str, Any] = {}
+        if workers == 1:
+            # Reuse the initialized model and consume each record together
+            # with its origin and filtered signal, without a worker pool.
+            records = itertools.zip_longest(*[read_compressed_block(ft)] * 4)
+            results = tqdm(
+                map(self._getoriginandhmm, records),
+                total=self.temp1it,
+                desc=self.description,
+                unit="molecule",
+                disable=None,
+            )
+        else:
+            # A default 100-record pool chunk retains many signal results.
+            # Long signals amortize per-record scheduling; bound submitted
+            # but unconsumed records. One decoded signal still scales with
+            # the number of frames; this is not a total memory bound.
+            # Forkserver per-record transport has higher observed overhead.
+            # Retain legacy chunks there, but exclude the RNG context from
+            # the callable serialized with each chunk as well.
+            chunked_forkserver = bounded and get_start_method() == "forkserver"
+            function = (
+                partial(
+                    _convert_hmm_record,
+                    step=self.step,
+                    model=self._model,
+                    getoriginfile=self.getoriginfile,
+                    printfiltersignal=self.printfiltersignal,
+                )
+                if chunked_forkserver
+                else _filter_hmm_record
+                if bounded
+                else self._getoriginandhmm
+            )
+            limits = (
+                {
+                    "chunksize": 1,
+                    "max_inflight": 2 * workers,
+                    "initializer": _initialize_hmm_worker,
+                    "initargs": (
+                        self.step,
+                        self._model,
+                        self.getoriginfile,
+                        self.printfiltersignal,
+                    ),
+                }
+                if bounded and not chunked_forkserver
+                else {}
+            )
+            results = run_mp(
+                workers,
+                func=function,
+                l=read_compressed_block(ft),
+                nlines=4,
+                total=self.temp1it,
+                desc=self.description,
+                unit="molecule",
+                **limits,
+            )
+        with closing(results), _OrderedMoleculeResults() as ordered:
+            for originbytes, hmmbytes, line_c in results:
+                if originbytes is not None or hmmbytes is not None:
+                    ordered.add(originbytes, hmmbytes, line_c)
+            yield from ordered

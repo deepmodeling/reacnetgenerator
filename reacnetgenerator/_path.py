@@ -43,7 +43,7 @@ from ._smilesworker import (
     _run_smiles_records,
     _should_batch_smiles,
 )
-from ._species import species_molecule
+from ._species import isomorphic, molecule_graph, species_molecule
 from ._step3state import (
     _STEP3_SCAN_ROWS,
     _AtomFrameReader,
@@ -72,8 +72,6 @@ _ROUTE_WORKER_STATE = None
 # Starting workers and attaching three mappings costs more than scanning a
 # single block in the parent. Larger workloads retain the indexed worker path.
 _STEP3_SERIAL_ATOM_FRAMES = _STEP3_SCAN_ROWS
-_ATOM_MATCH = iso.categorical_node_match("atom", None)
-_BOND_MATCH = iso.categorical_edge_match("level", None)
 _MATRIX_WRITE_CELLS = 1024 * 1024
 
 
@@ -114,7 +112,9 @@ def _write_molecule_presence(store, atoms, presence, molecule_id):
             store.atomeach[index] = previous
 
 
-def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS):
+def _route_changes(
+    timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS, route_ids=None
+):
     """Compress a route in bounded blocks while marking raw-frame changes.
 
     Legacy route positions count only nonzero observations. Reaction indices
@@ -125,14 +125,20 @@ def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROW
         raise ValueError("Scan block size must be positive")
     times, routes = [], []
     nonzero_count = 0
-    previous = 0
+    previous = previous_frame = 0
     for start in range(0, len(timeline), block_rows):
         stop = min(start + block_rows, len(timeline))
-        if active_transitions is not None:
-            first = max(1, start)
-            changed = timeline[first:stop] != timeline[first - 1 : stop - 1]
-            active_transitions[first - 1 : stop - 1][changed] = 1
         block = timeline[start:stop]
+        if route_ids is not None:
+            # Equivalent variants on the same physical atoms share a route ID.
+            # Keep the matrix's raw IDs for transition evidence.
+            block = route_ids[block]
+        if active_transitions is not None:
+            if start and previous_frame != block[0]:
+                active_transitions[start - 1] = 1
+            changed = block[1:] != block[:-1]
+            active_transitions[start : stop - 1][changed] = 1
+            previous_frame = block[-1]
         values = block[block != 0]
         if not len(values):
             continue
@@ -150,9 +156,11 @@ def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROW
     return np.concatenate(times), np.concatenate(routes)
 
 
-def _atom_route_result(atom_index, timeline, atom_name, selected, names, active=None):
+def _atom_route_result(
+    atom_index, timeline, atom_name, selected, names, active=None, route_ids=None
+):
     """Format one atom's route with the historical nonzero-position semantics."""
-    time, route = _route_changes(timeline, active)
+    time, route = _route_changes(timeline, active, route_ids=route_ids)
     molecule_route = (
         np.column_stack((route[:-1], route[1:]))
         if selected
@@ -261,7 +269,14 @@ def _compact_atom_route_result(*args):
 
 
 def _initialize_route_worker(
-    reader_args, atomtype, atomname, selectatoms, names, frame_range, active_path
+    reader_args,
+    atomtype,
+    atomname,
+    selectatoms,
+    names,
+    frame_range,
+    active_path,
+    route_ids=None,
 ):
     """Attach mappings once; no trajectory arrays travel with atom tasks."""
     global _ROUTE_WORKER_STATE
@@ -284,13 +299,14 @@ def _initialize_route_worker(
         names,
         frame_range,
         active,
+        route_ids,
     )
 
 
 def _get_atom_route_by_index(atom_index):
     """Process a zero-based atom index using this worker's attached matrices."""
     assert _ROUTE_WORKER_STATE is not None
-    reader, atomtype, atomname, selectatoms, names, frame_range, active = (
+    reader, atomtype, atomname, selectatoms, names, frame_range, active, route_ids = (
         _ROUTE_WORKER_STATE
     )
     start, stop = frame_range
@@ -302,6 +318,7 @@ def _get_atom_route_by_index(atom_index):
         name in selectatoms,
         names,
         active,
+        route_ids,
     )
 
 
@@ -383,6 +400,7 @@ class _MoleculeTimelineSpool:
 
 
 class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
+    hmm_route_ids: np.ndarray | None = None
     runHMM: bool
     N: int
     step: int
@@ -423,6 +441,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 "atomroutefilename",
                 "nproc",
                 "hmmit",
+                "hmm_route_ids",
                 "atomtype",
                 "selectatoms",
                 "split",
@@ -533,7 +552,12 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
         i, (atomeachi, atomtypei) = item
         name = self.atomname[atomtypei]
         return _atom_route_result(
-            i - 1, atomeachi, name, name in self.selectatoms, self.mname
+            i - 1,
+            atomeachi,
+            name,
+            name in self.selectatoms,
+            self.mname,
+            route_ids=self.hmm_route_ids,
         )
 
     def _iter_local_atom_routes(self, matrix_store, frame_range, mark_active):
@@ -549,6 +573,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                 name in self.selectatoms,
                 self.mname,
                 active,
+                self.hmm_route_ids,
             )
 
     def _printatomroute(self, matrix_store, timeaxis=None, frame_range=None):
@@ -589,6 +614,7 @@ class _CollectPaths(SharedRNGData, metaclass=ABCMeta):
                         matrix_store.active_transition_path
                         if timeaxis is None
                         else None,
+                        self.hmm_route_ids,
                     ),
                     unordered=False,
                     chunksize=1,
@@ -1111,21 +1137,7 @@ class Molecule:
         The broader modes discard bond orders or connectivity, respectively.
         Trajectory atom indices and the original bond records are preserved.
         """
-        if self._miso not in (0, 1, 2):
-            raise ValueError(f"Unknown isomer identification method: {self._miso}.")
-        graph = nx.Graph()
-        for line in self.bonds:
-            if self._miso == 0:
-                # normal mode
-                graph.add_edge(line[0], line[1], level=line[2])
-            elif self._miso == 1:
-                # merge the isomers with same atoms and same bond-network but different bond orders
-                graph.add_edge(line[0], line[1], level=1)
-            elif self._miso == 2:
-                # merge the isomers with same atoms with different bond-network
-                pass
-        for atomnumber, atomtype in zip(self.atoms, self._atomtypes):
-            graph.add_node(atomnumber, atom=atomtype)
+        graph = molecule_graph(self.atoms, self._atomtypes, self.bonds, self._miso)
         if self._miso == 0:
             try:
                 molecule = species_molecule(self._atomnames, self.atoms, self.bonds)
@@ -1141,9 +1153,4 @@ class Molecule:
 
     def isomorphic(self, mol):
         """Return whether two molecules are isomorphic."""
-        return nx.is_isomorphic(
-            self.graph,
-            mol.graph,
-            node_match=_ATOM_MATCH,
-            edge_match=_BOND_MATCH,
-        )
+        return isomorphic(self.graph, mol.graph)

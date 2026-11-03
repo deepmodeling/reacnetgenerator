@@ -76,6 +76,12 @@ class _OrderedMoleculeResults:
         )
         self._index.execute("INSERT INTO results VALUES (?, ?, ?, ?)", (*key, offset))
 
+    def atom_set_count(self):
+        """Count adjacent atom sets for ordered, bounded HMM worker dispatch."""
+        return self._index.execute(
+            "SELECT COUNT(DISTINCT atoms) FROM results"
+        ).fetchone()[0]
+
     def __iter__(self):
         """Yield at most one compressed molecule and its signals at a time."""
         self._index.commit()
