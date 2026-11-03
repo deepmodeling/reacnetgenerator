@@ -309,9 +309,13 @@ def test_kekule_switch_preserves_evidence_without_reaction(
             _bond_set(first),
             _bond_set(second),
         }
-        assert [
-            (row.start_frame, row.end_frame) for row in iter_molecule_ranges(timeline)
-        ] == [(0, 29), (30, 59)]
+        bonds_by_id = {m.molecule_id: _bond_set(m.bonds) for m in molecules}
+        # HMM IDs follow structural order, not the first observation. Check
+        # that each interval still belongs to the correct raw bond assignment.
+        assert {
+            (bonds_by_id[row.molecule_id], row.start_frame, row.end_frame)
+            for row in iter_molecule_ranges(timeline)
+        } == {(_bond_set(first), 0, 29), (_bond_set(second), 30, 59)}
         assert list(iter_reaction_events(timeline)) == []
     finally:
         for key in (
@@ -371,9 +375,11 @@ def test_aromatic_triple_bond_change_retains_reaction(tmp_path, smiles, run_hmm)
             _bond_set(aryne),
             _bond_set(diradical),
         }
-        assert [
-            (row.start_frame, row.end_frame) for row in iter_molecule_ranges(timeline)
-        ] == [(0, 29), (30, 59)]
+        bonds_by_id = {m.molecule_id: _bond_set(m.bonds) for m in molecules}
+        assert {
+            (bonds_by_id[row.molecule_id], row.start_frame, row.end_frame)
+            for row in iter_molecule_ranges(timeline)
+        } == {(_bond_set(aryne), 0, 29), (_bond_set(diradical), 30, 59)}
         hdf5_events = list(iter_reaction_events(timeline))
         assert len(hdf5_events) == 1
         assert hdf5_events[0].transition == 29

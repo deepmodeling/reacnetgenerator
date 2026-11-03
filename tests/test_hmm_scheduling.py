@@ -153,14 +153,18 @@ def _delayed_record(record, *, function):
     return function(record)
 
 
-def test_out_of_order_long_hmm_keeps_streams_together(tmp_path, monkeypatch):
-    """Reordering complete result tuples must not misalign origins and definitions."""
+@pytest.mark.parametrize("bounded", [False, True])
+def test_out_of_order_hmm_keeps_streams_together(tmp_path, monkeypatch, bounded):
+    """Delayed workers must preserve canonical order and aligned signals."""
     _use_hmm_context(monkeypatch, "spawn")
-    monkeypatch.setattr(_hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 1)
+    monkeypatch.setattr(
+        _hmmfilter, "_HMM_BOUNDED_SIGNAL_FRAMES", 1 if bounded else 100000
+    )
     monkeypatch.setattr(_hmmfilter, "_HMM_LEGACY_CHUNK_RECORDS", 4)
     monkeypatch.setattr(_hmmfilter.tempfile, "tempdir", str(tmp_path))
-    serial = _filter(tmp_path / "serial", 1)
-    parallel = _filter(tmp_path / "parallel", 2)
+    count = 12 if bounded else 201
+    serial = _filter(tmp_path / "serial", 1, count=count)
+    parallel = _filter(tmp_path / "parallel", 2, count=count)
     serial._calhmm()
 
     def delayed(nproc, **kwargs):
@@ -171,7 +175,7 @@ def test_out_of_order_long_hmm_keeps_streams_together(tmp_path, monkeypatch):
     monkeypatch.setattr(_hmmfilter, "run_mp", delayed)
     parallel._calhmm()
     assert _read(parallel) == _read(serial)
-    assert next(iter(_read(parallel))) != 0
+    assert list(_read(parallel)) == list(range(count))
 
 
 def _failed_record(record):
@@ -209,6 +213,7 @@ def test_long_hmm_failure_stops_workers(tmp_path, monkeypatch, failure):
         filter._calhmm()
     assert {p.pid for p in multiprocessing.active_children()} == before
     assert Path(filter.moleculetempfilename).exists()
+    assert not list(tmp_path.glob("reacnetgenerator-order-*"))
 
 
 @pytest.mark.parametrize("workers", [4, 32])

@@ -175,7 +175,7 @@ def test_index_ranges_join_across_blocks(frames, block_rows):
 
 @pytest.mark.parametrize("indexed", [False, True])
 def test_matrix_writes_are_bounded_and_preserve_conflicts(monkeypatch, indexed):
-    """Splitting either dimension must preserve last-writer and conflict cells."""
+    """Splitting either dimension must preserve molecule priority and conflicts."""
     monkeypatch.setattr("reacnetgenerator._moleculepresence._PRESENCE_BLOCK_ROWS", 7)
     monkeypatch.setattr("reacnetgenerator._path._MATRIX_WRITE_CELLS", 12)
     values = np.zeros((19, 31), dtype=np.uint16)
