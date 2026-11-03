@@ -17,6 +17,7 @@ from reacnetgenerator.timedoutput import (
     TimedOutputValidationError,
     ValidationSummary,
     compare_semantic_manifests,
+    iter_reaction_types,
     iter_transition_evidence,
     read_schema_descriptor,
     semantic_manifest,
@@ -97,8 +98,13 @@ def test_schema_1_0_remains_readable_without_transition_evidence(
         del file["transition_evidence"]
 
     assert validate_timed_output(legacy, block_rows=2).schema_version == "1.0"
+    assert list(iter_reaction_types(legacy)) == list(
+        iter_reaction_types(valid_timeline)
+    )
     with pytest.raises(ValueError, match="does not contain transition evidence"):
         list(iter_transition_evidence(legacy, block_rows=2))
+    with pytest.raises(ValueError, match="does not contain transition evidence"):
+        list(iter_reaction_types(legacy, inferred_order="exclude"))
 
 
 @pytest.mark.parametrize(

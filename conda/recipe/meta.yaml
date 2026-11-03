@@ -11,6 +11,7 @@ build:
   string: {{ GIT_BUILD_STR }}
   entry_points:
     - reacnetgenerator = reacnetgenerator.commandline:_commandline
+    - reacnetgenerator-reaction-counts = reacnetgenerator.reactioncounts:main
     - reacnetgeneratorgui = reacnetgenerator.gui:gui
   script: "{{ PYTHON }} -m pip install . -vv"
 

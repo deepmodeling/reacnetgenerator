@@ -7,8 +7,10 @@ consumers should join on IDs rather than infer scientific equality from them.
 """
 
 import json
+from collections import Counter
 from contextlib import contextmanager
 from dataclasses import dataclass
+from itertools import islice
 from operator import index
 
 import h5py
@@ -261,8 +263,72 @@ def _transition_participant(
     )
 
 
-def iter_transition_evidence(filename, *, block_rows=8192):
-    """Yield instance participants and bond changes in transition order."""
+def _order_only_instances(file, block_rows):
+    """Scan only offsets and order columns, including across block boundaries."""
+    offsets = _rows(file, "transition_evidence", ("bond_change_offsets",), block_rows)
+    if next(offsets, None) != (0,):
+        raise ValueError("Invalid transition evidence bond-change offsets")
+    orders = _rows(
+        file, "transition_evidence", ("before_order", "after_order"), block_rows
+    )
+    size = len(_numeric_dataset(file, "transition_evidence/before_order"))
+    start = 0
+    for (stop,) in offsets:
+        if not start <= stop <= size:
+            raise ValueError("Invalid transition evidence bond-change offsets")
+        order_only = stop > start
+        for before, after in islice(orders, stop - start):
+            if before <= 0 or after <= 0 or before == after:
+                order_only = False
+        yield order_only
+        start = stop
+    if start != size:
+        raise ValueError("Invalid transition evidence bond-change offsets")
+
+
+def _evidence_rows(file, block_rows, inferred_order):
+    """Select concrete instances before combining occurrences of a reaction type."""
+    if inferred_order not in ("include", "exclude", "only"):
+        raise ValueError("inferred_order must be 'include', 'exclude', or 'only'")
+    if file.attrs["schema_version"] == "1.0":
+        raise ValueError("Timeline does not contain transition evidence")
+    rows = enumerate(
+        _rows(
+            file, "transition_evidence", ("transition", "reaction_type_id"), block_rows
+        )
+    )
+    if inferred_order == "include":
+        yield from rows
+        return
+    try:
+        input_type = json.loads(file.attrs["configuration"])["parameters"][
+            "inputfiletype"
+        ]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(
+            "Cannot determine bond-order source from timeline configuration"
+        ) from exc
+    if input_type in ("bond", "lammpsbondfile"):
+        if inferred_order == "exclude":
+            yield from rows
+        return
+    if input_type not in ("dump", "lammpsdumpfile", "xyz", "extxyz"):
+        raise ValueError(
+            f"Cannot determine bond-order source for inputfiletype {input_type!r}"
+        )
+    for row, order_only in zip(
+        rows, _order_only_instances(file, block_rows), strict=True
+    ):
+        if order_only == (inferred_order == "only"):
+            yield row
+
+
+def iter_transition_evidence(filename, *, block_rows=8192, inferred_order="include"):
+    """Yield instance participants and bond changes in transition order.
+
+    Use inferred_order="only" or "exclude" to select or omit coordinate-input
+    events whose only bond changes are order changes on existing atom pairs.
+    """
     with _open(filename) as file:
         if file.attrs.get("schema_version") != SCHEMA_VERSION:
             raise ValueError("Timeline does not contain transition evidence")
@@ -308,13 +374,8 @@ def iter_transition_evidence(filename, *, block_rows=8192):
             for name in ("bond_atom_index_1", "bond_atom_index_2", "bond_order")
         )
         names = _dataset(file, "species/name").asstr()
-        for row, (transition, reaction_type_id) in enumerate(
-            _rows(
-                file,
-                "transition_evidence",
-                ("transition", "reaction_type_id"),
-                block_rows,
-            )
+        for row, (transition, reaction_type_id) in _evidence_rows(
+            file, block_rows, inferred_order
         ):
             if reaction_type_id < 0 or reaction_type_id >= len(reactants):
                 raise ValueError(
@@ -427,8 +488,13 @@ def iter_species(filename):
             yield species_id, names[species_id]
 
 
-def iter_reaction_types(filename):
-    """Yield ``(type_id, reactant, product, total_count)`` dictionary entries."""
+def iter_reaction_types(filename, *, inferred_order="include", block_rows=8192):
+    """Yield ``(type_id, reactant, product, count)`` dictionary entries.
+
+    The default returns stored totals. With inferred_order="only" or "exclude",
+    count matching instances as in iter_transition_evidence. Omit types with no
+    matches and retain the original file-local IDs. Filtering requires schema 1.1.
+    """
     with _open(filename) as file:
         types = file["reaction_types"]
         if not isinstance(types, h5py.Group):
@@ -436,14 +502,23 @@ def iter_reaction_types(filename):
         reactants = _dataset(types, "reactant")
         products = _dataset(types, "product")
         totals = _numeric_dataset(types, "total_count")
-        if len(reactants) != len(totals) or len(products) != len(totals):
+        n_types = len(totals)
+        if len(reactants) != n_types or len(products) != n_types:
             raise ValueError("Misaligned columns in reaction_types")
         reactant_text = reactants.asstr()
         product_text = products.asstr()
-        for type_id in range(len(totals)):
-            yield (
-                type_id,
-                reactant_text[type_id],
-                product_text[type_id],
-                int(totals[type_id]),
+        if inferred_order == "include":
+            rows = _rows(file, "reaction_types", ("total_count",), block_rows)
+            type_counts = enumerate(count for (count,) in rows)
+        else:
+            counts = Counter(
+                type_id
+                for _, (_, type_id) in _evidence_rows(file, block_rows, inferred_order)
             )
+            type_counts = sorted(counts.items())
+        for type_id, count in type_counts:
+            if not 0 <= type_id < n_types:
+                raise ValueError(
+                    "Transition evidence references an invalid reaction type"
+                )
+            yield type_id, reactant_text[type_id], product_text[type_id], count

@@ -167,6 +167,29 @@ yields `(species_id, name)`; `iter_reaction_types` yields
 Source paths and atom-type tables can be accessed directly with h5py under the
 public contract above.
 
+### Inspecting coordinate-inferred bond orders
+
+Pass `inferred_order="only"` to locate individual events on coordinate input
+that changed only the order of existing bonds. Each participant retains its
+canonical atom indices. For example, to inspect the evidence and then count
+the remaining events by type:
+
+```python
+from reacnetgenerator.timedoutput import iter_reaction_types, iter_transition_evidence
+
+for event in iter_transition_evidence("timeline.h5", inferred_order="only"):
+    print(event.transition, event.reactant, event.product, event.bond_changes)
+
+for type_id, reactant, product, count in iter_reaction_types(
+    "timeline.h5", inferred_order="exclude"
+):
+    print(count, reactant, product)
+```
+
+Filtered counts retain the original type IDs and omit types with no matching
+instances. Filtering requires schema 1.1 evidence and a recognized input type
+in the stored configuration. Schema 1.0 supports the default aggregate counts.
+
 ## Validation and semantic comparison
 
 Validate the complete structural and cross-table contract before consuming an

@@ -73,6 +73,31 @@ suffix: `.reaction`, `.reactionabcd`
 One can read these files through the Python method {meth}`reacnetgenerator.tools.read_reactions <reacnetgenerator.tools.read_reactions>`.
 Note that $\ce{A + B -> C + D}$ information may be not accurate when [HMM](hmm.md) is enabled.
 
+### Separate coordinate-inferred bond-order changes
+
+A pair of atoms can stay bonded while a small distance fluctuation changes its
+inferred order. For example, an isolated oxygen pair can switch between
+`[O][O]` and `[O]=[O]` in a coordinate trajectory. The coordinates alone do
+not establish an electronic-state change.
+
+To obtain two separate counts from the same run, request a timeline with
+`--timed-output timeline.h5` and run:
+
+```sh
+reacnetgenerator-reaction-counts timeline.h5 --inferred-order exclude > filtered.reactionabcd
+reacnetgenerator-reaction-counts timeline.h5 --inferred-order only > order-only.reactionabcd
+```
+
+`only` counts an instance when the input was coordinates (dump, XYZ or extxyz)
+and every recorded bond change was an order change on an existing atom pair,
+with at least one such change. `exclude` counts all other instances, including
+events with any formed or broken bond and order changes from LAMMPS bond files.
+The two counts sum to the original count for each reaction type, even when
+different instances have the same reactant and product names. Omitting the
+option prints the original totals. Both selections work on existing schema 1.1
+timelines. See [Inspecting individual events](timed-output-schema.md#inspecting-coordinate-inferred-bond-orders)
+to examine the atoms and bond orders before deciding which events to count.
+
 ## Reaction event file
 
 suffix: `.reactionevent.csv`
