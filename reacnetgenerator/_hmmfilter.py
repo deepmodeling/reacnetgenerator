@@ -37,6 +37,7 @@ try:
 except ImportError:
     from hmmlearn.hmm import MultinomialHMM
 
+from ._moleculeorder import _OrderedMoleculeResults
 from ._moleculepresence import _iter_molecule_records, _use_frame_indices
 from .utils import (
     SharedRNGData,
@@ -324,11 +325,16 @@ class _HMMFilter(SharedRNGData):
                     **limits,
                 )
             hmmit = 0
-            with closing(results):
+            # Both detection and prediction can finish out of order. Assign
+            # downstream molecule IDs by structure, keeping all streams aligned
+            # without retaining all compressed results or sort keys in memory.
+            with closing(results), _OrderedMoleculeResults() as ordered:
                 for originbytes, hmmbytes, line_c in results:
                     if originbytes is not None or hmmbytes is not None:
-                        appendIfNotNone(fo, originbytes)
-                        appendIfNotNone(fh, hmmbytes)
-                        hmmit += 1
-                        ft2.extend(line_c)
+                        ordered.add(originbytes, hmmbytes, line_c)
+                for originbytes, hmmbytes, line_c in ordered:
+                    appendIfNotNone(fo, originbytes)
+                    appendIfNotNone(fh, hmmbytes)
+                    hmmit += 1
+                    ft2.extend(line_c)
         self.hmmit = hmmit

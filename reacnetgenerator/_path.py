@@ -78,7 +78,12 @@ _MATRIX_WRITE_CELLS = 1024 * 1024
 
 
 def _write_molecule_presence(store, atoms, presence, molecule_id):
-    """Bound matrix gathers in both dimensions, preserving overlap conflicts."""
+    """Keep the highest molecule ID on overlaps, independently of write order.
+
+    HMM records receive IDs in canonical structural order. This tie-breaker
+    makes their atom routes reproducible; conflict flags still identify the
+    ambiguous cells for reaction inference.
+    """
     atoms = np.asarray(atoms, dtype=np.int64)
     # Duplicate atom IDs within a record must not create a self-conflict when
     # they happen to straddle two write batches.
@@ -94,7 +99,8 @@ def _write_molecule_presence(store, atoms, presence, molecule_id):
             index = (
                 (batch, frames) if isinstance(frames, slice) else np.ix_(batch, frames)
             )
-            overlap = np.not_equal(store.atomeach[index], 0)
+            previous = store.atomeach[index]
+            overlap = (previous != 0) & (previous != molecule_id)
             if np.any(overlap):
                 # The packed conflict API takes indices. Materialize them only
                 # for an overlapping bounded span, never for a full trajectory.
@@ -104,7 +110,8 @@ def _write_molecule_presence(store, atoms, presence, molecule_id):
                     else frames
                 )
                 store.conflict.mark(batch, conflict_frames, overlap)
-            store.atomeach[index] = molecule_id
+            np.maximum(previous, molecule_id, out=previous)
+            store.atomeach[index] = previous
 
 
 def _route_changes(timeline, active_transitions=None, block_rows=_STEP3_SCAN_ROWS):
