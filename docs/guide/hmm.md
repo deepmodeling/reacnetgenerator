@@ -18,7 +18,9 @@ These numeric structure fields are already sorted by detection. Ordering uses
 a disk-backed index and result spool; it does not retain all signals in memory.
 In the default mode, temporary disk usage grows with the retained results.
 Pooling instead spools the input structures before filtering. Each worker
-processes the variants of one atom set together.
+processes the variants of one atom set together. The in-flight task limit
+bounds the number of atom sets. Memory per task depends on the size of that
+set's variant records and the trajectory length.
 
 At an overlapping atom/frame cell, the largest molecule ID wins, regardless of
 record arrival or write order. This is a deterministic tie-breaker, not a chemical

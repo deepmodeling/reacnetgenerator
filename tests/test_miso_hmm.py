@@ -18,8 +18,11 @@ from reacnetgenerator.utils import bytestolist, listtobytes
 
 
 @pytest.mark.parametrize("nproc", [1, 2])
-def test_alternating_oxygen_survives_hmm(tmp_path, nproc):
+def test_alternating_oxygen_survives_hmm(tmp_path, monkeypatch, nproc):
     """Keep both observed assignments and one continuous route per physical pair."""
+    if nproc == 2:
+        # Exercise route-ID propagation to workers even on this 800 atom-frame input.
+        monkeypatch.setattr("reacnetgenerator._path._STEP3_SERIAL_ATOM_FRAMES", 0)
     source = tmp_path / "oxygen.dump"
     distances = ([1.23529] * 10 + [1.22136] * 10) * 10
     with source.open("w") as stream:

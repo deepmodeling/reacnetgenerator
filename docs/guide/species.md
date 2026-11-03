@@ -37,9 +37,10 @@ With the default `--miso 0`, HMM filters each raw atom-and-bond record
 independently. Aromatic normalization happens during naming, so a short-lived
 Kekulé assignment can be filtered out before it receives a species name.
 
-With `--miso 1`, HMM pools observations of the **same atom indices** when the
-element-labeled graphs are isomorphic after ignoring bond orders. With
-`--miso 2`, the atom indices alone define the pool. Two O₂ molecules on
+With `--miso 1`, HMM pools observations of the **same atom indices** when their
+bond graphs are isomorphic after ignoring bond orders. The isomorphism must
+preserve input atom type IDs, even when two types have the same element name.
+With `--miso 2`, the atom indices alone define the pool. Two O₂ molecules on
 different atom pairs therefore have independent signals. A single O₂ molecule
 that alternates between single and double bond assignments has one continuous
 signal while those atoms stay bonded.
