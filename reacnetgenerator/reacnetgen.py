@@ -252,6 +252,7 @@ class ReacNetGenerator:
             "atomtype",
             "step",
             "hmmit",
+            "hmm_route_ids",
             "timestep",
             "steplinenum",
             "N",

@@ -33,16 +33,25 @@ can also differ across RDKit versions or from earlier ReacNetGenerator releases.
 
 ## Filtering, merging and trajectory evidence
 
-Normalization happens during species identification, **after HMM filtering**.
-Detection and HMM still operate on the original atom-and-bond records. Signals
-for different Kekulé assignments are not pooled before filtering, so short-lived
-assignments can still be filtered independently. Normalization does not recover
-records already removed by HMM. Use the [HMM guidance](hmm.md) when choosing
-filter parameters.
+With the default `--miso 0`, HMM filters each raw atom-and-bond record
+independently. Aromatic normalization happens during naming, so a short-lived
+Kekulé assignment can be filtered out before it receives a species name.
 
-`--miso 1` additionally ignores all bond orders, while `--miso 2` additionally
-ignores connectivity. These broader merging modes retain their existing meaning;
-they are not needed to merge the supported aromatic representations.
+With `--miso 1`, HMM pools observations of the **same atom indices** when their
+bond graphs are isomorphic after ignoring bond orders. The isomorphism must
+preserve input atom type IDs, even when two types have the same element name.
+With `--miso 2`, the atom indices alone define the pool. Two O₂ molecules on
+different atom pairs therefore have independent signals. A single O₂ molecule
+that alternates between single and double bond assignments has one continuous
+signal while those atoms stay bonded.
+
+HMM filters the union of each pool's observed frames once. On an observed frame
+retained by HMM, the raw structure for that frame owns the effective presence.
+On a frame added by HMM, the analysis carries forward the preceding observed
+variant in the pool, using the first observation for a leading gap. This
+assignment supplies a graph for the inferred frame. The molecule CSV continues
+to report actual observations. Atom routes treat variants in a pool as one
+molecule, including across a change in inferred bond order.
 
 Molecule text/CSV and [timed output](timed-output-schema.md) preserve the original
 atom indices and bond records. Separate molecule instances can therefore share a
