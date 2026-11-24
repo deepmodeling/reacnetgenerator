@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Build species graphs without changing the underlying trajectory records."""
 
+import networkx as nx
+from networkx.algorithms import isomorphism as iso
 from rdkit import Chem, rdBase
 
 # Limit perception to ordinary organic chemistry. In particular, a missing
@@ -21,6 +23,28 @@ _AROMATIC_SANITIZE_OPS = (
     | Chem.SanitizeFlags.SANITIZE_FINDRADICALS
     | Chem.SanitizeFlags.SANITIZE_SETAROMATICITY
 )
+
+
+_ATOM_MATCH = iso.categorical_node_match("atom", None)
+_BOND_MATCH = iso.categorical_edge_match("level", None)
+
+
+def molecule_graph(atoms, atomtypes, bonds, miso):
+    """Apply the selected atom-label and bond policy for VF2 comparison."""
+    graph = nx.Graph()
+    if miso not in (0, 1, 2):
+        raise ValueError(f"Unknown isomer identification method: {miso}.")
+    if miso != 2:
+        for bond in bonds:
+            graph.add_edge(bond[0], bond[1], level=bond[2] if miso == 0 else 1)
+    for atom, atomtype in zip(atoms, atomtypes, strict=True):
+        graph.add_node(atom, atom=atomtype)
+    return graph
+
+
+def isomorphic(left, right):
+    """Compare graphs built under the same isomer policy."""
+    return nx.is_isomorphic(left, right, node_match=_ATOM_MATCH, edge_match=_BOND_MATCH)
 
 
 def species_molecule(atomnames, atoms, bonds):
