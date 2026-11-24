@@ -10,8 +10,10 @@ import pytest
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator._hmmfilter import _filter_atom_set
 from reacnetgenerator.timedoutput import (
+    BondChange,
     iter_molecule_ranges,
     iter_molecules,
+    iter_transition_evidence,
     validate_timed_output,
 )
 from reacnetgenerator.utils import bytestolist, listtobytes
@@ -64,6 +66,66 @@ def test_alternating_oxygen_survives_hmm(tmp_path, monkeypatch, nproc):
         observed = list(csv.DictReader(stream))
     assert len(observed) == 400
     assert len({row["BondIDs"] for row in observed}) == 3
+
+
+@pytest.mark.parametrize(("nproc", "write_events"), [(1, False), (2, True)])
+def test_independent_reaction_does_not_count_a_pooled_switch(
+    tmp_path, nproc, write_events
+):
+    """Count H₂ formation once when an independent O₂ pair changes bond order."""
+    source = tmp_path / "simultaneous.bond"
+    with source.open("w", encoding="utf-8") as handle:
+        for frame in range(120):
+            oxygen_order = 1 if frame < 60 else 2
+            # Types 1 and 2 both name O. The first two pairs establish distinct
+            # SMILES labels, and the third pair stays in one pool across the switch.
+            handle.write(
+                f"# Timestep {frame}\n#\n# Number of particles 8\n#\n"
+                "# Max number of bonds per atom 1 with coarse bond order cutoff 0.300\n"
+                "# Particle connection table and bond orders\n"
+                "# id type nb id_1...id_nb mol bo_1...bo_nb abo nlp q\n"
+                "1 1 1 2 0 1 1 0 0\n"
+                "2 2 1 1 0 1 1 0 0\n"
+                "3 2 1 4 0 2 2 0 0\n"
+                "4 2 1 3 0 2 2 0 0\n"
+                f"5 2 1 6 0 {oxygen_order} {oxygen_order} 0 0\n"
+                f"6 2 1 5 0 {oxygen_order} {oxygen_order} 0 0\n"
+            )
+            if frame < 60:
+                handle.write("7 3 0 0 0 0 0\n8 3 0 0 0 0 0\n")
+            else:
+                handle.write("7 3 1 8 0 1 1 0 0\n8 3 1 7 0 1 1 0 0\n")
+
+    rng = ReacNetGenerator(
+        inputfilename=source,
+        inputfiletype="bond",
+        atomname=["O", "O", "H"],
+        nproc=nproc,
+        miso=1,
+        output_dir=tmp_path,
+        printreactionevent=write_events,
+    )
+    rng.run_items(["species", "reactions"])
+
+    assert Path(rng.reactionabcdfilename).read_text().splitlines() == [
+        "1 [H]+[H]->[H][H]"
+    ]
+    if write_events:
+        with open(rng.reactioneventfilename, newline="") as stream:
+            (row,) = csv.DictReader(stream)
+        assert row == {
+            "Timestep_Index": "59",
+            "Reactant": "[H]+[H]",
+            "Product": "[H][H]",
+        }
+        (event,) = iter_transition_evidence(rng.timed_output)
+        assert (event.transition, event.reactant, event.product) == (
+            59,
+            "[H]+[H]",
+            "[H][H]",
+        )
+        assert event.bond_changes == (BondChange(6, 7, 0, 1),)
+        assert [p.atom_index for p in event.participants] == [(6,), (7,), (6, 7)]
 
 
 class _Model:

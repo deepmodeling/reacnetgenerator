@@ -68,7 +68,11 @@ def _reaction_pair_first_indices(before, after):
 
 
 def _initialize_reaction_worker(
-    reader_args, names, printreactionevent, include_transition_evidence
+    reader_args,
+    names,
+    printreactionevent,
+    include_transition_evidence,
+    hmm_route_ids=None,
 ):
     """Attach shared matrices and compact metadata once per worker."""
     global _REACTION_WORKER_STATE
@@ -80,6 +84,7 @@ def _initialize_reaction_worker(
     finder.mname = names
     finder.printreactionevent = printreactionevent
     finder._include_transition_evidence = include_transition_evidence
+    finder.hmm_route_ids = hmm_route_ids
     _REACTION_WORKER_STATE = reader, finder
 
 
@@ -121,6 +126,7 @@ class ReactionsFinder(SharedRNGData):
 
     step: int
     mname: np.ndarray
+    hmm_route_ids: np.ndarray | None = None
     reactionabcdfilename: str
     reactioneventfilename: str
     printreactionevent: bool
@@ -140,6 +146,7 @@ class ReactionsFinder(SharedRNGData):
             ],
             [],
         )
+        self.hmm_route_ids = getattr(rng, "hmm_route_ids", None)
         self._include_transition_evidence = False
 
     def findreactions(
@@ -185,6 +192,7 @@ class ReactionsFinder(SharedRNGData):
                     self.mname,
                     self.printreactionevent,
                     self._include_transition_evidence,
+                    self.hmm_route_ids,
                 ),
                 # Preserve the legacy reduction policy: event rows are ordered;
                 # count-only output consumes completed workers without ordering.
@@ -228,6 +236,7 @@ class ReactionsFinder(SharedRNGData):
         worker.mname = self.mname
         worker.printreactionevent = self.printreactionevent
         worker._include_transition_evidence = self._include_transition_evidence
+        worker.hmm_route_ids = self.hmm_route_ids
         results = run_mp(
             self.nproc,
             func=worker._getstepreaction,
@@ -313,8 +322,14 @@ class ReactionsFinder(SharedRNGData):
         evidence comes from every changed atom, even when its edge is repeated.
         """
         reactdict = [defaultdict(list), defaultdict(list)]
+        route_ids = self.hmm_route_ids
         for before, after, before_conflict, after_conflict in blocks:
             modified = np.flatnonzero(before != after)
+            if route_ids is not None:
+                # Match the activity scan's equivalence rule. Raw IDs still
+                # identify the participants and bond changes of actual reactions.
+                changed = route_ids[before[modified]] != route_ids[after[modified]]
+                modified = modified[changed]
             if len(modified) < _REACTION_PAIR_COMPACTION_MIN_ROWS:
                 for atom in modified:
                     left, right = int(before[atom]), int(after[atom])
