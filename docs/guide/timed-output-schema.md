@@ -96,6 +96,24 @@ cell means that the parser derives it from input; actual frame cell matrices are
 not copied into this format. Input paths, sizes and modification times provide
 provenance, not a content-integrity guarantee. No input hash is computed by default.
 
+If the source MD uses a fixed physical timestep, record it with
+`--timestep-value 0.0001 --time-unit ps`, and record the coordinate unit with
+`--length-unit angstrom`. The corresponding Python arguments are
+`timestep_value`, `time_unit`, and `length_unit`. These optional values live in
+`configuration.parameters`. Missing or `null` fields are unknown. This does
+not alter the frame table, the capability list, or the schema version.
+
+`timestep_value` is the positive finite duration of one source MD integration
+step, before dump or analysis sampling. Multiply differences in `frames/timestep`
+by this value only when those entries are source integration steps on one
+consistent time axis. Use `fs`, `ps`, or `ns` for time and `angstrom`, `bohr`, or
+`nm` for length. Supply a value only if it applies across the input files.
+
+ASE and Open Babel bond perception interpret input distances in angstroms.
+Convert coordinates and cell vectors to angstroms before coordinate-based
+analysis, and use `--length-unit angstrom` to record their unit. For bond-file
+input, the length metadata can describe the originating trajectory's unit.
+
 All datasets are one-dimensional. Numeric columns are little-endian signed 64-bit
 integers; text columns are variable-length UTF-8 strings. Columns in each ordinary
 table have equal lengths. Dataset layout/chunking is not part of semantic identity.

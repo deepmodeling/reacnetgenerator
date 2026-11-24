@@ -11,8 +11,10 @@ from operator import index
 import h5py
 
 from ._timedoutputcontract import (
+    LENGTH_UNITS,
     SCHEMA_VERSION,
     SUPPORTED_SCHEMA_VERSIONS,
+    TIME_UNITS,
     TimedOutputValidationError,
     ValidationSummary,
 )
@@ -192,6 +194,23 @@ def _root_metadata(file):
         or stepinterval <= 0
     ):
         _error("configuration/parameters/stepinterval must be a positive integer")
+    timestep_value = parameters.get("timestep_value")
+    if timestep_value is not None and (
+        isinstance(timestep_value, bool)
+        or not isinstance(timestep_value, (int, float))
+        or not 0 < timestep_value <= sys.float_info.max
+    ):
+        _error(
+            "configuration/parameters/timestep_value must be a positive finite number"
+        )
+    time_unit = parameters.get("time_unit")
+    if time_unit is not None and time_unit not in TIME_UNITS:
+        _error("configuration/parameters/time_unit must be one of 'fs', 'ps', or 'ns'")
+    length_unit = parameters.get("length_unit")
+    if length_unit is not None and length_unit not in LENGTH_UNITS:
+        _error(
+            "configuration/parameters/length_unit must be one of 'angstrom', 'bohr', or 'nm'"
+        )
     return configuration
 
 

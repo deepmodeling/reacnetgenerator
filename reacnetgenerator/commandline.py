@@ -7,6 +7,7 @@ import argparse
 import textwrap
 
 from . import __version__
+from ._timedoutputcontract import LENGTH_UNITS, TIME_UNITS, _normalize_unit
 
 
 def _to_command_values(value):
@@ -180,6 +181,31 @@ def main_parser() -> argparse.ArgumentParser:
             "default path used by --show-molecule-time and --reaction-event."
         ),
     )
+    # These prefixes previously resolved to --timed-output before the unit flags.
+    parser.add_argument(
+        "--ti", "--tim", "--time", dest="timed_output", help=argparse.SUPPRESS
+    )
+    parser.add_argument(
+        "--timestep-value",
+        type=float,
+        default=None,
+        help="Optional MD timestep duration recorded in timeline metadata (positive finite float).",
+    )
+    parser.add_argument(
+        "--time-unit",
+        choices=TIME_UNITS,
+        default=None,
+        help="Optional physical time unit for --timestep-value recorded in timeline metadata.",
+    )
+    parser.add_argument(
+        "--length-unit",
+        choices=LENGTH_UNITS,
+        default=None,
+        help=(
+            "Source coordinate unit to record in timeline metadata. "
+            "For coordinate-based analysis, supply positions and cell vectors in angstroms."
+        ),
+    )
     parser.add_argument(
         "--show-molecule-time",
         help=(
@@ -300,6 +326,11 @@ def _commandline():
         moleculeframes=args.moleculeframes,
         moleculetimesteps=args.moleculetimesteps,
         printreactionevent=args.reaction_event,
+        **{
+            key: getattr(args, key)
+            for key in ("timestep_value", "time_unit", "length_unit")
+            if getattr(args, key) is not None
+        },
     )
     if args.items is not None:
         items = [s.strip() for s in args.items.split(",")]
@@ -324,6 +355,18 @@ def parm2cmd(pp: dict) -> list[str]:
     commands = ["reacnetgenerator", "-i", pp["inputfilename"], "-a", *pp["atomname"]]
     if pp.get("timed_output"):
         commands.extend(("--timed-output", str(pp["timed_output"])))
+    if pp.get("timestep_value") is not None:
+        import numpy as np
+
+        timestep_value = pp["timestep_value"]
+        # Match the Python float stored by the API when the CLI parses the value.
+        if isinstance(timestep_value, np.floating):
+            timestep_value = float(timestep_value)
+        commands.extend(("--timestep-value", str(timestep_value)))
+    if pp.get("time_unit") is not None:
+        commands.extend(("--time-unit", _normalize_unit(pp["time_unit"])))
+    if pp.get("length_unit") is not None:
+        commands.extend(("--length-unit", _normalize_unit(pp["length_unit"])))
     if pp.get("output_dir"):
         commands.extend(("--output-dir", str(pp["output_dir"])))
     if not pp.get("runHMM", True):
