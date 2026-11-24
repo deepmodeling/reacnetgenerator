@@ -246,6 +246,9 @@ class ReacNetGenerator:
             "cell",
             "moleculeframes",
             "moleculetimesteps",
+            "timestep_value",
+            "time_unit",
+            "length_unit",
         ]
         accept_keys = [
             "source_frame_counts",
@@ -337,6 +340,29 @@ class ReacNetGenerator:
         if not 0 <= max_component_fraction <= 1:
             raise ValueError("max_component_fraction must be between 0 and 1")
         kwargs["max_component_fraction"] = float(max_component_fraction)
+        timestep_value = kwargs.get("timestep_value")
+        if timestep_value is not None:
+            if (
+                isinstance(timestep_value, (bool, np.bool_))
+                or not isinstance(timestep_value, (int, float, np.integer, np.floating))
+                or not 0 < timestep_value <= np.finfo(float).max
+            ):
+                raise ValueError("timestep_value must be a positive finite number")
+            kwargs["timestep_value"] = float(timestep_value)
+        time_unit = kwargs.get("time_unit")
+        if time_unit is not None:
+            normalized_time_unit = str(time_unit).strip().lower()
+            if normalized_time_unit not in ("fs", "ps", "ns"):
+                raise ValueError("time_unit must be one of 'fs', 'ps', or 'ns'")
+            kwargs["time_unit"] = normalized_time_unit
+        length_unit = kwargs.get("length_unit")
+        if length_unit is not None:
+            normalized_length_unit = str(length_unit).strip().lower()
+            if normalized_length_unit not in ("angstrom", "bohr", "nm"):
+                raise ValueError(
+                    "length_unit must be one of 'angstrom', 'bohr', or 'nm'"
+                )
+            kwargs["length_unit"] = normalized_length_unit
         # Nonempty filters also request timed molecule output, so resolve them first.
         for kk in ("moleculeframes", "moleculetimesteps"):
             kwargs[kk] = self._normalize_optional_int_filter(kwargs[kk])
@@ -405,6 +431,12 @@ class ReacNetGenerator:
                 raise RuntimeError(cell_error)
         parameter_keys = (
             set(necessary_key) | set(default_value) | set(none_key) | set(file_key)
+        )
+        # Preserve provenance equality with older 1.1 files for runs that supply no units.
+        parameter_keys.difference_update(
+            key
+            for key in ("timestep_value", "time_unit", "length_unit")
+            if kwargs[key] is None
         )
         self.parameters = {
             key: _json_compatible(getattr(self, key)) for key in sorted(parameter_keys)

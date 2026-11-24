@@ -181,6 +181,24 @@ def main_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--timestep-value",
+        type=float,
+        default=None,
+        help="Optional MD timestep duration recorded in timeline metadata (positive finite float).",
+    )
+    parser.add_argument(
+        "--time-unit",
+        choices=("fs", "ps", "ns"),
+        default=None,
+        help="Optional physical time unit for --timestep-value recorded in timeline metadata.",
+    )
+    parser.add_argument(
+        "--length-unit",
+        choices=("angstrom", "bohr", "nm"),
+        default=None,
+        help="Optional physical coordinate length unit recorded in timeline metadata.",
+    )
+    parser.add_argument(
         "--show-molecule-time",
         help=(
             "Write a molecule timeline CSV file with original timestep values, "
@@ -300,6 +318,11 @@ def _commandline():
         moleculeframes=args.moleculeframes,
         moleculetimesteps=args.moleculetimesteps,
         printreactionevent=args.reaction_event,
+        **{
+            key: getattr(args, key)
+            for key in ("timestep_value", "time_unit", "length_unit")
+            if getattr(args, key) is not None
+        },
     )
     if args.items is not None:
         items = [s.strip() for s in args.items.split(",")]
@@ -324,6 +347,12 @@ def parm2cmd(pp: dict) -> list[str]:
     commands = ["reacnetgenerator", "-i", pp["inputfilename"], "-a", *pp["atomname"]]
     if pp.get("timed_output"):
         commands.extend(("--timed-output", str(pp["timed_output"])))
+    if pp.get("timestep_value") is not None:
+        commands.extend(("--timestep-value", str(pp["timestep_value"])))
+    if pp.get("time_unit"):
+        commands.extend(("--time-unit", str(pp["time_unit"])))
+    if pp.get("length_unit"):
+        commands.extend(("--length-unit", str(pp["length_unit"])))
     if pp.get("output_dir"):
         commands.extend(("--output-dir", str(pp["output_dir"])))
     if not pp.get("runHMM", True):
