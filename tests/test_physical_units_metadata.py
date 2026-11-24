@@ -100,7 +100,8 @@ def test_reacnetgenerator_rejects_invalid_units(tmp_path):
         )
 
 
-def test_cli_parses_and_serializes_physical_units():
+@pytest.mark.parametrize("timestep_value", [0.0001, np.float32(0.1)])
+def test_cli_parses_and_serializes_physical_units(timestep_value):
     """Expose the optional metadata through both CLI directions."""
     parser = main_parser()
     args = parser.parse_args(
@@ -127,13 +128,13 @@ def test_cli_parses_and_serializes_physical_units():
             "inputfilename": "run.lammpstrj",
             "atomname": ["C", "H"],
             "inputfiletype": "lammpsdumpfile",
-            "timestep_value": 0.0001,
+            "timestep_value": timestep_value,
             "time_unit": " PS ",
             "length_unit": "ANGSTROM",
         }
     )
     roundtrip = parser.parse_args(cmd[1:])
-    assert roundtrip.timestep_value == pytest.approx(0.0001)
+    assert roundtrip.timestep_value == float(timestep_value)
     assert roundtrip.time_unit == "ps"
     assert roundtrip.length_unit == "angstrom"
 

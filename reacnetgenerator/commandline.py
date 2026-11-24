@@ -356,7 +356,13 @@ def parm2cmd(pp: dict) -> list[str]:
     if pp.get("timed_output"):
         commands.extend(("--timed-output", str(pp["timed_output"])))
     if pp.get("timestep_value") is not None:
-        commands.extend(("--timestep-value", str(pp["timestep_value"])))
+        import numpy as np
+
+        timestep_value = pp["timestep_value"]
+        # Match the Python float stored by the API when the CLI parses the value.
+        if isinstance(timestep_value, np.floating):
+            timestep_value = float(timestep_value)
+        commands.extend(("--timestep-value", str(timestep_value)))
     if pp.get("time_unit") is not None:
         commands.extend(("--time-unit", _normalize_unit(pp["time_unit"])))
     if pp.get("length_unit") is not None:
