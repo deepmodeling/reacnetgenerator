@@ -45,6 +45,7 @@ $ reacnetgenerator -h
 
 import gc
 import itertools
+import math
 import os
 import time
 from enum import Enum
@@ -62,6 +63,7 @@ from ._logging import logger
 from ._matrix import _GenerateMatrix
 from ._path import _CollectPaths
 from ._reachtml import _HTMLResult
+from ._timedoutputcontract import LENGTH_UNITS, TIME_UNITS, _normalize_unit
 from .utils import must_be_list
 
 
@@ -136,6 +138,13 @@ class ReacNetGenerator:
         ``printreactionevent`` is enabled, or at ``timeline.h5`` below
         ``output_dir`` when set. Includes effective molecule ranges, aggregated
         reaction events, and instance-level participants and inferred bond changes.
+    timestep_value : float, optional
+        Positive finite duration of one source MD integration step, recorded in timeline metadata.
+    time_unit : {"fs", "ps", "ns"}, optional
+        Unit of ``timestep_value``, recorded in timeline metadata.
+    length_unit : {"angstrom", "bohr", "nm"}, optional
+        Source coordinate unit, recorded in timeline metadata. Coordinate-based bond
+        perception expects coordinates and cell vectors in angstroms.
     printmoleculetime: bool, optional, default: False
         Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs,
         plus the schema 1.1 HDF5 timeline.
@@ -342,23 +351,29 @@ class ReacNetGenerator:
         kwargs["max_component_fraction"] = float(max_component_fraction)
         timestep_value = kwargs.get("timestep_value")
         if timestep_value is not None:
-            if (
-                isinstance(timestep_value, (bool, np.bool_))
-                or not isinstance(timestep_value, (int, float, np.integer, np.floating))
-                or not 0 < timestep_value <= np.finfo(float).max
+            timestep_error = "timestep_value must be a positive finite number"
+            if isinstance(timestep_value, (bool, np.bool_)) or not isinstance(
+                timestep_value, (int, float, np.integer, np.floating)
             ):
-                raise ValueError("timestep_value must be a positive finite number")
-            kwargs["timestep_value"] = float(timestep_value)
+                raise ValueError(timestep_error)
+            try:
+                timestep_value = float(timestep_value)
+            except OverflowError as exc:
+                raise ValueError(timestep_error) from exc
+            # Validate the stored value because extended-precision values can underflow.
+            if not math.isfinite(timestep_value) or timestep_value <= 0:
+                raise ValueError(timestep_error)
+            kwargs["timestep_value"] = timestep_value
         time_unit = kwargs.get("time_unit")
         if time_unit is not None:
-            normalized_time_unit = str(time_unit).strip().lower()
-            if normalized_time_unit not in ("fs", "ps", "ns"):
+            normalized_time_unit = _normalize_unit(time_unit)
+            if normalized_time_unit not in TIME_UNITS:
                 raise ValueError("time_unit must be one of 'fs', 'ps', or 'ns'")
             kwargs["time_unit"] = normalized_time_unit
         length_unit = kwargs.get("length_unit")
         if length_unit is not None:
-            normalized_length_unit = str(length_unit).strip().lower()
-            if normalized_length_unit not in ("angstrom", "bohr", "nm"):
+            normalized_length_unit = _normalize_unit(length_unit)
+            if normalized_length_unit not in LENGTH_UNITS:
                 raise ValueError(
                     "length_unit must be one of 'angstrom', 'bohr', or 'nm'"
                 )

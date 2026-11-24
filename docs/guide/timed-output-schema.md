@@ -107,8 +107,12 @@ not alter the frame table, the capability list, or the schema version.
 step, before dump or analysis sampling. Multiply differences in `frames/timestep`
 by this value only when those entries are source integration steps on one
 consistent time axis. Use `fs`, `ps`, or `ns` for time and `angstrom`, `bohr`, or
-`nm` for length. Supply a value only if it applies across the input files. RNG
-records the supplied metadata without converting coordinates or timestep values.
+`nm` for length. Supply a value only if it applies across the input files.
+
+ASE and Open Babel bond perception interpret input distances in angstroms.
+Convert coordinates and cell vectors to angstroms before coordinate-based
+analysis, and use `--length-unit angstrom` to record their unit. For bond-file
+input, the length metadata can describe the originating trajectory's unit.
 
 All datasets are one-dimensional. Numeric columns are little-endian signed 64-bit
 integers; text columns are variable-length UTF-8 strings. Columns in each ordinary

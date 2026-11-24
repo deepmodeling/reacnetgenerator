@@ -7,6 +7,7 @@ import argparse
 import textwrap
 
 from . import __version__
+from ._timedoutputcontract import LENGTH_UNITS, TIME_UNITS, _normalize_unit
 
 
 def _to_command_values(value):
@@ -180,6 +181,10 @@ def main_parser() -> argparse.ArgumentParser:
             "default path used by --show-molecule-time and --reaction-event."
         ),
     )
+    # These prefixes previously resolved to --timed-output before the unit flags.
+    parser.add_argument(
+        "--ti", "--tim", "--time", dest="timed_output", help=argparse.SUPPRESS
+    )
     parser.add_argument(
         "--timestep-value",
         type=float,
@@ -188,15 +193,18 @@ def main_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--time-unit",
-        choices=("fs", "ps", "ns"),
+        choices=TIME_UNITS,
         default=None,
         help="Optional physical time unit for --timestep-value recorded in timeline metadata.",
     )
     parser.add_argument(
         "--length-unit",
-        choices=("angstrom", "bohr", "nm"),
+        choices=LENGTH_UNITS,
         default=None,
-        help="Optional physical coordinate length unit recorded in timeline metadata.",
+        help=(
+            "Source coordinate unit to record in timeline metadata. "
+            "For coordinate-based analysis, supply positions and cell vectors in angstroms."
+        ),
     )
     parser.add_argument(
         "--show-molecule-time",
@@ -349,10 +357,10 @@ def parm2cmd(pp: dict) -> list[str]:
         commands.extend(("--timed-output", str(pp["timed_output"])))
     if pp.get("timestep_value") is not None:
         commands.extend(("--timestep-value", str(pp["timestep_value"])))
-    if pp.get("time_unit"):
-        commands.extend(("--time-unit", str(pp["time_unit"])))
-    if pp.get("length_unit"):
-        commands.extend(("--length-unit", str(pp["length_unit"])))
+    if pp.get("time_unit") is not None:
+        commands.extend(("--time-unit", _normalize_unit(pp["time_unit"])))
+    if pp.get("length_unit") is not None:
+        commands.extend(("--length-unit", _normalize_unit(pp["length_unit"])))
     if pp.get("output_dir"):
         commands.extend(("--output-dir", str(pp["output_dir"])))
     if not pp.get("runHMM", True):

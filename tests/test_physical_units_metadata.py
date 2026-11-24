@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import h5py
+import numpy as np
 import pytest
 
 from reacnetgenerator._timedoutputcontract import TimedOutputValidationError
@@ -23,8 +24,8 @@ def test_reacnetgenerator_records_optional_physical_units(tmp_path):
         atomname=["C", "H", "O", "Cl"],
         inputfiletype="lammpsdumpfile",
         timestep_value=0.0001,
-        time_unit="ps",
-        length_unit="angstrom",
+        time_unit=" PS ",
+        length_unit="ANGSTROM",
     )
     prov = rng.parameter_provenance()
     assert prov["parameters"]["timestep_value"] == pytest.approx(0.0001)
@@ -42,17 +43,47 @@ def test_reacnetgenerator_records_optional_physical_units(tmp_path):
     )
 
 
-def test_reacnetgenerator_rejects_invalid_physical_units(tmp_path):
-    """Reject unsupported units and nonpositive timestep durations."""
+@pytest.mark.parametrize(
+    "value",
+    [
+        -0.1,
+        0.0,
+        float("inf"),
+        float("nan"),
+        True,
+        np.bool_(True),
+        pytest.param(10**309, id="integer-overflow"),
+    ],
+)
+def test_reacnetgenerator_rejects_invalid_timestep_value(tmp_path, value):
+    """Report invalid durations through the public validation error."""
     traj = tmp_path / "run.lammpstrj"
-    traj.write_text("", encoding="utf-8")
     with pytest.raises(ValueError, match="timestep_value"):
         ReacNetGenerator(
             inputfilename=str(traj),
             atomname=["C"],
             inputfiletype="lammpsdumpfile",
-            timestep_value=-0.1,
+            timestep_value=value,
         )
+
+
+def test_reacnetgenerator_rejects_timestep_value_that_underflows(tmp_path):
+    """Reject durations that cannot be stored as positive Python floats."""
+    value = np.finfo(np.longdouble).tiny
+    if float(value) != 0.0:
+        pytest.skip("longdouble has no normalized positive value below float range")
+    with pytest.raises(ValueError, match="timestep_value"):
+        ReacNetGenerator(
+            inputfilename=str(tmp_path / "run.lammpstrj"),
+            atomname=["C"],
+            inputfiletype="lammpsdumpfile",
+            timestep_value=value,
+        )
+
+
+def test_reacnetgenerator_rejects_invalid_units(tmp_path):
+    """Reject unsupported time and length units."""
+    traj = tmp_path / "run.lammpstrj"
     with pytest.raises(ValueError, match="time_unit"):
         ReacNetGenerator(
             inputfilename=str(traj),
@@ -97,13 +128,24 @@ def test_cli_parses_and_serializes_physical_units():
             "atomname": ["C", "H"],
             "inputfiletype": "lammpsdumpfile",
             "timestep_value": 0.0001,
-            "time_unit": "ps",
-            "length_unit": "angstrom",
+            "time_unit": " PS ",
+            "length_unit": "ANGSTROM",
         }
     )
-    assert "--timestep-value" in cmd
-    assert "--time-unit" in cmd
-    assert "--length-unit" in cmd
+    roundtrip = parser.parse_args(cmd[1:])
+    assert roundtrip.timestep_value == pytest.approx(0.0001)
+    assert roundtrip.time_unit == "ps"
+    assert roundtrip.length_unit == "angstrom"
+
+
+@pytest.mark.parametrize("option", ["--ti", "--tim", "--time", "--timed-output"])
+def test_cli_preserves_timed_output_option_prefixes(option):
+    """Preserve CLI prefixes that resolved to --timed-output before unit flags."""
+    args = main_parser().parse_args(
+        ["-i", "run.lammpstrj", "-a", "C", option, "timeline.h5", "--time-unit", "fs"]
+    )
+    assert args.timed_output == "timeline.h5"
+    assert args.time_unit == "fs"
 
 
 def test_root_metadata_validator_accepts_valid_and_rejects_bad_units(tmp_path):
@@ -148,13 +190,17 @@ def test_root_metadata_validator_accepts_valid_and_rejects_bad_units(tmp_path):
     with h5py.File(legacy, "r") as f:
         _root_metadata(f)
 
-    bad = _make_h5(
-        "bad.h5",
-        {"runHMM": False, "stepinterval": 1, "time_unit": "invalid_unit"},
-    )
-    with h5py.File(bad, "r") as f:
-        with pytest.raises(TimedOutputValidationError, match="time_unit"):
-            _root_metadata(f)
+    for key, value in (
+        ("timestep_value", 0),
+        ("time_unit", "invalid_unit"),
+        ("length_unit", "invalid_unit"),
+    ):
+        bad = _make_h5(
+            f"bad-{key}.h5", {"runHMM": False, "stepinterval": 1, key: value}
+        )
+        with h5py.File(bad, "r") as f:
+            with pytest.raises(TimedOutputValidationError, match=key):
+                _root_metadata(f)
 
 
 def test_real_timeline_persists_physical_units_under_schema_1_1(tmp_path):
@@ -181,4 +227,4 @@ def test_real_timeline_persists_physical_units_under_schema_1_1(tmp_path):
         assert parameters["timestep_value"] == 0.1
         assert parameters["time_unit"] == "fs"
         assert parameters["length_unit"] == "angstrom"
-        assert file["frames/timestep"][0] == 0
+        np.testing.assert_array_equal(file["frames/timestep"][:], np.arange(8))
