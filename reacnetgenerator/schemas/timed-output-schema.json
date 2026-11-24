@@ -34,16 +34,29 @@
       "type": "json-object",
       "optional_parameters": {
         "timestep_value": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "exclusive_minimum": 0,
           "description": "Physical duration of one source MD timestep, before trajectory sampling."
         },
         "time_unit": {
-          "enum": ["fs", "ps", "ns", null],
+          "enum": [
+            "fs",
+            "ps",
+            "ns",
+            null
+          ],
           "description": "Unit of timestep_value. Physical time conversion requires both fields."
         },
         "length_unit": {
-          "enum": ["angstrom", "bohr", "nm", null],
+          "enum": [
+            "angstrom",
+            "bohr",
+            "nm",
+            null
+          ],
           "description": "Length unit of source trajectory coordinates."
         }
       }
