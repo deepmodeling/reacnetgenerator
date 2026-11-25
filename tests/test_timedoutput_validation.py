@@ -136,6 +136,10 @@ def test_species_descriptors_require_aligned_text(valid_timeline, tmp_path, fiel
     path = _copy_timeline(valid_timeline, tmp_path)
     key = f"species/{field}"
     with h5py.File(path, "r+") as file:
+        file[key][0] = ""
+    with pytest.raises(TimedOutputValidationError, match="empty descriptor"):
+        validate_timed_output(path)
+    with h5py.File(path, "r+") as file:
         file[key].resize((0,))
     with pytest.raises(TimedOutputValidationError, match="species has misaligned"):
         validate_timed_output(path)

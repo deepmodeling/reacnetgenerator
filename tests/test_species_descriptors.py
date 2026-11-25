@@ -55,6 +55,10 @@ def test_species_descriptor_columns(tmp_path, miso):
         ("C1CCC2(CC1)CCCC2", "spiro-6-5"),
         ("C1CC2CCC1C2", "polycyclic"),
         ("C1CCC2CCCC2C1", "fused-6-5"),
+        ("C1CCCCCCCC2CCCCC12", "fused-10-6"),
+        ("c1ccc2c(c1)c3ccccc3c4ccccc24", "polycyclic"),
+        ("c1ccc2cc(-c3ccccc3)ccc2c1", "polycyclic"),
+        ("C1CC2(C1)CCC3(CC2)CCCC3", "polycyclic"),
     ],
 )
 def test_ring_system_is_independent_of_atom_numbering(smiles, expected):
@@ -68,7 +72,14 @@ def test_ring_system_is_independent_of_atom_numbering(smiles, expected):
         assert ring_system(len(symbols), bonds[:, :2]) == expected
 
 
+def test_ring_system_handles_acyclic_edge_cases():
+    """Classify isolated atoms and ringless duplicate-edge inputs as acyclic."""
+    assert ring_system(1, []) == "acyclic"
+    assert ring_system(2, [(0, 1), (0, 1)]) == "acyclic"
+
+
 def test_hill_order_with_and_without_carbon():
     """Put hydrogen after carbon only in carbon-containing formulas."""
     assert hill_formula(["Cl", "H", "Cl"]) == "Cl2H"
     assert hill_formula(["Cl", "H", "C", "H"]) == "CH2Cl"
+    assert hill_formula(["O", "C", "O"]) == "CO2"
