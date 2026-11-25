@@ -58,6 +58,14 @@
             null
           ],
           "description": "Length unit of source trajectory coordinates."
+        },
+        "bond_hysteresis": {
+          "type": "object",
+          "required": [
+            "form",
+            "break"
+          ],
+          "description": "Finite thresholds for bond presence. Coordinate inputs require 0 < form < break in units of the pair covalent-radius sum. ReaxFF inputs require form > break >= 0 in bond-order units."
         }
       }
     },
@@ -69,7 +77,8 @@
       "type": "string",
       "enum": [
         "HMM signal",
-        "observed signal"
+        "observed signal",
+        "hysteresis signal"
       ]
     }
   },

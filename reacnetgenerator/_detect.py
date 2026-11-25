@@ -171,6 +171,8 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
     """
 
     subclasses: ClassVar[dict] = {}
+    # Set only for ordered, opt-in detection. Edges use stable zero-based atom IDs.
+    _active_bonds: set[tuple[int, int]] | None = None
 
     # type hints
     # TODO: we need a better way to communicate with parameters
@@ -265,23 +267,32 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         timestep = {}
         with fileinput.input(files=self.inputfilename) as f:
             _steplinenum = self._readNfunc(f)
+        hysteresis = getattr(self.rng, "bond_hysteresis", None) is not None
+        self._active_bonds = set() if hysteresis else None
         lines = (
             self._source_lines(_steplinenum)
-            if self.rng.timed_output
+            if self.rng.timed_output or hysteresis
             else fileinput.FileInput(files=self.inputfilename)
         )
         try:
-            results = run_mp(
-                self.nproc,
-                func=self._readstepfunc,
-                l=lines,
-                max_inflight=max(1, self.nproc * 2),
-                nlines=_steplinenum,
-                return_num=True,
-                interval=self.stepinterval,
-                desc="Read bond information and Detect molecules",
-                unit="timestep",
-            )
+            if hysteresis:
+                # A retained pair depends on the preceding analyzed frame. Keep
+                # this pass ordered across input files; later stages can use workers.
+                source_frames = itertools.zip_longest(*[iter(lines)] * _steplinenum)
+                sampled = itertools.islice(source_frames, 0, None, self.stepinterval)
+                results = (self._readstepfunc(item) for item in enumerate(sampled))
+            else:
+                results = run_mp(
+                    self.nproc,
+                    func=self._readstepfunc,
+                    l=lines,
+                    max_inflight=max(1, self.nproc * 2),
+                    nlines=_steplinenum,
+                    return_num=True,
+                    interval=self.stepinterval,
+                    desc="Read bond information and Detect molecules",
+                    unit="timestep",
+                )
             with closing(results):
                 for molecules, (step, thetimestep) in results:
                     for molecule in molecules:
@@ -399,7 +410,12 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         if timestep is not None:
             location += f" (timestep {timestep})"
 
-        if isinstance(self, _DetectCrd):
+        if self._active_bonds is not None:
+            backend = "bond hysteresis"
+            advice = (
+                f"Inspect the configured bond thresholds: {self.rng.bond_hysteresis}."
+            )
+        elif isinstance(self, _DetectCrd):
             if self.use_ase:
                 backend = "ASE"
                 cutoffs = self.custom_cutoffs or "none"
@@ -465,6 +481,18 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self.moleculetempfilename = handle.name
 
 
+def _bond_lists(n_atoms, edges):
+    """Expand undirected, unique (pair, order) entries for molecule detection."""
+    bonds = [[] for _ in range(n_atoms)]
+    orders = [[] for _ in range(n_atoms)]
+    for (i, j), order in edges:
+        bonds[i].append(j)
+        bonds[j].append(i)
+        orders[i].append(order)
+        orders[j].append(order)
+    return bonds, orders
+
+
 @_Detect.register_subclass("bond")
 @_Detect.register_subclass("lammpsbondfile")
 class _DetectLAMMPSbond(_Detect):
@@ -502,6 +530,7 @@ class _DetectLAMMPSbond(_Detect):
         bond: list[tuple[int, ...] | None] = [None] * self.N
         level: list[tuple[int, ...] | None] = [None] * self.N
         timestep = None
+        reported = {}
         for line in lines:
             if line:
                 if line[0] == "#":
@@ -511,9 +540,34 @@ class _DetectLAMMPSbond(_Detect):
                     s = line.split()
                     s0 = int(s[0]) - 1
                     s2 = int(s[2])
-                    bond[s0] = tuple(map(self._get_idx, s[3 : 3 + s2]))
-                    level[s0] = tuple(map(self._get_bo, s[4 + s2 : 4 + 2 * s2]))
+                    neighbors = tuple(map(self._get_idx, s[3 : 3 + s2]))
+                    orders = s[4 + s2 : 4 + 2 * s2]
+                    if self._active_bonds is None:
+                        bond[s0] = neighbors
+                        level[s0] = tuple(map(self._get_bo, orders))
+                    else:
+                        for j, raw in zip(neighbors, orders, strict=True):
+                            if not (0 <= s0 < self.N and 0 <= j < self.N and s0 != j):
+                                raise ValueError(
+                                    "Invalid reported ReaxFF bond endpoints"
+                                )
+                            order = float(raw)
+                            if not np.isfinite(order) or order < 0:
+                                raise ValueError("Invalid reported ReaxFF bond order")
+                            pair = (min(s0, j), max(s0, j))
+                            reported[pair] = max(order, reported.get(pair, 0.0))
         assert timestep is not None
+        if self._active_bonds is not None:
+            thresholds = self.rng.bond_hysteresis
+            assert thresholds is not None
+            retained = {
+                pair: max(1, round(order))
+                for pair, order in reported.items()
+                if order >= thresholds["form"]
+                or (pair in self._active_bonds and order > thresholds["break"])
+            }
+            self._active_bonds = set(retained)
+            bond, level = _bond_lists(self.N, retained.items())
         molecules = self._connectmolecule(bond, level, frame=step, timestep=timestep)
         return molecules, (step, timestep)
 
@@ -926,6 +980,40 @@ class _DetectCrd(_Detect):
         mol.EndModify()
         return self._getbondlistsfromopenbabel(mol, atomnumber)
 
+    def _get_hysteresis_bonds(self, atoms, cell):
+        """Use the closest periodic image and assign orders on the retained graph."""
+        previous = self._active_bonds
+        assert previous is not None
+        thresholds = self.rng.bond_hysteresis
+        assert thresholds is not None
+        atoms.set_cell(cell)
+        atoms.set_pbc(self.pbc)
+        radii = np.asarray(natural_cutoffs(atoms))
+        # ASE returns both directions and can return multiple periodic images.
+        # Existence of any qualifying image is equivalent to using the closest.
+        first, second, distances = neighbor_list(
+            "ijd", atoms, radii * thresholds["break"]
+        )
+        retained = set()
+        for i, j, distance in zip(first, second, distances, strict=True):
+            if i < j:
+                pair = (int(i), int(j))
+                radius = radii[i] + radii[j]
+                if distance <= radius * thresholds["form"] or (
+                    pair in previous and distance < radius * thresholds["break"]
+                ):
+                    retained.add(pair)
+        self._active_bonds = retained
+        pairs = sorted(retained)
+        if self.use_ase:
+            return _bond_lists(len(atoms), ((pair, 1) for pair in pairs))
+        mol = self._new_openbabel_molecule(atoms, cell)
+        for i, j in pairs:
+            mol.AddBond(i + 1, j + 1, 1)
+        mol.PerceiveBondOrders()
+        mol.EndModify()
+        return self._getbondlistsfromopenbabel(mol, len(atoms))
+
     def _getbondfromcrd(
         self, step_atoms: Atoms, cell: np.ndarray
     ) -> tuple[list[list[int]], list[list[int]]]:
@@ -945,6 +1033,9 @@ class _DetectCrd(_Detect):
         list[list[int]]
             Bond orders for each atom. 12 is an aromatic bond.
         """
+        if self._active_bonds is not None:
+            return self._get_hysteresis_bonds(step_atoms, cell)
+
         # Check if ASE mode is enabled
         if self.use_ase:
             return self._getbondfromase(step_atoms, cell)
