@@ -49,7 +49,7 @@ def test_alternating_oxygen_survives_hmm(tmp_path, monkeypatch, nproc):
     rng.run_items(["species", "reactions"])
     populations = Path(rng.speciesfilename).read_text().splitlines()
     assert len(populations) == 200
-    assert all(line.split(":")[1].split() == ["[O][O]", "2"] for line in populations)
+    assert all(line.split(":")[1].split() == ["[O]=[O]", "2"] for line in populations)
     assert Path(rng.atomroutefilename).read_text().count(" -> ") == 0
     assert Path(rng.reactionabcdfilename).read_text() == ""
     assert validate_timed_output(path).reaction_events == 0

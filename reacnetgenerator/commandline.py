@@ -84,11 +84,10 @@ def main_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--miso",
         help=(
-            "Merge isomers using the canonical SMILES with the most detected molecule-frame "
-            "occurrences before HMM filtering as the representative; ties use the "
-            "lexicographically smallest generated species name. 0, off; "
-            "1, merge the isomers with the same atoms and same bond networks but different bond orders; "
-            "2, merge the isomers with the same atoms with different bond networks."
+            "0 disables merging. 1 merges the same labeled connectivity across bond orders "
+            "and prefers a valid observed SMILES with fewer RDKit radical electrons. "
+            "2 merges by composition. Both modes break ties by the most pre-HMM "
+            "molecule-frame occurrences, then the lexicographically smallest name."
         ),
         type=int,
         choices=(0, 1, 2),

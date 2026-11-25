@@ -9,6 +9,7 @@ import pytest
 
 from reacnetgenerator._path import _CollectSMILESPaths
 from reacnetgenerator.utils import listtobytes
+from tests.test_smiles_batching import _collector
 
 
 def _bond_key(bonds):
@@ -109,29 +110,68 @@ def test_miso_uses_order_independent_highest_frequency_representative(
 def test_miso_aggregates_frequency_across_molecule_records(tmp_path, monkeypatch):
     """Separate molecule instances with one SMILES should share their count."""
     records = [
-        ("B", [0, 1], [[0, 1, 2]], range(5)),
-        ("A", [0, 1], [[0, 1, 1]], range(3)),
-        ("A", [2, 3], [[2, 3, 1]], range(3, 6)),
+        ("[C][C]=[C][C]", [0, 1, 2, 3], [(0, 1, 1), (1, 2, 2), (2, 3, 1)], range(5)),
+        ("[C][C][C]=[C]", [0, 1, 2, 3], [(0, 1, 1), (1, 2, 1), (2, 3, 2)], range(3)),
+        ("[C][C][C]=[C]", [4, 5, 6, 7], [(4, 5, 1), (5, 6, 1), (6, 7, 2)], range(3, 6)),
     ]
 
     collector = _collect(tmp_path, monkeypatch, records, miso=1)
 
-    assert list(collector.mname) == ["A", "A", "A"]
+    assert list(collector.mname) == ["[C][C][C]=[C]"] * 3
 
 
 @pytest.mark.parametrize("reverse", [False, True])
 def test_miso_breaks_frequency_ties_by_species_name(tmp_path, monkeypatch, reverse):
     """Equal-frequency representatives should not depend on record order."""
     records = [
-        ("B", [0, 1], [[0, 1, 2]], range(3)),
-        ("A", [0, 1], [[0, 1, 1]], range(3, 6)),
+        ("[C][C][C]=[C]", [0, 1, 2, 3], [(0, 1, 1), (1, 2, 1), (2, 3, 2)], range(3)),
+        ("[C][C]=[C][C]", [0, 1, 2, 3], [(0, 1, 1), (1, 2, 2), (2, 3, 1)], range(3, 6)),
     ]
     if reverse:
         records.reverse()
 
     collector = _collect(tmp_path, monkeypatch, records, miso=1)
 
-    assert list(collector.mname) == ["A", "A"]
+    assert list(collector.mname) == ["[C][C]=[C][C]"] * 2
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("miso", [0, 1, 2])
+def test_co2_representative_preserves_observed_bonds(tmp_path, miso, reverse):
+    """Only mode 1 prefers a rare closed-shell label over a common radical label."""
+    radical, closed = "[O][C]=[O]", "[O]=[C]=[O]"
+    records = [
+        ([0, 1, 2], [(0, 1, 1), (1, 2, 2)], [0, 1, 2]),
+        ([0, 1, 2], [(0, 1, 2), (1, 2, 2)], [3]),
+    ]
+    if reverse:
+        records.reverse()
+    collector = _collector(tmp_path, records, miso=miso, nproc=1)
+    collector.atomname = np.array(["O", "C"])
+    collector.atomtype = np.array([0, 1, 0])
+    collector.atomnames = collector.atomname[collector.atomtype]
+    collector._printmoleculename()
+    if miso == 0:
+        expected_names = [closed, radical] if reverse else [radical, closed]
+    else:
+        expected_names = [closed if miso == 1 else radical] * 2
+    assert list(collector.mname) == expected_names
+    with (tmp_path / "timeline.csv").open(newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert [row["Species"] for row in rows] == (
+        [radical, radical, radical, closed] if miso == 0 else [expected_names[0]] * 4
+    )
+    assert [row["BondIDs"] for row in rows] == ["0-1-1;1-2-2"] * 3 + ["0-1-2;1-2-2"]
+
+
+def test_scorable_radical_precedes_overvalent_name(tmp_path, monkeypatch):
+    """A group without a closed-shell member must still select an observed label."""
+    records = [
+        ("[O]#[C][O]", [0, 1, 2], [(0, 1, 3), (1, 2, 1)], range(10)),
+        ("[O][C]=[O]", [0, 1, 2], [(0, 1, 1), (1, 2, 2)], [10]),
+    ]
+    collector = _collect(tmp_path, monkeypatch, records, miso=1)
+    assert list(collector.mname) == ["[O][C]=[O]"] * 2
 
 
 def test_miso_zero_keeps_each_canonical_smiles(tmp_path, monkeypatch):
