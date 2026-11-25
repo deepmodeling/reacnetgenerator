@@ -33,6 +33,18 @@ can also differ across RDKit versions or from earlier ReacNetGenerator releases.
 
 ## Filtering, merging and trajectory evidence
 
+With the default SMILES identification backend, `--miso 1` selects a
+representative from the observed labels in each connectivity group.
+It prefers SMILES that RDKit can parse and sanitize, then
+the fewest RDKit-assigned radical electrons. For example, an observed
+`[O]=[C]=[O]` takes precedence over `[O][C]=[O]`. Equal scores are resolved
+by the most detected molecule-frame occurrences before HMM filtering, then
+by the lexicographically smallest name. When all labels are unscorable,
+including VF2 fallback names, the same count and name rules apply.
+`--miso 2` uses only count and name. The selected label describes one
+observed bond assignment. It cannot establish the electronic state or spin
+multiplicity of the molecule.
+
 With the default `--miso 0`, HMM filters each raw atom-and-bond record
 independently. Aromatic normalization happens during naming, so a short-lived
 Kekulé assignment can be filtered out before it receives a species name.

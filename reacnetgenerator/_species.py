@@ -47,6 +47,20 @@ def isomorphic(left, right):
     return nx.is_isomorphic(left, right, node_match=_ATOM_MATCH, edge_match=_BOND_MATCH)
 
 
+def smiles_valence_penalty(name: str) -> float:
+    """Count radical electrons in a generated label for representative selection.
+
+    RDKit checks valence while parsing. Transient overvalent structures and
+    VF2 fallback names may have no parseable SMILES. Rank them after scorable
+    labels and let the usual occurrence count break ties between them.
+    """
+    with rdBase.BlockLogs():
+        molecule = Chem.MolFromSmiles(name)
+    if molecule is None:
+        return float("inf")
+    return sum(atom.GetNumRadicalElectrons() for atom in molecule.GetAtoms())
+
+
 def species_molecule(atomnames, atoms, bonds):
     """Build a molecule with equivalent Kekule forms sharing aromatic bonds.
 

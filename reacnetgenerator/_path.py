@@ -43,7 +43,12 @@ from ._smilesworker import (
     _run_smiles_records,
     _should_batch_smiles,
 )
-from ._species import isomorphic, molecule_graph, species_molecule
+from ._species import (
+    isomorphic,
+    molecule_graph,
+    smiles_valence_penalty,
+    species_molecule,
+)
 from ._step3state import (
     _STEP3_SCAN_ROWS,
     _AtomFrameReader,
@@ -960,7 +965,19 @@ class _CollectSMILESPaths(_CollectPaths):
             group_members[group_name].append(name)
         representative = {}
         for members in group_members.values():
-            selected = min(members, key=lambda name: (-name_frequency[name], name))
+            if len(members) == 1:
+                selected = members[0]
+            elif self.miso == 1:
+                selected = min(
+                    members,
+                    key=lambda name: (
+                        smiles_valence_penalty(name),
+                        -name_frequency[name],
+                        name,
+                    ),
+                )
+            else:
+                selected = min(members, key=lambda name: (-name_frequency[name], name))
             representative.update(dict.fromkeys(members, selected))
 
         mname = _MoleculeNameBuilder(self.hmmit)
