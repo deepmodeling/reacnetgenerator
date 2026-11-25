@@ -125,7 +125,7 @@ def test_pipeline(tmp_path, run_hmm, nproc):
         for change in item.bond_changes
     )
     metadata = read_metadata(path)
-    assert metadata["schema_version"] == "1.1"
+    assert metadata["schema_version"] == "1.2"
     assert metadata["capabilities"] == [
         "molecule_ranges",
         "reaction_events",

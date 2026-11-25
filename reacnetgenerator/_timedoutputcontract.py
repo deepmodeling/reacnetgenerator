@@ -3,8 +3,9 @@
 
 from dataclasses import dataclass
 
-SCHEMA_VERSION = "1.1"
-SUPPORTED_SCHEMA_VERSIONS = ("1.0", SCHEMA_VERSION)
+SCHEMA_VERSION = "1.2"
+SUPPORTED_SCHEMA_VERSIONS = ("1.0", "1.1", SCHEMA_VERSION)
+SPECIES_DESCRIPTORS = ("species/formula", "species/ring_system")
 TIME_UNITS = ("fs", "ps", "ns")
 LENGTH_UNITS = ("angstrom", "bohr", "nm")
 

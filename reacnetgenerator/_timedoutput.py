@@ -15,11 +15,12 @@ import numpy as np
 
 from ._moleculepresence import _iter_molecule_presence
 from ._moleculepresence import _signal_ranges as _signal_ranges
+from ._speciesdescriptors import hill_formula, ring_system
+from ._timedoutputcontract import SCHEMA_VERSION
 from ._timedoutputrange import _MoleculeRangeLookup
 from ._version import __version__
 from .utils import bytestolist, get_timestep_value
 
-SCHEMA_VERSION = "1.1"
 _BLOCK_ROWS = 8192
 _BLOCK_BYTES = 1024 * 1024
 _NUMERIC_MIN_ROWS = 32
@@ -180,11 +181,16 @@ class _TimedOutputWriter:
                     self.columns[key] = _Column(self.file, key, "<i8")
             for key in (
                 "species/name",
+                "species/formula",
                 "reaction_types/reactant",
                 "reaction_types/product",
                 "sources/path",
                 "atoms/type_name",
             ):
+                self.columns[key] = _Column(self.file, key, h5py.string_dtype("utf-8"))
+            # Composition-only grouping can contain several ring topologies.
+            if self.rng.miso != 2:
+                key = "species/ring_system"
                 self.columns[key] = _Column(self.file, key, h5py.string_dtype("utf-8"))
             self._append("molecules", atom_offsets=0, bond_offsets=0)
             self._append(
@@ -283,17 +289,23 @@ class _TimedOutputWriter:
         with closing(_iter_molecule_presence(self.rng, structures=True)) as records:
             for count, (record, presence) in enumerate(records, 1):
                 name = str(names[count - 1])
-                if name not in self.species:
-                    self.species[name] = len(self.species)
-                    self._append("species", name=name)
-                self._append("molecules", species_id=self.species[name])
                 atoms = bytestolist(record[0])
-                self._extend_numeric("molecules", "atom_index", atoms)
-                self.atom_offset += len(atoms)
-                del atoms
                 pairs, levels = bytestolist(record[1]), bytestolist(record[2])
                 if len(pairs) != len(levels):
                     raise ValueError("Mismatched bond definitions")
+                if name not in self.species:
+                    self.species[name] = len(self.species)
+                    elements = self.rng.atomname[self.rng.atomtype[atoms]]
+                    self._append("species", name=name, formula=hill_formula(elements))
+                    if self.rng.miso != 2:
+                        self._append(
+                            "species", ring_system=ring_system(len(atoms), pairs)
+                        )
+                    del elements
+                self._append("molecules", species_id=self.species[name])
+                self._extend_numeric("molecules", "atom_index", atoms)
+                self.atom_offset += len(atoms)
+                del atoms
                 if len(pairs) < _NUMERIC_MIN_ROWS:
                     for pair, level in zip(pairs, levels, strict=True):
                         self._append(

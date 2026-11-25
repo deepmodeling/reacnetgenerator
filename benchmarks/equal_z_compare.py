@@ -76,8 +76,8 @@ def fingerprint(directory):
     """Validate and fingerprint one pipeline-mode output directory."""
     timeline = directory / "timeline.h5"
     summary = validate_timed_output(timeline)
-    if summary.schema_version != "1.1":
-        raise ValueError("This benchmark comparison requires schema 1.1")
+    if summary.schema_version == "1.0":
+        raise ValueError("This benchmark comparison requires transition evidence")
     names = dict(iter_species(timeline))
     keys = {
         molecule.molecule_id: molecule_key(

@@ -1,4 +1,4 @@
-# HDF5 timeline (schema 1.1)
+# HDF5 timeline (schema 1.2)
 
 `--show-molecule-time` and `--reaction-event` also write one compact HDF5
 timeline when the PATH stage runs. Without `--output-dir`, its default path is
@@ -29,7 +29,7 @@ their CSV files during this compatibility period.
 A saved analysis result is useful beyond the process that wrote it only when a
 user or another program can establish what it contains and whether its tables
 still agree. Opening an HDF5 file proves neither. The timeline validator makes
-schemas 1.0 and 1.1 a verifiable software boundary:
+schemas 1.0 through 1.2 a verifiable software boundary:
 
 - CI and scientific regression tests can reject a result with broken offsets,
   dangling IDs, nonmaximal ranges, inconsistent reaction totals, or instance
@@ -81,7 +81,7 @@ Root attributes:
 | Attribute               | Value/meaning                                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------------------------- |
 | `format`                | `reacnetgenerator-timeline`                                                                        |
-| `schema_version`        | UTF-8 string `1.1`                                                                                 |
+| `schema_version`        | UTF-8 string `1.2`                                                                                 |
 | `status`                | `incomplete` during construction, `complete` on successful close                                   |
 | `capabilities`          | JSON array `["molecule_ranges", "reaction_events", "transition_evidence"]`                         |
 | `rng_version`           | Installed RNG version                                                                              |
@@ -124,6 +124,7 @@ table have equal lengths. Dataset layout/chunking is not part of semantic identi
 | `frames`              | `source_id`, `source_frame`, `timestep`                                                        | One analyzed frame, in order                                                    |
 | `atoms`               | `type`; `type_name` (text)                                                                     | `type` has one entry per atom; `type_name` is the separate atom-type dictionary |
 | `species`             | `name` (text)                                                                                  | Unique species name                                                             |
+| `species`             | `formula`, `ring_system` (optional text columns)                                               | Searchable descriptors aligned with `species/name`                              |
 | `molecules`           | `species_id`                                                                                   | One molecule definition, row `molecule_id - 1`                                  |
 | `molecules`           | `atom_offsets`, `atom_index`                                                                   | Offset-delimited atom lists                                                     |
 | `molecules`           | `bond_offsets`, `bond_atom_index_1`, `bond_atom_index_2`, `bond_order`                         | Offset-delimited bonds with global canonical atom endpoints                     |
@@ -148,10 +149,32 @@ product is present at `t + 1`, according to `molecule_ranges`. Regrouping
 evidence rows by transition and reaction type exactly reproduces
 `reaction_events/count`.
 
-Schema 1.1 is a compatible extension of schema 1.0 and advertises the
-`transition_evidence` capability. Readers and the validator continue to accept
-aggregate-only 1.0 files. Breaking changes require a new major version; unknown
-versions fail rather than being guessed.
+Schema 1.2 adds two independently optional UTF-8 columns, indexed by
+`species_id`. Check for each dataset in the HDF5 file before reading it.
+The reader and validator also accept schema 1.1 with transition evidence and
+aggregate-only schema 1.0. Older readers that whitelist versions need an update
+to open 1.2 files.
+
+- `species/formula` counts recorded atoms using their configured type names.
+  With carbon present, C and then H come first, followed by other labels in
+  alphabetical order. Carbon-free formulas use alphabetical order throughout.
+  A count of one is implicit. Only explicitly recorded hydrogens contribute.
+- `species/ring_system` describes the undirected bond endpoints of a connected
+  molecule. The writer computes descriptors when it first encounters each
+  species name. With composition-only grouping (`miso=2`) it omits the entire
+  ring column because one species ID can cover different graphs.
+- Trees are `acyclic`. One cycle gives `monocyclic-N`. For a chain of edge-fused
+  rings in a single outerplanar ring block, `fused-N-...` follows the interior
+  faces in adjacency order, choosing the numerically larger sequence of the two
+  directions (e.g. `fused-6-5-6`). Disjoint simple rings joined by bonds or
+  chains give `linked-N-...`. Two simple rings sharing one atom give
+  `spiro-N-M`. Linked and spiro sizes are in descending order. Remaining
+  topologies, including bridged cages and branched fused systems, give
+  `polycyclic`.
+
+These fields support candidate filtering. Atom indices, bond order, aromaticity
+and electronic state do not enter the ring label. Positional isomers and
+chemically distinct ring systems can share both descriptors.
 
 ## Compact Python reading
 

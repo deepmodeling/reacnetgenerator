@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-"""Bounded structural and cross-table validation for timeline schemas 1.0/1.1."""
+"""Bounded structural and cross-table validation for timeline versions 1.0 through 1.2."""
 
 import json
 import sys
@@ -12,7 +12,7 @@ import h5py
 
 from ._timedoutputcontract import (
     LENGTH_UNITS,
-    SCHEMA_VERSION,
+    SPECIES_DESCRIPTORS,
     SUPPORTED_SCHEMA_VERSIONS,
     TIME_UNITS,
     TimedOutputValidationError,
@@ -23,6 +23,7 @@ from ._timedoutputrange import _MoleculeRangeLookup
 _CAPABILITIES = {
     "1.0": ["molecule_ranges", "reaction_events"],
     "1.1": ["molecule_ranges", "reaction_events", "transition_evidence"],
+    "1.2": ["molecule_ranges", "reaction_events", "transition_evidence"],
 }
 _ATOM_CONVENTION = "zero-based RNG canonical atom order"
 _RANGE_BASES = {"HMM signal", "observed signal"}
@@ -686,6 +687,13 @@ def validate_timed_output(filename, *, block_rows=8192):
             atoms, atom_types = _validate_atoms(file, block_rows=size)
             species = _text(file, "species/name")
             _unique_text(species, size)
+            if schema_version == "1.2":
+                for path in SPECIES_DESCRIPTORS:
+                    if path in file:
+                        values = _text(file, path)
+                        _aligned("species", (species, values))
+                        if any(not value for value in _text_blocks(values, size)):
+                            _error(f"{path} contains an empty descriptor")
             molecules = _validate_molecules(
                 file,
                 atom_count=len(atoms),
@@ -701,7 +709,7 @@ def validate_timed_output(filename, *, block_rows=8192):
             events, reaction_types = _validate_reactions(
                 file, frame_count=len(frames), block_rows=size
             )
-            if schema_version == SCHEMA_VERSION:
+            if schema_version != "1.0":
                 _validate_transition_evidence(
                     file,
                     frame_count=len(frames),

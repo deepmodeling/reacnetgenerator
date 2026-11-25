@@ -56,7 +56,7 @@ def test_validate_real_artifact_and_reject_broken_offsets(valid_timeline, tmp_pa
     summary = validate_timed_output(valid_timeline, block_rows=2)
 
     assert isinstance(summary, ValidationSummary)
-    assert summary.schema_version == "1.1"
+    assert summary.schema_version == "1.2"
     assert summary.sources == 1
     assert summary.frames == 8
     assert summary.atoms == 3
@@ -95,10 +95,59 @@ def test_schema_1_0_remains_readable_without_transition_evidence(
         file.attrs["schema_version"] = "1.0"
         file.attrs["capabilities"] = json.dumps(["molecule_ranges", "reaction_events"])
         del file["transition_evidence"]
+        del file["species/formula"]
+        del file["species/ring_system"]
 
     assert validate_timed_output(legacy, block_rows=2).schema_version == "1.0"
     with pytest.raises(ValueError, match="does not contain transition evidence"):
         list(iter_transition_evidence(legacy, block_rows=2))
+
+
+@pytest.mark.parametrize(
+    "version,absent",
+    [
+        ("1.1", ("formula", "ring_system")),
+        ("1.2", ("formula",)),
+        ("1.2", ("ring_system",)),
+    ],
+)
+def test_optional_species_descriptors_preserve_evidence(
+    valid_timeline, tmp_path, version, absent
+):
+    """Preserve evidence reads and digests when optional columns are absent."""
+    path = _copy_timeline(valid_timeline, tmp_path)
+    with h5py.File(path, "r+") as file:
+        file.attrs["schema_version"] = version
+        for field in absent:
+            del file[f"species/{field}"]
+    manifest = semantic_manifest(path, block_rows=2)
+    assert manifest["timeline_schema_version"] == version
+    for field in ("formula", "ring_system"):
+        assert (f"species/{field}" in manifest["datasets"]) == (field not in absent)
+    assert list(iter_transition_evidence(path)) == list(
+        iter_transition_evidence(valid_timeline)
+    )
+    assert "transition_evidence/participant_offsets" in manifest["datasets"]
+
+
+@pytest.mark.parametrize("field", ["formula", "ring_system"])
+def test_species_descriptors_require_aligned_text(valid_timeline, tmp_path, field):
+    """Reject malformed descriptor columns before accepting the species table."""
+    path = _copy_timeline(valid_timeline, tmp_path)
+    key = f"species/{field}"
+    with h5py.File(path, "r+") as file:
+        file[key][0] = ""
+    with pytest.raises(TimedOutputValidationError, match="empty descriptor"):
+        validate_timed_output(path)
+    with h5py.File(path, "r+") as file:
+        file[key].resize((0,))
+    with pytest.raises(TimedOutputValidationError, match="species has misaligned"):
+        validate_timed_output(path)
+    with h5py.File(path, "r+") as file:
+        del file[key]
+        file.create_dataset(key, shape=file["species/name"].shape, dtype="i8")
+    with pytest.raises(TimedOutputValidationError, match="UTF-8"):
+        validate_timed_output(path)
 
 
 @pytest.mark.parametrize(
@@ -439,7 +488,7 @@ def test_schema_descriptor_lists_the_public_contract(valid_timeline):
     assert descriptor["descriptor_format"] == "reacnetgenerator-timeline-schema"
     assert descriptor["descriptor_version"] == "1.0"
     assert descriptor["timeline_format"] == "reacnetgenerator-timeline"
-    assert descriptor["schema_version"] == "1.1"
+    assert descriptor["schema_version"] == "1.2"
     assert descriptor["datasets"]["molecules/atom_offsets"]["dtype"] == "int64-le"
     assert descriptor["datasets"]["species/name"]["dtype"] == "utf8-vlen"
     participant_side = descriptor["datasets"]["transition_evidence/participant_side"]

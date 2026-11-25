@@ -11,6 +11,7 @@ from dataclasses import asdict
 import h5py
 import numpy as np
 
+from ._timedoutputcontract import SPECIES_DESCRIPTORS
 from ._timedoutputvalidate import _root_metadata, validate_timed_output
 
 _MANIFEST_FORMAT = "reacnetgenerator-timeline-semantic-manifest"
@@ -139,8 +140,10 @@ def semantic_manifest(filename, *, include_provenance=False, block_rows=8192):
             )
         datasets = {}
         paths = _BASE_DATASETS + (
-            _EVIDENCE_DATASETS if summary.schema_version == "1.1" else ()
+            _EVIDENCE_DATASETS if summary.schema_version != "1.0" else ()
         )
+        if summary.schema_version == "1.2":
+            paths += tuple(path for path in SPECIES_DESCRIPTORS if path in file)
         for path in paths:
             if not include_provenance and path in _PROVENANCE_DATASETS:
                 continue
