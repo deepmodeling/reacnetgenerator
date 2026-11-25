@@ -133,7 +133,7 @@ class ReacNetGenerator:
         Split number for the time axis. For example, if set to 10, the whole trajectroy will
         be divided into 10 parts and reactions of each part will be shown.
     timed_output: str or pathlib.Path, optional
-        Override the schema 1.1 HDF5 timeline path. A timeline is written at
+        Override the schema 1.2 HDF5 timeline path. A timeline is written at
         ``<input>.timeline.h5`` by default when ``printmoleculetime`` or
         ``printreactionevent`` is enabled, or at ``timeline.h5`` below
         ``output_dir`` when set. Includes effective molecule ranges, aggregated
@@ -147,7 +147,7 @@ class ReacNetGenerator:
         perception expects coordinates and cell vectors in angstroms.
     printmoleculetime: bool, optional, default: False
         Write a molecule timeline CSV file with original timestep values, atom IDs, and bond IDs,
-        plus the schema 1.1 HDF5 timeline.
+        plus the schema 1.2 HDF5 timeline.
     moleculeframes: list of int, optional, default: None
         Only write molecule timeline CSV rows in the given analyzed frame indices.
         This also enables printmoleculetime.
@@ -155,7 +155,7 @@ class ReacNetGenerator:
         Only write molecule timeline CSV rows in the given original timestep values.
         This also enables printmoleculetime.
     printreactionevent: bool, optional, default: False
-        Write time-resolved reaction events to the reaction event CSV file and the schema 1.1
+        Write time-resolved reaction events to the reaction event CSV file and the schema 1.2
         HDF5 timeline.
     a: (2,2) array_like, optional, default: [[0.999, 0.001], [0.001, 0.009]]
         Transition matrix A of HMM parameters. It is recommended for users to choose their own

@@ -204,7 +204,7 @@ def test_root_metadata_validator_accepts_valid_and_rejects_bad_units(tmp_path):
                 _root_metadata(f)
 
 
-def test_real_timeline_persists_physical_units_under_schema_1_1(tmp_path):
+def test_real_timeline_persists_physical_units(tmp_path):
     """Persist explicit units without changing the stored timestep axis."""
     trajectory = Path(__file__).parent / "inputs" / "reaction.bond"
     path = tmp_path / "timeline.h5"
@@ -222,7 +222,7 @@ def test_real_timeline_persists_physical_units_under_schema_1_1(tmp_path):
     )
     rng.run_items(["reactions"])
 
-    assert validate_timed_output(path).schema_version == "1.1"
+    assert validate_timed_output(path).schema_version == "1.2"
     with h5py.File(path, "r") as file:
         parameters = json.loads(file.attrs["configuration"])["parameters"]
         assert parameters["timestep_value"] == 0.1

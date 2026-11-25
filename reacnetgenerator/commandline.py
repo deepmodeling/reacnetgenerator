@@ -176,7 +176,7 @@ def main_parser() -> argparse.ArgumentParser:
         "--timed-output",
         metavar="FILE",
         help=(
-            "Write the HDF5 schema 1.1 timeline at FILE. This overrides the "
+            "Write the HDF5 schema 1.2 timeline at FILE. This overrides the "
             "default path used by --show-molecule-time and --reaction-event."
         ),
     )
@@ -209,7 +209,7 @@ def main_parser() -> argparse.ArgumentParser:
         "--show-molecule-time",
         help=(
             "Write a molecule timeline CSV file with original timestep values, "
-            "atom IDs, and bond IDs, plus an HDF5 schema 1.1 timeline."
+            "atom IDs, and bond IDs, plus an HDF5 schema 1.2 timeline."
         ),
         action="store_true",
     )
@@ -237,7 +237,7 @@ def main_parser() -> argparse.ArgumentParser:
         "--reaction-event",
         help=(
             "Write time-resolved reaction events to the .reactionevent.csv file "
-            "and an HDF5 schema 1.1 timeline."
+            "and an HDF5 schema 1.2 timeline."
         ),
         action="store_true",
     )

@@ -2,7 +2,7 @@
   "descriptor_format": "reacnetgenerator-timeline-schema",
   "descriptor_version": "1.0",
   "timeline_format": "reacnetgenerator-timeline",
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "capabilities": [
     "molecule_ranges",
     "reaction_events",
@@ -15,7 +15,7 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "1.1"
+      "const": "1.2"
     },
     "status": {
       "type": "string",
@@ -109,6 +109,18 @@
     "species/name": {
       "dtype": "utf8-vlen",
       "table": "species"
+    },
+    "species/formula": {
+      "dtype": "utf8-vlen",
+      "table": "species",
+      "optional": true,
+      "description": "Hill formula from recorded atom types, including explicit hydrogen only."
+    },
+    "species/ring_system": {
+      "dtype": "utf8-vlen",
+      "table": "species",
+      "optional": true,
+      "description": "Bond-order-free ring topology. Omitted by the writer for composition-only (miso=2) groups."
     },
     "molecules/species_id": {
       "dtype": "int64-le",

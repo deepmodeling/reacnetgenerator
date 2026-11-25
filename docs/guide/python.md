@@ -47,7 +47,7 @@ requested items as JSON-serializable provenance.
 ## Time-resolved output
 
 Setting `printmoleculetime=True` or `printreactionevent=True` writes the existing
-CSV output and a schema 1.1 HDF5 timeline. The default HDF5 path is
+CSV output and a schema 1.2 HDF5 timeline. The default HDF5 path is
 `<input>.timeline.h5`, or `timeline.h5` below `output_dir`. Pass
 `timed_output="custom.h5"` to override it or to request a timeline without the
 CSV switches. See [HDF5 timeline](timed-output-schema.md) for the public readers

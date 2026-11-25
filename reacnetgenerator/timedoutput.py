@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
-"""Compact, read-only access to ReacNetGenerator timeline schemas 1.0 and 1.1.
+"""Compact, read-only access to ReacNetGenerator timeline schemas 1.0 through 1.2.
 
 Iterators read numeric columns in blocks and retain one variable-size definition
 at a time. Closing an iterator releases its file handle. IDs are file-local;
@@ -264,7 +264,7 @@ def _transition_participant(
 def iter_transition_evidence(filename, *, block_rows=8192):
     """Yield instance participants and bond changes in transition order."""
     with _open(filename) as file:
-        if file.attrs.get("schema_version") != SCHEMA_VERSION:
+        if file.attrs.get("schema_version") == "1.0":
             raise ValueError("Timeline does not contain transition evidence")
         try:
             evidence = file["transition_evidence"]
