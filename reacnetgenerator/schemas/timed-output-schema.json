@@ -75,8 +75,12 @@
             "pair_break": {
               "type": "object",
               "minProperties": 1,
-              "propertyNames": {"pattern": "^[A-Z][a-z]?-[A-Z][a-z]?$"},
-              "additionalProperties": {"type": "number"},
+              "propertyNames": {
+                "pattern": "^[A-Z][a-z]?-[A-Z][a-z]?$"
+              },
+              "additionalProperties": {
+                "type": "number"
+              },
               "description": "Coordinate inputs only. Each unordered element pair overrides the outer multiplier and must exceed form."
             }
           },
