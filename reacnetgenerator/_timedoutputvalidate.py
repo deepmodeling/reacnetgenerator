@@ -10,6 +10,7 @@ from operator import index
 
 import h5py
 
+from ._bondhysteresis import molecule_range_basis, normalize_hysteresis
 from ._timedoutputcontract import (
     LENGTH_UNITS,
     SPECIES_DESCRIPTORS,
@@ -26,7 +27,7 @@ _CAPABILITIES = {
     "1.2": ["molecule_ranges", "reaction_events", "transition_evidence"],
 }
 _ATOM_CONVENTION = "zero-based RNG canonical atom order"
-_RANGE_BASES = {"HMM signal", "observed signal"}
+_RANGE_BASES = {"HMM signal", "observed signal", "hysteresis signal"}
 
 
 def _reject_json_constant(value):
@@ -176,14 +177,18 @@ def _root_metadata(file):
     if not isinstance(explicit, list) or not all(isinstance(x, str) for x in explicit):
         _error("configuration/explicit_parameters must be an array of strings")
     run_hmm = parameters.get("runHMM")
-    expected_basis = (
-        "HMM signal"
-        if run_hmm is True
-        else "observed signal"
-        if run_hmm is False
-        else None
-    )
-    if expected_basis != range_basis:
+    hysteresis = parameters.get("bond_hysteresis")
+    if hysteresis is not None:
+        if schema_version != "1.2":
+            _error("bond_hysteresis requires timeline schema 1.2")
+        try:
+            normalize_hysteresis(hysteresis, parameters.get("inputfiletype"))
+        except ValueError as exc:
+            _error(str(exc))
+    if (
+        type(run_hmm) is not bool
+        or molecule_range_basis(run_hmm, hysteresis) != range_basis
+    ):
         _error(
             "configuration/parameters/runHMM must be boolean and agree with "
             "molecule_range_basis"

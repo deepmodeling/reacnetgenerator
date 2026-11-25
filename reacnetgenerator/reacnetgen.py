@@ -55,6 +55,7 @@ from typing import Any, ClassVar
 import numpy as np
 
 from . import __date__, __version__
+from ._bondhysteresis import normalize_hysteresis
 from ._detect import _Detect
 from ._download import DownloadData
 from ._draw import _DrawNetwork
@@ -102,6 +103,10 @@ class ReacNetGenerator:
     atomname: tuple of strs
         The list of the atomic names in the input file, such as `('C', 'H', 'O')`. It should match
         the order of that in the input file.
+    bond_hysteresis: dict, optional
+        Per-bond formation and break thresholds, keyed by "form" and "break".
+        Coordinates use multipliers of the sum of ASE covalent radii (form < break).
+        ReaxFF bond files use reported bond orders (form > break).
     runHMM: bool, optional, default: True
         Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
         are filtered, they can turn off this option.
@@ -191,6 +196,7 @@ class ReacNetGenerator:
     parameters: dict[str, Any]
     timed_output: str | None
     source_frame_counts: list[int] | None
+    bond_hysteresis: dict[str, float] | None
     explicit_parameters: list[str]
 
     def __init__(self, **kwargs: Any) -> None:
@@ -247,6 +253,7 @@ class ReacNetGenerator:
             "timed_output": None,
         }
         none_key = [
+            "bond_hysteresis",
             "selectatoms",
             "species",
             "pos",
@@ -319,6 +326,16 @@ class ReacNetGenerator:
         kwargs["miso"] = int(miso)
         for kk in itertools.chain(none_key, accept_keys):
             kwargs.setdefault(kk, None)
+        if kwargs["bond_hysteresis"] is not None:
+            kwargs["bond_hysteresis"] = normalize_hysteresis(
+                kwargs["bond_hysteresis"], kwargs["inputfiletype"]
+            )
+            if kwargs["inputfiletype"] not in ("bond", "lammpsbondfile") and (
+                kwargs["ase_cutoff_mult"] != 1.2 or kwargs["custom_cutoffs"] is not None
+            ):
+                raise ValueError(
+                    "Choose bond_hysteresis or the single-cutoff ASE settings"
+                )
         output_dir = kwargs.get("output_dir")
         output_path = None
         if output_dir is not None:
@@ -448,10 +465,10 @@ class ReacNetGenerator:
         parameter_keys = (
             set(necessary_key) | set(default_value) | set(none_key) | set(file_key)
         )
-        # Preserve provenance equality with older 1.1 files for runs that supply no units.
+        # Omit unused optional metadata so previous runs retain comparable provenance.
         parameter_keys.difference_update(
             key
-            for key in ("timestep_value", "time_unit", "length_unit")
+            for key in ("timestep_value", "time_unit", "length_unit", "bond_hysteresis")
             if kwargs[key] is None
         )
         self.parameters = {

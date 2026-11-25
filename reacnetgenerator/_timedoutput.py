@@ -13,6 +13,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
+from ._bondhysteresis import molecule_range_basis
 from ._moleculepresence import _iter_molecule_presence
 from ._moleculepresence import _signal_ranges as _signal_ranges
 from ._speciesdescriptors import hill_formula, ring_system
@@ -143,9 +144,9 @@ class _TimedOutputWriter:
                     self.rng.parameter_provenance(), allow_nan=False
                 ),
                 atom_index_convention="zero-based RNG canonical atom order",
-                molecule_range_basis="HMM signal"
-                if self.rng.runHMM
-                else "observed signal",
+                molecule_range_basis=molecule_range_basis(
+                    self.rng.runHMM, self.rng.bond_hysteresis
+                ),
             )
             for group, fields in {
                 "frames": ("source_id", "source_frame", "timestep"),

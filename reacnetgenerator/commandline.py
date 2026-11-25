@@ -113,6 +113,13 @@ def main_parser() -> argparse.ArgumentParser:
         action="store_true",
     )
     parser.add_argument(
+        "--bond-hysteresis",
+        nargs=2,
+        type=float,
+        metavar=("FORM", "BREAK"),
+        help="Distance multipliers (FORM < BREAK) or ReaxFF bond orders (FORM > BREAK).",
+    )
+    parser.add_argument(
         "--ase-cutoff-mult",
         help="Global multiplier for natural cutoffs",
         type=float,
@@ -319,6 +326,15 @@ def _commandline():
         use_ase=args.use_ase,
         ase_cutoff_mult=args.ase_cutoff_mult,
         custom_cutoffs=args.ase_pair_cutoffs,
+        **(
+            {
+                "bond_hysteresis": dict(
+                    zip(("form", "break"), args.bond_hysteresis, strict=True)
+                )
+            }
+            if args.bond_hysteresis is not None
+            else {}
+        ),
         max_component_atoms=args.max_component_atoms,
         max_component_fraction=args.max_component_fraction,
         printmoleculetime=args.show_molecule_time,
@@ -415,6 +431,15 @@ def parm2cmd(pp: dict) -> list[str]:
         commands.extend(str(x) for x in moleculetimesteps)
     if pp.get("printreactionevent", False):
         commands.append("--reaction-event")
+    if pp.get("bond_hysteresis") is not None:
+        thresholds = pp["bond_hysteresis"]
+        commands.extend(
+            (
+                "--bond-hysteresis",
+                str(float(thresholds["form"])),
+                str(float(thresholds["break"])),
+            )
+        )
     if pp.get("use_ase", False):
         commands.append("--use-ase")
     if pp.get("ase_cutoff_mult", 1.2) != 1.2:

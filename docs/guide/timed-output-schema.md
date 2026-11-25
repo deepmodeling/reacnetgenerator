@@ -64,9 +64,10 @@ they are not content hashes.
   trajectory atom IDs. The existing LAMMPS parser expects contiguous one-based
   source IDs; this feature does not extend that parser contract.
 - Molecule ranges are closed `[start_frame, end_frame]` intervals of the signal
-  used to construct the atom-frame matrix: after HMM when enabled, observed
-  presence otherwise. Overlapping molecule signals can exist and are handled by
-  the existing reaction conflict rules. Ranges do not assert unique atom ownership.
+  used to construct the atom-frame matrix. HMM defines this signal when enabled.
+  With HMM off, ranges follow bond hysteresis when configured or ordinary
+  frame-local detection otherwise. The existing reaction conflict rules handle
+  overlapping molecule signals. Ranges do not assert unique atom ownership.
 - Legacy molecule CSV describes **observed** frames. With HMM enabled its rows
   need not match these effective ranges. CSV frame/timestep filters do not filter
   HDF5 ranges or events; their values remain recorded in configuration.
@@ -88,13 +89,36 @@ Root attributes:
 | `created_utc`           | ISO 8601 UTC timestamp                                                                             |
 | `configuration`         | JSON from `parameter_provenance()`: normalized constructor parameters and explicit parameter names |
 | `atom_index_convention` | `zero-based RNG canonical atom order`                                                              |
-| `molecule_range_basis`  | `HMM signal` or `observed signal`                                                                  |
+| `molecule_range_basis`  | `HMM signal`, `observed signal`, or (in 1.2) `hysteresis signal`                                   |
 
 Configuration includes HMM settings, sampling, cell/PBC options, detection
 backend/cutoffs, species identification and selection settings. A null configured
 cell means that the parser derives it from input; actual frame cell matrices are
 not copied into this format. Input paths, sizes and modification times provide
 provenance, not a content-integrity guarantee. No input hash is computed by default.
+
+Use `--bond-hysteresis FORM BREAK` or the Python argument
+`bond_hysteresis={"form": ..., "break": ...}` to track each pair across analyzed
+frames. State starts with all pairs absent and continues across ordered input files
+and `--split` partitions. Frames skipped by `stepinterval` do not update state.
+Run independent trajectories separately. The opt-in detection pass runs in frame
+order in one process. Later analysis stages retain the configured worker count.
+
+- For coordinates in angstroms, the thresholds multiply the sum of ASE covalent
+  radii. A pair forms at or below FORM and breaks at or above BREAK.
+  Periodic inputs use the nearest image. For example, `--bond-hysteresis 1.25 1.35`
+  specifies two distance thresholds. It replaces the single-cutoff ASE settings.
+  Open Babel assigns orders on the retained graph, or `--use-ase` assigns order one.
+- For ReaxFF bond files the thresholds apply to the reported fractional bond
+  order before rounding. A pair forms at or above FORM and breaks at or below
+  BREAK (for example, `--bond-hysteresis 0.60 0.30`). Missing pairs break.
+  When both directions report the same pair the larger value is used. The
+  reporting cutoff in the simulation determines which orders are available.
+
+The default HMM setting still applies. Use `--nohmm` to isolate bond hysteresis.
+With both filters enabled the final ranges use `HMM signal`. The configuration
+records the bond thresholds in either case. Readers predating the new enum can
+reject files that use `hysteresis signal`.
 
 If the source MD uses a fixed physical timestep, record it with
 `--timestep-value 0.0001 --time-unit ps`, and record the coordinate unit with
