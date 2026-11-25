@@ -2,13 +2,16 @@
 """Check stateful edge detection through the public analysis and timeline APIs."""
 
 import json
+import sys
 from fractions import Fraction
 
 import h5py
 import pytest
+from ase.data import atomic_numbers
 
 from reacnetgenerator import ReacNetGenerator
-from reacnetgenerator.commandline import main_parser, parm2cmd
+from reacnetgenerator._detect import _Detect
+from reacnetgenerator.commandline import _commandline, main_parser, parm2cmd
 from reacnetgenerator.timedoutput import (
     TimedOutputValidationError,
     iter_molecule_ranges,
@@ -239,11 +242,16 @@ def test_hysteresis_cli_roundtrip():
                 "inputfilename": "dump",
                 "atomname": ["C"],
                 "inputfiletype": "dump",
-                "bond_hysteresis": {"form": 1.25, "break": 1.35},
+                "bond_hysteresis": {
+                    "form": 1.25,
+                    "break": 1.35,
+                    "pair_break": {"H-O": 1.3, "H-H": 1.75},
+                },
             }
         )[1:]
     )
     assert args.bond_hysteresis == [1.25, 1.35]
+    assert args.bond_break_mult == [["H-H", "1.75"], ["H-O", "1.3"]]
 
 
 def test_distance_equalities(tmp_path):
@@ -262,3 +270,251 @@ def test_distance_equalities(tmp_path):
         use_ase=True,
     )
     assert _pair_orders(target) == [0, 1, 1, 0, 0]
+
+
+@pytest.mark.parametrize("ase_orders", [False, True])
+def test_pair_break_multipliers(tmp_path, ase_orders):
+    """Extend H-H, shorten H-O and keep the global O-O cutoff across frames."""
+    # The first pair crosses the periodic boundary and all pairs start unbound.
+    distances = [
+        (0.7, 1.1, 1.5),
+        (0.95, 1.30, 1.9),
+        (1.10, 1.24, 2.0),
+        (0.85, 1.1, 1.7),
+    ]
+    trajectory = tmp_path / "pairs.xyz"
+    trajectory.write_text(
+        "".join(
+            f'6\nLattice="20 0 0 0 20 0 0 0 20"\nH 0 0 0\nH {20 - hh} 0 0\n'
+            f"O 5 0 0\nH {5 + ho} 0 0\nO 10 0 0\nO {10 + oo} 0 0\n"
+            for hh, ho, oo in distances
+        )
+    )
+    target = tmp_path / "pairs.h5"
+    config = {"form": 1.25, "break": 1.5, "pair_break": {"H-H": 1.75, "O-H": 1.3}}
+    rng = ReacNetGenerator(
+        inputfilename=str(trajectory),
+        inputfiletype="extxyz",
+        atomname=["H", "O"],
+        output_dir=tmp_path,
+        timed_output=target,
+        bond_hysteresis=config,
+        use_ase=ase_orders,
+        runHMM=False,
+        nproc=1,
+    )
+    rng.run_items(["species", "reactions"])
+    validate_timed_output(target)
+    with h5py.File(target) as file:
+        assert json.loads(file.attrs["configuration"])["parameters"][
+            "bond_hysteresis"
+        ] == {"form": 1.25, "break": 1.5, "pair_break": {"H-H": 1.75, "H-O": 1.3}}
+    edges = [set() for _ in distances]
+    definitions = {m.molecule_id: m.bonds for m in iter_molecules(target)}
+    for span in iter_molecule_ranges(target):
+        for frame in range(span.start_frame, span.end_frame + 1):
+            edges[frame].update((a, b) for a, b, _ in definitions[span.molecule_id])
+    assert edges == [{(0, 1), (2, 3), (4, 5)}, {(0, 1), (4, 5)}, set(), {(2, 3)}]
+
+
+@pytest.mark.parametrize(
+    ("kind", "pairs"),
+    [
+        ("bond", {"H-H": 2.0}),
+        ("dump", {}),
+        ("dump", None),
+        ("dump", {1: 1.6}),
+        ("dump", {"H-H": True}),
+        ("dump", {"H-Qq": 1.6}),
+        ("dump", {"X-H": 1.75}),
+        ("dump", {"H-H": 1.25}),
+        ("dump", {"H-H": -1.5}),
+        ("dump", {"H-H": float("inf")}),
+        ("dump", {"H-H": float("nan")}),
+        ("dump", {"H-H": 10**400}),
+        ("dump", {"O-H": 1.6, "H-O": 1.7}),
+        ("dump", {"H": 1.7}),
+    ],
+)
+def test_invalid_pair_break_multipliers(kind, pairs):
+    """Reject invalid boundary values, non-elements and ambiguous declarations."""
+    with pytest.raises(ValueError, match="bond_hysteresis"):
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype=kind,
+            atomname=["H", "O"],
+            bond_hysteresis={
+                "form": 1.25,
+                "break": 0.3 if kind == "bond" else 1.5,
+                "pair_break": pairs,
+            },
+        )
+
+
+def test_pair_break_boundary_canonical_order_and_search_scope(tmp_path):
+    """Break at exact pair_break equality, sort keys canonically, and scope search radii."""
+    # H-H covalent radius sum is 0.62 A; form=1.25 -> 0.775 A, break=1.75 -> 1.085 A.
+    path = tmp_path / "hh.xyz"
+    path.write_text(
+        "".join(f"2\nframe\nH 0 0 0\nH {d} 0 0\n" for d in [0.7, 1.084, 1.085, 0.9])
+    )
+    target = tmp_path / "hh.h5"
+    rng = ReacNetGenerator(
+        inputfilename=str(path),
+        inputfiletype="xyz",
+        atomname=["H", "O", "C"],
+        pbc=False,
+        runHMM=False,
+        use_ase=True,
+        output_dir=tmp_path,
+        timed_output=target,
+        nproc=1,
+        bond_hysteresis={
+            "form": 1.25,
+            "break": 1.35,
+            "pair_break": {"O-H": 1.3, "H-H": 1.75},
+        },
+    )
+    assert rng.bond_hysteresis is not None
+    assert list(rng.bond_hysteresis["pair_break"]) == ["H-H", "H-O"]
+    detector = _Detect.gettype(rng)
+    assert detector._atom_outer is not None
+    assert detector._atom_outer[atomic_numbers["H"]] == pytest.approx(1.75)
+    assert detector._atom_outer[atomic_numbers["O"]] == pytest.approx(1.35)
+    assert detector._atom_outer[atomic_numbers["C"]] == pytest.approx(1.35)
+
+    rng.run_items(["species", "reactions"])
+    validate_timed_output(target)
+    assert _pair_orders(target) == [1, 1, 0, 0]
+
+    # Validator rejects tampered pair_break metadata in stored schema 1.2 timelines.
+    with h5py.File(target, "r+") as file:
+        config = json.loads(file.attrs["configuration"])
+        config["parameters"]["bond_hysteresis"]["pair_break"] = {"H-H": 1.25}
+        file.attrs["configuration"] = json.dumps(config)
+    with pytest.raises(TimedOutputValidationError, match="pair_break"):
+        validate_timed_output(target)
+
+
+def test_bond_break_mult_cli_execution(tmp_path, monkeypatch):
+    """Exercise _commandline parsing of --bond-hysteresis and --bond-break-mult."""
+    path = tmp_path / "cli_pairs.xyz"
+    path.write_text(
+        "".join(f"2\nframe\nH 0 0 0\nH {d} 0 0\n" for d in [0.7, 0.95, 1.1])
+    )
+    target = tmp_path / "cli_pairs.h5"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "reacnetgenerator",
+            "--type",
+            "xyz",
+            "-i",
+            str(path),
+            "-a",
+            "H",
+            "O",
+            "--nopbc",
+            "--nohmm",
+            "--use-ase",
+            "-n",
+            "1",
+            "--output-dir",
+            str(tmp_path),
+            "--timed-output",
+            str(target),
+            "--items",
+            "species,reactions",
+            "--bond-hysteresis",
+            "1.25",
+            "1.35",
+            "--bond-break-mult",
+            "O-H",
+            "1.3",
+            "--bond-break-mult",
+            "H-H",
+            "1.75",
+        ],
+    )
+    _commandline()
+    validate_timed_output(target)
+    with h5py.File(target) as file:
+        hysteresis = json.loads(file.attrs["configuration"])["parameters"][
+            "bond_hysteresis"
+        ]
+    assert hysteresis == {
+        "form": 1.25,
+        "break": 1.35,
+        "pair_break": {"H-H": 1.75, "H-O": 1.3},
+    }
+    assert list(hysteresis["pair_break"]) == ["H-H", "H-O"]
+    assert _pair_orders(target) == [1, 1, 0]
+
+
+@pytest.mark.parametrize(
+    ("extra_args", "error_pattern"),
+    [
+        (["--bond-break-mult", "H-H", "1.75"], "--bond-break-mult requires"),
+        (
+            [
+                "--bond-hysteresis",
+                "1.25",
+                "1.35",
+                "--bond-break-mult",
+                "H-H",
+                "1.6",
+                "--bond-break-mult",
+                "H-H",
+                "1.75",
+            ],
+            "duplicate --bond-break-mult for H-H",
+        ),
+        (
+            [
+                "--bond-hysteresis",
+                "1.25",
+                "1.35",
+                "--bond-break-mult",
+                "O-H",
+                "1.6",
+                "--bond-break-mult",
+                "H-O",
+                "1.75",
+            ],
+            "duplicate --bond-break-mult for H-O",
+        ),
+        (
+            [
+                "--bond-hysteresis",
+                "1.25",
+                "1.35",
+                "--bond-break-mult",
+                "H-H",
+                "not-a-number",
+            ],
+            "invalid --bond-break-mult multiplier",
+        ),
+    ],
+)
+def test_bond_break_mult_cli_errors(monkeypatch, capsys, extra_args, error_pattern):
+    """Reject missing base hysteresis, duplicates in either order, and bad numbers."""
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "reacnetgenerator",
+            "--type",
+            "dump",
+            "-i",
+            "unused.dump",
+            "-a",
+            "H",
+            "O",
+            *extra_args,
+        ],
+    )
+    with pytest.raises(SystemExit) as exc:
+        _commandline()
+    assert exc.value.code == 2
+    assert error_pattern in capsys.readouterr().err

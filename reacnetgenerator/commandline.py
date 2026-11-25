@@ -120,6 +120,13 @@ def main_parser() -> argparse.ArgumentParser:
         help="Distance multipliers (FORM < BREAK) or ReaxFF bond orders (FORM > BREAK).",
     )
     parser.add_argument(
+        "--bond-break-mult",
+        nargs=2,
+        action="append",
+        metavar=("ELEMENT-ELEMENT", "MULT"),
+        help="Override the outer coordinate hysteresis multiplier for one pair (repeatable).",
+    )
+    parser.add_argument(
         "--ase-cutoff-mult",
         help="Global multiplier for natural cutoffs",
         type=float,
@@ -303,6 +310,24 @@ def _commandline():
 
     from .reacnetgen import ReacNetGenerator
 
+    hysteresis: dict[str, object] = {}
+    if args.bond_hysteresis is not None:
+        hysteresis = dict(zip(("form", "break"), args.bond_hysteresis, strict=True))
+    if args.bond_break_mult:
+        if not hysteresis:
+            parser.error("--bond-break-mult requires --bond-hysteresis FORM BREAK")
+        pairs = {}
+        for pair, raw in args.bond_break_mult:
+            parts = pair.split("-")
+            key = "-".join(sorted(parts)) if len(parts) == 2 else pair
+            if key in pairs:
+                parser.error(f"duplicate --bond-break-mult for {key}")
+            try:
+                pairs[key] = float(raw)
+            except ValueError:
+                parser.error(f"invalid --bond-break-mult multiplier: {raw}")
+        hysteresis["pair_break"] = pairs
+
     rng = ReacNetGenerator(
         inputfilename=args.inputfilename,
         atomname=args.atomname,
@@ -326,15 +351,7 @@ def _commandline():
         use_ase=args.use_ase,
         ase_cutoff_mult=args.ase_cutoff_mult,
         custom_cutoffs=args.ase_pair_cutoffs,
-        **(
-            {
-                "bond_hysteresis": dict(
-                    zip(("form", "break"), args.bond_hysteresis, strict=True)
-                )
-            }
-            if args.bond_hysteresis is not None
-            else {}
-        ),
+        **({"bond_hysteresis": hysteresis} if hysteresis else {}),
         max_component_atoms=args.max_component_atoms,
         max_component_fraction=args.max_component_fraction,
         printmoleculetime=args.show_molecule_time,
@@ -440,6 +457,8 @@ def parm2cmd(pp: dict) -> list[str]:
                 str(float(thresholds["break"])),
             )
         )
+        for pair, value in sorted((thresholds.get("pair_break") or {}).items()):
+            commands.extend(("--bond-break-mult", pair, str(float(value))))
     if pp.get("use_ase", False):
         commands.append("--use-ase")
     if pp.get("ase_cutoff_mult", 1.2) != 1.2:

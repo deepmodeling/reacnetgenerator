@@ -45,7 +45,7 @@ try:
 except ImportError:  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
 from ase import Atom, Atoms
-from ase.data import covalent_radii
+from ase.data import atomic_numbers, covalent_radii
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
 from scipy.sparse import csr_matrix
@@ -610,6 +610,19 @@ class _DetectCrd(_Detect):
             ["N", "atomtype", "step", "timestep", "temp1it", "moleculetempfilename"],
         )
         self._parsed_custom_cutoffs = self._parse_custom_cutoffs(self.custom_cutoffs)
+        self._pair_break = None
+        self._atom_outer = None
+        thresholds = getattr(rng, "bond_hysteresis", None)
+        if thresholds and "pair_break" in thresholds:
+            # Index by atomic number in either endpoint order, independently of
+            # the dump type mapping and the direction returned by ASE.
+            n = len(covalent_radii)
+            self._pair_break = np.full((n, n), thresholds["break"], dtype=float)
+            for pair, value in thresholds["pair_break"].items():
+                i, j = (atomic_numbers[symbol] for symbol in pair.split("-"))
+                self._pair_break[i, j] = self._pair_break[j, i] = value
+            # Each element's search radius only needs to cover its widest pair.
+            self._atom_outer = self._pair_break.max(axis=1)
 
     def _parse_custom_cutoffs(self, cutoff_str):
         """Parse the custom cutoff string into a dictionary.
@@ -998,7 +1011,13 @@ class _DetectCrd(_Detect):
         radii = covalent_radii[atoms.numbers]
         # ASE returns both directions and can return multiple periodic images.
         # Existence of any qualifying image is equivalent to using the closest.
-        first, second, distances = neighbor_list("ijd", atoms, radii * break_mult)
+        # Widen search radii only for elements participating in wider overrides.
+        cutoffs = (
+            radii * break_mult
+            if self._atom_outer is None
+            else radii * self._atom_outer[atoms.numbers]
+        )
+        first, second, distances = neighbor_list("ijd", atoms, cutoffs)
         mask = first < second
         if np.any(mask):
             first = first[mask]
@@ -1014,7 +1033,12 @@ class _DetectCrd(_Detect):
                 )
             )
             if previous:
-                hold_mask = (~form_mask) & (distances < pair_radii * break_mult)
+                limits = (
+                    break_mult
+                    if self._pair_break is None
+                    else self._pair_break[atoms.numbers[first], atoms.numbers[second]]
+                )
+                hold_mask = (~form_mask) & (distances < pair_radii * limits)
                 if np.any(hold_mask):
                     for pair in zip(
                         first[hold_mask].tolist(),
