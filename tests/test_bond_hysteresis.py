@@ -2,6 +2,7 @@
 """Check stateful edge detection through the public analysis and timeline APIs."""
 
 import json
+from fractions import Fraction
 
 import h5py
 import pytest
@@ -12,6 +13,7 @@ from reacnetgenerator.timedoutput import (
     TimedOutputValidationError,
     iter_molecule_ranges,
     iter_molecules,
+    iter_reaction_events,
     validate_timed_output,
 )
 
@@ -131,6 +133,9 @@ def test_skipped_frames_and_hmm_provenance(tmp_path):
         ("dump", {"form": 1, "break": 1}),
         ("extxyz", {"form": 0, "break": 2}),
         ("bond", {"form": 0.6}),
+        ("xyz", {"form": Fraction(1), "break": Fraction(1) + Fraction(1, 10**30)}),
+        ("xyz", {"form": Fraction(1, 10**400), "break": 1.2}),
+        ("bond", {"form": 10**400, "break": 0.3}),
     ],
 )
 def test_invalid_hysteresis(kind, config):
@@ -142,6 +147,88 @@ def test_invalid_hysteresis(kind, config):
             atomname=["C"],
             bond_hysteresis=config,
         )
+
+
+@pytest.mark.parametrize(
+    "ase_option",
+    [
+        {"ase_cutoff_mult": 1.3},
+        {"custom_cutoffs": "C-C:1.8"},
+    ],
+)
+def test_hysteresis_rejects_conflicting_ase_cutoff_settings(ase_option):
+    """Reject combining coordinate hysteresis with single-cutoff ASE parameters."""
+    with pytest.raises(ValueError, match="bond_hysteresis"):
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype="dump",
+            atomname=["C"],
+            bond_hysteresis={"form": 1.2, "break": 1.4},
+            **ase_option,
+        )
+
+
+def test_dump_oscillating_bond_suppresses_spurious_reactions(tmp_path):
+    """A thermally oscillating C-O bond stays bound in the deadband without spurious events."""
+    # C (0.76 A) + O (0.66 A) = 1.42 A; form <= 1.704 A (1.2x), break >= 1.988 A (1.4x).
+    distances = [1.45, 1.85, 1.45, 1.85, 1.45]
+    frames = []
+    for step, dist in enumerate(distances):
+        frames.append(
+            "\n".join(
+                [
+                    "ITEM: TIMESTEP",
+                    str(step),
+                    "ITEM: NUMBER OF ATOMS",
+                    "2",
+                    "ITEM: BOX BOUNDS pp pp pp",
+                    "0.0 10.0",
+                    "0.0 10.0",
+                    "0.0 10.0",
+                    "ITEM: ATOMS id type x y z",
+                    "1 1 0.0 0.0 0.0",
+                    f"2 2 {dist} 0.0 0.0",
+                    "",
+                ]
+            )
+        )
+    dump = tmp_path / "oscillate.dump"
+    dump.write_text("".join(frames))
+
+    hyst_target = tmp_path / "hyst.h5"
+    rng_hyst = ReacNetGenerator(
+        inputfilename=str(dump),
+        inputfiletype="dump",
+        atomname=["C", "O"],
+        bond_hysteresis={"form": 1.2, "break": 1.4},
+        runHMM=False,
+        use_ase=True,
+        output_dir=tmp_path / "hyst",
+        timed_output=hyst_target,
+        nproc=2,
+    )
+    rng_hyst.run_items(["species", "reactions"])
+    validate_timed_output(hyst_target)
+    assert list(iter_reaction_events(hyst_target)) == []
+
+    base_target = tmp_path / "base.h5"
+    rng_base = ReacNetGenerator(
+        inputfilename=str(dump),
+        inputfiletype="dump",
+        atomname=["C", "O"],
+        runHMM=False,
+        use_ase=True,
+        output_dir=tmp_path / "base",
+        timed_output=base_target,
+        nproc=2,
+    )
+    rng_base.run_items(["species", "reactions"])
+    assert len(list(iter_reaction_events(base_target))) > 0
+
+    with h5py.File(hyst_target, "r+") as file:
+        file.attrs["molecule_range_basis"] = "observed signal"
+    with pytest.raises(TimedOutputValidationError, match="molecule_range_basis"):
+        validate_timed_output(hyst_target)
 
 
 def test_hysteresis_cli_roundtrip():

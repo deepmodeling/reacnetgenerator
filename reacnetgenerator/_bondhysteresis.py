@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 """Configuration shared by bond detection and timeline validation."""
 
-import sys
+import math
 from numbers import Real
 
 
@@ -9,16 +9,26 @@ def normalize_hysteresis(config, inputfiletype):
     """Check the two thresholds in the units and direction of the input."""
     if not isinstance(config, dict) or set(config) != {"form", "break"}:
         raise ValueError("bond_hysteresis requires form and break thresholds")
-    for value in config.values():
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, Real)
-            or not 0 <= value <= sys.float_info.max
-        ):
+    parsed = {}
+    for key in ("form", "break"):
+        value = config[key]
+        if isinstance(value, bool) or not isinstance(value, Real):
             raise ValueError(
                 "bond_hysteresis thresholds must be finite nonnegative numbers"
             )
-    form, break_threshold = config["form"], config["break"]
+        try:
+            numeric = float(value)
+        except OverflowError as exc:
+            raise ValueError(
+                "bond_hysteresis thresholds must be finite nonnegative numbers"
+            ) from exc
+        # Validate after float conversion so underflow or rounding collisions are rejected.
+        if not math.isfinite(numeric) or numeric < 0:
+            raise ValueError(
+                "bond_hysteresis thresholds must be finite nonnegative numbers"
+            )
+        parsed[key] = numeric
+    form, break_threshold = parsed["form"], parsed["break"]
     if inputfiletype in ("bond", "lammpsbondfile"):
         if form <= break_threshold:
             raise ValueError("bond_hysteresis for bond orders requires form > break")
@@ -27,7 +37,7 @@ def normalize_hysteresis(config, inputfiletype):
             raise ValueError("bond_hysteresis for distances requires 0 < form < break")
     else:
         raise ValueError("bond_hysteresis requires a supported inputfiletype")
-    return {"form": float(form), "break": float(break_threshold)}
+    return parsed
 
 
 def molecule_range_basis(run_hmm, hysteresis):

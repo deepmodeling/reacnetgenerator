@@ -45,6 +45,7 @@ try:
 except ImportError:  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
 from ase import Atom, Atoms
+from ase.data import covalent_radii
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
 from scipy.sparse import csr_matrix
@@ -530,7 +531,8 @@ class _DetectLAMMPSbond(_Detect):
         bond: list[tuple[int, ...] | None] = [None] * self.N
         level: list[tuple[int, ...] | None] = [None] * self.N
         timestep = None
-        reported = {}
+        active_bonds = self._active_bonds
+        reported = {} if active_bonds is not None else None
         for line in lines:
             if line:
                 if line[0] == "#":
@@ -540,12 +542,12 @@ class _DetectLAMMPSbond(_Detect):
                     s = line.split()
                     s0 = int(s[0]) - 1
                     s2 = int(s[2])
-                    neighbors = tuple(map(self._get_idx, s[3 : 3 + s2]))
-                    orders = s[4 + s2 : 4 + 2 * s2]
-                    if self._active_bonds is None:
-                        bond[s0] = neighbors
-                        level[s0] = tuple(map(self._get_bo, orders))
+                    if reported is None:
+                        bond[s0] = tuple(map(self._get_idx, s[3 : 3 + s2]))
+                        level[s0] = tuple(map(self._get_bo, s[4 + s2 : 4 + 2 * s2]))
                     else:
+                        neighbors = tuple(map(self._get_idx, s[3 : 3 + s2]))
+                        orders = s[4 + s2 : 4 + 2 * s2]
                         for j, raw in zip(neighbors, orders, strict=True):
                             if not (0 <= s0 < self.N and 0 <= j < self.N and s0 != j):
                                 raise ValueError(
@@ -557,14 +559,17 @@ class _DetectLAMMPSbond(_Detect):
                             pair = (min(s0, j), max(s0, j))
                             reported[pair] = max(order, reported.get(pair, 0.0))
         assert timestep is not None
-        if self._active_bonds is not None:
+        if reported is not None:
+            assert active_bonds is not None
             thresholds = self.rng.bond_hysteresis
             assert thresholds is not None
+            form_threshold = thresholds["form"]
+            break_threshold = thresholds["break"]
             retained = {
                 pair: max(1, round(order))
                 for pair, order in reported.items()
-                if order >= thresholds["form"]
-                or (pair in self._active_bonds and order > thresholds["break"])
+                if order >= form_threshold
+                or (pair in active_bonds and order > break_threshold)
             }
             self._active_bonds = set(retained)
             bond, level = _bond_lists(self.N, retained.items())
@@ -986,23 +991,40 @@ class _DetectCrd(_Detect):
         assert previous is not None
         thresholds = self.rng.bond_hysteresis
         assert thresholds is not None
+        form_mult = thresholds["form"]
+        break_mult = thresholds["break"]
         atoms.set_cell(cell)
         atoms.set_pbc(self.pbc)
-        radii = np.asarray(natural_cutoffs(atoms))
+        radii = covalent_radii[atoms.numbers]
         # ASE returns both directions and can return multiple periodic images.
         # Existence of any qualifying image is equivalent to using the closest.
-        first, second, distances = neighbor_list(
-            "ijd", atoms, radii * thresholds["break"]
-        )
-        retained = set()
-        for i, j, distance in zip(first, second, distances, strict=True):
-            if i < j:
-                pair = (int(i), int(j))
-                radius = radii[i] + radii[j]
-                if distance <= radius * thresholds["form"] or (
-                    pair in previous and distance < radius * thresholds["break"]
-                ):
-                    retained.add(pair)
+        first, second, distances = neighbor_list("ijd", atoms, radii * break_mult)
+        mask = first < second
+        if np.any(mask):
+            first = first[mask]
+            second = second[mask]
+            distances = distances[mask]
+            pair_radii = radii[first] + radii[second]
+            form_mask = distances <= pair_radii * form_mult
+            retained = set(
+                zip(
+                    first[form_mask].tolist(),
+                    second[form_mask].tolist(),
+                    strict=True,
+                )
+            )
+            if previous:
+                hold_mask = (~form_mask) & (distances < pair_radii * break_mult)
+                if np.any(hold_mask):
+                    for pair in zip(
+                        first[hold_mask].tolist(),
+                        second[hold_mask].tolist(),
+                        strict=True,
+                    ):
+                        if pair in previous:
+                            retained.add(pair)
+        else:
+            retained = set()
         self._active_bonds = retained
         pairs = sorted(retained)
         if self.use_ase:

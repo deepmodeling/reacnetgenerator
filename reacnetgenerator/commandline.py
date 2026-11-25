@@ -434,7 +434,11 @@ def parm2cmd(pp: dict) -> list[str]:
     if pp.get("bond_hysteresis") is not None:
         thresholds = pp["bond_hysteresis"]
         commands.extend(
-            ("--bond-hysteresis", str(thresholds["form"]), str(thresholds["break"]))
+            (
+                "--bond-hysteresis",
+                str(float(thresholds["form"])),
+                str(float(thresholds["break"])),
+            )
         )
     if pp.get("use_ase", False):
         commands.append("--use-ase")
