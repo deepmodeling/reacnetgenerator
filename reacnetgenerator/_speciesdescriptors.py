@@ -75,9 +75,7 @@ def ring_system(atom_count, bonds):
     # A bridge separates linked rings; an articulation atom joins spiro rings.
     if not blocks:
         return "acyclic"
-    if any(
-        graph.subgraph(nodes).number_of_edges() != len(nodes) for nodes in blocks
-    ):
+    if any(graph.subgraph(nodes).number_of_edges() != len(nodes) for nodes in blocks):
         return "polycyclic"
     sizes = sorted(map(len, blocks), reverse=True)
     if len(set.union(*blocks)) == sum(sizes):
