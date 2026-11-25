@@ -239,11 +239,16 @@ def test_hysteresis_cli_roundtrip():
                 "inputfilename": "dump",
                 "atomname": ["C"],
                 "inputfiletype": "dump",
-                "bond_hysteresis": {"form": 1.25, "break": 1.35},
+                "bond_hysteresis": {
+                    "form": 1.25,
+                    "break": 1.35,
+                    "pair_break": {"H-H": 1.75},
+                },
             }
         )[1:]
     )
     assert args.bond_hysteresis == [1.25, 1.35]
+    assert args.bond_break_mult == [["H-H", "1.75"]]
 
 
 def test_distance_equalities(tmp_path):
@@ -262,3 +267,76 @@ def test_distance_equalities(tmp_path):
         use_ase=True,
     )
     assert _pair_orders(target) == [0, 1, 1, 0, 0]
+
+
+@pytest.mark.parametrize("ase_orders", [False, True])
+def test_pair_break_multipliers(tmp_path, ase_orders):
+    """Extend H-H, shorten H-O and keep the global O-O cutoff across frames."""
+    # The first pair crosses the periodic boundary and all pairs start unbound.
+    distances = [
+        (0.7, 1.1, 1.5),
+        (0.95, 1.30, 1.9),
+        (1.10, 1.24, 2.0),
+        (0.85, 1.1, 1.7),
+    ]
+    trajectory = tmp_path / "pairs.xyz"
+    trajectory.write_text(
+        "".join(
+            f'6\nLattice="20 0 0 0 20 0 0 0 20"\nH 0 0 0\nH {20 - hh} 0 0\n'
+            f"O 5 0 0\nH {5 + ho} 0 0\nO 10 0 0\nO {10 + oo} 0 0\n"
+            for hh, ho, oo in distances
+        )
+    )
+    target = tmp_path / "pairs.h5"
+    config = {"form": 1.25, "break": 1.5, "pair_break": {"H-H": 1.75, "O-H": 1.3}}
+    rng = ReacNetGenerator(
+        inputfilename=str(trajectory),
+        inputfiletype="extxyz",
+        atomname=["H", "O"],
+        output_dir=tmp_path,
+        timed_output=target,
+        bond_hysteresis=config,
+        use_ase=ase_orders,
+        runHMM=False,
+        nproc=1,
+    )
+    rng.run_items(["species", "reactions"])
+    validate_timed_output(target)
+    with h5py.File(target) as file:
+        assert json.loads(file.attrs["configuration"])["parameters"][
+            "bond_hysteresis"
+        ] == {"form": 1.25, "break": 1.5, "pair_break": {"H-H": 1.75, "H-O": 1.3}}
+    edges = [set() for _ in distances]
+    definitions = {m.molecule_id: m.bonds for m in iter_molecules(target)}
+    for span in iter_molecule_ranges(target):
+        for frame in range(span.start_frame, span.end_frame + 1):
+            edges[frame].update((a, b) for a, b, _ in definitions[span.molecule_id])
+    assert edges == [{(0, 1), (2, 3), (4, 5)}, {(0, 1), (4, 5)}, set(), {(2, 3)}]
+
+
+@pytest.mark.parametrize(
+    ("kind", "pairs"),
+    [
+        ("bond", {"H-H": 2.0}),
+        ("dump", {}),
+        ("dump", {"H-H": True}),
+        ("dump", {"H-Qq": 1.6}),
+        ("dump", {"H-H": 1.25}),
+        ("dump", {"H-H": float("inf")}),
+        ("dump", {"O-H": 1.6, "H-O": 1.7}),
+        ("dump", {"H": 1.7}),
+    ],
+)
+def test_invalid_pair_break_multipliers(kind, pairs):
+    """Reject invalid boundary values, non-elements and ambiguous declarations."""
+    with pytest.raises(ValueError, match="bond_hysteresis"):
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype=kind,
+            atomname=["H", "O"],
+            bond_hysteresis={
+                "form": 1.25,
+                "break": 0.3 if kind == "bond" else 1.5,
+                "pair_break": pairs,
+            },
+        )

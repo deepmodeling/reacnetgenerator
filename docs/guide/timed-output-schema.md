@@ -109,6 +109,12 @@ order in one process. Later analysis stages retain the configured worker count.
   Periodic inputs use the nearest image. For example, `--bond-hysteresis 1.25 1.35`
   specifies two distance thresholds. It replaces the single-cutoff ASE settings.
   Open Babel assigns orders on the retained graph, or `--use-ase` assigns order one.
+  To adjust only a particular pair's break distance, add
+  `--bond-break-mult H-H MULT` (repeatable for different pairs), or set
+  `bond_hysteresis={"form": form, "break": outer, "pair_break": {"H-H": hh_outer}}`.
+  Each override uses the same radius-sum units and must exceed the common formation
+  multiplier. All other pairs keep the global outer multiplier. The optional map
+  is recorded in the configuration. Older strict 1.2 readers reject files using it.
 - For ReaxFF bond files the thresholds apply to the reported fractional bond
   order before rounding. A pair forms at or above FORM and breaks at or below
   BREAK (for example, `--bond-hysteresis 0.60 0.30`). Missing pairs break.

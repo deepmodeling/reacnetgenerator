@@ -55,7 +55,7 @@ from typing import Any, ClassVar
 import numpy as np
 
 from . import __date__, __version__
-from ._bondhysteresis import normalize_hysteresis
+from ._bondhysteresis import BondHysteresis, normalize_hysteresis
 from ._detect import _Detect
 from ._download import DownloadData
 from ._draw import _DrawNetwork
@@ -107,6 +107,8 @@ class ReacNetGenerator:
         Per-bond formation and break thresholds, keyed by "form" and "break".
         Coordinates use multipliers of the sum of ASE covalent radii (form < break).
         ReaxFF bond files use reported bond orders (form > break).
+        For coordinates, optional ``pair_break`` maps element pairs to individual
+        outer multipliers. All pairs share the same formation multiplier.
     runHMM: bool, optional, default: True
         Process trajectory with Hidden Markov Model (HMM) or not. If the user find too many species
         are filtered, they can turn off this option.
@@ -196,7 +198,7 @@ class ReacNetGenerator:
     parameters: dict[str, Any]
     timed_output: str | None
     source_frame_counts: list[int] | None
-    bond_hysteresis: dict[str, float] | None
+    bond_hysteresis: BondHysteresis | None
     explicit_parameters: list[str]
 
     def __init__(self, **kwargs: Any) -> None:
