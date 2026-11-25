@@ -44,7 +44,7 @@ try:
     from openbabel import openbabel
 except ImportError:  # pragma: no cover
     raise ImportError("Open Babel 3.1.0 is required.")
-from ase import Atom, Atoms
+from ase import Atoms
 from ase.data import atomic_numbers, covalent_radii
 from ase.neighborlist import natural_cutoffs, neighbor_list
 from packaging import version
@@ -66,6 +66,8 @@ _OPENBABEL_COVALENT_RADIUS_TOLERANCE = 0.45
 _OPENBABEL_MIN_BOND_DISTANCE = 0.4
 _OPENBABEL_MIN_BOND_ANGLE = 45.0
 _OPENBABEL_DISTANCE_AMBIGUITY = 1e-7
+_HYSTERESIS_KDTREE_MARGIN = 1e-9
+_DETECT_HYSTERESIS_RECORD_CACHE_MAX = 16384
 _DETECT_WRITE_BYTES = 1024 * 1024
 _DETECT_COMPRESS_MIN_RECORDS = 24576
 _DETECT_COMPRESS_MAX_FRAME_BYTES = 1024
@@ -204,6 +206,11 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             ],
             ["N", "atomtype", "step", "timestep", "temp1it", "moleculetempfilename"],
         )
+        self._prev_graph_pair: tuple[list, list] | None = None
+        self._prev_molecules: list[bytes] | None = None
+        self._record_bytes_cache: (
+            dict[tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]], bytes] | None
+        ) = None
 
     @classmethod
     def gettype(cls, rng):
@@ -260,6 +267,21 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self._readinputfile()
         self.returnkeys()
 
+    def _clear_hysteresis_state(self) -> None:
+        """Reset transient per-run hysteresis caches."""
+        self._active_bonds = None
+        self._prev_graph_pair = None
+        self._prev_molecules = None
+        self._record_bytes_cache = None
+        if hasattr(self, "_active_edge_keys"):
+            self._active_edge_keys = None
+        if hasattr(self, "_prev_hysteresis_bonds"):
+            self._prev_hysteresis_bonds = None
+        if hasattr(self, "_prev_retained_orders"):
+            self._prev_retained_orders = None
+        if hasattr(self, "_prev_bond_graph"):
+            self._prev_bond_graph = None
+
     def _readinputfile(self):
         """Read the input file."""
         # Detection results may arrive out of frame order. Keep that order and
@@ -269,24 +291,43 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         with fileinput.input(files=self.inputfilename) as f:
             _steplinenum = self._readNfunc(f)
         hysteresis = getattr(self.rng, "bond_hysteresis", None) is not None
-        self._active_bonds = set() if hysteresis else None
-        lines = (
-            self._source_lines(_steplinenum)
-            if self.rng.timed_output or hysteresis
-            else fileinput.FileInput(files=self.inputfilename)
-        )
+        self._clear_hysteresis_state()
+        if hysteresis:
+            self._active_bonds = set()
+            self._record_bytes_cache = {}
+        source_stream = None
         try:
             if hysteresis:
                 # A retained pair depends on the preceding analyzed frame. Keep
                 # this pass ordered across input files; later stages can use workers.
-                source_frames = itertools.zip_longest(*[iter(lines)] * _steplinenum)
-                sampled = itertools.islice(source_frames, 0, None, self.stepinterval)
+                use_chunk_stream = (
+                    type(self)._source_lines is _Detect._source_lines
+                    and "_source_lines" not in self.__dict__
+                )
+                if use_chunk_stream:
+                    source_stream = self._source_frames(_steplinenum)
+                    sampled = itertools.islice(
+                        source_stream, 0, None, self.stepinterval
+                    )
+                else:
+                    source_stream = self._source_lines(_steplinenum)
+                    source_frames = itertools.zip_longest(
+                        *[iter(source_stream)] * _steplinenum
+                    )
+                    sampled = itertools.islice(
+                        source_frames, 0, None, self.stepinterval
+                    )
                 results = (self._readstepfunc(item) for item in enumerate(sampled))
             else:
+                source_stream = (
+                    self._source_lines(_steplinenum)
+                    if self.rng.timed_output
+                    else fileinput.FileInput(files=self.inputfilename)
+                )
                 results = run_mp(
                     self.nproc,
                     func=self._readstepfunc,
-                    l=lines,
+                    l=source_stream,
                     max_inflight=max(1, self.nproc * 2),
                     nlines=_steplinenum,
                     return_num=True,
@@ -294,17 +335,45 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                     desc="Read bond information and Detect molecules",
                     unit="timestep",
                 )
+            last_molecules = None
+            last_arrays = None
             with closing(results):
                 for molecules, (step, thetimestep) in results:
-                    for molecule in molecules:
-                        frames = d[molecule]
+                    if (
+                        hysteresis
+                        and molecules is last_molecules
+                        and last_arrays is not None
+                    ):
+                        appended = 0
                         try:
-                            frames.append(step)
+                            for frames in last_arrays:
+                                frames.append(step)
+                                appended += 1
                         except OverflowError:
-                            d[molecule] = _widen_frame_indices(frames, step)
+                            for frames in last_arrays[:appended]:
+                                frames.pop()
+                            for molecule in molecules:
+                                frames = d[molecule]
+                                try:
+                                    frames.append(step)
+                                except OverflowError:
+                                    d[molecule] = _widen_frame_indices(frames, step)
+                            last_arrays = [d[molecule] for molecule in molecules]
+                    else:
+                        for molecule in molecules:
+                            frames = d[molecule]
+                            try:
+                                frames.append(step)
+                            except OverflowError:
+                                d[molecule] = _widen_frame_indices(frames, step)
+                        if hysteresis:
+                            last_molecules = molecules
+                            last_arrays = [d[molecule] for molecule in molecules]
                     timestep[step] = thetimestep
         finally:
-            lines.close()
+            if source_stream is not None:
+                source_stream.close()
+            self._clear_hysteresis_state()
         self.temp1it = len(d)
         # Keep the cheap serial path, but amortize parallel-compression IPC for
         # many short fork records. Explicit closure also cancels suspended worker
@@ -321,6 +390,29 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self.timestep = timestep
         self.step = len(timestep)
 
+    @staticmethod
+    def _open_source_file(filename):
+        """Open a trajectory input file directly unless stdin is requested."""
+        if str(filename) == "-":
+            return fileinput.FileInput(files=(filename,))
+        return open(filename)
+
+    def _source_frames(self, lines_per_frame):
+        """Stream fixed-size frame line tuples while recording source frame counts."""
+        counts = []
+        for source_index, filename in enumerate(self.inputfilename):
+            frame_count = 0
+            with self._open_source_file(filename) as source:
+                while chunk := tuple(itertools.islice(source, lines_per_frame)):
+                    if len(chunk) != lines_per_frame:
+                        if source_index + 1 == len(self.inputfilename):
+                            raise ValueError("Incomplete final source frame")
+                        raise ValueError("Incomplete source frame at file boundary")
+                    frame_count += 1
+                    yield chunk
+            counts.append(frame_count)
+        self.rng.source_frame_counts = counts
+
     def _source_lines(self, lines_per_frame):
         """Record per-source frame counts during the existing streaming read.
 
@@ -331,7 +423,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         counts = []
         for source_index, filename in enumerate(self.inputfilename):
             lines = 0
-            with fileinput.FileInput(files=(filename,)) as source:
+            with self._open_source_file(filename) as source:
                 for line in source:
                     lines += 1
                     yield line
@@ -450,6 +542,39 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         )
 
     def _connectmolecule(self, bond, level, frame=None, timestep=None):
+        if self._active_bonds is not None:
+            if (
+                self._prev_graph_pair is not None
+                and bond is self._prev_graph_pair[0]
+                and level is self._prev_graph_pair[1]
+                and self._prev_molecules is not None
+            ):
+                return self._prev_molecules
+            mols, bondlists = dps(bond, level)
+            self._validate_component_sizes(mols, frame=frame, timestep=timestep)
+            cache = self._record_bytes_cache
+            if cache is None:
+                cache = {}
+                self._record_bytes_cache = cache
+            records = []
+            for mol, bondlist in zip(mols, bondlists):
+                key = (tuple(mol), tuple(bondlist))
+                encoded = cache.get(key)
+                if encoded is None:
+                    encoded = b"".join(
+                        (
+                            listtobytes(mol),
+                            listtobytes([(int(i[0]), int(i[1])) for i in bondlist]),
+                            listtobytes([int(i[2]) for i in bondlist]),
+                        )
+                    )
+                    if len(cache) >= _DETECT_HYSTERESIS_RECORD_CACHE_MAX:
+                        cache.pop(next(iter(cache)))
+                    cache[key] = encoded
+                records.append(encoded)
+            self._prev_graph_pair = (bond, level)
+            self._prev_molecules = records
+            return records
         mols, bondlists = dps(bond, level)
         self._validate_component_sizes(mols, frame=frame, timestep=timestep)
         return [
@@ -572,7 +697,14 @@ class _DetectLAMMPSbond(_Detect):
                 or (pair in active_bonds and order > break_threshold)
             }
             self._active_bonds = set(retained)
-            bond, level = _bond_lists(self.N, retained.items())
+            prev_retained = getattr(self, "_prev_retained_orders", None)
+            prev_graph = getattr(self, "_prev_bond_graph", None)
+            if prev_retained == retained and prev_graph is not None:
+                bond, level = prev_graph
+            else:
+                bond, level = _bond_lists(self.N, retained.items())
+                self._prev_retained_orders = retained
+                self._prev_bond_graph = (bond, level)
         molecules = self._connectmolecule(bond, level, frame=step, timestep=timestep)
         return molecules, (step, timestep)
 
@@ -609,9 +741,22 @@ class _DetectCrd(_Detect):
             ],
             ["N", "atomtype", "step", "timestep", "temp1it", "moleculetempfilename"],
         )
+        self._prev_graph_pair: tuple[list, list] | None = None
+        self._prev_molecules: list[bytes] | None = None
+        self._record_bytes_cache: (
+            dict[tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]], bytes] | None
+        ) = None
         self._parsed_custom_cutoffs = self._parse_custom_cutoffs(self.custom_cutoffs)
         self._pair_break = None
         self._atom_outer = None
+        self._active_edge_keys: np.ndarray | None = None
+        self._prev_hysteresis_bonds: tuple[list[list[int]], list[list[int]]] | None = (
+            None
+        )
+        self._cached_hysteresis_numbers: np.ndarray | None = None
+        self._cached_hysteresis_radii: np.ndarray | None = None
+        self._cached_hysteresis_max_cutoff: float = 0.0
+        self._numbers_by_type = Atoms(symbols=list(self.atomname)).numbers
         thresholds = getattr(rng, "bond_hysteresis", None)
         if thresholds and "pair_break" in thresholds:
             # Index by atomic number in either endpoint order, independently of
@@ -998,6 +1143,94 @@ class _DetectCrd(_Detect):
         mol.EndModify()
         return self._getbondlistsfromopenbabel(mol, atomnumber)
 
+    def _hysteresis_radii_and_cutoff(
+        self, numbers: np.ndarray
+    ) -> tuple[np.ndarray, float] | None:
+        """Return per-atom covalent radii and tightest search cutoff."""
+        if (
+            self._cached_hysteresis_numbers is not None
+            and np.array_equal(numbers, self._cached_hysteresis_numbers)
+            and self._cached_hysteresis_radii is not None
+        ):
+            return self._cached_hysteresis_radii, self._cached_hysteresis_max_cutoff
+        if (
+            numbers.ndim != 1
+            or not len(numbers)
+            or np.any((numbers <= 0) | (numbers >= len(covalent_radii)))
+        ):
+            return None
+        radii = covalent_radii[numbers]
+        unique_nums = np.unique(numbers)
+        unique_r = covalent_radii[unique_nums]
+        if self._pair_break is None:
+            thresholds = self.rng.bond_hysteresis
+            assert thresholds is not None
+            max_cutoff = float(2.0 * np.max(unique_r) * thresholds["break"])
+        else:
+            limits_u = self._pair_break[np.ix_(unique_nums, unique_nums)]
+            max_cutoff = float(
+                np.max((unique_r[:, None] + unique_r[None, :]) * limits_u)
+            )
+        self._cached_hysteresis_numbers = numbers.copy()
+        self._cached_hysteresis_radii = radii
+        self._cached_hysteresis_max_cutoff = max_cutoff
+        return radii, max_cutoff
+
+    def _get_kdtree_hysteresis_pairs(
+        self,
+        numbers: np.ndarray,
+        positions: np.ndarray,
+        cell: np.ndarray,
+        max_cutoff: float,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
+        """Return candidate pairs (i < j) and exact distances via cKDTree when safe."""
+        n_atoms = len(numbers)
+        if n_atoms < 2:
+            return (
+                np.empty(0, dtype=np.intp),
+                np.empty(0, dtype=np.intp),
+                np.empty(0, dtype=np.float64),
+            )
+        if positions.shape != (n_atoms, 3) or not np.all(np.isfinite(positions)):
+            return None
+        search_radius = max_cutoff + _HYSTERESIS_KDTREE_MARGIN
+        if self.pbc:
+            cell_lengths = self._orthorhombic_cell_lengths(cell)
+            if cell_lengths is None or np.min(cell_lengths) <= 2.0 * (
+                max_cutoff + _OPENBABEL_DISTANCE_AMBIGUITY
+            ):
+                return None
+            wrapped = np.mod(positions, cell_lengths)
+            # Negative tiny coordinates can modulo-round to the exact box edge,
+            # which cKDTree rejects as out-of-bounds.
+            wrapped[wrapped >= cell_lengths] = 0.0
+            pairs = cKDTree(wrapped, boxsize=cell_lengths).query_pairs(
+                search_radius, output_type="ndarray"
+            )
+            if not len(pairs):
+                return (
+                    np.empty(0, dtype=np.intp),
+                    np.empty(0, dtype=np.intp),
+                    np.empty(0, dtype=np.float64),
+                )
+            first = pairs[:, 0]
+            second = pairs[:, 1]
+            dv = positions[second] - positions[first]
+            dv -= np.rint(dv / cell_lengths) * cell_lengths
+        else:
+            pairs = cKDTree(positions).query_pairs(search_radius, output_type="ndarray")
+            if not len(pairs):
+                return (
+                    np.empty(0, dtype=np.intp),
+                    np.empty(0, dtype=np.intp),
+                    np.empty(0, dtype=np.float64),
+                )
+            first = pairs[:, 0]
+            second = pairs[:, 1]
+            dv = positions[second] - positions[first]
+        distances = np.sqrt(np.einsum("ij,ij->i", dv, dv))
+        return first, second, distances
+
     def _get_hysteresis_bonds(self, atoms, cell):
         """Use the closest periodic image and assign orders on the retained graph."""
         previous = self._active_bonds
@@ -1006,59 +1239,143 @@ class _DetectCrd(_Detect):
         assert thresholds is not None
         form_mult = thresholds["form"]
         break_mult = thresholds["break"]
-        atoms.set_cell(cell)
-        atoms.set_pbc(self.pbc)
-        radii = covalent_radii[atoms.numbers]
-        # ASE returns both directions and can return multiple periodic images.
-        # Existence of any qualifying image is equivalent to using the closest.
-        # Widen search radii only for elements participating in wider overrides.
-        cutoffs = (
-            radii * break_mult
-            if self._atom_outer is None
-            else radii * self._atom_outer[atoms.numbers]
+        n_atoms = len(atoms)
+        numbers = np.asarray(atoms.numbers)
+        positions = np.asarray(atoms.positions, dtype=np.float64)
+
+        if self._active_edge_keys is None:
+            prev_keys = (
+                np.array(
+                    sorted(min(i, j) * n_atoms + max(i, j) for i, j in previous),
+                    dtype=np.int64,
+                )
+                if previous
+                else np.empty(0, dtype=np.int64)
+            )
+        else:
+            prev_keys = self._active_edge_keys
+
+        radii_and_cutoff = self._hysteresis_radii_and_cutoff(numbers)
+        kdtree_result = (
+            self._get_kdtree_hysteresis_pairs(
+                numbers, positions, cell, radii_and_cutoff[1]
+            )
+            if radii_and_cutoff is not None
+            else None
         )
-        first, second, distances = neighbor_list("ijd", atoms, cutoffs)
-        mask = first < second
-        if np.any(mask):
+        if kdtree_result is not None:
+            assert radii_and_cutoff is not None
+            radii = radii_and_cutoff[0]
+            first, second, distances = kdtree_result
+        else:
+            atoms.set_cell(cell)
+            atoms.set_pbc(self.pbc)
+            radii = covalent_radii[numbers]
+            # ASE returns both directions and can return multiple periodic images.
+            # Existence of any qualifying image is equivalent to using the closest.
+            # Widen search radii only for elements participating in wider overrides.
+            cutoffs = (
+                radii * break_mult
+                if self._atom_outer is None
+                else radii * self._atom_outer[numbers]
+            )
+            first, second, distances = neighbor_list("ijd", atoms, cutoffs)
+            mask = first < second
             first = first[mask]
             second = second[mask]
             distances = distances[mask]
+
+        if len(first):
             pair_radii = radii[first] + radii[second]
             form_mask = distances <= pair_radii * form_mult
-            retained = set(
-                zip(
-                    first[form_mask].tolist(),
-                    second[form_mask].tolist(),
-                    strict=True,
-                )
-            )
-            if previous:
+            keys_form = first[form_mask].astype(np.int64) * n_atoms + second[form_mask]
+            if prev_keys.size:
                 limits = (
                     break_mult
                     if self._pair_break is None
-                    else self._pair_break[atoms.numbers[first], atoms.numbers[second]]
+                    else self._pair_break[numbers[first], numbers[second]]
                 )
                 hold_mask = (~form_mask) & (distances < pair_radii * limits)
                 if np.any(hold_mask):
-                    for pair in zip(
-                        first[hold_mask].tolist(),
-                        second[hold_mask].tolist(),
-                        strict=True,
-                    ):
-                        if pair in previous:
-                            retained.add(pair)
+                    keys_cand = (
+                        first[hold_mask].astype(np.int64) * n_atoms + second[hold_mask]
+                    )
+                    pos_idx = np.searchsorted(prev_keys, keys_cand)
+                    in_prev = (pos_idx < prev_keys.size) & (
+                        prev_keys[np.minimum(pos_idx, prev_keys.size - 1)] == keys_cand
+                    )
+                    if np.any(in_prev):
+                        retained_keys = np.unique(
+                            np.concatenate((keys_form, keys_cand[in_prev]))
+                        )
+                    else:
+                        retained_keys = np.unique(keys_form)
+                else:
+                    retained_keys = np.unique(keys_form)
+            else:
+                retained_keys = np.unique(keys_form)
         else:
-            retained = set()
-        self._active_bonds = retained
-        pairs = sorted(retained)
+            retained_keys = np.empty(0, dtype=np.int64)
+
+        unchanged = self._active_edge_keys is not None and np.array_equal(
+            retained_keys, prev_keys
+        )
+        self._active_edge_keys = retained_keys
+
         if self.use_ase:
-            return _bond_lists(len(atoms), ((pair, 1) for pair in pairs))
-        mol = self._new_openbabel_molecule(atoms, cell)
+            if unchanged and self._prev_hysteresis_bonds is not None:
+                return self._prev_hysteresis_bonds
+            u_arr, v_arr = np.divmod(retained_keys, n_atoms)
+            bonds = [[] for _ in range(n_atoms)]
+            orders = [[] for _ in range(n_atoms)]
+            for i, j in zip(u_arr.tolist(), v_arr.tolist(), strict=True):
+                bonds[i].append(j)
+                bonds[j].append(i)
+                orders[i].append(1)
+                orders[j].append(1)
+            result = (bonds, orders)
+            self._prev_hysteresis_bonds = result
+            return result
+
+        u_arr, v_arr = np.divmod(retained_keys, n_atoms)
+        pairs = list(zip(u_arr.tolist(), v_arr.tolist(), strict=True))
+        mol = openbabel.OBMol()
+        mol.BeginModify()
+        mol.ReserveAtoms(n_atoms)
+        nums_list = numbers.tolist()
+        pos_list = positions.tolist()
+        new_atom = mol.NewAtom
+        for idx in range(n_atoms):
+            atom = new_atom(idx)
+            atom.SetAtomicNum(int(nums_list[idx]))
+            px, py, pz = pos_list[idx]
+            atom.SetVector(px, py, pz)
+        if self.pbc:
+            unit_cell = openbabel.OBUnitCell()
+            unit_cell.SetData(
+                openbabel.vector3(*cell[0]),
+                openbabel.vector3(*cell[1]),
+                openbabel.vector3(*cell[2]),
+            )
+            mol.CloneData(unit_cell)
+            mol.SetPeriodicMol()
+        add_bond = mol.AddBond
         for i, j in pairs:
-            mol.AddBond(i + 1, j + 1, 1)
+            add_bond(i + 1, j + 1, 1)
         mol.PerceiveBondOrders()
         mol.EndModify()
-        return self._getbondlistsfromopenbabel(mol, len(atoms))
+        assert mol.NumBonds() == len(pairs)
+        bond = [[] for _ in range(n_atoms)]
+        bondlevel = [[] for _ in range(n_atoms)]
+        get_bond = mol.GetBond
+        for bond_idx, (u, v) in enumerate(pairs):
+            raw_level = get_bond(bond_idx).GetBondOrder()
+            level = 12 if raw_level == 5 else raw_level
+            bond[u].append(v)
+            bond[v].append(u)
+            bondlevel[u].append(level)
+            bondlevel[v].append(level)
+        return bond, bondlevel
 
     def _getbondfromcrd(
         self, step_atoms: Atoms, cell: np.ndarray
@@ -1136,6 +1453,7 @@ class _DetectLAMMPSdump(_DetectCrd):
                 linecontent = self.LineType.linecontent(line)
                 if linecontent == self.LineType.ATOMS:
                     keys = line.split()
+                    self._n_atom_cols = len(keys) - 2
                     self.id_idx = keys.index("id") - 2
                     self.tidx = keys.index("type") - 2
                     self.xidx = keys.index("x") - 2
@@ -1186,61 +1504,165 @@ class _DetectLAMMPSdump(_DetectCrd):
         seen_atom_ids[atom_index] = True
         return atom_index, atom_type
 
+    def _try_fast_parse_frame(
+        self, step: int, lines
+    ) -> tuple[Atoms, np.ndarray, tuple[int, int]] | None:
+        """Vectorized parser for standard numeric LAMMPS dump frames."""
+        n_cols = getattr(self, "_n_atom_cols", 0)
+        if (
+            not isinstance(lines, (tuple, list))
+            or len(lines) != self.N + 9
+            or n_cols <= 0
+            or not lines[0].startswith("ITEM: TIMESTEP")
+            or not lines[2].startswith("ITEM: NUMBER OF ATOMS")
+            or not lines[4].startswith("ITEM: BOX")
+            or not lines[8].startswith("ITEM: ATOMS")
+        ):
+            return None
+        try:
+            ts = int(lines[1].split()[0])
+            b0 = [float(x) for x in lines[5].split()]
+            b1 = [float(x) for x in lines[6].split()]
+            b2 = [float(x) for x in lines[7].split()]
+        except (IndexError, ValueError):
+            return None
+        if len(b0) == 2 and len(b1) == 2 and len(b2) == 2:
+            boxsize = np.array(
+                [
+                    [b0[1] - b0[0], 0.0, 0.0],
+                    [0.0, b1[1] - b1[0], 0.0],
+                    [0.0, 0.0, b2[1] - b2[0]],
+                ]
+            )
+        elif (
+            len(b0) >= 3
+            and len(b1) >= 3
+            and len(b2) >= 3
+            and len(b0) == len(b1) == len(b2)
+        ):
+            xy, xz, yz = b0[2], b1[2], b2[2]
+            xlo = b0[0] - min(0.0, xy, xz, xy + xz)
+            xhi = b0[1] - max(0.0, xy, xz, xy + xz)
+            ylo = b1[0] - min(0.0, yz)
+            yhi = b1[1] - max(0.0, yz)
+            zlo = b2[0]
+            zhi = b2[1]
+            boxsize = np.array(
+                [
+                    [xhi - xlo, 0.0, 0.0],
+                    [xy, yhi - ylo, 0.0],
+                    [xz, yz, zhi - zlo],
+                ]
+            )
+        else:
+            return None
+        try:
+            raw = np.fromstring("".join(lines[9:]), dtype=np.float64, sep=" ")
+        except ValueError:
+            return None
+        if raw.size != self.N * n_cols:
+            return None
+        table = raw.reshape((self.N, n_cols))
+        raw_id = table[:, self.id_idx]
+        raw_type = table[:, self.tidx]
+        if not (np.all(np.isfinite(raw_id)) and np.all(np.isfinite(raw_type))):
+            return None
+        atom_index = raw_id.astype(np.intp) - 1
+        atom_type = raw_type.astype(np.intp) - 1
+        numbers_by_type = self._numbers_by_type
+        if (
+            np.any(atom_index + 1 != raw_id)
+            or np.any((atom_index < 0) | (atom_index >= self.N))
+            or np.any(atom_type + 1 != raw_type)
+            or np.any((atom_type < 0) | (atom_type >= len(numbers_by_type)))
+        ):
+            return None
+        if self.N == 0 or (
+            atom_index[0] == 0
+            and atom_index[-1] == self.N - 1
+            and np.all(atom_index[1:] - atom_index[:-1] == 1)
+        ):
+            step_numbers = numbers_by_type[atom_type]
+            if self.yidx == self.xidx + 1 and self.zidx == self.yidx + 1:
+                step_positions = table[:, self.xidx : self.zidx + 1].copy()
+            else:
+                step_positions = table[:, (self.xidx, self.yidx, self.zidx)].copy()
+        else:
+            seen = np.zeros(self.N, dtype=bool)
+            seen[atom_index] = True
+            if not np.all(seen):
+                return None
+            step_numbers = np.empty(self.N, dtype=numbers_by_type.dtype)
+            step_positions = np.empty((self.N, 3), dtype=np.float64)
+            step_numbers[atom_index] = numbers_by_type[atom_type]
+            step_positions[atom_index, 0] = table[:, self.xidx]
+            step_positions[atom_index, 1] = table[:, self.yidx]
+            step_positions[atom_index, 2] = table[:, self.zidx]
+        return (
+            Atoms(numbers=step_numbers, positions=step_positions),
+            boxsize,
+            (step, ts),
+        )
+
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
-        # Place rows in canonical atom order without per-atom ASE objects or sorting.
-        numbers_by_type = Atoms(symbols=list(self.atomname)).numbers
-        step_numbers = np.empty(self.N, dtype=numbers_by_type.dtype)
-        step_positions = np.empty((self.N, 3), dtype=float)
-        seen_atom_ids = np.zeros(self.N, dtype=bool)
-        ss = []
-        linecontent = None
-        timestep = None
-        for line in lines:
-            if line:
-                if line.startswith("ITEM:"):
-                    linecontent = self.LineType.linecontent(line)
-                else:
-                    if linecontent is None:
-                        raise ValueError("LAMMPS dump file format error")
-                    elif linecontent == self.LineType.ATOMS:
-                        s = line.split()
-                        atom_index, atom_type = self._atom_indices(s, seen_atom_ids)
-                        step_numbers[atom_index] = numbers_by_type[atom_type]
-                        step_positions[atom_index] = (
-                            float(s[self.xidx]),
-                            float(s[self.yidx]),
-                            float(s[self.zidx]),
-                        )
-                    elif linecontent == self.LineType.TIMESTEP:
-                        timestep = step, int(line.split()[0])
-                    elif linecontent == self.LineType.BOX:
-                        s = line.split()
-                        ss.append(list(map(float, s)))
-        assert timestep is not None
-        ss = np.array(ss)
-        if ss.shape[1] > 2:
-            xy = ss[0][2]
-            xz = ss[1][2]
-            yz = ss[2][2]
+        parsed = self._try_fast_parse_frame(step, lines)
+        if parsed is not None:
+            step_atoms, boxsize, timestep = parsed
         else:
-            xy, xz, yz = 0.0, 0.0, 0.0
-        xlo = ss[0][0] - min(0.0, xy, xz, xy + xz)
-        xhi = ss[0][1] - max(0.0, xy, xz, xy + xz)
-        ylo = ss[1][0] - min(0.0, yz)
-        yhi = ss[1][1] - max(0.0, yz)
-        zlo = ss[2][0]
-        zhi = ss[2][1]
-        boxsize = np.array(
-            [
-                [xhi - xlo, 0.0, 0.0],
-                [xy, yhi - ylo, 0.0],
-                [xz, yz, zhi - zlo],
-            ]
-        )
-        if not np.all(seen_atom_ids):
-            raise ValueError("LAMMPS dump frame is missing one or more atom IDs")
-        step_atoms = Atoms(numbers=step_numbers, positions=step_positions)
+            # Place rows in canonical atom order without per-atom ASE objects or sorting.
+            numbers_by_type = self._numbers_by_type
+            step_numbers = np.empty(self.N, dtype=numbers_by_type.dtype)
+            step_positions = np.empty((self.N, 3), dtype=float)
+            seen_atom_ids = np.zeros(self.N, dtype=bool)
+            ss = []
+            linecontent = None
+            timestep = None
+            for line in lines:
+                if line:
+                    if line.startswith("ITEM:"):
+                        linecontent = self.LineType.linecontent(line)
+                    else:
+                        if linecontent is None:
+                            raise ValueError("LAMMPS dump file format error")
+                        elif linecontent == self.LineType.ATOMS:
+                            s = line.split()
+                            atom_index, atom_type = self._atom_indices(s, seen_atom_ids)
+                            step_numbers[atom_index] = numbers_by_type[atom_type]
+                            step_positions[atom_index] = (
+                                float(s[self.xidx]),
+                                float(s[self.yidx]),
+                                float(s[self.zidx]),
+                            )
+                        elif linecontent == self.LineType.TIMESTEP:
+                            timestep = step, int(line.split()[0])
+                        elif linecontent == self.LineType.BOX:
+                            s = line.split()
+                            ss.append(list(map(float, s)))
+            assert timestep is not None
+            ss = np.array(ss)
+            if ss.shape[1] > 2:
+                xy = ss[0][2]
+                xz = ss[1][2]
+                yz = ss[2][2]
+            else:
+                xy, xz, yz = 0.0, 0.0, 0.0
+            xlo = ss[0][0] - min(0.0, xy, xz, xy + xz)
+            xhi = ss[0][1] - max(0.0, xy, xz, xy + xz)
+            ylo = ss[1][0] - min(0.0, yz)
+            yhi = ss[1][1] - max(0.0, yz)
+            zlo = ss[2][0]
+            zhi = ss[2][1]
+            boxsize = np.array(
+                [
+                    [xhi - xlo, 0.0, 0.0],
+                    [xy, yhi - ylo, 0.0],
+                    [xz, yz, zhi - zlo],
+                ]
+            )
+            if not np.all(seen_atom_ids):
+                raise ValueError("LAMMPS dump frame is missing one or more atom IDs")
+            step_atoms = Atoms(numbers=step_numbers, positions=step_positions)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(
             bond, level, frame=timestep[0], timestep=timestep[1]
@@ -1277,18 +1699,18 @@ class _Detectxyz(_DetectCrd):
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
         timestep = step, step
-        step_atoms = []
         boxsize = self.cell
         if self.pbc and boxsize is None:
             raise RuntimeError("No cell information is given.")
-        for index, line in enumerate(lines):
+        line_seq = lines if isinstance(lines, (tuple, list)) else tuple(lines)
+        n_atoms = max(0, len(line_seq) - 2)
+        step_numbers = np.empty(n_atoms, dtype=int)
+        step_positions = np.empty((n_atoms, 3), dtype=float)
+        for index, line in enumerate(line_seq[2:]):
             s = line.split()
-            if index > 1:
-                step_atoms.append(
-                    (index - 1, Atom(s[0], tuple(float(x) for x in s[1:4])))
-                )
-        _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
-        step_atoms = Atoms(step_atoms)
+            step_numbers[index] = atomic_numbers[s[0]]
+            step_positions[index] = (float(s[1]), float(s[2]), float(s[3]))
+        step_atoms = Atoms(numbers=step_numbers, positions=step_positions)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(
             bond, level, frame=timestep[0], timestep=timestep[1]
@@ -1336,23 +1758,21 @@ class _Detectextxyz(_DetectCrd):
 
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
-        step_atoms = []
         timestep = step, step  # Use step as timestep fallback
-        boxsize = None
-        for index, line in enumerate(lines):
-            if index == 1:
-                # Extxyz trajectories may change their cell between frames,
-                # so bond detection must use this frame's metadata.
-                boxsize = self._parse_lattice(line)
-            elif index > 1:
-                s = line.split()
-                step_atoms.append(
-                    (index - 1, Atom(s[0], tuple(float(x) for x in s[1:4])))
-                )
-        if boxsize is None:
+        line_seq = lines if isinstance(lines, (tuple, list)) else tuple(lines)
+        if len(line_seq) < 2:
             raise RuntimeError("No cell information is given in extxyz.")
-        _, step_atoms = zip(*sorted(step_atoms, key=operator.itemgetter(0)))
-        step_atoms = Atoms(step_atoms)
+        # Extxyz trajectories may change their cell between frames,
+        # so bond detection must use this frame's metadata.
+        boxsize = self._parse_lattice(line_seq[1])
+        n_atoms = len(line_seq) - 2
+        step_numbers = np.empty(n_atoms, dtype=int)
+        step_positions = np.empty((n_atoms, 3), dtype=float)
+        for index, line in enumerate(line_seq[2:]):
+            s = line.split()
+            step_numbers[index] = atomic_numbers[s[0]]
+            step_positions[index] = (float(s[1]), float(s[2]), float(s[3]))
+        step_atoms = Atoms(numbers=step_numbers, positions=step_positions)
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(
             bond, level, frame=timestep[0], timestep=timestep[1]

@@ -2,15 +2,19 @@
 """Check stateful edge detection through the public analysis and timeline APIs."""
 
 import json
+import os
 import sys
 from fractions import Fraction
 
 import h5py
+import numpy as np
 import pytest
+from ase import Atoms
 from ase.data import atomic_numbers
 
 from reacnetgenerator import ReacNetGenerator
-from reacnetgenerator._detect import _Detect
+from reacnetgenerator import _detect as detect_module
+from reacnetgenerator._detect import _Detect, _DetectLAMMPSdump
 from reacnetgenerator.commandline import _commandline, main_parser, parm2cmd
 from reacnetgenerator.timedoutput import (
     TimedOutputValidationError,
@@ -19,6 +23,7 @@ from reacnetgenerator.timedoutput import (
     iter_reaction_events,
     validate_timed_output,
 )
+from reacnetgenerator.utils import bytestolist, read_compressed_block
 
 
 def _analyze(tmp_path, sources, kind, thresholds, **options):
@@ -518,3 +523,505 @@ def test_bond_break_mult_cli_errors(monkeypatch, capsys, extra_args, error_patte
         _commandline()
     assert exc.value.code == 2
     assert error_pattern in capsys.readouterr().err
+
+
+def _run_hysteresis_sequence(
+    atomname,
+    frames,
+    *,
+    pbc,
+    use_ase,
+    thresholds,
+    force_neighbor_list=False,
+    monkeypatch=None,
+):
+    rng = ReacNetGenerator(
+        inputfilename="unused",
+        inputfiletype="dump",
+        atomname=atomname,
+        pbc=pbc,
+        use_ase=use_ase,
+        bond_hysteresis=thresholds,
+    )
+    detector = _DetectLAMMPSdump(rng)
+    detector._active_bonds = set()
+    if force_neighbor_list and monkeypatch is not None:
+        monkeypatch.setattr(
+            detector, "_get_kdtree_hysteresis_pairs", lambda *args, **kwargs: None
+        )
+    return [
+        detector._get_hysteresis_bonds(atoms.copy(), cell) for atoms, cell in frames
+    ]
+
+
+@pytest.mark.parametrize("use_ase", [False, True])
+def test_kdtree_hysteresis_matches_neighbor_list_periodic_and_boundary(
+    monkeypatch, use_ase
+):
+    """Match ASE neighbor_list across periodic boundaries and negative-epsilon wraps."""
+    cell = np.diag([10.0, 10.0, 10.0])
+    # Includes -1e-16 wrapping to box edge and cross-boundary H-H/C-O pairs.
+    frames = [
+        (
+            Atoms(
+                "H2CO",
+                positions=[
+                    [-1e-16, 1.0, 1.0],
+                    [9.25, 1.0, 1.0],
+                    [5.0, 5.0, 5.0],
+                    [6.30, 5.0, 5.0],
+                ],
+            ),
+            cell,
+        ),
+        (
+            Atoms(
+                "H2CO",
+                positions=[
+                    [0.05, 1.0, 1.0],
+                    [9.02, 1.0, 1.0],
+                    [5.0, 5.0, 5.0],
+                    [6.90, 5.0, 5.0],
+                ],
+            ),
+            cell,
+        ),
+        (
+            Atoms(
+                "H2CO",
+                positions=[
+                    [0.05, 1.0, 1.0],
+                    [8.80, 1.0, 1.0],
+                    [5.0, 5.0, 5.0],
+                    [7.20, 5.0, 5.0],
+                ],
+            ),
+            cell,
+        ),
+    ]
+    thresholds = {"form": 1.25, "break": 1.35, "pair_break": {"H-H": 1.75, "C-O": 1.45}}
+    fast = _run_hysteresis_sequence(
+        ["H", "C", "O"], frames, pbc=True, use_ase=use_ase, thresholds=thresholds
+    )
+    ref = _run_hysteresis_sequence(
+        ["H", "C", "O"],
+        frames,
+        pbc=True,
+        use_ase=use_ase,
+        thresholds=thresholds,
+        force_neighbor_list=True,
+        monkeypatch=monkeypatch,
+    )
+    assert fast == ref
+
+
+@pytest.mark.parametrize("use_ase", [False, True])
+def test_kdtree_hysteresis_matches_neighbor_list_nonperiodic_pair_break(
+    monkeypatch, use_ase
+):
+    """Match ASE neighbor_list for non-periodic trajectories with pair overrides."""
+    cell = np.diag([20.0, 20.0, 20.0])
+    frames = [
+        (
+            Atoms("H2O2", positions=[[0, 0, 0], [0.7, 0, 0], [5, 0, 0], [6.4, 0, 0]]),
+            cell,
+        ),
+        (
+            Atoms("H2O2", positions=[[0, 0, 0], [1.0, 0, 0], [5, 0, 0], [6.85, 0, 0]]),
+            cell,
+        ),
+        (
+            Atoms("H2O2", positions=[[0, 0, 0], [1.15, 0, 0], [5, 0, 0], [6.85, 0, 0]]),
+            cell,
+        ),
+    ]
+    thresholds = {"form": 1.25, "break": 1.35, "pair_break": {"H-H": 1.75}}
+    fast = _run_hysteresis_sequence(
+        ["H", "O"], frames, pbc=False, use_ase=use_ase, thresholds=thresholds
+    )
+    ref = _run_hysteresis_sequence(
+        ["H", "O"],
+        frames,
+        pbc=False,
+        use_ase=use_ase,
+        thresholds=thresholds,
+        force_neighbor_list=True,
+        monkeypatch=monkeypatch,
+    )
+    assert fast == ref
+
+
+def test_kdtree_hysteresis_falls_back_for_triclinic_and_narrow_cells(monkeypatch):
+    """Fall back to neighbor_list on triclinic or narrow periodic cells."""
+    triclinic = np.array([[10.0, 0.0, 0.0], [1.5, 10.0, 0.0], [0.0, 0.0, 10.0]])
+    narrow = np.diag([2.0, 10.0, 10.0])
+    atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [0.72, 0.0, 0.0]])
+    thresholds = {"form": 1.25, "break": 1.35, "pair_break": {"H-H": 1.75}}
+
+    rng = ReacNetGenerator(
+        inputfilename="unused",
+        inputfiletype="dump",
+        atomname=["H"],
+        pbc=True,
+        use_ase=True,
+        bond_hysteresis=thresholds,
+    )
+    detector = _DetectLAMMPSdump(rng)
+    detector._active_bonds = set()
+    calls = []
+    orig_nl = __import__(
+        "reacnetgenerator._detect", fromlist=["neighbor_list"]
+    ).neighbor_list
+
+    def spy_nl(*args, **kwargs):
+        calls.append(True)
+        return orig_nl(*args, **kwargs)
+
+    monkeypatch.setattr("reacnetgenerator._detect.neighbor_list", spy_nl)
+    res_tri = detector._get_hysteresis_bonds(atoms.copy(), triclinic)
+    res_narrow = detector._get_hysteresis_bonds(atoms.copy(), narrow)
+    assert len(calls) == 2
+    assert res_tri == ([[1], [0]], [[1], [1]])
+    assert res_narrow == ([[1], [0]], [[1], [1]])
+
+
+def test_hysteresis_frame_caches_and_65536_widening(tmp_path, monkeypatch):
+    """Reuse repeated hysteresis frames safely across the uint16 step boundary."""
+    detector_rng = ReacNetGenerator(
+        inputfilename=str(tmp_path / "dummy.xyz"),
+        inputfiletype="xyz",
+        atomname=["C", "O"],
+        pbc=False,
+        use_ase=True,
+        bond_hysteresis={"form": 1.2, "break": 1.4},
+        output_dir=tmp_path,
+        timed_output=tmp_path / "t.h5",
+        nproc=1,
+    )
+    path = tmp_path / "dummy.xyz"
+    # Exercise widening both on a changed graph (frame 2) and on an unchanged
+    # frame with partial array rollback (frame 4).
+    frame_defs = [
+        (1.45, 1.45),
+        (1.45, 2.20),
+        (1.45, 1.45),
+        (1.45, 2.20),
+        (1.45, 2.20),
+        (1.45, 2.20),
+    ]
+    path.write_text(
+        "".join(
+            f"4\nf{idx}\nC 0 0 0\nO {d1} 0 0\nC 8 0 0\nO {8 + d2} 0 0\n"
+            for idx, (d1, d2) in enumerate(frame_defs)
+        )
+    )
+    detector = _Detect.gettype(detector_rng)
+    orig_readstep = detector._readstepfunc
+    step_map = [0, 1, 65536, 2, 65537, 65538]
+    monkeypatch.setattr(
+        detector,
+        "_readstepfunc",
+        lambda item: (
+            orig_readstep(item)[0],
+            (step_map[item[0]], step_map[item[0]]),
+        ),
+    )
+    detector.detect()
+    try:
+        with open(detector_rng.moleculetempfilename, "rb") as handle:
+            blocks = list(read_compressed_block(handle))
+        # 4 definitions: (0,1), (2,3), (2,), (3,)
+        assert detector_rng.temp1it == 4
+        observed_frames = sorted(
+            bytestolist(blocks[i]).tolist() for i in range(3, len(blocks), 4)
+        )
+        assert observed_frames == [
+            [0, 1, 65536, 2, 65537, 65538],
+            [0, 65536],
+            [1, 2, 65537, 65538],
+            [1, 2, 65537, 65538],
+        ]
+    finally:
+        os.remove(detector_rng.moleculetempfilename)
+
+
+def test_fast_dump_parser_hysteresis_parity_and_fallback(tmp_path):
+    """Match line-by-line parsing across sorted, shuffled, triclinic and non-numeric dumps."""
+    frames_spec = [
+        # (ts, box, columns_header, rows)
+        (
+            0,
+            ("0.0 15.0", "0.0 15.0", "0.0 15.0"),
+            "ITEM: ATOMS id type x y z",
+            [
+                "1 1 0.0 0.0 0.0",
+                "2 2 1.45 0.0 0.0",
+                "3 1 8.0 0.0 0.0",
+                "4 2 9.45 0.0 0.0",
+            ],
+        ),
+        (
+            10,
+            ("0.0 16.0 1.2", "0.0 15.0 -0.5", "0.0 15.0 0.3"),
+            "ITEM: ATOMS id type x y z",
+            [
+                "4 2 10.20 0.0 0.0",
+                "2 2 1.85 0.0 0.0",
+                "1 1 0.0 0.0 0.0",
+                "3 1 8.0 0.0 0.0",
+            ],
+        ),
+        (
+            20,
+            ("0.0 15.0", "0.0 15.0", "0.0 15.0"),
+            "ITEM: ATOMS id type x y z",
+            [
+                "1 1 0.0 0.0 0.0",
+                "2 2 2.20 0.0 0.0",
+                "3 1 8.0 0.0 0.0",
+                "4 2 9.45 0.0 0.0",
+            ],
+        ),
+    ]
+    dump_path = tmp_path / "mixed.dump"
+    dump_path.write_text(
+        "".join(
+            "\n".join(
+                [
+                    "ITEM: TIMESTEP",
+                    str(ts),
+                    "ITEM: NUMBER OF ATOMS",
+                    "4",
+                    "ITEM: BOX BOUNDS xy xz yz pp pp pp"
+                    if len(box[0].split()) == 3
+                    else "ITEM: BOX BOUNDS pp pp pp",
+                    *box,
+                    hdr,
+                    *rows,
+                    "",
+                ]
+            )
+            for ts, box, hdr, rows in frames_spec
+        )
+    )
+    # Non-numeric extra column triggers clean fallback to line-by-line parser.
+    fallback_path = tmp_path / "fallback.dump"
+    fallback_path.write_text(
+        "".join(
+            "\n".join(
+                [
+                    "ITEM: TIMESTEP",
+                    str(ts),
+                    "ITEM: NUMBER OF ATOMS",
+                    "4",
+                    "ITEM: BOX BOUNDS xy xz yz pp pp pp"
+                    if len(box[0].split()) == 3
+                    else "ITEM: BOX BOUNDS pp pp pp",
+                    *box,
+                    "ITEM: ATOMS id type x y z tag",
+                    *(f"{row} ok" for row in rows),
+                    "",
+                ]
+            )
+            for ts, box, _hdr, rows in frames_spec
+        )
+    )
+
+    def run_dump(src):
+        target = tmp_path / f"{src.stem}.h5"
+        rng = ReacNetGenerator(
+            inputfilename=str(src),
+            inputfiletype="dump",
+            atomname=["C", "O"],
+            pbc=True,
+            use_ase=True,
+            runHMM=False,
+            bond_hysteresis={"form": 1.2, "break": 1.4},
+            output_dir=tmp_path / src.stem,
+            timed_output=target,
+            nproc=1,
+        )
+        rng.run_items(["species", "reactions"])
+        validate_timed_output(target)
+        mols = {m.molecule_id: (m.atom_index, m.bonds) for m in iter_molecules(target)}
+        spans = [
+            (s.start_frame, s.end_frame, mols[s.molecule_id])
+            for s in iter_molecule_ranges(target)
+        ]
+        return sorted(spans)
+
+    assert run_dump(dump_path) == run_dump(fallback_path)
+
+
+def test_hysteresis_openbabel_aromatic_and_kdtree_edge_fallbacks():
+    """Cover Open Babel aromatic order 5->12 and kdtree/radii edge fallbacks."""
+    angles = np.arange(6) * np.pi / 3.0
+    ring = np.column_stack((np.cos(angles), np.sin(angles), np.zeros(6)))
+    benzene = Atoms("C6H6", positions=np.vstack((1.39 * ring, 2.48 * ring)) + 10.0)
+    cell = np.diag([20.0, 20.0, 20.0])
+
+    rng_ob = ReacNetGenerator(
+        inputfilename="unused",
+        inputfiletype="dump",
+        atomname=["C", "H"],
+        pbc=True,
+        use_ase=False,
+        bond_hysteresis={"form": 1.25, "break": 1.35},
+    )
+    det_ob = _DetectLAMMPSdump(rng_ob)
+    det_ob._active_bonds = {(0, 1)}
+    bonds, orders = det_ob._get_hysteresis_bonds(benzene, cell)
+    assert any(2 in atom_orders for atom_orders in orders)
+    assert len(bonds) == 12
+
+    # Single atom, unknown atomic number 0, and non-finite coordinates.
+    det_ase = _DetectLAMMPSdump(
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype="dump",
+            atomname=["H"],
+            pbc=False,
+            use_ase=True,
+            bond_hysteresis={"form": 1.25, "break": 1.35},
+        )
+    )
+    det_ase._active_bonds = set()
+    assert det_ase._get_hysteresis_bonds(Atoms("H", positions=[[0, 0, 0]]), cell) == (
+        [[]],
+        [[]],
+    )
+    assert det_ase._hysteresis_radii_and_cutoff(np.array([0, 1])) is None
+    assert (
+        det_ase._get_kdtree_hysteresis_pairs(
+            np.array([1, 1]), np.array([[0.0, 0.0, 0.0], [np.nan, 0.0, 0.0]]), cell, 1.5
+        )
+        is None
+    )
+
+
+def test_hysteresis_cache_eviction_source_errors_and_dump_fallbacks(
+    tmp_path, monkeypatch
+):
+    """Cover bounded record cache eviction, source-frame errors, and dump parser fallbacks."""
+    rng = ReacNetGenerator(
+        inputfilename="unused",
+        inputfiletype="dump",
+        atomname=["C", "O"],
+        pbc=False,
+        use_ase=True,
+        bond_hysteresis={"form": 1.2, "break": 1.4},
+        output_dir=tmp_path,
+        timed_output=tmp_path / "t.h5",
+        nproc=1,
+    )
+    det = _DetectLAMMPSdump(rng)
+    det.N = 3
+    det.atomtype = np.array([0, 0, 1])
+    det._active_bonds = set()
+    monkeypatch.setattr(detect_module, "_DETECT_HYSTERESIS_RECORD_CACHE_MAX", 2)
+    recs = det._connectmolecule([[], [], []], [[], [], []], frame=0, timestep=0)
+    assert len(recs) == 3 and len(det._record_bytes_cache) == 2
+
+    # Stdin helper delegation and _source_frames incomplete-frame errors.
+    stdin_sentinel = object()
+    monkeypatch.setattr(
+        detect_module.fileinput, "FileInput", lambda files: stdin_sentinel
+    )
+    assert det._open_source_file("-") is stdin_sentinel
+    monkeypatch.undo()
+
+    p1 = tmp_path / "a.txt"
+    p2 = tmp_path / "b.txt"
+    p1.write_text("1\n2\n")
+    p2.write_text("3\n")
+    det.inputfilename = [str(p1)]
+    with pytest.raises(ValueError, match="Incomplete final source frame"):
+        list(det._source_frames(3))
+    p1.write_text("1\n2\n3\n")
+    det.inputfilename = [str(p1), str(p2)]
+    with pytest.raises(ValueError, match="Incomplete source frame at file boundary"):
+        list(det._source_frames(2))
+
+    # Instance-level _source_lines override retains zip_longest fallback.
+    xyz = tmp_path / "two.xyz"
+    xyz.write_text("2\nf\nC 0 0 0\nC 1.4 0 0\n")
+    rng_xyz = ReacNetGenerator(
+        inputfilename=str(xyz),
+        inputfiletype="xyz",
+        atomname=["C"],
+        pbc=False,
+        use_ase=True,
+        bond_hysteresis={"form": 1.2, "break": 1.4},
+        output_dir=tmp_path / "xyz",
+        timed_output=tmp_path / "xyz.h5",
+        nproc=1,
+    )
+    det_xyz = _Detect.gettype(rng_xyz)
+    orig_lines = det_xyz._source_lines
+    called_lines = []
+    monkeypatch.setattr(
+        det_xyz,
+        "_source_lines",
+        lambda n: called_lines.append(n) or orig_lines(n),
+    )
+    det_xyz.detect()
+    assert called_lines == [4]
+    os.remove(rng_xyz.moleculetempfilename)
+
+    # Non-contiguous x/y/z columns and fast-parser malformed fallback paths.
+    noncontig = tmp_path / "noncontig.dump"
+    noncontig.write_text(
+        "\n".join(
+            [
+                "ITEM: TIMESTEP",
+                "0",
+                "ITEM: NUMBER OF ATOMS",
+                "2",
+                "ITEM: BOX BOUNDS pp pp pp",
+                "0.0 10.0",
+                "0.0 10.0",
+                "0.0 10.0",
+                "ITEM: ATOMS x id y type z",
+                "0.0 1 0.0 1 0.0",
+                "1.45 2 0.0 2 0.0",
+                "",
+            ]
+        )
+    )
+    det_nc = _DetectLAMMPSdump(
+        ReacNetGenerator(
+            inputfilename=str(noncontig),
+            inputfiletype="dump",
+            atomname=["C", "O"],
+            pbc=False,
+            use_ase=True,
+            bond_hysteresis={"form": 1.2, "break": 1.4},
+        )
+    )
+    with open(noncontig) as fh:
+        stride = det_nc._readNfunc(fh)
+    assert stride == 11
+    raw_lines = tuple(noncontig.read_text().splitlines(keepends=True))
+    assert det_nc._try_fast_parse_frame(0, raw_lines) is not None
+    # Malformed timestep, mismatched box bounds, NaN ID, out-of-range ID, duplicate ID.
+    bad_ts = ("ITEM: TIMESTEP\n", "bad\n", *raw_lines[2:])
+    assert det_nc._try_fast_parse_frame(0, bad_ts) is None
+    bad_box = (*raw_lines[:5], "0.0\n", *raw_lines[6:])
+    assert det_nc._try_fast_parse_frame(0, bad_box) is None
+    nan_id = (*raw_lines[:9], "0.0 nan 0.0 1 0.0\n", raw_lines[10])
+    assert det_nc._try_fast_parse_frame(0, nan_id) is None
+    oob_id = (*raw_lines[:9], "0.0 0 0.0 1 0.0\n", raw_lines[10])
+    assert det_nc._try_fast_parse_frame(0, oob_id) is None
+    dup_id = (*raw_lines[:9], "0.0 2 0.0 1 0.0\n", raw_lines[10])
+    assert det_nc._try_fast_parse_frame(0, dup_id) is None
+
+    # extxyz short frame guard.
+    det_ext = _Detect.gettype(
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype="extxyz",
+            atomname=["H"],
+        )
+    )
+    with pytest.raises(RuntimeError, match="No cell information"):
+        det_ext._readstepfunc((0, ("1\n",)))
