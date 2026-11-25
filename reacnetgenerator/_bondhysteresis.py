@@ -82,7 +82,7 @@ def normalize_hysteresis(config, inputfiletype) -> BondHysteresis:
                     "bond_hysteresis pair_break must exceed the form multiplier"
                 )
             pairs[pair] = limit
-        parsed["pair_break"] = pairs
+        parsed["pair_break"] = dict(sorted(pairs.items()))
     return parsed
 
 

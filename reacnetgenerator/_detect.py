@@ -611,6 +611,7 @@ class _DetectCrd(_Detect):
         )
         self._parsed_custom_cutoffs = self._parse_custom_cutoffs(self.custom_cutoffs)
         self._pair_break = None
+        self._atom_outer = None
         thresholds = getattr(rng, "bond_hysteresis", None)
         if thresholds and "pair_break" in thresholds:
             # Index by atomic number in either endpoint order, independently of
@@ -620,6 +621,8 @@ class _DetectCrd(_Detect):
             for pair, value in thresholds["pair_break"].items():
                 i, j = (atomic_numbers[symbol] for symbol in pair.split("-"))
                 self._pair_break[i, j] = self._pair_break[j, i] = value
+            # Each element's search radius only needs to cover its widest pair.
+            self._atom_outer = self._pair_break.max(axis=1)
 
     def _parse_custom_cutoffs(self, cutoff_str):
         """Parse the custom cutoff string into a dictionary.
@@ -1008,9 +1011,13 @@ class _DetectCrd(_Detect):
         radii = covalent_radii[atoms.numbers]
         # ASE returns both directions and can return multiple periodic images.
         # Existence of any qualifying image is equivalent to using the closest.
-        # Include the entire hold region even for overrides wider than the default.
-        outer = break_mult if self._pair_break is None else self._pair_break.max()
-        first, second, distances = neighbor_list("ijd", atoms, radii * outer)
+        # Widen search radii only for elements participating in wider overrides.
+        cutoffs = (
+            radii * break_mult
+            if self._atom_outer is None
+            else radii * self._atom_outer[atoms.numbers]
+        )
+        first, second, distances = neighbor_list("ijd", atoms, cutoffs)
         mask = first < second
         if np.any(mask):
             first = first[mask]
