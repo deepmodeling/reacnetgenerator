@@ -28,6 +28,7 @@ import itertools
 import operator
 import os
 import pickle
+import re
 import tempfile
 from abc import ABCMeta, abstractmethod
 from array import array
@@ -68,6 +69,10 @@ _OPENBABEL_MIN_BOND_ANGLE = 45.0
 _OPENBABEL_DISTANCE_AMBIGUITY = 1e-7
 _HYSTERESIS_KDTREE_MARGIN = 1e-9
 _DETECT_HYSTERESIS_RECORD_CACHE_MAX = 16384
+_DETECT_HYSTERESIS_RECORD_CACHE_MAX_BYTES = 16 * 1024 * 1024
+_DETECT_HYSTERESIS_RECORD_CACHE_MAX_ENTRY_BYTES = 64 * 1024
+_DUMP_INT_TOKEN_PATTERN = r"[+-]?[0-9]+"
+_DUMP_FLOAT_TOKEN_PATTERN = r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?"
 _DETECT_WRITE_BYTES = 1024 * 1024
 _DETECT_COMPRESS_MIN_RECORDS = 24576
 _DETECT_COMPRESS_MAX_FRAME_BYTES = 1024
@@ -209,8 +214,13 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self._prev_graph_pair: tuple[list, list] | None = None
         self._prev_molecules: list[bytes] | None = None
         self._record_bytes_cache: (
-            dict[tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]], bytes] | None
+            dict[
+                tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]],
+                tuple[bytes, int],
+            ]
+            | None
         ) = None
+        self._record_bytes_cache_bytes: int = 0
 
     @classmethod
     def gettype(cls, rng):
@@ -273,8 +283,13 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self._prev_graph_pair = None
         self._prev_molecules = None
         self._record_bytes_cache = None
+        self._record_bytes_cache_bytes = 0
         if hasattr(self, "_active_edge_keys"):
             self._active_edge_keys = None
+        if hasattr(self, "_active_edge_keys_n_atoms"):
+            self._active_edge_keys_n_atoms = None
+        if hasattr(self, "_synced_active_bonds"):
+            self._synced_active_bonds = None
         if hasattr(self, "_prev_hysteresis_bonds"):
             self._prev_hysteresis_bonds = None
         if hasattr(self, "_prev_retained_orders"):
@@ -541,6 +556,16 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             "limits or set --max-component-atoms 0 to disable this guard."
         )
 
+    @staticmethod
+    def _encode_molecule_record(mol, bondlist) -> bytes:
+        return b"".join(
+            (
+                listtobytes(mol),
+                listtobytes([(int(i[0]), int(i[1])) for i in bondlist]),
+                listtobytes([int(i[2]) for i in bondlist]),
+            )
+        )
+
     def _connectmolecule(self, bond, level, frame=None, timestep=None):
         if self._active_bonds is not None:
             if (
@@ -556,21 +581,34 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             if cache is None:
                 cache = {}
                 self._record_bytes_cache = cache
+                self._record_bytes_cache_bytes = 0
             records = []
+            max_cache_bytes = _DETECT_HYSTERESIS_RECORD_CACHE_MAX_BYTES
+            max_entry = min(
+                _DETECT_HYSTERESIS_RECORD_CACHE_MAX_ENTRY_BYTES, max_cache_bytes
+            )
+            max_entries = _DETECT_HYSTERESIS_RECORD_CACHE_MAX
             for mol, bondlist in zip(mols, bondlists):
+                key_cost = 64 * len(mol) + 128 * len(bondlist) + 256
+                if key_cost >= max_entry:
+                    records.append(self._encode_molecule_record(mol, bondlist))
+                    continue
                 key = (tuple(mol), tuple(bondlist))
-                encoded = cache.get(key)
-                if encoded is None:
-                    encoded = b"".join(
-                        (
-                            listtobytes(mol),
-                            listtobytes([(int(i[0]), int(i[1])) for i in bondlist]),
-                            listtobytes([int(i[2]) for i in bondlist]),
-                        )
-                    )
-                    if len(cache) >= _DETECT_HYSTERESIS_RECORD_CACHE_MAX:
-                        cache.pop(next(iter(cache)))
-                    cache[key] = encoded
+                cached = cache.get(key)
+                if cached is not None:
+                    records.append(cached[0])
+                    continue
+                encoded = self._encode_molecule_record(mol, bondlist)
+                entry_cost = key_cost + len(encoded)
+                if max_entries > 0 and entry_cost <= max_entry:
+                    while cache and (
+                        len(cache) >= max_entries
+                        or self._record_bytes_cache_bytes + entry_cost > max_cache_bytes
+                    ):
+                        _, evicted_cost = cache.pop(next(iter(cache)))
+                        self._record_bytes_cache_bytes -= evicted_cost
+                    cache[key] = (encoded, entry_cost)
+                    self._record_bytes_cache_bytes += entry_cost
                 records.append(encoded)
             self._prev_graph_pair = (bond, level)
             self._prev_molecules = records
@@ -578,13 +616,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         mols, bondlists = dps(bond, level)
         self._validate_component_sizes(mols, frame=frame, timestep=timestep)
         return [
-            b"".join(
-                (
-                    listtobytes(mol),
-                    listtobytes([(int(i[0]), int(i[1])) for i in bondlist]),
-                    listtobytes([int(i[2]) for i in bondlist]),
-                )
-            )
+            self._encode_molecule_record(mol, bondlist)
             for mol, bondlist in zip(mols, bondlists)
         ]
 
@@ -744,17 +776,25 @@ class _DetectCrd(_Detect):
         self._prev_graph_pair: tuple[list, list] | None = None
         self._prev_molecules: list[bytes] | None = None
         self._record_bytes_cache: (
-            dict[tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]], bytes] | None
+            dict[
+                tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]],
+                tuple[bytes, int],
+            ]
+            | None
         ) = None
+        self._record_bytes_cache_bytes: int = 0
         self._parsed_custom_cutoffs = self._parse_custom_cutoffs(self.custom_cutoffs)
         self._pair_break = None
         self._atom_outer = None
         self._active_edge_keys: np.ndarray | None = None
+        self._active_edge_keys_n_atoms: int | None = None
+        self._synced_active_bonds: set[tuple[int, int]] | None = None
         self._prev_hysteresis_bonds: tuple[list[list[int]], list[list[int]]] | None = (
             None
         )
         self._cached_hysteresis_numbers: np.ndarray | None = None
         self._cached_hysteresis_radii: np.ndarray | None = None
+        self._cached_hysteresis_cutoffs: np.ndarray | None = None
         self._cached_hysteresis_max_cutoff: float = 0.0
         self._numbers_by_type = Atoms(symbols=list(self.atomname)).numbers
         thresholds = getattr(rng, "bond_hysteresis", None)
@@ -938,18 +978,19 @@ class _DetectCrd(_Detect):
         return self._getbondlistsfromopenbabel(mol, len(step_atoms))
 
     @staticmethod
-    def _orthorhombic_cell_lengths(cell):
+    def _orthorhombic_cell_lengths(cell, *, exact: bool = False):
         """Return positive axis-aligned cell lengths when safely supported."""
         cell = np.asarray(cell, dtype=np.float64)
         if cell.shape != (3, 3) or not np.all(np.isfinite(cell)):
             return None
         lengths = np.diag(cell)
-        if np.any(lengths <= 0.0) or not np.allclose(
-            cell,
-            np.diag(lengths),
-            rtol=0.0,
-            atol=1e-12,
-        ):
+        if np.any(lengths <= 0.0):
+            return None
+        diagonal = np.diag(lengths)
+        if exact:
+            if not np.array_equal(cell, diagonal):
+                return None
+        elif not np.allclose(cell, diagonal, rtol=0.0, atol=1e-12):
             return None
         return lengths
 
@@ -1145,14 +1186,19 @@ class _DetectCrd(_Detect):
 
     def _hysteresis_radii_and_cutoff(
         self, numbers: np.ndarray
-    ) -> tuple[np.ndarray, float] | None:
-        """Return per-atom covalent radii and tightest search cutoff."""
+    ) -> tuple[np.ndarray, np.ndarray, float] | None:
+        """Return per-atom covalent radii, search cutoffs, and tightest max cutoff."""
         if (
             self._cached_hysteresis_numbers is not None
             and np.array_equal(numbers, self._cached_hysteresis_numbers)
             and self._cached_hysteresis_radii is not None
+            and self._cached_hysteresis_cutoffs is not None
         ):
-            return self._cached_hysteresis_radii, self._cached_hysteresis_max_cutoff
+            return (
+                self._cached_hysteresis_radii,
+                self._cached_hysteresis_cutoffs,
+                self._cached_hysteresis_max_cutoff,
+            )
         if (
             numbers.ndim != 1
             or not len(numbers)
@@ -1160,11 +1206,16 @@ class _DetectCrd(_Detect):
         ):
             return None
         radii = covalent_radii[numbers]
+        thresholds = self.rng.bond_hysteresis
+        assert thresholds is not None
+        cutoffs = (
+            radii * thresholds["break"]
+            if self._atom_outer is None
+            else radii * self._atom_outer[numbers]
+        )
         unique_nums = np.unique(numbers)
         unique_r = covalent_radii[unique_nums]
         if self._pair_break is None:
-            thresholds = self.rng.bond_hysteresis
-            assert thresholds is not None
             max_cutoff = float(2.0 * np.max(unique_r) * thresholds["break"])
         else:
             limits_u = self._pair_break[np.ix_(unique_nums, unique_nums)]
@@ -1173,8 +1224,9 @@ class _DetectCrd(_Detect):
             )
         self._cached_hysteresis_numbers = numbers.copy()
         self._cached_hysteresis_radii = radii
+        self._cached_hysteresis_cutoffs = cutoffs
         self._cached_hysteresis_max_cutoff = max_cutoff
-        return radii, max_cutoff
+        return radii, cutoffs, max_cutoff
 
     def _get_kdtree_hysteresis_pairs(
         self,
@@ -1193,17 +1245,32 @@ class _DetectCrd(_Detect):
             )
         if positions.shape != (n_atoms, 3) or not np.all(np.isfinite(positions)):
             return None
+        pbc_arr = np.asarray(self.pbc, dtype=bool)
+        if pbc_arr.ndim == 0:
+            is_periodic = bool(pbc_arr)
+        elif pbc_arr.shape == (3,):
+            if bool(np.all(pbc_arr)):
+                is_periodic = True
+            elif not bool(np.any(pbc_arr)):
+                is_periodic = False
+            else:
+                return None
+        else:
+            return None
         search_radius = max_cutoff + _HYSTERESIS_KDTREE_MARGIN
-        if self.pbc:
-            cell_lengths = self._orthorhombic_cell_lengths(cell)
-            if cell_lengths is None or np.min(cell_lengths) <= 2.0 * (
-                max_cutoff + _OPENBABEL_DISTANCE_AMBIGUITY
+        if is_periodic:
+            cell_lengths = self._orthorhombic_cell_lengths(cell, exact=True)
+            if cell_lengths is None or np.min(cell_lengths) <= 2.0 * max(
+                search_radius, max_cutoff + _OPENBABEL_DISTANCE_AMBIGUITY
             ):
                 return None
+            if np.any(np.abs(positions) > 1e6 * cell_lengths):
+                return None
             wrapped = np.mod(positions, cell_lengths)
-            # Negative tiny coordinates can modulo-round to the exact box edge,
-            # which cKDTree rejects as out-of-bounds.
-            wrapped[wrapped >= cell_lengths] = 0.0
+            # Floating-point modulo can round a tiny negative coordinate to the
+            # excluded upper edge of cKDTree's periodic box; fall back to ASE.
+            if np.any((wrapped < 0.0) | (wrapped >= cell_lengths)):
+                return None
             pairs = cKDTree(wrapped, boxsize=cell_lengths).query_pairs(
                 search_radius, output_type="ndarray"
             )
@@ -1216,7 +1283,8 @@ class _DetectCrd(_Detect):
             first = pairs[:, 0]
             second = pairs[:, 1]
             dv = positions[second] - positions[first]
-            dv -= np.rint(dv / cell_lengths) * cell_lengths
+            shift = -np.rint(dv / cell_lengths)
+            dv = dv + shift * cell_lengths
         else:
             pairs = cKDTree(positions).query_pairs(search_radius, output_type="ndarray")
             if not len(pairs):
@@ -1228,7 +1296,7 @@ class _DetectCrd(_Detect):
             first = pairs[:, 0]
             second = pairs[:, 1]
             dv = positions[second] - positions[first]
-        distances = np.sqrt(np.einsum("ij,ij->i", dv, dv))
+        distances = np.sqrt(np.sum(dv * dv, axis=1))
         return first, second, distances
 
     def _get_hysteresis_bonds(self, atoms, cell):
@@ -1243,7 +1311,12 @@ class _DetectCrd(_Detect):
         numbers = np.asarray(atoms.numbers)
         positions = np.asarray(atoms.positions, dtype=np.float64)
 
-        if self._active_edge_keys is None:
+        if (
+            self._active_edge_keys is None
+            or previous is not self._synced_active_bonds
+            or self._active_edge_keys_n_atoms != n_atoms
+            or len(previous) != self._active_edge_keys.size
+        ):
             prev_keys = (
                 np.array(
                     sorted(min(i, j) * n_atoms + max(i, j) for i, j in previous),
@@ -1252,21 +1325,31 @@ class _DetectCrd(_Detect):
                 if previous
                 else np.empty(0, dtype=np.int64)
             )
+            self._prev_hysteresis_bonds = None
+            can_reuse_prev = False
         else:
             prev_keys = self._active_edge_keys
+            can_reuse_prev = True
 
         radii_and_cutoff = self._hysteresis_radii_and_cutoff(numbers)
         kdtree_result = (
             self._get_kdtree_hysteresis_pairs(
-                numbers, positions, cell, radii_and_cutoff[1]
+                numbers, positions, cell, radii_and_cutoff[2]
             )
             if radii_and_cutoff is not None
             else None
         )
         if kdtree_result is not None:
             assert radii_and_cutoff is not None
-            radii = radii_and_cutoff[0]
+            radii, cutoffs, _ = radii_and_cutoff
             first, second, distances = kdtree_result
+            if len(first):
+                # Match ASE's strict per-atom search cutoff before formation or retention.
+                in_search = distances < (cutoffs[first] + cutoffs[second])
+                if not np.all(in_search):
+                    first = first[in_search]
+                    second = second[in_search]
+                    distances = distances[in_search]
         else:
             atoms.set_cell(cell)
             atoms.set_pbc(self.pbc)
@@ -1317,18 +1400,22 @@ class _DetectCrd(_Detect):
         else:
             retained_keys = np.empty(0, dtype=np.int64)
 
-        unchanged = self._active_edge_keys is not None and np.array_equal(
-            retained_keys, prev_keys
-        )
+        unchanged = can_reuse_prev and np.array_equal(retained_keys, prev_keys)
         self._active_edge_keys = retained_keys
+        self._active_edge_keys_n_atoms = n_atoms
+        if self.use_ase and unchanged and self._prev_hysteresis_bonds is not None:
+            return self._prev_hysteresis_bonds
+
+        u_arr, v_arr = np.divmod(retained_keys, n_atoms)
+        pairs = list(zip(u_arr.tolist(), v_arr.tolist(), strict=True))
+        if not unchanged:
+            self._active_bonds = set(pairs)
+            self._synced_active_bonds = self._active_bonds
 
         if self.use_ase:
-            if unchanged and self._prev_hysteresis_bonds is not None:
-                return self._prev_hysteresis_bonds
-            u_arr, v_arr = np.divmod(retained_keys, n_atoms)
             bonds = [[] for _ in range(n_atoms)]
             orders = [[] for _ in range(n_atoms)]
-            for i, j in zip(u_arr.tolist(), v_arr.tolist(), strict=True):
+            for i, j in pairs:
                 bonds[i].append(j)
                 bonds[j].append(i)
                 orders[i].append(1)
@@ -1337,8 +1424,6 @@ class _DetectCrd(_Detect):
             self._prev_hysteresis_bonds = result
             return result
 
-        u_arr, v_arr = np.divmod(retained_keys, n_atoms)
-        pairs = list(zip(u_arr.tolist(), v_arr.tolist(), strict=True))
         mol = openbabel.OBMol()
         mol.BeginModify()
         mol.ReserveAtoms(n_atoms)
@@ -1350,7 +1435,7 @@ class _DetectCrd(_Detect):
             atom.SetAtomicNum(int(nums_list[idx]))
             px, py, pz = pos_list[idx]
             atom.SetVector(px, py, pz)
-        if self.pbc:
+        if bool(np.any(self.pbc)):
             unit_cell = openbabel.OBUnitCell()
             unit_cell.SetData(
                 openbabel.vector3(*cell[0]),
@@ -1459,6 +1544,15 @@ class _DetectLAMMPSdump(_DetectCrd):
                     self.xidx = keys.index("x") - 2
                     self.yidx = keys.index("y") - 2
                     self.zidx = keys.index("z") - 2
+                    col_patterns = [
+                        _DUMP_INT_TOKEN_PATTERN
+                        if col_idx in (self.id_idx, self.tidx)
+                        else _DUMP_FLOAT_TOKEN_PATTERN
+                        for col_idx in range(self._n_atom_cols)
+                    ]
+                    self._fast_atom_row_re = re.compile(
+                        r"^[ \t]*" + r"[ \t]+".join(col_patterns) + r"[ \t]*\r?\n?\Z"
+                    )
             else:
                 assert linecontent is not None
                 if linecontent == self.LineType.NUMBER:
@@ -1509,10 +1603,12 @@ class _DetectLAMMPSdump(_DetectCrd):
     ) -> tuple[Atoms, np.ndarray, tuple[int, int]] | None:
         """Vectorized parser for standard numeric LAMMPS dump frames."""
         n_cols = getattr(self, "_n_atom_cols", 0)
+        row_re = getattr(self, "_fast_atom_row_re", None)
         if (
             not isinstance(lines, (tuple, list))
             or len(lines) != self.N + 9
             or n_cols <= 0
+            or row_re is None
             or not lines[0].startswith("ITEM: TIMESTEP")
             or not lines[2].startswith("ITEM: NUMBER OF ATOMS")
             or not lines[4].startswith("ITEM: BOX")
@@ -1556,27 +1652,24 @@ class _DetectLAMMPSdump(_DetectCrd):
             )
         else:
             return None
+        atom_lines = lines[9:]
         try:
-            raw = np.fromstring("".join(lines[9:]), dtype=np.float64, sep=" ")
-        except ValueError:
+            if not all(map(row_re.match, atom_lines)):
+                return None
+        except TypeError:
             return None
-        if raw.size != self.N * n_cols:
-            return None
+        raw = np.fromstring(" ".join(atom_lines), dtype=np.float64, sep=" ")
+        assert raw.size == self.N * n_cols
         table = raw.reshape((self.N, n_cols))
         raw_id = table[:, self.id_idx]
         raw_type = table[:, self.tidx]
-        if not (np.all(np.isfinite(raw_id)) and np.all(np.isfinite(raw_type))):
+        numbers_by_type = self._numbers_by_type
+        if np.any((raw_id < 1.0) | (raw_id > self.N)) or np.any(
+            (raw_type < 1.0) | (raw_type > len(numbers_by_type))
+        ):
             return None
         atom_index = raw_id.astype(np.intp) - 1
         atom_type = raw_type.astype(np.intp) - 1
-        numbers_by_type = self._numbers_by_type
-        if (
-            np.any(atom_index + 1 != raw_id)
-            or np.any((atom_index < 0) | (atom_index >= self.N))
-            or np.any(atom_type + 1 != raw_type)
-            or np.any((atom_type < 0) | (atom_type >= len(numbers_by_type)))
-        ):
-            return None
         if self.N == 0 or (
             atom_index[0] == 0
             and atom_index[-1] == self.N - 1
