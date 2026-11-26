@@ -5,6 +5,7 @@ import json
 import math
 import os
 import sys
+from collections import OrderedDict
 from contextlib import nullcontext
 from fractions import Fraction
 
@@ -949,12 +950,13 @@ def test_hysteresis_cache_eviction_source_errors_and_dump_fallbacks(
     det._active_bonds = set()
     monkeypatch.setattr(detect_module, "_DETECT_HYSTERESIS_RECORD_CACHE_MAX", 2)
     recs = det._connectmolecule([[], [], []], [[], [], []], frame=0, timestep=0)
-    assert len(recs) == 3 and len(det._record_bytes_cache) == 2
+    assert len(recs) == 3
+    assert isinstance(det._record_bytes_cache, OrderedDict)
+    assert list(det._record_bytes_cache.keys()) == [((1,), ()), ((2,), ())]
 
     # Byte-budget eviction and oversized component bypass.
     det._clear_hysteresis_state()
     det._active_bonds = set()
-    det._record_bytes_cache = {}
     monkeypatch.undo()
     # Two small single-atom entries fit, third evicts oldest when byte budget is tight;
     # a 3-atom ringed component whose key_cost exceeds max_entry bypasses without evicting.

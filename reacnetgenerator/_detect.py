@@ -32,7 +32,7 @@ import re
 import tempfile
 from abc import ABCMeta, abstractmethod
 from array import array
-from collections import Counter, defaultdict
+from collections import Counter, OrderedDict, defaultdict
 from contextlib import closing, suppress
 from enum import Enum, auto
 from multiprocessing import get_start_method
@@ -214,7 +214,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self._prev_graph_pair: tuple[list, list] | None = None
         self._prev_molecules: list[bytes] | None = None
         self._record_bytes_cache: (
-            dict[
+            OrderedDict[
                 tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]],
                 tuple[bytes, int],
             ]
@@ -309,7 +309,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
         self._clear_hysteresis_state()
         if hysteresis:
             self._active_bonds = set()
-            self._record_bytes_cache = {}
+            self._record_bytes_cache = OrderedDict()
         source_stream = None
         try:
             if hysteresis:
@@ -579,7 +579,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             self._validate_component_sizes(mols, frame=frame, timestep=timestep)
             cache = self._record_bytes_cache
             if cache is None:
-                cache = {}
+                cache = OrderedDict()
                 self._record_bytes_cache = cache
                 self._record_bytes_cache_bytes = 0
             records = []
@@ -605,7 +605,7 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
                         len(cache) >= max_entries
                         or self._record_bytes_cache_bytes + entry_cost > max_cache_bytes
                     ):
-                        _, evicted_cost = cache.pop(next(iter(cache)))
+                        _, (_, evicted_cost) = cache.popitem(last=False)
                         self._record_bytes_cache_bytes -= evicted_cost
                     cache[key] = (encoded, entry_cost)
                     self._record_bytes_cache_bytes += entry_cost
@@ -776,7 +776,7 @@ class _DetectCrd(_Detect):
         self._prev_graph_pair: tuple[list, list] | None = None
         self._prev_molecules: list[bytes] | None = None
         self._record_bytes_cache: (
-            dict[
+            OrderedDict[
                 tuple[tuple[int, ...], tuple[tuple[int, int, int], ...]],
                 tuple[bytes, int],
             ]
