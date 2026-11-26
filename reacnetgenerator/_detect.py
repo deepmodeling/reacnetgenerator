@@ -28,7 +28,6 @@ import itertools
 import operator
 import os
 import pickle
-import re
 import tempfile
 from abc import ABCMeta, abstractmethod
 from array import array
@@ -71,8 +70,6 @@ _HYSTERESIS_KDTREE_MARGIN = 1e-9
 _DETECT_HYSTERESIS_RECORD_CACHE_MAX = 16384
 _DETECT_HYSTERESIS_RECORD_CACHE_MAX_BYTES = 16 * 1024 * 1024
 _DETECT_HYSTERESIS_RECORD_CACHE_MAX_ENTRY_BYTES = 64 * 1024
-_DUMP_INT_TOKEN_PATTERN = r"[+-]?[0-9]+"
-_DUMP_FLOAT_TOKEN_PATTERN = r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?"
 _DETECT_WRITE_BYTES = 1024 * 1024
 _DETECT_COMPRESS_MIN_RECORDS = 24576
 _DETECT_COMPRESS_MAX_FRAME_BYTES = 1024
@@ -296,6 +293,16 @@ class _Detect(SharedRNGData, metaclass=ABCMeta):
             self._prev_retained_orders = None
         if hasattr(self, "_prev_bond_graph"):
             self._prev_bond_graph = None
+        if hasattr(self, "_cached_hysteresis_numbers"):
+            self._cached_hysteresis_numbers = None
+        if hasattr(self, "_cached_hysteresis_radii"):
+            self._cached_hysteresis_radii = None
+        if hasattr(self, "_cached_hysteresis_cutoffs"):
+            self._cached_hysteresis_cutoffs = None
+        if hasattr(self, "_cached_hysteresis_max_cutoff"):
+            self._cached_hysteresis_max_cutoff = 0.0
+        if hasattr(self, "_cached_hysteresis_break"):
+            self._cached_hysteresis_break = None
 
     def _readinputfile(self):
         """Read the input file."""
@@ -788,7 +795,7 @@ class _DetectCrd(_Detect):
         self._atom_outer = None
         self._active_edge_keys: np.ndarray | None = None
         self._active_edge_keys_n_atoms: int | None = None
-        self._synced_active_bonds: set[tuple[int, int]] | None = None
+        self._synced_active_bonds: frozenset[tuple[int, int]] | None = None
         self._prev_hysteresis_bonds: tuple[list[list[int]], list[list[int]]] | None = (
             None
         )
@@ -796,7 +803,7 @@ class _DetectCrd(_Detect):
         self._cached_hysteresis_radii: np.ndarray | None = None
         self._cached_hysteresis_cutoffs: np.ndarray | None = None
         self._cached_hysteresis_max_cutoff: float = 0.0
-        self._numbers_by_type = Atoms(symbols=list(self.atomname)).numbers
+        self._cached_hysteresis_break: float | None = None
         thresholds = getattr(rng, "bond_hysteresis", None)
         if thresholds and "pair_break" in thresholds:
             # Index by atomic number in either endpoint order, independently of
@@ -1188,8 +1195,12 @@ class _DetectCrd(_Detect):
         self, numbers: np.ndarray
     ) -> tuple[np.ndarray, np.ndarray, float] | None:
         """Return per-atom covalent radii, search cutoffs, and tightest max cutoff."""
+        thresholds = self.rng.bond_hysteresis
+        assert thresholds is not None
+        break_mult = thresholds["break"]
         if (
             self._cached_hysteresis_numbers is not None
+            and self._cached_hysteresis_break == break_mult
             and np.array_equal(numbers, self._cached_hysteresis_numbers)
             and self._cached_hysteresis_radii is not None
             and self._cached_hysteresis_cutoffs is not None
@@ -1206,17 +1217,15 @@ class _DetectCrd(_Detect):
         ):
             return None
         radii = covalent_radii[numbers]
-        thresholds = self.rng.bond_hysteresis
-        assert thresholds is not None
         cutoffs = (
-            radii * thresholds["break"]
+            radii * break_mult
             if self._atom_outer is None
             else radii * self._atom_outer[numbers]
         )
         unique_nums = np.unique(numbers)
         unique_r = covalent_radii[unique_nums]
         if self._pair_break is None:
-            max_cutoff = float(2.0 * np.max(unique_r) * thresholds["break"])
+            max_cutoff = float(2.0 * np.max(unique_r) * break_mult)
         else:
             limits_u = self._pair_break[np.ix_(unique_nums, unique_nums)]
             max_cutoff = float(
@@ -1226,6 +1235,7 @@ class _DetectCrd(_Detect):
         self._cached_hysteresis_radii = radii
         self._cached_hysteresis_cutoffs = cutoffs
         self._cached_hysteresis_max_cutoff = max_cutoff
+        self._cached_hysteresis_break = break_mult
         return radii, cutoffs, max_cutoff
 
     def _get_kdtree_hysteresis_pairs(
@@ -1264,7 +1274,13 @@ class _DetectCrd(_Detect):
                 search_radius, max_cutoff + _OPENBABEL_DISTANCE_AMBIGUITY
             ):
                 return None
-            if np.any(np.abs(positions) > 1e6 * cell_lengths):
+            max_coord = float(np.max(np.abs(positions)))
+            wrap_error_bound = (
+                16.0
+                * np.finfo(np.float64).eps
+                * (max_coord + float(np.max(cell_lengths)) + max_cutoff)
+            )
+            if wrap_error_bound >= _HYSTERESIS_KDTREE_MARGIN:
                 return None
             wrapped = np.mod(positions, cell_lengths)
             # Floating-point modulo can round a tiny negative coordinate to the
@@ -1313,9 +1329,9 @@ class _DetectCrd(_Detect):
 
         if (
             self._active_edge_keys is None
-            or previous is not self._synced_active_bonds
+            or self._synced_active_bonds is None
             or self._active_edge_keys_n_atoms != n_atoms
-            or len(previous) != self._active_edge_keys.size
+            or previous != self._synced_active_bonds
         ):
             prev_keys = (
                 np.array(
@@ -1410,7 +1426,7 @@ class _DetectCrd(_Detect):
         pairs = list(zip(u_arr.tolist(), v_arr.tolist(), strict=True))
         if not unchanged:
             self._active_bonds = set(pairs)
-            self._synced_active_bonds = self._active_bonds
+            self._synced_active_bonds = frozenset(pairs)
 
         if self.use_ase:
             bonds = [[] for _ in range(n_atoms)]
@@ -1538,21 +1554,11 @@ class _DetectLAMMPSdump(_DetectCrd):
                 linecontent = self.LineType.linecontent(line)
                 if linecontent == self.LineType.ATOMS:
                     keys = line.split()
-                    self._n_atom_cols = len(keys) - 2
                     self.id_idx = keys.index("id") - 2
                     self.tidx = keys.index("type") - 2
                     self.xidx = keys.index("x") - 2
                     self.yidx = keys.index("y") - 2
                     self.zidx = keys.index("z") - 2
-                    col_patterns = [
-                        _DUMP_INT_TOKEN_PATTERN
-                        if col_idx in (self.id_idx, self.tidx)
-                        else _DUMP_FLOAT_TOKEN_PATTERN
-                        for col_idx in range(self._n_atom_cols)
-                    ]
-                    self._fast_atom_row_re = re.compile(
-                        r"^[ \t]*" + r"[ \t]+".join(col_patterns) + r"[ \t]*\r?\n?\Z"
-                    )
             else:
                 assert linecontent is not None
                 if linecontent == self.LineType.NUMBER:
@@ -1598,164 +1604,94 @@ class _DetectLAMMPSdump(_DetectCrd):
         seen_atom_ids[atom_index] = True
         return atom_index, atom_type
 
-    def _try_fast_parse_frame(
-        self, step: int, lines
-    ) -> tuple[Atoms, np.ndarray, tuple[int, int]] | None:
-        """Vectorized parser for standard numeric LAMMPS dump frames."""
-        n_cols = getattr(self, "_n_atom_cols", 0)
-        row_re = getattr(self, "_fast_atom_row_re", None)
-        if (
-            not isinstance(lines, (tuple, list))
-            or len(lines) != self.N + 9
-            or n_cols <= 0
-            or row_re is None
-            or not lines[0].startswith("ITEM: TIMESTEP")
-            or not lines[2].startswith("ITEM: NUMBER OF ATOMS")
-            or not lines[4].startswith("ITEM: BOX")
-            or not lines[8].startswith("ITEM: ATOMS")
-        ):
-            return None
-        try:
-            ts = int(lines[1].split()[0])
-            b0 = [float(x) for x in lines[5].split()]
-            b1 = [float(x) for x in lines[6].split()]
-            b2 = [float(x) for x in lines[7].split()]
-        except (IndexError, ValueError):
-            return None
-        if len(b0) == 2 and len(b1) == 2 and len(b2) == 2:
-            boxsize = np.array(
-                [
-                    [b0[1] - b0[0], 0.0, 0.0],
-                    [0.0, b1[1] - b1[0], 0.0],
-                    [0.0, 0.0, b2[1] - b2[0]],
-                ]
-            )
-        elif (
-            len(b0) >= 3
-            and len(b1) >= 3
-            and len(b2) >= 3
-            and len(b0) == len(b1) == len(b2)
-        ):
-            xy, xz, yz = b0[2], b1[2], b2[2]
-            xlo = b0[0] - min(0.0, xy, xz, xy + xz)
-            xhi = b0[1] - max(0.0, xy, xz, xy + xz)
-            ylo = b1[0] - min(0.0, yz)
-            yhi = b1[1] - max(0.0, yz)
-            zlo = b2[0]
-            zhi = b2[1]
-            boxsize = np.array(
-                [
-                    [xhi - xlo, 0.0, 0.0],
-                    [xy, yhi - ylo, 0.0],
-                    [xz, yz, zhi - zlo],
-                ]
-            )
-        else:
-            return None
-        atom_lines = lines[9:]
-        try:
-            if not all(map(row_re.match, atom_lines)):
-                return None
-        except TypeError:
-            return None
-        raw = np.fromstring(" ".join(atom_lines), dtype=np.float64, sep=" ")
-        assert raw.size == self.N * n_cols
-        table = raw.reshape((self.N, n_cols))
-        raw_id = table[:, self.id_idx]
-        raw_type = table[:, self.tidx]
-        numbers_by_type = self._numbers_by_type
-        if np.any((raw_id < 1.0) | (raw_id > self.N)) or np.any(
-            (raw_type < 1.0) | (raw_type > len(numbers_by_type))
-        ):
-            return None
-        atom_index = raw_id.astype(np.intp) - 1
-        atom_type = raw_type.astype(np.intp) - 1
-        if self.N == 0 or (
-            atom_index[0] == 0
-            and atom_index[-1] == self.N - 1
-            and np.all(atom_index[1:] - atom_index[:-1] == 1)
-        ):
-            step_numbers = numbers_by_type[atom_type]
-            if self.yidx == self.xidx + 1 and self.zidx == self.yidx + 1:
-                step_positions = table[:, self.xidx : self.zidx + 1].copy()
-            else:
-                step_positions = table[:, (self.xidx, self.yidx, self.zidx)].copy()
-        else:
-            seen = np.zeros(self.N, dtype=bool)
-            seen[atom_index] = True
-            if not np.all(seen):
-                return None
-            step_numbers = np.empty(self.N, dtype=numbers_by_type.dtype)
-            step_positions = np.empty((self.N, 3), dtype=np.float64)
-            step_numbers[atom_index] = numbers_by_type[atom_type]
-            step_positions[atom_index, 0] = table[:, self.xidx]
-            step_positions[atom_index, 1] = table[:, self.yidx]
-            step_positions[atom_index, 2] = table[:, self.zidx]
-        return (
-            Atoms(numbers=step_numbers, positions=step_positions),
-            boxsize,
-            (step, ts),
-        )
+    def _get_numbers_by_type(self) -> np.ndarray:
+        """Lazily resolve ASE atomic numbers for dump atom types."""
+        numbers_by_type = getattr(self, "_numbers_by_type", None)
+        if numbers_by_type is None:
+            numbers_by_type = Atoms(symbols=list(self.atomname)).numbers
+            self._numbers_by_type = numbers_by_type
+        return numbers_by_type
 
     def _readstepfunc(self, item) -> tuple[list[bytes], tuple[int, int]]:
         step, lines = item
-        parsed = self._try_fast_parse_frame(step, lines)
-        if parsed is not None:
-            step_atoms, boxsize, timestep = parsed
+        # Place rows in canonical atom order without per-atom ASE objects or sorting.
+        numbers_by_type = self._get_numbers_by_type()
+        nums_list = numbers_by_type.tolist()
+        n_atoms = self.N
+        n_types = len(nums_list)
+        id_idx = self.id_idx
+        tidx = self.tidx
+        xidx = self.xidx
+        yidx = self.yidx
+        zidx = self.zidx
+        maxsplit = max(id_idx, tidx, xidx, yidx, zidx) + 1
+        step_numbers = [0] * n_atoms
+        step_positions: list[tuple[float, float, float]] = [(0.0, 0.0, 0.0)] * n_atoms
+        seen_atom_ids = bytearray(n_atoms)
+        ss = []
+        linecontent = None
+        timestep = None
+        line_type = self.LineType
+        atoms_type = line_type.ATOMS
+        timestep_type = line_type.TIMESTEP
+        box_type = line_type.BOX
+        for line in lines:
+            if line:
+                if line.startswith("ITEM:"):
+                    linecontent = line_type.linecontent(line)
+                else:
+                    if linecontent is None:
+                        raise ValueError("LAMMPS dump file format error")
+                    elif linecontent == atoms_type:
+                        s = line.split(None, maxsplit)
+                        atom_index = int(s[id_idx]) - 1
+                        atom_type = int(s[tidx]) - 1
+                        if not 0 <= atom_index < n_atoms:
+                            raise ValueError("LAMMPS dump atom ID is out of range")
+                        if seen_atom_ids[atom_index]:
+                            raise ValueError("LAMMPS dump contains a duplicate atom ID")
+                        if not 0 <= atom_type < n_types:
+                            raise ValueError("LAMMPS dump atom type is out of range")
+                        seen_atom_ids[atom_index] = 1
+                        step_numbers[atom_index] = nums_list[atom_type]
+                        step_positions[atom_index] = (
+                            float(s[xidx]),
+                            float(s[yidx]),
+                            float(s[zidx]),
+                        )
+                    elif linecontent == timestep_type:
+                        timestep = step, int(line.split()[0])
+                    elif linecontent == box_type:
+                        ss.append(list(map(float, line.split())))
+        assert timestep is not None
+        ss_arr = np.array(ss)
+        if ss_arr.shape[1] > 2:
+            xy = ss_arr[0][2]
+            xz = ss_arr[1][2]
+            yz = ss_arr[2][2]
         else:
-            # Place rows in canonical atom order without per-atom ASE objects or sorting.
-            numbers_by_type = self._numbers_by_type
-            step_numbers = np.empty(self.N, dtype=numbers_by_type.dtype)
-            step_positions = np.empty((self.N, 3), dtype=float)
-            seen_atom_ids = np.zeros(self.N, dtype=bool)
-            ss = []
-            linecontent = None
-            timestep = None
-            for line in lines:
-                if line:
-                    if line.startswith("ITEM:"):
-                        linecontent = self.LineType.linecontent(line)
-                    else:
-                        if linecontent is None:
-                            raise ValueError("LAMMPS dump file format error")
-                        elif linecontent == self.LineType.ATOMS:
-                            s = line.split()
-                            atom_index, atom_type = self._atom_indices(s, seen_atom_ids)
-                            step_numbers[atom_index] = numbers_by_type[atom_type]
-                            step_positions[atom_index] = (
-                                float(s[self.xidx]),
-                                float(s[self.yidx]),
-                                float(s[self.zidx]),
-                            )
-                        elif linecontent == self.LineType.TIMESTEP:
-                            timestep = step, int(line.split()[0])
-                        elif linecontent == self.LineType.BOX:
-                            s = line.split()
-                            ss.append(list(map(float, s)))
-            assert timestep is not None
-            ss = np.array(ss)
-            if ss.shape[1] > 2:
-                xy = ss[0][2]
-                xz = ss[1][2]
-                yz = ss[2][2]
-            else:
-                xy, xz, yz = 0.0, 0.0, 0.0
-            xlo = ss[0][0] - min(0.0, xy, xz, xy + xz)
-            xhi = ss[0][1] - max(0.0, xy, xz, xy + xz)
-            ylo = ss[1][0] - min(0.0, yz)
-            yhi = ss[1][1] - max(0.0, yz)
-            zlo = ss[2][0]
-            zhi = ss[2][1]
-            boxsize = np.array(
-                [
-                    [xhi - xlo, 0.0, 0.0],
-                    [xy, yhi - ylo, 0.0],
-                    [xz, yz, zhi - zlo],
-                ]
-            )
-            if not np.all(seen_atom_ids):
-                raise ValueError("LAMMPS dump frame is missing one or more atom IDs")
-            step_atoms = Atoms(numbers=step_numbers, positions=step_positions)
+            xy, xz, yz = 0.0, 0.0, 0.0
+        xlo = ss_arr[0][0] - min(0.0, xy, xz, xy + xz)
+        xhi = ss_arr[0][1] - max(0.0, xy, xz, xy + xz)
+        ylo = ss_arr[1][0] - min(0.0, yz)
+        yhi = ss_arr[1][1] - max(0.0, yz)
+        zlo = ss_arr[2][0]
+        zhi = ss_arr[2][1]
+        boxsize = np.array(
+            [
+                [xhi - xlo, 0.0, 0.0],
+                [xy, yhi - ylo, 0.0],
+                [xz, yz, zhi - zlo],
+            ]
+        )
+        if 0 in seen_atom_ids:
+            raise ValueError("LAMMPS dump frame is missing one or more atom IDs")
+        step_atoms = Atoms(
+            numbers=np.asarray(step_numbers, dtype=numbers_by_type.dtype),
+            positions=np.asarray(step_positions, dtype=np.float64).reshape(
+                (n_atoms, 3)
+            ),
+        )
         bond, level = self._getbondfromcrd(step_atoms, boxsize)
         molecules = self._connectmolecule(
             bond, level, frame=timestep[0], timestep=timestep[1]
@@ -1775,6 +1711,10 @@ class _Detectxyz(_DetectCrd):
             s = line.split()
             if index == 0:
                 N = int(line.strip())
+                if N <= 0:
+                    raise ValueError(
+                        "XYZ trajectory frame must contain at least one atom"
+                    )
                 atomtype = np.zeros(N, dtype=int)
             elif N is None:
                 assert N is not None  # pragma: no cover
@@ -1796,7 +1736,9 @@ class _Detectxyz(_DetectCrd):
         if self.pbc and boxsize is None:
             raise RuntimeError("No cell information is given.")
         line_seq = lines if isinstance(lines, (tuple, list)) else tuple(lines)
-        n_atoms = max(0, len(line_seq) - 2)
+        n_atoms = len(line_seq) - 2
+        if n_atoms <= 0:
+            raise ValueError("XYZ trajectory frame must contain at least one atom")
         step_numbers = np.empty(n_atoms, dtype=int)
         step_positions = np.empty((n_atoms, 3), dtype=float)
         for index, line in enumerate(line_seq[2:]):
@@ -1834,6 +1776,10 @@ class _Detectextxyz(_DetectCrd):
         for index, line in enumerate(f):
             if index == 0:
                 N = int(line.strip())
+                if N <= 0:
+                    raise ValueError(
+                        "extxyz trajectory frame must contain at least one atom"
+                    )
                 atomtype = np.zeros(N, dtype=int)
             elif index == 1:
                 self.cell = self._parse_lattice(line)
@@ -1859,6 +1805,8 @@ class _Detectextxyz(_DetectCrd):
         # so bond detection must use this frame's metadata.
         boxsize = self._parse_lattice(line_seq[1])
         n_atoms = len(line_seq) - 2
+        if n_atoms <= 0:
+            raise ValueError("extxyz trajectory frame must contain at least one atom")
         step_numbers = np.empty(n_atoms, dtype=int)
         step_positions = np.empty((n_atoms, 3), dtype=float)
         for index, line in enumerate(line_seq[2:]):

@@ -18,7 +18,7 @@ from ase.neighborlist import neighbor_list
 
 from reacnetgenerator import ReacNetGenerator
 from reacnetgenerator import _detect as detect_module
-from reacnetgenerator._detect import _Detect, _DetectLAMMPSdump
+from reacnetgenerator._detect import _Detect, _DetectCrd, _DetectLAMMPSdump
 from reacnetgenerator.commandline import _commandline, main_parser, parm2cmd
 from reacnetgenerator.timedoutput import (
     TimedOutputValidationError,
@@ -1031,7 +1031,7 @@ def test_hysteresis_cache_eviction_source_errors_and_dump_fallbacks(
     assert called_lines == [4]
     os.remove(rng_xyz.moleculetempfilename)
 
-    # Non-contiguous x/y/z columns and fast-parser malformed fallback paths.
+    # Non-contiguous x/y/z columns and malformed dump fallback paths.
     noncontig = tmp_path / "noncontig.dump"
     noncontig.write_text(
         "\n".join(
@@ -1065,18 +1065,21 @@ def test_hysteresis_cache_eviction_source_errors_and_dump_fallbacks(
         stride = det_nc._readNfunc(fh)
     assert stride == 11
     raw_lines = tuple(noncontig.read_text().splitlines(keepends=True))
-    assert det_nc._try_fast_parse_frame(0, raw_lines) is not None
-    # Malformed timestep, mismatched box bounds, NaN ID, out-of-range ID, duplicate ID.
-    bad_ts = ("ITEM: TIMESTEP\n", "bad\n", *raw_lines[2:])
-    assert det_nc._try_fast_parse_frame(0, bad_ts) is None
-    bad_box = (*raw_lines[:5], "0.0\n", *raw_lines[6:])
-    assert det_nc._try_fast_parse_frame(0, bad_box) is None
-    nan_id = (*raw_lines[:9], "0.0 nan 0.0 1 0.0\n", raw_lines[10])
-    assert det_nc._try_fast_parse_frame(0, nan_id) is None
-    oob_id = (*raw_lines[:9], "0.0 0 0.0 1 0.0\n", raw_lines[10])
-    assert det_nc._try_fast_parse_frame(0, oob_id) is None
-    dup_id = (*raw_lines[:9], "0.0 2 0.0 1 0.0\n", raw_lines[10])
-    assert det_nc._try_fast_parse_frame(0, dup_id) is None
+    det_nc._active_bonds = set()
+    mols, (parsed_step, parsed_ts) = det_nc._readstepfunc((0, raw_lines))
+    assert (parsed_step, parsed_ts) == (0, 0) and len(mols) == 1
+    # Mismatched/malformed dump rows: out-of-range ID/type, duplicate ID, missing ID, header error.
+    for bad_row, msg in (
+        ("0.0 nan 0.0 1 0.0\n", "invalid literal for int"),
+        ("0.0 0 0.0 1 0.0\n", "atom ID is out of range"),
+        ("0.0 2 0.0 1 0.0\n", "duplicate atom ID"),
+        ("0.0 1 0.0 9 0.0\n", "atom type is out of range"),
+    ):
+        with pytest.raises(ValueError, match=msg):
+            det_nc._readstepfunc((0, (*raw_lines[:9], bad_row, raw_lines[10])))
+    missing_row = (*raw_lines[:10],)
+    with pytest.raises(ValueError, match="missing one or more atom IDs"):
+        det_nc._readstepfunc((0, missing_row))
     with pytest.raises(ValueError, match="LAMMPS dump file format error"):
         det_nc._readstepfunc((0, ("bad line\n",)))
 
@@ -1092,17 +1095,16 @@ def test_hysteresis_cache_eviction_source_errors_and_dump_fallbacks(
         det_ext._readstepfunc((0, ("1\n",)))
 
 
-def test_kdtree_hysteresis_exact_ase_threshold_and_strict_search_cutoff(tmp_path):
+def test_kdtree_hysteresis_exact_ase_threshold_and_strict_search_cutoff(
+    tmp_path, monkeypatch
+):
     """Preserve bit-for-bit ASE distance rounding and strict cutoff semantics."""
     r_c = covalent_radii[6]
     form_mult = 1.25
     break_mult = 1.35
-    # Construct a 3D displacement right on the C-C formation threshold where
-    # np.sum(dv * dv) <= thr while einsum("ij,ij->i", dv, dv) rounds 1 ULP higher.
     dv = np.array([1.8137306394406951, 0.5308986975642098, -0.19628484525982356])
     thr = 2.0 * r_c * form_mult
     assert float(np.sqrt(np.sum(dv * dv))) <= thr
-    assert float(np.sqrt(np.einsum("ij,ij->i", dv[None, :], dv[None, :])[0])) > thr
 
     for periodic in (False, True):
         traj = tmp_path / f"cc_two_frames_{periodic}.xyz"
@@ -1112,24 +1114,31 @@ def test_kdtree_hysteresis_exact_ase_threshold_and_strict_search_cutoff(tmp_path
             f"2\nf\nC {p0[0]!r} {p0[1]!r} {p0[2]!r}\nC {p1[0]!r} {p1[1]!r} {p1[2]!r}\n"
         )
         traj.write_text(frame_txt * 2)
-        target = tmp_path / f"cc_{periodic}.h5"
-        rng = ReacNetGenerator(
-            inputfilename=str(traj),
-            inputfiletype="xyz",
-            atomname=["C"],
-            pbc=periodic,
-            cell=np.diag([10.0, 10.0, 10.0]) if periodic else None,
-            use_ase=True,
-            runHMM=False,
-            bond_hysteresis={"form": form_mult, "break": break_mult},
-            output_dir=tmp_path / f"out_{periodic}",
-            timed_output=target,
-            nproc=1,
-        )
-        rng.run_items(["species", "reactions"])
-        validate_timed_output(target)
-        spans = list(iter_molecule_ranges(target))
-        assert [(s.start_frame, s.end_frame) for s in spans] == [(0, 1)]
+
+        def run_case(label: str):
+            target = tmp_path / f"cc_{periodic}_{label}.h5"
+            rng = ReacNetGenerator(
+                inputfilename=str(traj),
+                inputfiletype="xyz",
+                atomname=["C"],
+                pbc=periodic,
+                cell=np.diag([10.0, 10.0, 10.0]) if periodic else None,
+                use_ase=True,
+                runHMM=False,
+                bond_hysteresis={"form": form_mult, "break": break_mult},
+                output_dir=tmp_path / f"out_{periodic}_{label}",
+                timed_output=target,
+                nproc=1,
+            )
+            rng.run_items(["species", "reactions"])
+            validate_timed_output(target)
+            return [(s.start_frame, s.end_frame) for s in iter_molecule_ranges(target)]
+
+        fast_spans = run_case("fast")
+        with monkeypatch.context() as mp:
+            mp.setattr(_DetectCrd, "_get_kdtree_hysteresis_pairs", lambda *args: None)
+            ase_spans = run_case("ase")
+        assert fast_spans == ase_spans == [(0, 1)]
 
     # Strict ASE search cutoff: scaled formation distance equals sum of ASE search radii.
     form_edge = math.nextafter(1.75, math.inf)
@@ -1293,27 +1302,244 @@ def test_fast_dump_parser_rejects_ragged_rows_and_noncanonical_integers(tmp_path
     with open(valid_dump) as fh:
         assert det._readNfunc(fh) == 11
     base_lines = tuple(valid_dump.read_text().splitlines(keepends=True))
-    # Lines without trailing newline still parse via the fast path.
+    det._active_bonds = set()
+    # Lines without trailing newline still parse identically.
     no_nl = (*base_lines[:10], base_lines[10].rstrip("\n"))
-    assert det._try_fast_parse_frame(0, no_nl) is not None
+    assert det._readstepfunc((0, no_nl))[1] == (0, 0)
 
-    # Ragged rows: total float count matches N*n_cols, but shifts trailing '2' as ID 2.
+    # Wide-column dump (29 columns) matches 5-column dump on default Open Babel path.
+    wide_dump = tmp_path / "wide.dump"
+    extra_cols = " ".join(f"c_{i}" for i in range(24))
+    extra_vals = " ".join(f"{i * 0.1:.2f}" for i in range(24))
+    wide_dump.write_text(
+        "\n".join(
+            [
+                "ITEM: TIMESTEP",
+                "0",
+                "ITEM: NUMBER OF ATOMS",
+                "2",
+                "ITEM: BOX BOUNDS pp pp pp",
+                "0.0 10.0",
+                "0.0 10.0",
+                "0.0 10.0",
+                f"ITEM: ATOMS id type x y z {extra_cols}",
+                f"1 1 0.0 0.0 0.0 {extra_vals}",
+                f"2 1 1.4 0.0 0.0 {extra_vals}",
+                "",
+            ]
+        )
+    )
+    wide_target = tmp_path / "wide.h5"
+    ReacNetGenerator(
+        inputfilename=str(wide_dump),
+        inputfiletype="dump",
+        atomname=["C"],
+        pbc=False,
+        runHMM=False,
+        output_dir=tmp_path / "wide_out",
+        timed_output=wide_target,
+        nproc=1,
+    ).run_items(["species", "reactions"])
+    validate_timed_output(wide_target)
+    assert [(m.atom_index, m.bonds) for m in iter_molecules(wide_target)] == [
+        ((0, 1), ((0, 1, 1),)),
+    ]
+
+    # Ragged rows and noncanonical/overflow integer tokens must raise ValueError.
     ragged = (*base_lines[:9], "1 1 0 0 0 2\n", "1 1 0 0\n")
-    assert det._try_fast_parse_frame(0, ragged) is None
     with pytest.raises(ValueError, match="duplicate atom ID"):
         det._readstepfunc((0, ragged))
-
-    # Noncanonical integer tokens ('1.0', '1e0') and overflow-sized int strings must fall back.
-    for bad_row in ("1.0 1 0 0 0\n", "1 1e0 0 0 0\n"):
+    for bad_row in (
+        "1.0 1 0 0 0\n",
+        "1 1e0 0 0 0\n",
+        "100000000000000000000 1 0 0 0\n",
+    ):
         frame = (*base_lines[:9], bad_row, base_lines[10])
-        assert det._try_fast_parse_frame(0, frame) is None
         with pytest.raises(ValueError):
             det._readstepfunc((0, frame))
 
-    huge_id = (*base_lines[:9], "100000000000000000000 1 0 0 0\n", base_lines[10])
-    assert det._try_fast_parse_frame(0, huge_id) is None
-    with pytest.raises(ValueError, match="out of range"):
-        det._readstepfunc((0, huge_id))
 
-    # Non-string line element cleanly triggers TypeError fallback in _try_fast_parse_frame.
-    assert det._try_fast_parse_frame(0, (*base_lines[:9], None, base_lines[10])) is None
+def test_kdtree_periodic_wrap_error_bound_fallback_for_far_coordinates(tmp_path):
+    """Fall back to ASE when large coordinates can make wrapped tree search miss bonds."""
+    r_h = covalent_radii[1]
+    form_mult = 0.74 / (2.0 * r_h)
+    break_mult = 0.7500000005 / (2.0 * r_h)
+    cell = np.diag([10.0, 10.0, 10.0])
+    far_pos = np.array([[9999990.0, 0.0, 0.0], [-9999989.25 + 2**-29, 0.0, 0.0]])
+
+    det = _DetectLAMMPSdump(
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype="dump",
+            atomname=["H"],
+            pbc=True,
+            use_ase=True,
+            bond_hysteresis={"form": form_mult, "break": break_mult},
+        )
+    )
+    assert (
+        det._get_kdtree_hysteresis_pairs(np.array([1, 1]), far_pos, cell, 0.7500000005)
+        is None
+    )
+
+    dump_path = tmp_path / "far_hh.dump"
+    dump_path.write_text(
+        "".join(
+            "\n".join(
+                [
+                    "ITEM: TIMESTEP",
+                    str(ts),
+                    "ITEM: NUMBER OF ATOMS",
+                    "2",
+                    "ITEM: BOX BOUNDS pp pp pp",
+                    "0.0 10.0",
+                    "0.0 10.0",
+                    "0.0 10.0",
+                    "ITEM: ATOMS id type x y z",
+                    f"1 1 {coords[0][0]!r} {coords[0][1]!r} {coords[0][2]!r}",
+                    f"2 1 {coords[1][0]!r} {coords[1][1]!r} {coords[1][2]!r}",
+                    "",
+                ]
+            )
+            for ts, coords in (
+                (0, [[0.0, 0.0, 0.0], [0.74, 0.0, 0.0]]),
+                (1, far_pos.tolist()),
+            )
+        )
+    )
+    target = tmp_path / "far_hh.h5"
+    ReacNetGenerator(
+        inputfilename=str(dump_path),
+        inputfiletype="dump",
+        atomname=["H"],
+        pbc=True,
+        use_ase=True,
+        runHMM=False,
+        bond_hysteresis={"form": form_mult, "break": break_mult},
+        output_dir=tmp_path / "far_out",
+        timed_output=target,
+        nproc=1,
+    ).run_items(["species", "reactions"])
+    validate_timed_output(target)
+    assert [(s.start_frame, s.end_frame) for s in iter_molecule_ranges(target)] == [
+        (0, 1)
+    ]
+
+
+def test_xyz_and_extxyz_allow_unused_atomname_and_reject_zero_atoms(tmp_path):
+    """Allow unused non-ASE type labels in atomname while rejecting 0-atom xyz/extxyz."""
+    xyz_path = tmp_path / "h2.xyz"
+    xyz_path.write_text("2\nframe\nH 0 0 0\nH 0.74 0 0\n")
+    ext_path = tmp_path / "h2.extxyz"
+    ext_path.write_text('2\nLattice="10 0 0 0 10 0 0 0 10"\nH 0 0 0\nH 0.74 0 0\n')
+
+    for kind, src in (("xyz", xyz_path), ("extxyz", ext_path)):
+        target = tmp_path / f"{kind}_unused_d.h5"
+        ReacNetGenerator(
+            inputfilename=str(src),
+            inputfiletype=kind,
+            atomname=["H", "D"],
+            pbc=True,
+            cell=np.diag([10.0, 10.0, 10.0]) if kind == "xyz" else None,
+            runHMM=False,
+            output_dir=tmp_path / f"out_{kind}",
+            timed_output=target,
+            nproc=1,
+        ).run_items(["species", "reactions"])
+        validate_timed_output(target)
+        assert [(m.atom_index, m.bonds) for m in iter_molecules(target)] == [
+            ((0, 1), ((0, 1, 1),))
+        ]
+
+    zero_xyz = tmp_path / "zero.xyz"
+    zero_xyz.write_text("0\nempty\n")
+    zero_ext = tmp_path / "zero.extxyz"
+    zero_ext.write_text('0\nLattice="10 0 0 0 10 0 0 0 10"\n')
+    for kind, src in (("xyz", zero_xyz), ("extxyz", zero_ext)):
+        det = _Detect.gettype(
+            ReacNetGenerator(
+                inputfilename=str(src),
+                inputfiletype=kind,
+                atomname=["H"],
+                pbc=False,
+                output_dir=tmp_path / f"zero_{kind}",
+                nproc=1,
+            )
+        )
+        with pytest.raises(ValueError, match="at least one atom"):
+            det.detect()
+        with pytest.raises(ValueError, match="at least one atom"):
+            det._readstepfunc((0, tuple(src.read_text().splitlines(keepends=True))))
+
+
+def test_detector_reuse_threshold_refresh_and_inplace_active_bonds_mutation(tmp_path):
+    """Refresh radii/cutoff cache across threshold changes and detect in-place bond edits."""
+    hh_xyz = tmp_path / "hh_reuse.xyz"
+    hh_xyz.write_text("2\nf\nH 0 0 0\nH 0.90 0 0\n")
+    rng = ReacNetGenerator(
+        inputfilename=str(hh_xyz),
+        inputfiletype="xyz",
+        atomname=["H"],
+        pbc=False,
+        use_ase=True,
+        bond_hysteresis={"form": 1.1, "break": 1.2},
+        output_dir=tmp_path / "reuse_out",
+        nproc=1,
+    )
+    det = _Detect.gettype(rng)
+    det.detect()
+    assert rng.temp1it == 2
+    os.remove(rng.moleculetempfilename)
+
+    rng.bond_hysteresis = {"form": 1.6, "break": 1.7}
+    det.detect()
+    assert rng.temp1it == 1
+    os.remove(rng.moleculetempfilename)
+
+    # Also refresh direct _get_hysteresis_bonds calls when break changes without detect().
+    hh_atoms = Atoms("HH", positions=[[0.0, 0.0, 0.0], [0.90, 0.0, 0.0]])
+    det_direct = _DetectLAMMPSdump(
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype="dump",
+            atomname=["H"],
+            pbc=False,
+            use_ase=True,
+            bond_hysteresis={"form": 1.1, "break": 1.2},
+        )
+    )
+    det_direct._active_bonds = {(0, 1)}
+    assert det_direct._get_hysteresis_bonds(hh_atoms, np.diag([10.0, 10.0, 10.0])) == (
+        [[], []],
+        [[], []],
+    )
+    det_direct.rng.bond_hysteresis = {"form": 1.1, "break": 1.6}
+    det_direct._active_bonds = {(0, 1)}
+    assert det_direct._get_hysteresis_bonds(hh_atoms, np.diag([10.0, 10.0, 10.0])) == (
+        [[1], [0]],
+        [[1], [1]],
+    )
+
+    # In-place same-length mutation of _active_bonds: {(0, 1)} -> {(1, 2)}.
+    h3 = Atoms("HHH", positions=[[0.0, 0.0, 0.0], [0.85, 0.0, 0.0], [1.70, 0.0, 0.0]])
+    det_mut = _DetectLAMMPSdump(
+        ReacNetGenerator(
+            inputfilename="unused",
+            inputfiletype="dump",
+            atomname=["H"],
+            pbc=False,
+            use_ase=True,
+            bond_hysteresis={"form": 1.1, "break": 1.6},
+        )
+    )
+    det_mut._active_bonds = {(0, 1)}
+    assert det_mut._get_hysteresis_bonds(h3, np.diag([10.0, 10.0, 10.0])) == (
+        [[1], [0], []],
+        [[1], [1], []],
+    )
+    det_mut._active_bonds.remove((0, 1))
+    det_mut._active_bonds.add((1, 2))
+    assert det_mut._get_hysteresis_bonds(h3, np.diag([10.0, 10.0, 10.0])) == (
+        [[], [2], [1]],
+        [[], [1], [1]],
+    )
